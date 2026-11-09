@@ -10,13 +10,21 @@
 // router.push. 가로채지 않는 것 — /api/*(소셜 로그인 시작 등 서버 리다이렉트) · 새 창(target) · 다운로드 ·
 // data-hard(일부러 전체 이동) · 해시만 바뀌는 이동.
 // ─────────────────────────────────────────────────────────────────────────────
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { setNavRouter } from "@/lib/nav";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
+import { noteRoute, setNavRouter } from "@/lib/nav";
 import { runAfterOverlays } from "@/lib/useBackToClose";
 
 export function LinkInterceptor() {
   const router = useRouter();
+  // 첫 화면 다음 주소가 바뀌면 앱 안에서 옮겨 다닌 것 — 하위 화면 ← 가 들어온 곳으로 되돌아간다(BackLink)
+  const pathname = usePathname();
+  const seen = useRef(false);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: 주소가 바뀔 때마다 그 칸의 앱 안 깊이를 적는다
+  useEffect(() => {
+    noteRoute(!seen.current);
+    seen.current = true;
+  }, [pathname]);
   useEffect(() => {
     setNavRouter(router);
     const onClick = (e: MouseEvent) => {

@@ -26,7 +26,12 @@ export default function VerifyClient({ token }: { token: string }) {
   }, [token, refreshMe]);
 
   return (
-    <AuthPage title={t("verify.verified")}>
+    // [원본] <AuthPage title={t("verify.verified")}> — 확인 중·실패에도 「확인된 이메일」이었다(화면 지도 2026-11-09)
+    <AuthPage
+      title={t(
+        state === "done" ? "verify.verified" : state === "bad" ? "verify.titleFailed" : "verify.title",
+      )}
+    >
       <AppText
         variant="body"
         color={state === "bad" ? "danger" : "text"}

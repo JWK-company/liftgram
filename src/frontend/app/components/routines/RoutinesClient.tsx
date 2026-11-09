@@ -22,7 +22,6 @@
 import { errorText } from "@/lib/errorText";
 import { navigate } from "@/lib/nav";
 import {
-  // [원본] CONCEPT_ROUTINES, — 옛 콘셉트 그리드 원복 시 살린다(SRS-091)
   type CreatorTopic,
   creatorRoutinesFor,
   // [원본] visibleCreatorTopics,
@@ -31,7 +30,6 @@ import {
   missedCatchUp,
   muscleLabel,
   todayPlan,
-  type ConceptRoutine,
   type MissedPlan,
 } from "@app/core";
 import { useQueryDataStatus } from "@app/core/db/hooks";
@@ -42,14 +40,13 @@ import { lang, t, tw } from "@/lib/i18n";
 import { useSession } from "../SessionProvider";
 import { useToast } from "../Toast";
 import { Button } from "../ui/Button";
-import { ActionSheet, ConfirmDialog, SheetShell } from "../ui/Dialog";
+import { ActionSheet, ConfirmDialog } from "../ui/Dialog";
 import { Icon } from "../ui/Icon";
 import { IconButton } from "../ui/IconButton";
 import { AppText, Card, EmptyState } from "../ui/primitives";
 import { ScheduleEditor } from "./ScheduleEditor";
 import { CreatorTopicSheet } from "./CreatorRoutineSheet"; // 크리에이터 루틴 @plm SRS-091
 import { AppBar, AppBarAction } from "../ui/AppBar";
-// [원본] import { MoreMenu } from "../ui/MoreMenu"; — 진행 카드의 ⋯ 메뉴(화면 정리 D8 로 렌더 중단)
 import { ListGroup, SectionLabel } from "../ui/rows";
 import { AdSlot } from "../ads/AdSlot";
 import { RecentWorkouts, WeekSummary } from "./WeekSummary";
@@ -80,7 +77,6 @@ export default function RoutinesClient() {
   // loading — 사용자 레코드(스케줄)를 읽기 전의 null 을 「스케줄 없음」으로 보지 않으려고(qa M-1)
   const { user, weeklySchedule, loading: userLoading } = useUser();
   // [원본] activeName 도 꺼냈다 — 진행 카드 제목(화면 정리 D8 로 렌더 중단)
-  // [원본] const { activeWorkoutId, setActive, refreshActive } = useSession(); — refreshActive 는 아래 고아 확인창에서만 썼다
   // activeLoaded — 진행 중인 운동을 읽기 전의 null 은 「없음」이 아니라 「모름」(화면 정리 M-2 /qa H-2) @plm SRS-072
   const { activeWorkoutId, setActive, activeLoaded } = useSession();
   const toast = useToast();
@@ -97,14 +93,12 @@ export default function RoutinesClient() {
   // 오늘(로컬 달력일) — 홈을 띄워 둔 채 자정을 넘기면 추천의 「오늘 운동함」이 어제 값으로 남는다(/qa L-3)
   const [todayNum, setTodayNum] = useState(() => localDayNum(Date.now()));
   const [openFolders, setOpenFolders] = useState<Record<string, boolean>>({});
-  const [concept, setConcept] = useState<ConceptRoutine | null>(null);
   const [creatorTopic, setCreatorTopic] = useState<CreatorTopic | null>(null); // @plm SRS-091
   // [원본] const creatorTopics = useMemo(() => visibleCreatorTopics(), []);
   // [개선] 초보자 주제를 프로 루틴과 따로 묶는다(사용자 지시 2026-11-06)
   const creatorSections = useMemo(() => visibleCreatorSections(), []);
   const [actionsFor, setActionsFor] = useState<Routine | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Routine | null>(null);
-  // [원본] const [confirmDiscard, setConfirmDiscard] = useState(false); — 진행 카드 ⋯(D8 로 제거)만 열던 상태(P3 QA L1)
   const [activeExists, setActiveExists] = useState<null | (() => Promise<void>)>(null);
   const [editingSchedule, setEditingSchedule] = useState(false);
   /** 최근 8일 중 운동을 마친 날. 캐치업 판정이 이걸 본다. */
@@ -148,7 +142,9 @@ export default function RoutinesClient() {
           import("@/lib/motionCache"),
         ]);
         const ids = new Set<string>();
-        for (const m of models as unknown as { routineExercises: { fetch(): Promise<{ exerciseId: string }[]> } }[]) {
+        for (const m of models as unknown as {
+          routineExercises: { fetch(): Promise<{ exerciseId: string }[]> };
+        }[]) {
           for (const re of await m.routineExercises.fetch()) ids.add(re.exerciseId);
         }
         if (cancelled) return;
@@ -427,35 +423,6 @@ export default function RoutinesClient() {
         />
       />
       <div className="flex flex-1 flex-col p-[var(--spacing-lg)]">
-        {/* ── 진행 중인 운동 ── [원본] 분홍 진행 카드 — 아래 진행 막대(열기·취소)와 같은 사실을 두 번 알렸다(화면 정리 D8).
-            원복 시 아래 주석을 푼다. 진행 중 표시는 이제 셸의 하단 막대(GlobalWorkoutBar) 하나다. @plm SRS-071
-        {activeWorkoutId ? (
-          <div
-            className="mb-[var(--spacing-lg)] flex items-center gap-[var(--spacing-md)] rounded-[var(--radius-md)] border border-(--color-brand) bg-(--color-brand-muted) py-[var(--spacing-md)] pr-[var(--spacing-xs)] pl-[var(--spacing-lg)]"
-            data-testid="resume-card"
-          >
-            <a href="/workout" data-testid="btn-resume" className="min-w-0 flex-1">
-              <AppText variant="heading" className="block truncate">
-                {activeName || t("routines.activeWorkout")}
-              </AppText>
-              <AppText variant="caption" color="textMuted" className="mt-[2px] block">
-                {t("routines.resumePrompt")}
-              </AppText>
-            </a>
-            <MoreMenu
-              testId="btn-active-menu"
-              options={[
-                {
-                  label: t("routines.discardWorkoutButton"),
-                  destructive: true,
-                  testId: "btn-discard-active",
-                  onPress: () => setConfirmDiscard(true),
-                },
-              ]}
-            />
-          </div>
-        ) : null} */}
-
         {/* ── 주간 스케줄 — 맨 위(2026-11-05 사용자 지시) · 사용자 기록을 읽기 전에는 자리만 잡는다(만들기 줄이 카드로 바뀌며 깜빡이지 않게) ── */}
         {userLoading ? (
           <div aria-hidden className="mb-[var(--spacing-sm)] min-h-[50px]" data-testid="schedule-skeleton" />
@@ -640,33 +607,6 @@ export default function RoutinesClient() {
             [원본] <RecentWorkouts /> 다음에 <SectionLabel title="더 해 보기" /> · 주간 스케줄 · 프로그램 생성·주변 헬스장 줄 · 프로 루틴 순서였다.
             [원본] <ListRow href="/program" testId="btn-program" icon="sparkles" title={t("program.title")} /> — 프로그램 생성 기능 삭제
             [원본] <ListRow href="/gyms" testId="btn-gyms" icon="location" title={t("gyms.entry")} /> — 피드 탭으로 옮김 */}
-        {/* [원본] 옛 AI 콘셉트 루틴 4개 그리드 — 사용자 결정(2026-10-28)으로 크리에이터 루틴으로 교체. 원복 시 아래 주석을 풀고 새 섹션을 주석 처리
-        // {/ * ── 콘셉트 루틴 ── * /}
-        // <div className="mb-[var(--spacing-sm)]">
-        //   <AppText variant="label" color="textMuted" className="mb-[4px] block">
-        //     {t("concept.sectionTitle")}
-        //   </AppText>
-        //   <div className="grid grid-cols-2 gap-[var(--spacing-sm)]">
-        //     {CONCEPT_ROUTINES.map((c) => (
-        //       <button
-        //         key={c.id}
-        //         type="button"
-        //         data-testid={`concept-${c.id}`}
-        //         onClick={() => setConcept(c)}
-        //         // min-w-0 이 없으면 긴 이름이 카드를 밀어 화면 전체가 가로로 넘친다(flex 기본값 함정).
-        //         className="flex min-w-0 flex-1 flex-col gap-[2px] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface) p-[var(--spacing-md)] text-left"
-        //       >
-        //         <AppText variant="body" className="block truncate font-bold">
-        //           {lang === "ko" ? c.nameKo : c.nameEn}
-        //         </AppText>
-        //         <AppText variant="label" color="textMuted">
-        //           {t("concept.dayCount", { count: c.days.length })}
-        //         </AppText>
-        //       </button>
-        //     ))}
-        //   </div>
-        // </div>
-        */}
         {/* [개선] 콘셉트 루틴 = 크리에이터 루틴 주제(버전 0개 주제는 숨김) @plm SRS-091 */}
         {/* [원본] 분류 없이 주제 전체를 「프로 루틴」 한 구역에 — 프로·초보자 두 구역으로 나눴다(사용자 지시 2026-11-06)
             {creatorTopics.length ? (
@@ -705,18 +645,6 @@ export default function RoutinesClient() {
         <RecentWorkouts />
 
         {/* ── 대화상자들 ── */}
-        {concept ? (
-          <ConceptDialog
-            concept={concept}
-            existingNames={routines.map((r) => r.name)}
-            onClose={() => setConcept(null)}
-            onSaved={(count) => {
-              setConcept(null);
-              toast(t("concept.savedMessage", { count }));
-            }}
-          />
-        ) : null}
-
         {creatorTopic ? (
           <CreatorTopicSheet
             topic={creatorTopic}
@@ -806,27 +734,6 @@ export default function RoutinesClient() {
             }}
           />
         ) : null}
-
-        {/* [원본] 진행 중 운동 폐기 확인창 — 열어 주던 진행 카드 ⋯ 가 D8 로 빠져 도달할 수 없었다(P3 QA L1). 취소는 하단 막대가 맡는다.
-        {confirmDiscard ? (
-          <ConfirmDialog
-            testId="confirm-discard-active"
-            title={t("routines.discardWorkoutTitle")}
-            message={t("routines.discardWorkoutMessage")}
-            confirmLabel={t("common.delete")}
-            destructive
-            onCancel={() => setConfirmDiscard(false)}
-            onConfirm={() => {
-              setConfirmDiscard(false);
-              run(async () => {
-                if (activeWorkoutId) await repos?.workout.discardWorkout(activeWorkoutId).catch(() => {});
-                setActive(null);
-                await refreshActive();
-              });
-            }}
-          />
-        ) : null}
-        */}
 
         {activeExists ? (
           <ActionSheet
@@ -1377,111 +1284,6 @@ function RoutineRow({
 //     </AppText>
 //   );
 // }
-
-/** 콘셉트 루틴 미리보기 — 스토리와 Day 구성을 보여 주고, 저장하면 Day마다 루틴이 하나씩 생긴다. */
-function ConceptDialog({
-  concept,
-  existingNames,
-  onClose,
-  onSaved,
-}: {
-  concept: ConceptRoutine;
-  existingNames: string[];
-  onClose: () => void;
-  onSaved: (count: number) => void;
-}) {
-  const [saving, setSaving] = useState(false);
-  const [dupe, setDupe] = useState(false);
-
-  const routineName = (dayName: string) => `${lang === "ko" ? concept.nameKo : concept.nameEn} — ${dayName}`;
-
-  const save = async () => {
-    setSaving(true);
-    try {
-      const [exerciseRepo, routineRepo] = await Promise.all([
-        import("@app/core/data/exerciseRepository"),
-        import("@app/core/data/routineRepository"),
-      ]);
-      // [원본] 콘셉트 루틴이 nameKo 로 종목을 가리키던 때 — P2 에서 seed id 로 옮겼다(ADR-033)
-      // const names = [...new Set(concept.days.flatMap((d) => d.exercises))];
-      // const idByName = await exerciseRepo.getExerciseIdsByNames(names);
-      const have = await exerciseRepo.getActiveExerciseIds([
-        ...new Set(concept.days.flatMap((d) => d.exercises)),
-      ]);
-
-      let made = 0;
-      for (const d of concept.days) {
-        // 기기에 없는 종목은 조용히 뺀다 — 하나 없다고 Day 전체를 못 만들 이유가 없다.
-        const items = d.exercises.filter((id) => have.has(id)).map((exerciseId) => ({ exerciseId }));
-        if (!items.length) continue;
-        await routineRepo.importRoutine(routineName(lang === "ko" ? d.nameKo : d.nameEn), items);
-        trackUsage("routine_import");
-        made += 1;
-      }
-      onSaved(made);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const onSave = () => {
-    const willMake = concept.days.map((d) => routineName(lang === "ko" ? d.nameKo : d.nameEn));
-    if (!dupe && willMake.some((n) => existingNames.includes(n))) {
-      setDupe(true);
-      return;
-    }
-    void save();
-  };
-
-  if (dupe) {
-    return (
-      <ConfirmDialog
-        testId="concept-dupe"
-        title={t("concept.dupeTitle")}
-        message={t("concept.dupeMessage")}
-        confirmLabel={t("common.save")}
-        onCancel={() => setDupe(false)}
-        onConfirm={() => void save()}
-      />
-    );
-  }
-
-  return (
-    <SheetShell
-      title={lang === "ko" ? concept.nameKo : concept.nameEn}
-      onClose={onClose}
-      hideOk
-      testId="concept-sheet"
-    >
-      <AppText variant="body" color="textMuted" className="mt-[4px] block">
-        {lang === "ko" ? concept.storyKo : concept.storyEn}
-      </AppText>
-
-      {concept.days.map((d) => (
-        <div
-          key={d.nameKo}
-          className="mt-[var(--spacing-sm)] rounded-[var(--radius-sm)] bg-(--color-surface-alt) p-[var(--spacing-sm)]"
-        >
-          <AppText variant="caption" color="primary" className="font-bold">
-            {lang === "ko" ? d.nameKo : d.nameEn}
-          </AppText>
-          <AppText variant="caption" color="textMuted" className="mt-[2px] block">
-            {d.exercises.join(" · ")}
-          </AppText>
-        </div>
-      ))}
-
-      <div className="mt-[var(--spacing-md)] flex gap-[var(--spacing-sm)]">
-        <div className="flex-1">
-          <Button title={t("common.cancel")} variant="secondary" onPress={onClose} />
-        </div>
-        <div className="flex-1">
-          <Button title={t("concept.saveButton")} loading={saving} testId="concept-save" onPress={onSave} />
-        </div>
-      </div>
-    </SheetShell>
-  );
-}
 
 /**
  * 놓친 루틴 — **지난 배정일에 아무것도 안 한 날**이 있으면 한 장 띄운다.

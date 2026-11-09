@@ -112,6 +112,8 @@ const (
 	FeedServiceSuggestedUsersProcedure = "/feed.v1.FeedService/SuggestedUsers"
 	// FeedServiceSearchProcedure is the fully-qualified name of the FeedService's Search RPC.
 	FeedServiceSearchProcedure = "/feed.v1.FeedService/Search"
+	// FeedServiceGetPostProcedure is the fully-qualified name of the FeedService's GetPost RPC.
+	FeedServiceGetPostProcedure = "/feed.v1.FeedService/GetPost"
 	// FeedServiceListCommentsProcedure is the fully-qualified name of the FeedService's ListComments
 	// RPC.
 	FeedServiceListCommentsProcedure = "/feed.v1.FeedService/ListComments"
@@ -175,6 +177,8 @@ type FeedServiceClient interface {
 	SuggestedUsers(context.Context, *connect.Request[v1.SuggestedUsersRequest]) (*connect.Response[v1.SuggestedUsersResponse], error)
 	// 사람·태그·글을 한 번에 찾는다.
 	Search(context.Context, *connect.Request[v1.SearchRequest]) (*connect.Response[v1.SearchResponse], error)
+	// 글 하나 — 공유 링크로 연 글 보기 화면이 위에 그린다(2026-11-09).
+	GetPost(context.Context, *connect.Request[v1.GetPostRequest]) (*connect.Response[v1.GetPostResponse], error)
 	ListComments(context.Context, *connect.Request[v1.ListCommentsRequest]) (*connect.Response[v1.ListCommentsResponse], error)
 	// 답글은 **펼칠 때** 가져온다 — 목록에 미리 싣지 않는다.
 	ListReplies(context.Context, *connect.Request[v1.ListRepliesRequest]) (*connect.Response[v1.ListRepliesResponse], error)
@@ -338,6 +342,12 @@ func NewFeedServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(feedServiceMethods.ByName("Search")),
 			connect.WithClientOptions(opts...),
 		),
+		getPost: connect.NewClient[v1.GetPostRequest, v1.GetPostResponse](
+			httpClient,
+			baseURL+FeedServiceGetPostProcedure,
+			connect.WithSchema(feedServiceMethods.ByName("GetPost")),
+			connect.WithClientOptions(opts...),
+		),
 		listComments: connect.NewClient[v1.ListCommentsRequest, v1.ListCommentsResponse](
 			httpClient,
 			baseURL+FeedServiceListCommentsProcedure,
@@ -420,6 +430,7 @@ type feedServiceClient struct {
 	setFeedPrefs     *connect.Client[v1.SetFeedPrefsRequest, v1.SetFeedPrefsResponse]
 	suggestedUsers   *connect.Client[v1.SuggestedUsersRequest, v1.SuggestedUsersResponse]
 	search           *connect.Client[v1.SearchRequest, v1.SearchResponse]
+	getPost          *connect.Client[v1.GetPostRequest, v1.GetPostResponse]
 	listComments     *connect.Client[v1.ListCommentsRequest, v1.ListCommentsResponse]
 	listReplies      *connect.Client[v1.ListRepliesRequest, v1.ListRepliesResponse]
 	likeComment      *connect.Client[v1.LikeCommentRequest, v1.LikeCommentResponse]
@@ -546,6 +557,11 @@ func (c *feedServiceClient) Search(ctx context.Context, req *connect.Request[v1.
 	return c.search.CallUnary(ctx, req)
 }
 
+// GetPost calls feed.v1.FeedService.GetPost.
+func (c *feedServiceClient) GetPost(ctx context.Context, req *connect.Request[v1.GetPostRequest]) (*connect.Response[v1.GetPostResponse], error) {
+	return c.getPost.CallUnary(ctx, req)
+}
+
 // ListComments calls feed.v1.FeedService.ListComments.
 func (c *feedServiceClient) ListComments(ctx context.Context, req *connect.Request[v1.ListCommentsRequest]) (*connect.Response[v1.ListCommentsResponse], error) {
 	return c.listComments.CallUnary(ctx, req)
@@ -630,6 +646,8 @@ type FeedServiceHandler interface {
 	SuggestedUsers(context.Context, *connect.Request[v1.SuggestedUsersRequest]) (*connect.Response[v1.SuggestedUsersResponse], error)
 	// 사람·태그·글을 한 번에 찾는다.
 	Search(context.Context, *connect.Request[v1.SearchRequest]) (*connect.Response[v1.SearchResponse], error)
+	// 글 하나 — 공유 링크로 연 글 보기 화면이 위에 그린다(2026-11-09).
+	GetPost(context.Context, *connect.Request[v1.GetPostRequest]) (*connect.Response[v1.GetPostResponse], error)
 	ListComments(context.Context, *connect.Request[v1.ListCommentsRequest]) (*connect.Response[v1.ListCommentsResponse], error)
 	// 답글은 **펼칠 때** 가져온다 — 목록에 미리 싣지 않는다.
 	ListReplies(context.Context, *connect.Request[v1.ListRepliesRequest]) (*connect.Response[v1.ListRepliesResponse], error)
@@ -789,6 +807,12 @@ func NewFeedServiceHandler(svc FeedServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(feedServiceMethods.ByName("Search")),
 		connect.WithHandlerOptions(opts...),
 	)
+	feedServiceGetPostHandler := connect.NewUnaryHandler(
+		FeedServiceGetPostProcedure,
+		svc.GetPost,
+		connect.WithSchema(feedServiceMethods.ByName("GetPost")),
+		connect.WithHandlerOptions(opts...),
+	)
 	feedServiceListCommentsHandler := connect.NewUnaryHandler(
 		FeedServiceListCommentsProcedure,
 		svc.ListComments,
@@ -891,6 +915,8 @@ func NewFeedServiceHandler(svc FeedServiceHandler, opts ...connect.HandlerOption
 			feedServiceSuggestedUsersHandler.ServeHTTP(w, r)
 		case FeedServiceSearchProcedure:
 			feedServiceSearchHandler.ServeHTTP(w, r)
+		case FeedServiceGetPostProcedure:
+			feedServiceGetPostHandler.ServeHTTP(w, r)
 		case FeedServiceListCommentsProcedure:
 			feedServiceListCommentsHandler.ServeHTTP(w, r)
 		case FeedServiceListRepliesProcedure:
@@ -1008,6 +1034,10 @@ func (UnimplementedFeedServiceHandler) SuggestedUsers(context.Context, *connect.
 
 func (UnimplementedFeedServiceHandler) Search(context.Context, *connect.Request[v1.SearchRequest]) (*connect.Response[v1.SearchResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("feed.v1.FeedService.Search is not implemented"))
+}
+
+func (UnimplementedFeedServiceHandler) GetPost(context.Context, *connect.Request[v1.GetPostRequest]) (*connect.Response[v1.GetPostResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("feed.v1.FeedService.GetPost is not implemented"))
 }
 
 func (UnimplementedFeedServiceHandler) ListComments(context.Context, *connect.Request[v1.ListCommentsRequest]) (*connect.Response[v1.ListCommentsResponse], error) {

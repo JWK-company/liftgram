@@ -225,6 +225,15 @@ message UnlikePostResponse {
   bool liked_by_me = 2;
 }
 
+// 글 하나 — 공유 링크·글 보기 화면(/feed/<id>). 볼 수 없는 글(비공개·팔로워 전용·차단·숨김)은 없는 것처럼 NotFound.
+message GetPostRequest {
+  string post_id = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+}
+
+message GetPostResponse {
+  Post post = 1;
+}
+
 message ListCommentsRequest {
   string post_id = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
   Cursor cursor = 2;
@@ -519,6 +528,8 @@ service FeedService {
   // 사람·태그·글을 한 번에 찾는다.
   rpc Search(SearchRequest) returns (SearchResponse) {}
 
+  // 글 하나 — 공유 링크로 연 글 보기 화면이 위에 그린다(2026-11-09).
+  rpc GetPost(GetPostRequest) returns (GetPostResponse) {}
   rpc ListComments(ListCommentsRequest) returns (ListCommentsResponse) {}
   // 답글은 **펼칠 때** 가져온다 — 목록에 미리 싣지 않는다.
   rpc ListReplies(ListRepliesRequest) returns (ListRepliesResponse) {}

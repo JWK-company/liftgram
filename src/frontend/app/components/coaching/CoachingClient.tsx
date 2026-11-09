@@ -16,9 +16,9 @@
 // 상태와 무관하게 해지 버튼을 둔다. 회원이 언제든 닫을 수 없으면 그건 동의가 아니다.
 // ─────────────────────────────────────────────────────────────────────────────
 import { errorText } from "@/lib/errorText";
-import type { Grant, Peer, Routine, RoutineExercise, MemberReport } from "@app/contracts";
+import type { Grant, Peer, Routine, RoutineExercise } from "@app/contracts";
 import { GrantStatus, Side } from "@app/contracts";
-import { formatWeight, muscleLabel, type MuscleGroup, type WeightUnit } from "@app/core";
+import type { WeightUnit } from "@app/core";
 import { useCallback, useEffect, useState } from "react";
 import { t, type TransKey } from "@/lib/i18n";
 import { coachingClient } from "@/lib/coachingClient";
@@ -55,7 +55,6 @@ export default function CoachingClient() {
   const [results, setResults] = useState<Peer[] | null>(null);
 
   // 겹쳐 뜨는 판: 리포트 · 루틴 처방 · 이력. 한 번에 하나만 연다.
-  const [report, setReport] = useState<{ peer: Peer; data: MemberReport } | null>(null);
   const [reportFor, setReportFor] = useState<Peer | null>(null); // 새 리포트(GetMemberRecords) @plm SRS-079
   const [routinesFor, setRoutinesFor] = useState<Peer | null>(null);
   const [history, setHistory] = useState<{ grant: Grant; lines: string[] } | null>(null);
@@ -97,13 +96,6 @@ export default function CoachingClient() {
 
   async function openReport(g: Grant) {
     if (!g.peer) return;
-    // [원본] 원복 시 아래를 주석 해제하고 새 호출(setReportFor)을 주석 처리 — 옛 GetMemberReport(Go 집계)는 서버에 그대로 있다(ADR-040 개정)
-    // try {
-    //   const res = await coachingClient().getMemberReport({ memberId: g.peer.id });
-    //   if (res.report) setReport({ peer: g.peer, data: res.report });
-    // } catch {
-    //   toast(t("common.error"), "error");
-    // }
     // [개선] 원본 레코드를 받아 이 기기의 core 가 계산한다(회원 요약과 같은 숫자) — 결과는 판 상태에만(S-20)
     setReportFor(g.peer);
   }
@@ -266,9 +258,6 @@ export default function CoachingClient() {
         ) : null}
       </div>
 
-      {report ? (
-        <ReportDialog report={report.data} peer={report.peer} unit={unit} onClose={() => setReport(null)} />
-      ) : null}
       {reportFor ? (
         <MemberReportDialog peer={reportFor} unit={unit} onClose={() => setReportFor(null)} />
       ) : null}
@@ -394,83 +383,6 @@ function GrantRow({
   );
 }
 
-/** 리포트 — **사실만**. 맨 아래 고지가 "판단은 코치가 한다"고 말한다(ADR-028). */
-function ReportDialog({
-  report,
-  peer,
-  unit,
-  onClose,
-}: {
-  report: MemberReport;
-  peer: Peer;
-  unit: WeightUnit;
-  onClose: () => void;
-}) {
-  return (
-    <Panel
-      testId="coaching-report-view"
-      title={t("coaching.reportTitle", { name: peer.displayName || "?" })}
-      onClose={onClose}
-      actions={<Button title={t("common.ok")} variant="secondary" onPress={onClose} />}
-    >
-      <AppText variant="caption" color="textMuted" className="block">
-        {t("coaching.reportRange", { weeks: report.weeks })}
-      </AppText>
-
-      <div className="mt-[var(--spacing-md)] flex gap-[var(--spacing-sm)]">
-        <Stat
-          label={t("coaching.statSessions")}
-          value={String(report.sessionsCount)}
-          testId="report-sessions"
-        />
-        <Stat
-          label={t("coaching.statPerWeek")}
-          value={String(report.sessionsPerWeek)}
-          testId="report-per-week"
-        />
-        <Stat
-          label={t("coaching.statVolume")}
-          value={formatWeight(report.totalVolumeKg, unit)}
-          testId="report-volume"
-        />
-      </div>
-
-      {report.muscleVolume.length > 0 ? (
-        <>
-          <AppText variant="label" color="textMuted" className="mt-[var(--spacing-md)] block">
-            {t("coaching.muscleVolumeTitle")}
-          </AppText>
-          <div data-testid="report-muscles">
-            {report.muscleVolume.slice(0, 6).map((m) => (
-              <RowKV key={m.muscle} k={muscleLabelSafe(m.muscle)} v={formatWeight(m.volumeKg, unit)} />
-            ))}
-          </div>
-        </>
-      ) : null}
-
-      {report.recentSessions.length > 0 ? (
-        <>
-          <AppText variant="label" color="textMuted" className="mt-[var(--spacing-md)] block">
-            {t("coaching.recentSessionsTitle")}
-          </AppText>
-          {report.recentSessions.map((s) => (
-            <RowKV
-              // 같은 날 두 번 운동할 수 있어 날짜로는 겹친다 — 시작 시각(ms)이 세션의 정체다.
-              key={String(s.startedAt)}
-              k={`${new Date(Number(s.startedAt)).toLocaleDateString()} ${s.name}`.trim()}
-              v={formatWeight(s.totalVolumeKg, unit)}
-            />
-          ))}
-        </>
-      ) : null}
-
-      <AppText variant="caption" color="textFaint" className="mt-[var(--spacing-sm)] block">
-        {t("coaching.reportFactOnly")}
-      </AppText>
-    </Panel>
-  );
-}
-
 /** 회원 루틴 처방 — 종목을 누르면 편집기가 열린다. DM 요약 카드의 「루틴 처방」도 이 판을 연다(SRS-080). */
 export function MemberRoutinesDialog({ peer, onClose }: { peer: Peer; onClose: () => void }) {
   const toast = useToast();
@@ -557,39 +469,4 @@ export function MemberRoutinesDialog({ peer, onClose }: { peer: Peer; onClose: (
       )}
     </Panel>
   );
-}
-
-function Stat({ label, value, testId }: { label: string; value: string; testId: string }) {
-  return (
-    <div className="flex-1 rounded-[var(--radius-md)] bg-(--color-surface-alt) py-[var(--spacing-sm)] text-center">
-      <AppText variant="heading" className="block" data-testid={testId}>
-        {value}
-      </AppText>
-      <AppText variant="label" color="textMuted" className="block">
-        {label}
-      </AppText>
-    </div>
-  );
-}
-
-function RowKV({ k, v }: { k: string; v: string }) {
-  return (
-    <div className="flex items-center gap-[var(--spacing-sm)] py-[3px]">
-      <AppText variant="caption" color="textMuted" className="min-w-0 flex-1 truncate">
-        {k}
-      </AppText>
-      <AppText variant="caption" className="font-medium!">
-        {v}
-      </AppText>
-    </div>
-  );
-}
-
-/** 서버가 준 근육 이름이 우리 목록 밖일 수 있다 — 그럴 땐 원문을 그대로 보여 준다(무해). */
-function muscleLabelSafe(muscle: string): string {
-  try {
-    return muscleLabel(muscle as MuscleGroup, "ko");
-  } catch {
-    return muscle;
-  }
 }

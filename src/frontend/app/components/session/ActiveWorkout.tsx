@@ -45,7 +45,6 @@ import { RestBar, clock } from "./RestBar";
 import { LongDoneHint, PrevHint } from "../CoachHints";
 import { LockNotices } from "./LockNotices";
 import { LockReadiness } from "./LockReadiness";
-// import { SessionGuideButtons } from "./SessionGuides"; // [원본] SPEC-023
 import { TodayMuscleButton } from "./TodayMuscleSheet";
 import { WorkoutSummary, type Summary } from "./WorkoutSummary";
 import { FinishRoutineSheets, type FinishPromptState } from "./FinishRoutineSheets";
@@ -454,9 +453,6 @@ export default function ActiveWorkout() {
           />
         </div>
 
-        {/* [원본] <SessionGuideButtons /> — 「오늘 근육」 버튼에 운동 id 를 넘긴다 @plm SRS-075 */}
-        {/* [원본] <SessionGuideButtons workoutId={workout.id} /> — RIR·웜업 가이드는 뺐다(나중에 운동팁 탭 · SPEC-023) */}
-
         <div className="flex-1 p-[var(--spacing-lg)]">
           {exercises.length === 0 ? (
             <EmptyState
@@ -520,37 +516,6 @@ export default function ActiveWorkout() {
         {/* 운동 전 체중 체크인 — 설정을 켠 사람에게만, 이 운동 첫 진입에서 한 번(U-7) @plm SRS-077 */}
         <WeighInCheckin workoutId={workout.id} startedAt={workout.startedAt} />
 
-        {/* [원본] 바닥 시트의 작은 피커 — 몇 줄만 보이고 부위로 못 좁히고 하나씩만 골랐다(피드백 2026-10-30)
-        // {picking ? (
-        //   // 운동 추가는 화면 이동 없이 바닥 시트(시안 03) — 흐름이 끊기지 않는다.
-        //   <Overlay onClose={() => setPicking(null)} placement="bottom" testId="picker-sheet">
-        //     <ExercisePicker
-        //       bare
-        //       onClose={() => setPicking(null)}
-        //       onPick={(exerciseId, info) =>
-        //         guard(async () => {
-        //           // 고른 이름(별칭)이 표시 이름·함축 칸(로프 등)을 정한다 — lib/exerciseNames.applyPick @plm SRS-056
-        //           const { applyPick } = await import("@/lib/exerciseNames");
-        //           if (picking.mode === "swap") {
-        //             const from = exercises.find((x) => x.id === picking.weId)?.exerciseId ?? null;
-        //             await repo.swapWorkoutExercise(picking.weId, exerciseId);
-        //             await applyPick(exerciseId, info, { workoutExerciseId: picking.weId });
-        //             setVersion((v) => v + 1);
-        //             // [원본] 운동 중 「이번만 / 루틴에도」 — 완료 때 한 번에 고르므로 묻지 않는다(D3 · SRS-059)
-        //             // if (from) await askRoutineScope(from, exerciseId);
-        //             void from;
-        //           } else {
-        //             const we = await repo.addExerciseToWorkout(workout.id, exerciseId);
-        //             await applyPick(exerciseId, info, { workoutExerciseId: we.id });
-        //             if (info) setVersion((v) => v + 1);
-        //           }
-        //           setPicking(null);
-        //         })
-        //       }
-        //     />
-        //   </Overlay>
-        // ) : null}
-        */}
         {/* [개선] 루틴 편집과 같은 전체 화면 피커 — 추가는 여러 개를 고른 순서대로 · 교체는 한 개 즉시 @plm SRS-093 */}
         {picking ? (
           <ExercisePickerScreen

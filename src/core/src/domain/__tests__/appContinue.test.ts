@@ -1,6 +1,33 @@
 // [원본] import { describe, expect, test } from "bun:test"; — make verify 는 node:test 로 돈다
 import { describe, expect, test } from "./expectShim";
-import { appLinkKind, isChallenge, maskEmail, shouldExchange } from "../appContinue";
+import { appLinkKind, appWebLinkPath, isChallenge, maskEmail, shouldExchange } from "../appContinue";
+
+describe("앱 링크 → 웹 경로(화면 지도 2026-11-09)", () => {
+  const H = "liftgram.tarae.org";
+  test("피드 글·프로필·해시태그만 경로로", () => {
+    expect(appWebLinkPath("https://liftgram.tarae.org/feed/abc", H)).toBe("/feed/abc");
+    expect(appWebLinkPath("https://liftgram.tarae.org/u/u1?x=1#c", H)).toBe("/u/u1?x=1#c");
+    expect(appWebLinkPath("https://LIFTGRAM.tarae.org/hashtag/%EB%8B%A4", H)).toBe("/hashtag/%EB%8B%A4");
+  });
+  test("다른 주소·다른 경로·빈 경로·http·앱 스킴은 null", () => {
+    for (const bad of [
+      "https://evil.example/feed/abc",
+      "https://liftgram.tarae.org.evil.example/feed/abc",
+      "https://liftgram.tarae.org/api/auth/oauth/google/callback?code=1",
+      "https://liftgram.tarae.org/feed/",
+      "https://liftgram.tarae.org/feed",
+      "https://liftgram.tarae.org/feedback/1",
+      "http://liftgram.tarae.org/feed/abc",
+      "liftgram://workout",
+      "not a url",
+      null,
+      undefined,
+    ]) {
+      expect(appWebLinkPath(bad, H)).toBe(null);
+    }
+    expect(appWebLinkPath("https://liftgram.tarae.org/feed/abc", "")).toBe(null);
+  });
+});
 
 describe("SPEC-018 §7 로그인 넘기기 규칙", () => {
   test("challenge 형식", () => {

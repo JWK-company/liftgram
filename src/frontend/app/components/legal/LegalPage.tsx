@@ -1,7 +1,7 @@
 // 약관·개인정보처리방침의 공통 껍데기 — 읽기 쉬운 폭과 제목 계층만 준다.
 import type { ReactNode } from "react";
 import { BusinessInfo } from "../BusinessInfo";
-import { Icon } from "../ui/Icon";
+import { BackLink } from "../ui/BackLink";
 import { ScreenHeader } from "../ui/ScreenHeader";
 
 export function LegalPage({
@@ -18,11 +18,8 @@ export function LegalPage({
     <>
       <ScreenHeader
         title={title}
-        back={
-          <a href="/profile" aria-label="뒤로" data-testid="legal-back">
-            <Icon name="chevron-back" size={24} color="var(--color-ink)" />
-          </a>
-        }
+        // [원본] <a href="/profile" …> — 로그인·가입 화면에서 열어도 프로필로 갔다(화면 지도 2026-11-09)
+        back={<BackLink fallbackHref="/profile" testId="legal-back" />}
       />
       <article className="mx-auto flex w-full max-w-[640px] flex-col gap-[var(--spacing-md)] p-[var(--spacing-lg)] text-sm leading-relaxed text-(--color-ink2) [&_h2]:mt-[var(--spacing-md)] [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-(--color-ink) [&_li]:ml-[var(--spacing-lg)] [&_li]:list-disc">
         <h1 className="text-xl font-bold text-(--color-ink)">{title}</h1>

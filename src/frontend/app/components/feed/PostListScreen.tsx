@@ -7,9 +7,9 @@
 import type { WeightUnit } from "@app/core";
 import type { Cursor, Post } from "@app/contracts";
 import { useCallback, useEffect, useState } from "react";
-import { t, type TransKey } from "@/lib/i18n";
+import type { TransKey } from "@/lib/i18n";
 import { useAuth } from "../AuthProvider";
-import { Icon } from "../ui/Icon";
+import { BackLink } from "../ui/BackLink";
 import { ListState } from "../ui/ListState";
 import { ScreenHeader } from "../ui/ScreenHeader";
 import type { IconName } from "../ui/Icon";
@@ -24,6 +24,7 @@ export function PostListScreen({
   emptyTitle,
   emptyMessage,
   testId,
+  backHref = "/feed",
 }: {
   title: string;
   /** 커서가 없으면 첫 페이지. 화면은 어떤 RPC인지 모른다. */
@@ -32,6 +33,8 @@ export function PostListScreen({
   emptyTitle: TransKey;
   emptyMessage?: TransKey;
   testId: string;
+  /** 앱 안 이전 화면이 없을 때 ← 가 갈 곳 — 저장함은 프로필에서 들어온다 */
+  backHref?: string;
 }) {
   const { user } = useAuth();
   const unit = useWeightUnit();
@@ -76,11 +79,8 @@ export function PostListScreen({
     <div className="flex flex-1 flex-col">
       <ScreenHeader
         title={title}
-        back={
-          <a href="/feed" aria-label={t("feed.title")} data-testid={`${testId}-back`}>
-            <Icon name="chevron-back" size={24} color="var(--color-ink)" />
-          </a>
-        }
+        // [원본] <a href="/feed" …> — 저장함(프로필에서 들어옴)도 피드로 갔다(화면 지도 2026-11-09)
+        back={<BackLink fallbackHref={backHref} testId={`${testId}-back`} />}
       />
       <div className="flex-1 p-[var(--spacing-lg)]" data-testid={testId}>
         {posts.length === 0 ? (

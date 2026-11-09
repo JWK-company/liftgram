@@ -588,6 +588,17 @@ func (s *Service) TrendingHashtags(ctx context.Context, viewerID string, limit i
 
 // ── 댓글 ─────────────────────────────────────────────────────────────────────
 
+// GetPost — 글 보기 화면(공유 링크)이 쓴다. 댓글 목록과 같은 단건 판정을 쓴다 — 댓글은 보이는데 글은 안 보이는 일이 없게.
+func (s *Service) GetPost(ctx context.Context, viewerID, postID string) (Post, error) {
+	if viewerID == "" {
+		return Post{}, errs.New(errs.Unauthorized, "로그인이 필요합니다")
+	}
+	if postID == "" {
+		return Post{}, errs.New(errs.Validation, "게시물을 지정해 주세요")
+	}
+	return s.repo.GetPost(ctx, viewerID, postID)
+}
+
 func (s *Service) ListComments(ctx context.Context, viewerID, postID string, cur *Cursor, limit int32) ([]Comment, *Cursor, error) {
 	if viewerID == "" {
 		return nil, nil, errs.New(errs.Unauthorized, "로그인이 필요합니다")

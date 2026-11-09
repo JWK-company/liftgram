@@ -59,7 +59,7 @@ const TABS: Tab[] = [
         "/messages",
         "/notifications",
         "/u",
-        "/bookmarks",
+        // [원본] "/bookmarks", — 저장함은 프로필에서 들어온다(화면 지도 2026-11-09) → 프로필 탭
       ),
   },
   { key: "stats", href: "/stats", label: "분석", testId: "nav-stats", match: (p) => under(p, "/stats") },
@@ -76,7 +76,9 @@ const TABS: Tab[] = [
     // [개선] 주변 헬스장은 피드 탭의 하위 화면이다(2026-11-05)
     // [원본] match: (p) => under(p, "/profile", "/account", "/gear", "/coaching", "/blocked"),
     // [개선] 운영 탭을 없애고 운영자 페이지를 프로필의 하위 화면으로 옮겼다(SPEC-032)
-    match: (p) => under(p, "/profile", "/account", "/gear", "/coaching", "/blocked"),
+    // [원본] match: (p) => under(p, "/profile", "/account", "/gear", "/coaching", "/blocked"),
+    // [개선] 저장함(/bookmarks)은 프로필에서 들어온다 — 피드 탭이 켜지던 것을 바로잡았다(화면 지도 2026-11-09)
+    match: (p) => under(p, "/profile", "/account", "/gear", "/coaching", "/blocked", "/bookmarks"),
   },
 ];
 

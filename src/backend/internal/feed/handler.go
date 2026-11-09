@@ -93,6 +93,15 @@ func (h *Handler) UnlikePost(ctx context.Context, req *connect.Request[feedv1.Un
 	return connect.NewResponse(&feedv1.UnlikePostResponse{LikeCount: count, LikedByMe: liked}), nil
 }
 
+// GetPost — 글 하나. 볼 수 있는지는 저장소 단건 조회가 판정한다(비공개·팔로워·차단·숨김 → NotFound).
+func (h *Handler) GetPost(ctx context.Context, req *connect.Request[feedv1.GetPostRequest]) (*connect.Response[feedv1.GetPostResponse], error) {
+	p, err := h.svc.GetPost(ctx, viewer(ctx), req.Msg.GetPostId())
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&feedv1.GetPostResponse{Post: toProtoPost(p)}), nil
+}
+
 func (h *Handler) ListComments(ctx context.Context, req *connect.Request[feedv1.ListCommentsRequest]) (*connect.Response[feedv1.ListCommentsResponse], error) {
 	comments, next, err := h.svc.ListComments(ctx, viewer(ctx), req.Msg.GetPostId(), fromProtoCursor(req.Msg.GetCursor()), req.Msg.GetLimit())
 	if err != nil {

@@ -79,7 +79,6 @@ import { navigate } from "@/lib/nav";
 // import { IconButton } from "../ui/IconButton"; // 머리 순서 화살표 원복 시(/qa code M-5)
 import { NumberStepper } from "../ui/inputs";
 import { AppText, Card, Tag } from "../ui/primitives";
-// [원본] import { VariantSelector } from "../ui/VariantSelector";
 import { RecordSlotSelector } from "../ui/RecordSlotSelector";
 import { UnitToggle } from "../ui/UnitToggle";
 import { Icon } from "../ui/Icon";
@@ -1047,8 +1046,6 @@ export function ExerciseBlock({
         <div className="mt-[2px] flex items-start gap-[var(--spacing-sm)]">
           <MetaLine className="flex-1" testId="we-meta">
             {!isCardio ? (
-              // [원본] 기구 칩이 같은 종목의 변형 칸이던 선택기 — P2 에서 기구 바꾸기 = 종목 바꾸기(ADR-033·034)
-              // <VariantSelector baseEquipment={baseEquipment} value={variant} onChange={...} />
               <RecordSlotSelector
                 key="slot"
                 exerciseId={we.exerciseId}

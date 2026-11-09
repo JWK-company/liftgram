@@ -88,7 +88,7 @@ export default function CatalogClient() {
   const [finderLabel, setFinderLabel] = useState<string | null>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const toast = useToast();
+  const _toast = useToast();
   const mounted = useRef(false);
 
   // ── 부팅: 저장소를 열고, 서버 카탈로그와 맞춘다 ──
@@ -405,7 +405,9 @@ function ExerciseRow({ row }: { row: Row }) {
         </a>
       ) : null}
       <a
-        href={routes.exercise(row.id)}
+        // [원본] href={routes.exercise(row.id)} — 내 종목은 서버에 없어 상세가 404 였다(화면 지도 2026-11-09 실측)
+        // [개선] 내 종목 줄은 고치기 화면으로 — 만든 사람이 내용을 보고 손볼 수 있는 자리
+        href={row.isCustom ? `/exercises/${encodeURIComponent(row.id)}/edit` : routes.exercise(row.id)}
         data-testid={`exercise-${row.id}`}
         className="flex min-h-[60px] items-center gap-[var(--spacing-md)] px-[var(--spacing-md)] py-[var(--spacing-sm)] active:bg-(--color-surface-alt)"
       >

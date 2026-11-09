@@ -378,7 +378,8 @@ export default function FeedClient() {
             message={t("feed.loginRequiredMessage")}
             action={
               <Button
-                title={t("feed.goProfile")}
+                // [원본] title={t("feed.goProfile")} — 「프로필로 가기」인데 계정(로그인) 화면으로 갔다(화면 지도 2026-11-09)
+                title={t("profile.loginOrSignup")}
                 icon="person-circle-outline"
                 fullWidth={false}
                 onPress={() => {

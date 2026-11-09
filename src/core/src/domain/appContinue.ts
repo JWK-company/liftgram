@@ -22,6 +22,26 @@ export function appLinkKind(url: string | null | undefined): AppLinkKind | null 
   return k === "auth" || k === "workout" || k === "start" ? k : null;
 }
 
+/** 앱 링크로 여는 웹 경로 — AndroidManifest 의 pathPrefix · apple-app-site-association 의 components 와 같은 셋 */
+const APP_WEB_LINK_PREFIXES = ["/feed/", "/u/", "/hashtag/"] as const;
+
+/**
+ * 앱 링크(https://<우리 주소>/feed/… 등)로 앱이 열렸을 때 웹뷰가 옮겨 갈 경로(+쿼리·해시). 우리 주소가 아니거나
+ * 앱 링크 경로가 아니면 null — 로그인 콜백(/api/…) 같은 다른 주소로 끌려가지 않게 셋만 받는다(화면 지도 2026-11-09).
+ */
+export function appWebLinkPath(url: string | null | undefined, host: string): string | null {
+  if (typeof url !== "string" || !host) return null;
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    return null;
+  }
+  if (u.protocol !== "https:" || u.host.toLowerCase() !== host.toLowerCase()) return null;
+  if (!APP_WEB_LINK_PREFIXES.some((p) => u.pathname.startsWith(p) && u.pathname.length > p.length)) return null;
+  return u.pathname + u.search + u.hash;
+}
+
 /**
  * 확인 화면에 보일 주소 — 앞 한 글자와 도메인만(`a••••@gmail.com`). 남이 화면을 봐도 계정 전체가 드러나지 않게.
  * 주소가 없거나 모양이 이상하면 "".

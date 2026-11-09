@@ -191,9 +191,17 @@ test.describe("360×560 · 탭바가 있는 화면의 입력창", () => {
       await expect(page.getByTestId("comments-list")).toContainText(`댓글 ${i}`, { timeout: 20_000 });
     }
     await expect(page.getByTestId("global-workout-bar")).toBeVisible();
-    await 맨위로(page);
+    // [원본] 맨위로 → 화면_안 → 위에(comment-input, global-workout-bar) → 위에(global-workout-bar, shell-nav)
+    // [개선 2026-11-09] 댓글은 바닥 시트 — 시트가 막대·탭바 위를 덮고, 입력칸은 시트 바닥에서 아무것도 가리지 않는다
+    await expect(page.getByTestId("comments-sheet")).toBeVisible();
     await 화면_안(page, "comment-input");
-    await 위에(page, "comment-input", "global-workout-bar");
+    const 맨위 = await page.getByTestId("comment-input").evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      return !!top && (top === el || el.contains(top));
+    });
+    expect(맨위, "댓글 입력칸이 다른 것에 덮였다").toBe(true);
+    await page.getByTestId("comments-sheet-close").click();
     await 위에(page, "global-workout-bar", "shell-nav");
   });
 });

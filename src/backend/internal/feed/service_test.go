@@ -1404,3 +1404,34 @@ func TestCreatePostWithFlaggedPhotoIsHeld(t *testing.T) {
 		t.Fatal("검토 대기여야 한다")
 	}
 }
+
+// 글 보기 화면(공유 링크) — 로그인 필요 · 남의 비공개 글은 없는 것처럼 · 본인 글은 보인다(2026-11-09)
+func TestGetPostForShareLink(t *testing.T) {
+	svc, _ := newTestService()
+	ctx := context.Background()
+
+	pub, err := svc.CreatePost(ctx, "author", NewPost{Caption: "공개", Visibility: VisibilityPublic})
+	if err != nil {
+		t.Fatal(err)
+	}
+	priv, err := svc.CreatePost(ctx, "author", NewPost{Caption: "비공개", Visibility: VisibilityPrivate})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := svc.GetPost(ctx, "", pub.ID); domainCode(t, err) != errs.Unauthorized {
+		t.Fatal("비로그인 글 보기가 통과했다")
+	}
+	if _, err := svc.GetPost(ctx, "stranger", ""); domainCode(t, err) != errs.Validation {
+		t.Fatal("빈 글 id 가 통과했다")
+	}
+	got, err := svc.GetPost(ctx, "stranger", pub.ID)
+	if err != nil || got.Caption != "공개" {
+		t.Fatalf("공개 글을 남이 못 본다: %v", err)
+	}
+	if _, err := svc.GetPost(ctx, "stranger", priv.ID); domainCode(t, err) != errs.NotFound {
+		t.Fatal("남의 비공개 글이 보였다")
+	}
+	if got, err := svc.GetPost(ctx, "author", priv.ID); err != nil || got.Caption != "비공개" {
+		t.Fatalf("본인 비공개 글이 안 보인다: %v", err)
+	}
+}

@@ -22,6 +22,7 @@ export default function BookmarksClient() {
       emptyIcon="bookmark-outline"
       emptyTitle="bookmark.empty"
       emptyMessage="bookmark.emptyMessage"
+      backHref="/profile"
       testId="bookmark-list"
     />
   );

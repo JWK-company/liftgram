@@ -17,6 +17,7 @@ import type { Metadata, Viewport } from "next";
 import { AuthProvider } from "./components/AuthProvider";
 import { GlobalWorkoutBar } from "./components/GlobalWorkoutBar";
 import { LinkInterceptor } from "./components/LinkInterceptor";
+import { AppWebLinkBridge } from "./components/AppWebLinkBridge";
 import { UsageTracker } from "./components/UsageTracker";
 import { SessionProvider } from "./components/SessionProvider";
 import { ToastProvider } from "./components/Toast";
@@ -137,6 +138,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <PrefsBridge />
                 {/* 앱 안 <a href> 를 클라이언트 이동으로 — 탭마다 문서를 새로 받지 않게(SRS-054). */}
                 <LinkInterceptor />
+                {/* 앱 링크로 열리면 그 글·프로필로(화면 지도 2026-11-09) */}
+                <AppWebLinkBridge />
                 {/* 이용 기록(SPEC-032) — 그리는 것 없음 · 끌 수 있음 */}
                 <UsageTracker />
                 {/* 옛 번들이 새 스키마 DB 를 만나면 열지 않고 새로고침만 보인다(D-5 · 다운그레이드 가드). @plm SRS-073 */}

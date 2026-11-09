@@ -127,7 +127,9 @@ test("댓글과 답글 — 답글은 펼쳐야 보인다", async ({ page }) => {
   await 글쓰기(page, "댓글 달아 주세요");
 
   await page.getByTestId("post-comments").first().click();
-  await expect(page.getByTestId("screen-title")).toHaveText("댓글", { timeout: 20_000 });
+  // [원본] screen-title 「댓글」 — 댓글 전체 화면이었다 · 지금은 피드 위로 올라오는 시트(주소 그대로)
+  await expect(page.getByTestId("comments-sheet")).toBeVisible({ timeout: 20_000 });
+  await expect(page).toHaveURL(/\/feed(\?|$)/);
 
   await page.getByTestId("comment-input").fill("첫 댓글");
   await page.getByTestId("comment-post").click();

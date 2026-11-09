@@ -179,6 +179,10 @@ test("팔로우·좋아요·댓글이 알림으로 쌓이고, 열면 배지가 �
   await page.getByTestId("comment-input").fill("좋은 글이에요");
   await page.getByTestId("comment-post").click();
   await expect(page.getByTestId("comments-list")).toContainText("좋은 글이에요", { timeout: 20_000 });
+  // 계정을 바꾸기 전에 이 사람 기기 기록이 서버에 올라갈 때까지 기다린다 — 댓글이 시트라 화면 이동 없이 곧바로 바꾸면
+  // 가입 때 생긴 기록이 아직 대기열에 있어 「다른 계정의 기록」 창이 뜬다(2026-11-09 · 시험 쪽 경합)
+  await page.goto("/exercises");
+  await expect(page.getByTestId("sync-state")).toHaveText("최신", { timeout: 20_000 });
 
   // 주인으로 돌아와 알림을 본다.
   await context.clearCookies();

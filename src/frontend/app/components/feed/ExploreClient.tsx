@@ -20,19 +20,20 @@ import { routes } from "@app/contracts";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { t } from "@/lib/i18n";
 import { feedClient } from "@/lib/feedClient";
+import { navigate } from "@/lib/nav";
 import { useAuth } from "../AuthProvider";
 import { Avatar } from "../ui/Avatar";
+import { BackLink } from "../ui/BackLink";
 import { Button } from "../ui/Button";
-import { Icon } from "../ui/Icon";
 import { TextField } from "../ui/inputs";
 import { ListState } from "../ui/ListState";
-import { AppText, Card, SectionHeader } from "../ui/primitives";
+import { AppText, Card, EmptyState, SectionHeader } from "../ui/primitives";
 import { ScreenHeader } from "../ui/ScreenHeader";
 import { PostCard } from "./PostCard";
 import { useWeightUnit } from "./useWeightUnit";
 
 export default function ExploreClient() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const unit = useWeightUnit();
 
   // 발견 모드
@@ -123,15 +124,43 @@ export default function ExploreClient() {
 
   const inSearch = q.trim().length > 0;
 
+  // 로그인하지 않았을 때 — 빈 화면 대신 피드 탭과 같은 안내(화면 지도 2026-11-09)
+  // 로그인 확인 중에는 머리줄만 — 탐색 화면이 먼저 그려졌다 안내로 바뀌며 깜빡이지 않게(REV 낮음)
+  if (!user) {
+    return (
+      <div className="flex flex-1 flex-col">
+        <ScreenHeader
+          title={t("explore.title")}
+          back={<BackLink fallbackHref="/feed" label={t("feed.title")} testId="explore-back" />}
+        />
+        {authLoading ? null : (
+          <div className="flex flex-1 flex-col p-[var(--spacing-lg)]">
+            <EmptyState
+              icon="person-circle-outline"
+              title={t("feed.loginRequiredTitle")}
+              message={t("feed.loginRequiredMessage")}
+              action={
+                <Button
+                  title={t("profile.loginOrSignup")}
+                  icon="person-circle-outline"
+                  fullWidth={false}
+                  onPress={() => navigate("/account")}
+                  testId="explore-login"
+                />
+              }
+            />
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-1 flex-col">
       <ScreenHeader
         title={t("explore.title")}
-        back={
-          <a href="/feed" aria-label={t("feed.title")} data-testid="explore-back">
-            <Icon name="chevron-back" size={24} color="var(--color-ink)" />
-          </a>
-        }
+        // [원본] <a href="/feed" …> — 들어온 곳으로(BackLink · 화면 지도 2026-11-09)
+        back={<BackLink fallbackHref="/feed" label={t("feed.title")} testId="explore-back" />}
       />
 
       <div className="px-[var(--spacing-lg)] pt-[var(--spacing-md)]">

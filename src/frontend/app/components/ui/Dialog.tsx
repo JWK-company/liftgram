@@ -250,30 +250,3 @@ export function ActionSheet({
     </Overlay>
   );
 }
-
-/** 알림만 — 결과를 보여 주고 닫는다(플레이트 계산 결과 등). */
-export function InfoDialog({
-  title,
-  message,
-  onClose,
-  testId,
-}: {
-  title: string;
-  message: string;
-  onClose: () => void;
-  testId?: string;
-}) {
-  return (
-    <Overlay onClose={onClose} testId={testId}>
-      <AppText variant="heading">{title}</AppText>
-      <div className="mt-[var(--spacing-sm)] whitespace-pre-line">
-        <AppText variant="body" color="textMuted">
-          {message}
-        </AppText>
-      </div>
-      <div className="mt-[var(--spacing-md)]">
-        <Button title={t("common.ok")} onPress={onClose} />
-      </div>
-    </Overlay>
-  );
-}

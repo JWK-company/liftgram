@@ -38,7 +38,12 @@ function sentence(n: Notification): string {
 function target(n: Notification): string {
   if (n.kind === NotificationKind.FOLLOW) return routes.userProfile(n.actor?.id ?? "");
   if (n.kind === NotificationKind.COACHING_SUMMARY) return "/messages"; // 실제 이동은 openSummary(그 회원과의 대화) @plm SRS-080
-  return n.postId ? routes.postComments(n.postId) : "/feed";
+  // [원본] return n.postId ? routes.postComments(n.postId) : "/feed";
+  // [개선 2026-11-09] 댓글 알림은 글 보기 + 댓글 시트를 바로 연다(?comments=1) · 좋아요는 글만
+  if (!n.postId) return "/feed";
+  return n.kind === NotificationKind.COMMENT
+    ? `${routes.postComments(n.postId)}?comments=1`
+    : routes.postComments(n.postId);
 }
 
 /** 성과 요약 알림 — 보낸 회원(actor)과의 1:1 대화로 가서 그 카드를 강조한다(postId 는 비어 있다 · S-16·U-17). @plm SRS-080 */

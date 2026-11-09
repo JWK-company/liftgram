@@ -57,20 +57,12 @@ for x in N:
 miss=[k for k in AREAS if k not in TAGS]
 if miss: print('구역 대상 화면 없음',miss)
 D=dict(nodes=N,edges=E,orphanNote='',odd=[],foot='')
-D['orphanNote']='/diag/db는 개발 전용이라 의도된 것입니다. /signin·/signup은 로그인 폼 전환 때 주소만 바뀝니다. /stats/summary는 옛 주소를 살려 둔 것입니다.'
+D['orphanNote']='남긴 이유 — /diag/db는 개발 전용입니다. /signin·/signup은 로그인 폼 전환 때 주소만 바뀝니다. /program·/stats/summary는 지운 화면의 옛 주소를 새 화면으로 넘기는 장치라 지우면 옛 북마크가 404가 됩니다(2026-11-09 검증).'
 D['odd']=[
- ['내 종목 줄 → /exercise/[id]','카탈로그의 내 종목 줄도 상세로 연결되는데, 코드 주석은 내 종목이 서버에 없어 이 주소가 404라고 적고 있습니다.','실행 확인 필요 · src/frontend/app/components/CatalogClient.tsx:403'],
- ['앱 링크 도착지','/feed/, /u/, /hashtag/ 링크로 앱이 열려도 해당 글로 옮기는 코드를 찾지 못했습니다. 스킴 처리기는 auth·workout·start만 나눕니다.','실행 확인 필요 · src/frontend/lib/native.ts:96'],
- ['공유 링크','앱 링크 대상 주소는 있지만 앱 안에 링크를 복사하거나 보내는 버튼이 없습니다.','src/frontend/app/components/session/ShareWorkout.tsx:192'],
- ['/gyms 뒤로 가기','입구는 운동 홈인데 뒤로 가면 프로필로 가고 프로필 탭이 켜집니다.','src/frontend/app/components/NearbyGymsClient.tsx:85'],
- ['/bookmarks 뒤로 가기','입구는 프로필인데 뒤로 가면 피드로 가고 피드 탭이 켜집니다.','src/frontend/app/components/feed/PostListScreen.tsx:80'],
- ['/terms·/privacy 뒤로 가기','로그인·가입 화면에서 열어도 뒤로 가면 프로필로 갑니다.','src/frontend/app/components/legal/LegalPage.tsx:22'],
- ['/feed 비로그인 버튼','버튼 글자는 「프로필로 가기」인데 실제로는 /account로 갑니다.','src/frontend/app/components/feed/FeedClient.tsx:256'],
- ['/explore 비로그인','로그인 안내 없이 빈 화면만 보입니다.','src/frontend/app/components/feed/ExploreClient.tsx:70'],
- ['/verify-email 제목','처리 중이거나 실패해도 제목이 「확인된 이메일」입니다.',''],
- ['404 화면','전용 404가 없어 Next 기본 화면이 뜹니다. 한국어 안내와 돌아갈 버튼이 없습니다.',''],
+ ['앱 링크 도착지','피드 글·프로필·해시태그 링크로 앱이 열리면 그 화면으로 옮기도록 넣었습니다(2026-11-09). 실기기 확인 전입니다.','실기기 확인 필요 · src/frontend/app/components/AppWebLinkBridge.tsx'],
+ ['2026-11-09 고친 길','내 종목 줄 → 고치기 화면(상세는 404였음) · 저장함·약관·발견의 ← 는 들어온 곳으로(첫 화면이면 프로필·피드) · 저장함은 프로필 탭 · 비로그인 피드 버튼 「로그인 / 가입」 · 비로그인 /explore 로그인 안내 · /verify-email 상태별 제목 · 한국어 404 화면 · 댓글은 어느 화면이든 글 카드 💬 → 바닥 시트(본문 없음) · 글 보기 화면(/feed/[postId] 글 카드 하나 · 서버 GetPost · 댓글 알림은 시트까지 바로) · 전체 공개 글 링크 공유 버튼','고침'],
 ]
-D['foot']='코드 기준 2026-11-09 작업 트리(웹 0.82.0 · 2026-11-04 판에 v0.64~0.82 변경 반영). 화면마다 번호(S-nn)와, 주요 화면은 구역 번호(S-nn.k)를 달았습니다 — 수정 요청 때 이 번호로 부르면 됩니다. 연결은 코드를 읽어 만들었습니다. 캡처는 같은 날 로컬 운영 빌드에서 시험 계정으로 찍은 390×844 화면이라 실제 데이터와 다릅니다. 링크 추출 스크립트로 대조했으며, 주석 처리된 링크는 입구로 세지 않았습니다. 같은 시트를 여러 화면에서 쓰면 한 항목으로 셉니다. 모든 주소는 입력으로도 열 수 있어 그 길은 그리지 않았습니다.'
+D['foot']='코드 기준 2026-11-09 작업 트리(웹 0.83.0 · 2026-11-04 판에 v0.64~0.83 변경 반영). 화면마다 번호(S-nn)와, 주요 화면은 구역 번호(S-nn.k)를 달았습니다 — 수정 요청 때 이 번호로 부르면 됩니다. 연결은 코드를 읽어 만들었습니다. 캡처는 같은 날 로컬 운영 빌드에서 시험 계정으로 찍은 390×844 화면이라 실제 데이터와 다릅니다. 링크 추출 스크립트로 대조했으며, 주석 처리된 링크는 입구로 세지 않았습니다. 같은 시트를 여러 화면에서 쓰면 한 항목으로 셉니다. 모든 주소는 입력으로도 열 수 있어 그 길은 그리지 않았습니다.'
 js=json.dumps(D,ensure_ascii=False).replace('</','<\\/')
 html=open(SP+'/tpl.html',encoding='utf8').read().replace('/*DATA*/',js)
 html=html.replace("D.exp(e.ev)","e.ev").replace("D.exp(n.ev)","n.ev")

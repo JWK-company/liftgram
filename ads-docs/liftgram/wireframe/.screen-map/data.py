@@ -22,8 +22,8 @@ pg('/routines/new','새 루틴','page','운동','새 루틴 만들기','누구�
 pg('/routines/[id]','루틴 편집','page','운동','기존 루틴 편집','없는 id의 결과는 미확인')
 pg('/program','프로그램 생성(삭제됨)','redirect','넘김','2026-11-05 기능 삭제. 옛 주소는 운동 탭으로 넘김','누구나')
 pg('/gyms','주변 헬스장','page','소셜','위치 기반 헬스장 검색','위치 권한 필요')
-pg('/feed/[postId]','댓글','page','소셜','글의 댓글과 답글','로그인 필요')
-pg('/explore','발견','page','소셜','검색, 인기 태그, 추천, 인기 글','로그인 필요. 비로그인은 안내 없이 빈 화면')
+pg('/feed/[postId]','게시물(글 보기)','page','소셜','글 카드 하나. 💬 를 누르면 댓글 시트가 아래에서 올라온다. 공유 링크·앱 링크·알림이 여기로 온다(2026-11-09)','로그인 필요(비로그인은 로그인 안내 → 로그인 뒤 이 글로) · 볼 수 없는 글은 「볼 수 없는 글이에요」 · 댓글 알림(?comments=1)이면 시트를 바로 연다')
+pg('/explore','발견','page','소셜','검색, 인기 태그, 추천, 인기 글','로그인 필요. 비로그인은 로그인 안내')
 pg('/discover','사람 찾기','page','소셜','사용자 검색, 팔로우. 시행 전까지 피드 「발견」 탭에 같은 내용, 시행 뒤에는 팔로잉이 빌 때 피드에 함께 나옴','로그인 필요')
 pg('/hashtag/[tag]','#태그','page','소셜','태그가 달린 공개 글','로그인 필요')
 pg('/u/[userId]','공개 프로필','page','소셜','다른 사람의 프로필','로그인 필요')
@@ -110,15 +110,10 @@ e('/app','/','홈 링크','F/app/app/AppPageClient.tsx:107')
 e('/feed','/explore','머리 돋보기','C/feed/FeedClient.tsx:276')
 e('/feed','/messages','머리 메시지','C/feed/FeedClient.tsx:282')
 e('/feed','/notifications','머리 종','C/feed/FeedClient.tsx:288')
-e('/feed','/feed/[postId]','글 카드 말풍선','C/feed/PostCard.tsx:178')
 e('/feed','/u/[userId]','글 작성자','C/feed/PostCard.tsx:99')
 e('/feed','/hashtag/[tag]','본문 #태그','C/feed/HashtagText.tsx:23')
 e('/explore','/hashtag/[tag]','태그','C/feed/ExploreClient.tsx:165')
 e('/explore','/u/[userId]','추천·검색 결과','C/feed/ExploreClient.tsx:295')
-e('/explore','/feed/[postId]','글 카드 말풍선','C/feed/PostCard.tsx:178')
-e('/hashtag/[tag]','/feed/[postId]','글 카드 말풍선','C/feed/PostCard.tsx:178')
-e('/bookmarks','/feed/[postId]','글 카드 말풍선','C/feed/PostCard.tsx:178')
-e('/u/[userId]','/feed/[postId]','글 카드 말풍선','C/feed/PostCard.tsx:178')
 e('/messages','/discover','빈 목록 버튼','C/dm/ConversationsClient.tsx:101')
 e('/discover','/u/[userId]','사람 줄','C/feed/DiscoverClient.tsx:112')
 e('/u/[userId]','/u/[userId]/follows','팔로워·팔로잉 숫자','C/feed/UserProfileClient.tsx:180')
@@ -129,12 +124,13 @@ e('/messages','/messages/new','머리 버튼','C/dm/ConversationsClient.tsx:78')
 e('/messages/new','/messages/[id]','그룹 생성 후','C/dm/NewGroupClient.tsx:67','redir')
 e('/messages/[id]','/messages','방 나간 후','C/dm/ConversationClient.tsx:176','redir')
 e('/notifications','/u/[userId]','팔로우 알림','C/dm/NotificationsClient.tsx:39')
-e('/notifications','/feed/[postId]','좋아요·댓글 알림','C/dm/NotificationsClient.tsx:41')
+e('/notifications','/feed/[postId]','좋아요 알림 · 댓글 알림(시트까지 바로)','C/dm/NotificationsClient.tsx:45')
 e('/notifications','/messages/[id]','코칭 요약 알림','C/dm/NotificationsClient.tsx:51')
 e('/notifications','/messages','대화를 못 열었을 때','C/dm/NotificationsClient.tsx:53')
 e('/notifications','/feed','글이 없을 때','C/dm/NotificationsClient.tsx:41')
 e('x.notif','/notifications','목록 열기','C/dm/NotificationsClient.tsx:21','ext')
-e('x.applink','/feed/[postId]','앱 링크','src/mobile/android/app/src/main/AndroidManifest.xml:47','ext')
+e('x.applink','/feed/[postId]','앱 링크 · 공유 링크(글 카드 공유 버튼)','C/AppWebLinkBridge.tsx:15','ext')
+e('/feed/[postId]','/account','비로그인 안내 「로그인 / 가입」(로그인 뒤 이 글로)','C/feed/CommentsClient.tsx:94')
 e('x.applink','/u/[userId]','앱 링크','src/mobile/android/app/src/main/AndroidManifest.xml:48','ext')
 e('x.applink','/hashtag/[tag]','앱 링크','src/mobile/android/app/src/main/AndroidManifest.xml:49','ext')
 # 프로필·계정
@@ -142,7 +138,8 @@ for u,l,ev in [('/account','계정 줄·백업 파일','C/profile/ProfileClient.
     e('/profile',u,l,ev)
 e('g.sync','/account','경고 띠','C/sync/SyncHealthBanner.tsx:68')
 e('s.nudge','/account','로그인하고 보관하기','C/session/LoginNudgeSheet.tsx:35')
-e('/feed','/account','비로그인 안내 「프로필로 가기」','C/feed/FeedClient.tsx:258')
+e('/feed','/account','비로그인 안내 「로그인 / 가입」','C/feed/FeedClient.tsx:381')
+e('/explore','/account','비로그인 안내 「로그인 / 가입」','C/feed/ExploreClient.tsx:150')
 e('/coaching','/account','비로그인 안내','C/coaching/CoachingClient.tsx:146')
 e('s.switch','/account','앱 바꾸기 시트','C/appdist/SwitchToAppSheet.tsx:177')
 e('/auth/complete','/account','실패 때','F/app/auth/complete/CompleteClient.tsx:73')
@@ -172,7 +169,7 @@ e('x.nat','/workout','잠금 화면 「앱에서 하기」','src/mobile/android/
 n('x.admin','운영 웹(별도 사이트)','entry','앱 밖','요약·통계·신고 검토·사용자 의견·운영 피드백·운영 상태·설정. 앱에서 들어가는 입구는 없다','운영진만(Cloudflare Access + 비밀번호)','https://liftgram-admin.tarae.org')
 e('/profile','/profile/feedback','의견 보내기 줄','C/profile/ProfileClient.tsx:316')
 # 뒤로 가기
-for a,b,ev in [('/feed/[postId]','/feed','C/feed/CommentsClient.tsx:164'),('/explore','/feed','C/feed/ExploreClient.tsx:131'),('/discover','/feed','C/feed/DiscoverClient.tsx:78'),('/hashtag/[tag]','/feed','C/feed/PostListScreen.tsx:80'),('/bookmarks','/feed','C/feed/PostListScreen.tsx:80'),('/u/[userId]','/feed','C/feed/UserProfileClient.tsx:260'),('/messages','/feed','C/dm/ConversationsClient.tsx:73'),('/notifications','/feed','C/dm/NotificationsClient.tsx:86'),('/messages/[id]','/messages','C/dm/ConversationClient.tsx:239'),('/messages/new','/messages','C/dm/NewGroupClient.tsx:80'),('/terms','/profile','C/legal/LegalPage.tsx:22'),('/privacy','/profile','C/legal/LegalPage.tsx:22'),('/licenses','/profile','C/legal/LegalPage.tsx:22'),('/coaching','/profile','C/coaching/CoachingClient.tsx:308'),('/gear','/profile','C/profile/MyGearClient.tsx:62'),('/gyms','/profile','C/NearbyGymsClient.tsx:85'),('/blocked','/profile','C/moderation/BlockedUsersClient.tsx:58'),('/account','/profile','C/profile/AuthClient.tsx:190'),('/account/import','/account','C/sync/ImportFlow.tsx:652'),('/exercises','/','F/app/exercises/page.tsx:31'),('/program','/','C/routines/ProgramGeneratorClient.tsx:251'),('/exercise/[id]','/exercises','F/app/exercise/[id]/page.tsx:119'),('/exercises/new','/exercises','C/ExerciseFormClient.tsx:133'),('/exercises/[id]/edit','/exercises','C/ExerciseFormClient.tsx:133'),('/history/[id]','/history','C/analytics/WorkoutDetailClient.tsx:122')]:
+for a,b,ev in [('/feed/[postId]','/feed','C/feed/CommentsClient.tsx:73'),('/explore','/feed','C/feed/ExploreClient.tsx:131'),('/discover','/feed','C/feed/DiscoverClient.tsx:78'),('/hashtag/[tag]','/feed','C/feed/PostListScreen.tsx:80'),('/bookmarks','/profile','C/feed/BookmarksClient.tsx:25'),('/u/[userId]','/feed','C/feed/UserProfileClient.tsx:260'),('/messages','/feed','C/dm/ConversationsClient.tsx:73'),('/notifications','/feed','C/dm/NotificationsClient.tsx:86'),('/messages/[id]','/messages','C/dm/ConversationClient.tsx:239'),('/messages/new','/messages','C/dm/NewGroupClient.tsx:80'),('/terms','/profile','C/legal/LegalPage.tsx:20'),('/privacy','/profile','C/legal/LegalPage.tsx:20'),('/licenses','/profile','C/legal/LegalPage.tsx:20'),('/coaching','/profile','C/coaching/CoachingClient.tsx:308'),('/gear','/profile','C/profile/MyGearClient.tsx:62'),('/blocked','/profile','C/moderation/BlockedUsersClient.tsx:58'),('/account','/profile','C/profile/AuthClient.tsx:190'),('/account/import','/account','C/sync/ImportFlow.tsx:652'),('/exercises','/','F/app/exercises/page.tsx:31'),('/program','/','C/routines/ProgramGeneratorClient.tsx:251'),('/exercise/[id]','/exercises','F/app/exercise/[id]/page.tsx:119'),('/exercises/new','/exercises','C/ExerciseFormClient.tsx:133'),('/exercises/[id]/edit','/exercises','C/ExerciseFormClient.tsx:133'),('/history/[id]','/history','C/analytics/WorkoutDetailClient.tsx:122')]:
     e(a,b,'뒤로',ev,'back')
 # ── 시트 도우미: 표 그대로
 def sh(id,name,parent,label,ev,desc='',cond='',group=None,kind='sheet'):
@@ -306,7 +303,12 @@ for id,name,par,label,ev,desc,g in [
     sh(id,name,par,label,ev,desc,'',g)
 e('/forgot','s.human','폼','C/auth/ForgotClient.tsx:62','open')
 e('s.story','s.report','신고','C/feed/StoryViewer.tsx:136','open')
-e('/feed/[postId]','s.report','댓글 신고','C/feed/CommentsClient.tsx:254','open')
+# 댓글 시트(2026-11-09) — 어느 화면이든 글 카드 💬 → 바닥 시트(본문 없음 · 댓글·답글·입력칸)
+sh('s.comments','댓글 시트','/feed','글 카드 💬','C/feed/PostCard.tsx:310','댓글·답글·좋아요·삭제·신고, 바닥에 붙은 입력칸. 글 본문은 싣지 않는다(밑의 카드가 그 글)','뒤로·닫기·바깥 누르기 = 시트만 닫기 · 비로그인은 로그인 안내',"피드")
+for p in ['/explore','/hashtag/[tag]','/bookmarks','/u/[userId]','/feed/[postId]']:
+    e(p,'s.comments','글 카드 💬','C/feed/PostCard.tsx:310','open')
+e('s.comments','s.report','댓글 신고','C/feed/CommentsSheet.tsx:247','open')
+e('s.comments','/account','비로그인 「로그인 / 가입」(로그인 뒤 그 글로)','C/feed/CommentsSheet.tsx:213')
 e('/account','s.owner','계정 충돌','C/sync/AccountGuard.tsx:23','open')
 # 시스템
 for id,name,desc,cond,ev in [
@@ -339,11 +341,8 @@ for id,name,desc,cond,ev in [
 ]:
     n(id,name,'native','앱 전용',desc,cond); e('x.nat',id,'앱 조건 충족','' if not ev else (ev if ev.startswith(('src','F/')) else (ev[2:] if ev.startswith('M:') else MJ+ev)),'open')
 e('a.fs','a.lock','탭','','open'); e('a.lock','/workout','잠금 해제','','go'); e('a.card','/workout','본문·앱 열기',MJ+'WorkoutNotification.java:129','go')
-n('i.live','iOS Live Activity','dead','앱 전용','코드는 있지만 Xcode 프로젝트에 타깃이 없어 빌드에 들어가지 않음','미포함')
-# 도달 불가
-for id,name,ev,why in [
- ('d.concept','ConceptDialog(옛 콘셉트 루틴 시트)','C/routines/RoutinesClient.tsx:1277','진입 코드가 주석'),('d.guide','GuideModal(여유·웜업 가이드)','C/session/SessionGuides.tsx','호출이 주석'),('d.vsel','VariantSelector(옛 변형 선택)','C/ui/VariantSelector.tsx:76','마운트 없음'),('d.rreport','ReportDialog(옛 코칭 리포트)','C/coaching/CoachingClient.tsx:398','setReport 호출이 주석'),('d.pscustom','기간 직접 고르기','C/summary/ProgressSummaryClient.tsx:637','페이지가 /stats로 넘김'),('d.pssend','코치에게 보내기','C/summary/ProgressSummaryClient.tsx:741','페이지가 /stats로 넘김'),('d.sumentry','SummaryEntry(요약 입구)','C/summary/SummaryEntry.tsx:10','호출이 주석'),('d.discard','옛 진행 운동 폐기 확인','C/routines/RoutinesClient.tsx:763','주석'),('d.ppicker','옛 종목 피커 시트','C/session/ActiveWorkout.tsx:516','주석'),('d.rxsheet','옛 처방 시트','C/routines/RoutineEditor.tsx:1222','주석'),('d.moremenu','옛 홈 ⋯ 메뉴','C/routines/RoutinesClient.tsx:407','주석'),('d.swbar','옛 업데이트 띠','C/ServiceWorker.tsx:154','주석'),('d.info','InfoDialog','C/ui/Dialog.tsx:236','정의만 있고 사용처 없음')]:
-    n(id,name,'dead','도달 불가 코드',why,'',''); N[-1]['ev']=ev
+n('i.live','iOS Live Activity','dead','앱 전용','잠금화면 작업(SPEC-017)용 코드. Xcode 프로젝트에 위젯 타깃을 연결하면 빌드에 들어간다 — 지우지 않음','미포함')
+# 도달 불가 — 2026-11-09 옛 코드 12개(콘셉트 루틴·가이드·옛 변형 선택·옛 리포트·성과 요약·요약 입구·옛 폐기 확인·옛 피커·옛 처방 시트·옛 ⋯ 메뉴·옛 업데이트 띠·InfoDialog)를 지웠다. 남은 것은 iOS Live Activity 하나(SPEC-017 · Xcode 타깃 연결 대기)
 N[[x['id'] for x in N].index('i.live')]['ev']='src/mobile/ios/App/LiftgramWidgets/WorkoutLiveActivity.swift:23'
 # 브라우저 응답
 for u,d in [('/api/[...path]','백엔드 프록시'),('/api/session','세션 쿠키(POST·DELETE)'),('/api/session/refresh','세션 갱신(POST)'),('/.well-known/assetlinks.json','Android 앱 링크 검증. 값 없으면 404'),('/.well-known/apple-app-site-association','iOS 유니버설 링크 검증. 값 없으면 404'),('/healthz','상태 JSON'),('/readyz','준비 상태 JSON'),('/app-version','버전 JSON'),('/ws','WebSocket 터널'),('/api/healthz','백엔드 상태'),('/api/readyz','백엔드 준비 상태'),('/media/file/*','업로드 이미지'),('/api/auth/oauth/*','소셜 로그인 시작·콜백 리다이렉트'),('/manifest.json','PWA 매니페스트'),('/sw.js','서비스 워커'),('/sw-nudge.html','숨은 iframe용 빈 문서'),('/downloads/android.json','앱 버전 정보'),('/downloads/*.apk','APK 파일'),('/icon-*.png · /brand/* · /fonts/*','정적 파일')]:

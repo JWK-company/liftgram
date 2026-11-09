@@ -161,7 +161,13 @@ export default function AuthClient({
 }) {
   const { user, restoring, signUp, logIn, logOut } = useAuth();
   const router = useRouter();
-  const nextHref = next === "/profile/feedback" ? next : null;
+  // [원본] const nextHref = next === "/profile/feedback" ? next : null;
+  // [개선 2026-11-09] 공유 링크로 온 사람은 로그인 뒤 그 글로 — 글 보기 주소(/feed/<id>)만 더 받는다(외부 주소·다른 경로는 그대로 막힘)
+  const nextHref =
+    next === "/profile/feedback" ||
+    (next != null && /^\/feed\/[A-Za-z0-9_-]{1,64}(\?comments=1)?$/.test(next))
+      ? next
+      : null;
   useEffect(() => {
     if (user && nextHref) router.replace(nextHref);
   }, [user, nextHref, router]);
@@ -170,6 +176,15 @@ export default function AuthClient({
   const { mailEnabled } = useAuthOptions();
   const oauthMsg = OAUTH_ERRS.has(oauthError) ? t(`oauth.err.${oauthError}` as TransKey) : null;
   const [mode, setMode] = useState<Mode>(initialMode);
+  // 주소만 바꾼 칸(/signup · /signin)으로 뒤로 돌아오면 화면은 /account 로 다시 그려진다 — 주소에 맞는 모드로(화면 지도 2026-11-09:
+  // 가입 화면에서 약관을 열었다 ← 로 오면 로그인 모드로 바뀌어 있었다)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: 처음 그릴 때 한 번 — 주소가 정한 모드
+  useEffect(() => {
+    const p = window.location.pathname;
+    if (p === "/signup" && mode !== "signup") setMode("signup");
+    else if (p === "/signin" && mode !== "login") setMode("login");
+  }, []);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -297,7 +312,8 @@ export default function AuthClient({
     setMode(m);
     setError(null);
     if (typeof window !== "undefined")
-      window.history.replaceState(null, "", m === "signup" ? "/signup" : "/signin");
+      // [원본] window.history.replaceState(null, "", …) — 기록 칸의 상태(Next 내부·앱 안 깊이)를 지워 ← 판단이 흐려졌다
+      window.history.replaceState(window.history.state, "", m === "signup" ? "/signup" : "/signin");
   };
 
   return (

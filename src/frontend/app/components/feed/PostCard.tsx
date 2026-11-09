@@ -20,7 +20,7 @@ import { requiresAffiliateDisclosure } from "@app/core";
 import { CONTACT_EMAIL } from "../legal/LegalPage";
 import { TargetType, Visibility, routes, type Post } from "@app/contracts";
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { t } from "@/lib/i18n";
 import { feedClient, feedErrorMessage } from "@/lib/feedClient";
 import { mediaSrc } from "@/lib/mediaClient";
@@ -34,6 +34,7 @@ import { HashtagText } from "./HashtagText";
 import { ReportSheet } from "../moderation/ReportSheet";
 import { OwnPostMenu } from "./OwnPostMenu";
 import { WorkoutBox } from "./WorkoutBox";
+import { CommentsSheet } from "./CommentsSheet";
 
 // 루틴 데이터가 커서 공식 글이 있을 때만 불러온다.
 const OfficialRoutineCard = dynamic(
@@ -51,6 +52,8 @@ export function PostCard({
   onDeleted,
   onReported,
   onFollowChange,
+  initialCommentsOpen = false,
+  onCommentsOpened,
 }: {
   post: Post;
   meId: string | null;
@@ -62,17 +65,52 @@ export function PostCard({
   onReported?: (id: string) => void;
   /** 주면 글 머리에 팔로우 버튼을 그린다(추천 탭). */
   onFollowChange?: (authorId: string, followed: boolean) => void;
+  /** 글 보기 화면이 댓글 알림(?comments=1)으로 열렸을 때 — 댓글 시트를 바로 띄운다 */
+  initialCommentsOpen?: boolean;
+  /** initialCommentsOpen 으로 시트를 연 뒤 한 번 부른다 — 부른 쪽이 표식을 내린다 */
+  onCommentsOpened?: () => void;
 }) {
   const toast = useToast();
   const [followBusy, setFollowBusy] = useState(false);
   const [pending, setPending] = useState(false);
   const [reporting, setReporting] = useState(false);
+  // 댓글 시트(2026-11-09) — 💬 는 화면을 옮기지 않고 아래에서 시트를 올린다
+  const [commentsOpen, setCommentsOpen] = useState(initialCommentsOpen);
+  // 시트가 떠 있는 동안 좋아요 등으로 카드가 바뀌어도 댓글 수는 최신 글 위에 더한다
+  const postRef = useRef(post);
+  postRef.current = post;
+  const openedTold = useRef(false);
+  useEffect(() => {
+    if (!initialCommentsOpen || openedTold.current) return; // 처음 연 한 번만 알린다
+    openedTold.current = true;
+    onCommentsOpened?.();
+  }, [initialCommentsOpen, onCommentsOpened]);
   // 검토 중인 글의 막힌 사진 — 열쇠에 주소를 넣어 승인 뒤 다시 그리면 풀린다.
   const [brokenSrc, setBrokenSrc] = useState<string | null>(null);
   // 카드가 직접 읽는다 — 화면마다 내려 주게 하면 한 군데를 빠뜨렸을 때 그 화면만 규칙이 달라진다.
   const gearConfig = useGearConfig();
 
   const isOwn = !!meId && post.author?.id === meId;
+
+  // 글 링크 공유(2026-11-09) — 링크는 글 보기 화면(/feed/<id>)으로 간다. 휴대폰 공유창이 있으면 그것으로, 없으면 주소 복사.
+  // 전체 공개 글만 — 팔로워 전용·비공개 글은 받은 사람 대부분이 못 열어 「볼 수 없는 글」만 보게 된다.
+  async function shareLink() {
+    const url = new URL(routes.postComments(post.id), location.origin).toString();
+    if (typeof navigator.share === "function") {
+      try {
+        await navigator.share({ url });
+        return;
+      } catch (e) {
+        if ((e as Error)?.name === "AbortError") return; // 사람이 공유창을 닫았다
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast(t("feed.linkCopied"));
+    } catch {
+      toast(t("feed.linkCopyFailed"), "error");
+    }
+  }
   // 태그는 도메인 정규화를 거쳐 읽는다(계약 밖의 값이 흘러들지 않게).
   const gearTags = readGearTags(post.gear);
   // **이 값이 곧 라벨을 그리는 조건식이다.** 아래 GearChips에 그대로 넘긴다 —
@@ -275,10 +313,16 @@ export function PostCard({
             </AppText>
           ) : null}
         </button>
-        <a
-          href={routes.postComments(post.id)}
+        {/* [원본] <a href={routes.postComments(post.id)} data-testid="post-comments"> — 댓글 전체 화면으로 옮겨 갔다 */}
+        <button
+          type="button"
+          onClick={() => setCommentsOpen(true)}
           data-testid="post-comments"
-          className="flex items-center gap-[var(--spacing-xs)]"
+          data-post-id={post.id}
+          aria-label={
+            post.commentCount > 0 ? `${t("comments.title")} ${post.commentCount}` : t("comments.title")
+          }
+          className="flex min-h-[44px] min-w-[44px] items-center gap-[var(--spacing-xs)]"
         >
           <Icon name="chatbubble-outline" size={20} color="var(--color-ink2)" />
           {post.commentCount > 0 ? (
@@ -286,8 +330,20 @@ export function PostCard({
               {String(post.commentCount)}
             </AppText>
           ) : null}
-        </a>
+        </button>
         <div className="flex-1" />
+        {/* [원본] post.visibility === Visibility.PUBLIC — 검토 중인 글은 받은 사람이 못 연다 */}
+        {post.visibility === Visibility.PUBLIC && !post.underReview ? (
+          <button
+            type="button"
+            onClick={() => void shareLink()}
+            data-testid="post-share"
+            aria-label={t("feed.shareLink")}
+            className="flex min-h-[44px] min-w-[44px] items-center justify-center"
+          >
+            <Icon name="share-social-outline" size={20} color="var(--color-ink2)" />
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={toggleBookmark}
@@ -302,6 +358,18 @@ export function PostCard({
           />
         </button>
       </div>
+
+      {commentsOpen ? (
+        <CommentsSheet
+          postId={post.id}
+          meId={meId}
+          onClose={() => setCommentsOpen(false)}
+          onCountChange={(d) => {
+            const cur = postRef.current;
+            onChanged({ ...cur, commentCount: Math.max(0, cur.commentCount + d) } as Post);
+          }}
+        />
+      ) : null}
 
       {reporting ? (
         <ReportSheet

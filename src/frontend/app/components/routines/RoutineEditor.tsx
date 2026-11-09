@@ -50,7 +50,6 @@ import { Icon } from "../ui/Icon";
 import { IconButton } from "../ui/IconButton";
 import { NumberStepper, TextField } from "../ui/inputs";
 import { AppText, Card, Divider, EmptyState, SectionHeader, Tag } from "../ui/primitives";
-// [원본] import { VariantSelector } from "../ui/VariantSelector";
 import { RecordSlotSelector } from "../ui/RecordSlotSelector";
 import { ExerciseName } from "../session/ExerciseName";
 import { useSession } from "../SessionProvider";
@@ -881,7 +880,6 @@ function ExerciseEditRow({
             </AppText>
             {!isCardio ? (
               <div className="mt-[4px] flex flex-wrap gap-[6px]">
-                {/* [원본] <VariantSelector …/> — P2: 기구 바꾸기 = 종목 바꾸기(ADR-033·034) */}
                 <RecordSlotSelector
                   exerciseId={re.exerciseId}
                   baseEquipment={baseEquipment}
@@ -1192,113 +1190,3 @@ function RoutineSetTable({
     </div>
   );
 }
-
-// [원본] 처방 칩 + 세트별 처방 시트(SPEC-023 이전) — 세트 표로 바뀌었다
-// /** 처방 칩 + 편집 시트 — 저장하면 세트 수가 처방 길이에 맞춰진다(저장소가 함께 갱신한다). */
-// function PrescriptionEditor({
-//   re,
-//   repo,
-//   onSaved,
-// }: {
-//   re: RoutineExerciseRow;
-//   repo: RoutineRepo;
-//   onSaved: (sets: number) => void;
-// }) {
-//   const [saved, setSaved] = useState<PrescribedSet[] | null>(re.prescription ?? null);
-//   const [open, setOpen] = useState(false);
-//   const [rows, setRows] = useState<PrescribedSet[]>([]);
-//   // 맨몸·어시스트 종목은 % 무게 기준을 고를 수 없다(SRS-063) — 편집 시트를 열 때 종목 성질을 본다
-//   const [allowLoad, setAllowLoad] = useState(true);
-//   useEffect(() => {
-//     if (!open) return;
-//     let alive = true;
-//     void (async () => {
-//       try {
-//         const [exRepo, dom] = await Promise.all([
-//           import("@app/core/data/exerciseRepository"),
-//           import("@app/core"),
-//         ]);
-//         const e = await exRepo.getExercise(re.exerciseId);
-//         if (alive)
-//           setAllowLoad(
-//             e.kind !== "cardio" &&
-//               dom.resolveLoadMode(e as Parameters<typeof dom.resolveLoadMode>[0]) === "external",
-//           );
-//       } catch {
-//         // 못 읽으면 고를 수 있게 둔다
-//       }
-//     })();
-//     return () => {
-//       alive = false;
-//     };
-//   }, [open, re.exerciseId]);
-//
-//   const summary = rxSummary(saved);
-//
-//   return (
-//     <div className="mt-[var(--spacing-sm)]">
-//       <button
-//         type="button"
-//         data-testid="btn-rx"
-//         onClick={() => {
-//           setRows(saved?.length ? saved.map((r) => ({ ...r })) : [emptyRxRow()]);
-//           setOpen(true);
-//         }}
-//         style={{
-//           backgroundColor: summary ? "var(--color-brand-muted)" : "var(--color-surface-alt)",
-//           borderColor: summary ? "var(--color-brand)" : "var(--color-line)",
-//         }}
-//         className="flex items-center gap-[6px] self-start rounded-[var(--radius-pill)] border px-[var(--spacing-sm)] py-[4px]"
-//       >
-//         <Icon
-//           name="clipboard-outline"
-//           size={14}
-//           color={summary ? "var(--color-brand)" : "var(--color-ink2)"}
-//         />
-//         <AppText
-//           variant="caption"
-//           color={summary ? "primary" : "textMuted"}
-//           className={summary ? "font-bold" : ""}
-//         >
-//           {summary ? t("routines.rxSummary", { summary }) : t("routines.rxButton")}
-//         </AppText>
-//       </button>
-//
-//       {open ? (
-//         <SheetShell title={t("routines.rxTitle")} onClose={() => setOpen(false)} hideOk testId="rx-sheet">
-//           <AppText variant="caption" color="textMuted" className="mt-[2px] mb-[var(--spacing-sm)] block">
-//             {t("routines.rxHint")}
-//           </AppText>
-//           <PrescriptionRows rows={rows} onChange={setRows} allowLoad={allowLoad} />
-//           <div className="mt-[var(--spacing-md)] flex gap-[var(--spacing-sm)]">
-//             <div className="flex-1">
-//               <Button title={t("common.cancel")} variant="secondary" onPress={() => setOpen(false)} />
-//             </div>
-//             <div className="flex-1">
-//               <Button
-//                 title={t("common.save")}
-//                 testId="btn-rx-save"
-//                 onPress={() => {
-//                   // 한 행이라도 뜻이 있으면 처방으로 본다 — 전부 비어 있으면 처방 자체를 지운다.
-//                   // [원본] 무게 기준만 있는 처방을 「빈 처방」으로 봤다
-//                   // const hasAny = rows.some(
-//                   //   (r) =>
-//                   //     r.setType !== "normal" || r.targetRir != null || r.repMin != null || r.repMax != null,
-//                   // );
-//                   const hasAny = rxMeaningful(rows); // @plm SRS-063
-//                   const next = hasAny ? rows : null;
-//                   void repo.setRoutineExercisePrescription(re.id, next).then(() => {
-//                     scheduleFlush();
-//                     setSaved(next);
-//                     if (hasAny) onSaved(rows.length);
-//                   });
-//                   setOpen(false);
-//                 }}
-//               />
-//             </div>
-//           </div>
-//         </SheetShell>
-//       ) : null}
-//     </div>
-//   );
-// }

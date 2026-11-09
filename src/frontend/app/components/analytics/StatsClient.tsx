@@ -28,7 +28,6 @@ import { LogoSpinner } from "../ui/LogoSpinner";
 import { EffortCard } from "./EffortCard"; // 세트 힘든 정도(SRS-074)
 import { MuscleBalanceCard } from "./MuscleBalanceCard"; // 근육 균형(SRS-076)
 import { BodyweightCard } from "./BodyweightCard"; // 체중 추세(SRS-078)
-// [원본] import { SummaryEntry } from "../summary/SummaryEntry"; // 기간 성과 요약(SRS-079) — 심화 분석을 이 화면으로 합쳤다(ADR-051)
 import { ExerciseChangeCard, PlateauCard } from "./ExerciseChangeCards"; // 종목 변화 · 그대로인 종목(SRS-101)
 import { WeeklyMuscleCard } from "./WeeklyMuscleCard"; // 근육별 주간 세트(SRS-101)
 
@@ -159,7 +158,6 @@ export default function StatsClient() {
     <div className="flex flex-1 flex-col">
       <AppBar title={t("analytics.title")} />
       <div className="flex flex-1 flex-col px-[var(--spacing-lg)] pt-[var(--spacing-md)]">
-        {/* [원본] <SummaryEntry /> — 기간 성과 요약 입구(SRS-079). 심화 분석은 이 화면 안에 둔다(ADR-051) */}
         <Segmented
           testId="stats-period"
           className="mb-[var(--spacing-lg)]"

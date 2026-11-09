@@ -94,9 +94,24 @@ let linkReady: Promise<boolean> | null = null;
 let launchKind: AppLinkKind | null = null;
 const launchSeen = new Set<AppLinkKind>();
 
+// 앱 링크(https — 피드 글·프로필·해시태그). 앱 스킴 갈래가 아니면 여기로 넘긴다(화면 지도 2026-11-09)
+const webLinkHandlers = new Set<LinkFn>();
+let launchUrl = "";
+
 function dispatchLink(url: string | undefined) {
   const k = appLinkKind(url);
-  if (!k || !url) return;
+  // [원본] if (!k || !url) return;
+  if (!url) return;
+  if (!k) {
+    for (const fn of [...webLinkHandlers]) {
+      try {
+        fn(url);
+      } catch (e) {
+        console.warn("[app-link]", "web", e);
+      }
+    }
+    return;
+  }
   for (const fn of [...linkHandlers[k]]) {
     try {
       fn(url);
@@ -121,7 +136,8 @@ function ensureLinks(): Promise<boolean> {
     }
     try {
       const r = typeof app.getLaunchUrl === "function" ? await app.getLaunchUrl() : null;
-      launchKind = appLinkKind(String(r?.url ?? ""));
+      launchUrl = String(r?.url ?? "");
+      launchKind = appLinkKind(launchUrl);
     } catch {
       launchKind = null;
     }
@@ -179,6 +195,31 @@ export async function onAppLink(
   }
   return () => {
     linkHandlers[kind].delete(fn);
+  };
+}
+
+/**
+ * 앱 링크(https)를 듣는다 — 돌려준 함수로 끊는다. 앱이 아니면 null.
+ * 앱이 그 링크로 처음 켜졌으면 한 실행(sessionStorage)에 한 번 알린다 — 새로고침마다 그 글로 끌려가지 않게.
+ */
+const LAUNCH_WEB_SEEN_KEY = "liftgram.launchWebLinkSeen";
+export async function onAppWebLink(fn: LinkFn): Promise<(() => void) | null> {
+  if (!(await ensureLinks())) return null;
+  webLinkHandlers.add(fn);
+  if (launchUrl && !appLinkKind(launchUrl)) {
+    let seen = false;
+    try {
+      seen = sessionStorage.getItem(LAUNCH_WEB_SEEN_KEY) === launchUrl;
+      sessionStorage.setItem(LAUNCH_WEB_SEEN_KEY, launchUrl);
+    } catch {
+      // 못 남기면 이 문서 안에서만 — 아래 비우기로 한 번
+    }
+    const url = launchUrl;
+    launchUrl = "";
+    if (!seen) fn(url);
+  }
+  return () => {
+    webLinkHandlers.delete(fn);
   };
 }
 
