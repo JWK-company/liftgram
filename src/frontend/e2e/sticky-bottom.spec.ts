@@ -124,6 +124,56 @@ test.describe("360×560 · 짧은 화면(일부 시험은 화면 크기를 바�
     expect(await bg2("btn-add-routine-exercise")).toBe(await bg2("btn-routine-done"));
   });
 
+  test("루틴 편집 종목 카드(S-14) — 풀업 휴식·몸무게 칸과 직접 입력이 카드 안 · 안내는 한 번만 · 요약 줄 없음", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    await 카탈로그_준비(page);
+    for (const vp of [
+      { width: 360, height: 640 },
+      { width: 390, height: 844 },
+    ]) {
+      await page.setViewportSize(vp);
+      await page.goto("/");
+      await page.getByTestId("btn-new-routine").click();
+      await page.getByTestId("routine-name").fill(`카드폭 ${vp.width}`);
+      await page.getByTestId("routine-name").blur();
+      for (const 종목 of ["풀업", "바벨 벤치프레스"]) {
+        await page.getByTestId("btn-add-routine-exercise").click();
+        await page.getByTestId("picker-search").fill(종목);
+        await page.getByTestId("picker-list").locator("button").first().click();
+        await page.getByTestId("picker-confirm").click();
+      }
+      const cards = page.getByTestId("routine-exercises").locator("> div");
+      await expect(cards).toHaveCount(2, { timeout: 20_000 });
+      const pull = cards.first();
+      await expect(pull.getByTestId("re-weight")).toBeVisible({ timeout: 20_000 }); // 맨몸 — 몸무게(추가 무게) 칸
+      const 안 = async (testId: string) => {
+        const c = await pull.boundingBox();
+        const b = await pull.getByTestId(testId).boundingBox();
+        expect(c && b, testId).toBeTruthy();
+        if (c && b)
+          expect(b.x + b.width, `${testId} 오른쪽이 카드 밖(${vp.width})`).toBeLessThanOrEqual(
+            c.x + c.width - 8,
+          );
+      };
+      await 안("re-rest");
+      await 안("re-weight");
+      // 휴식 숫자를 눌러 직접 입력 — 입력칸이 넓어지며 밀려나지 않는다
+      await pull.getByTestId("re-rest-value").click();
+      await expect(pull.getByTestId("re-rest-input")).toBeFocused();
+      await 안("re-rest");
+      await 안("re-weight");
+      await pull.getByTestId("re-rest-input").fill("90");
+      await pull.getByTestId("re-rest-input").press("Enter");
+      await expect(pull.getByTestId("re-rest-value")).toHaveText("90");
+      // 「지난 기록이 있으면…」 안내는 종목 수와 상관없이 한 번
+      await expect(page.getByTestId("set-table-hint")).toHaveCount(1);
+      // 「1. 3세트 · 휴식 120초」 요약 줄은 없다(세트 표·스테퍼와 겹치는 정보)
+      await expect(page.getByTestId("routine-exercises")).not.toContainText("세트 · 휴식");
+    }
+  });
+
   test("주간 스케줄 첫 줄 — 「편집」이 제목과 한 줄 · 44px · 글자가 꺾이지 않는다(S-96)", async ({
     page,
   }) => {

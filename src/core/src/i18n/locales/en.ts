@@ -624,6 +624,7 @@ export const en: Record<TransKey, string> = {
   "routines.previewSuperset": "Superset {group}",
   "routines.exerciseRowSummary": "{index}. {sets} sets · Rest {rest}s",
   "routines.cardioRowLabel": "{index}. Cardio",
+  "routines.cardioTag": "Cardio",
   "routines.cardioDurationLabel": "Time (min)",
   "routines.cardioDistanceLabel": "Dist (km)",
   "routines.cardioInclineLabel": "Incline (%)",

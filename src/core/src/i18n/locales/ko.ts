@@ -624,6 +624,7 @@ export const ko = {
   "routines.previewSuperset": "슈퍼셋 {group}",
   "routines.exerciseRowSummary": "{index}. {sets}세트 · 휴식 {rest}초",
   "routines.cardioRowLabel": "{index}. 유산소",
+  "routines.cardioTag": "유산소",
   "routines.cardioDurationLabel": "시간(분)",
   "routines.cardioDistanceLabel": "거리(km)",
   "routines.cardioInclineLabel": "경사(%)",

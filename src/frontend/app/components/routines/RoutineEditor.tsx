@@ -451,6 +451,16 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
 
         <Divider />
         <SectionHeader title={t("routines.exercisesSection")} />
+        {exercises.length > 0 ? (
+          <AppText
+            variant="caption"
+            color="textMuted"
+            className="-mt-[var(--spacing-sm)] mb-[var(--spacing-md)] block"
+            data-testid="set-table-hint"
+          >
+            {t("routines.setTableHint")}
+          </AppText>
+        ) : null}
 
         {/* [원본] 종목이 없으면 큰 빈 상태(아이콘·「종목이 없습니다」·「아래 버튼으로…」)를 그렸다 — 휴대폰에서 「운동 추가」가
             하단 「완료」 밑으로 밀려 완료를 잘못 누르게 했다(피드백 2026-11-09 · S-13)
@@ -872,50 +882,52 @@ function ExerciseEditRow({
   return (
     <Card className={`mb-[var(--spacing-md)] ${grouped ? "border-(--color-brand)!" : ""}`}>
       <div className="flex flex-col gap-[var(--spacing-md)]" data-testid={`re-${re.id}`}>
+        {/* [원본] 이름 · 「1. 3세트 · 휴식 120초」 · 변형 칩 · (아래 줄) 휴식·무게 스테퍼 — 세로로만 쌓여 카드가 길고 오른쪽이 비었다.
+            세트 수는 세트 표가, 휴식은 스테퍼가 이미 보여 요약 줄은 겹친 정보였다(S-14 · 2026-11-09)
+            [개선] 1줄: 번호·이름 · 2줄: 변형 칩과 휴식(·무게) 스테퍼를 한 줄에 — 좁으면 다음 줄로 넘어간다(잘리지 않는다) */}
         <div className="flex items-center gap-[var(--spacing-sm)]">
-          <div className="min-w-0 flex-1">
-            <ExerciseName exerciseId={re.exerciseId} variant="body" base />
-            <AppText variant="caption" color="textMuted" className="block">
-              {isCardio
-                ? t("routines.cardioRowLabel", { index: index + 1 })
-                : t("routines.exerciseRowSummary", { index: index + 1, sets: re.targetSets, rest })}
+          <div className="flex min-w-0 flex-1 items-baseline gap-[6px]">
+            <AppText variant="body" color="textMuted" className="shrink-0">
+              {`${index + 1}.`}
             </AppText>
-            {!isCardio ? (
-              <div className="mt-[4px] flex flex-wrap gap-[6px]">
-                <RecordSlotSelector
-                  exerciseId={re.exerciseId}
-                  baseEquipment={baseEquipment}
-                  value={variant}
-                  onChange={(dims) => {
-                    setVariant(dims);
-                    void repo.setRoutineExerciseVariant(re.id, dims).then(scheduleFlush);
-                  }}
-                  onSwap={onSwapTo}
-                  plateOneSide={plateOneSide}
-                  plateDefaultLoad={plate.defaultLoad}
-                  onPlateOneSide={(on) => {
-                    // [원본] setPlateOneSideState(on); … m.setPlateOneSide(re.exerciseId, on) — 끄기는 기억되지 않았다
-                    plate.setChoiceLocal(on);
-                    void import("@app/core/data/exercisePrefs")
-                      .then((m) => m.setPlateOneSideChoice(re.exerciseId, on))
-                      .then(scheduleFlush);
-                  }}
-                />
-              </div>
+            <ExerciseName exerciseId={re.exerciseId} variant="body" base />
+            {isCardio ? (
+              <AppText variant="caption" color="textMuted" className="shrink-0">
+                {t("routines.cardioTag")}
+              </AppText>
             ) : null}
           </div>
           {/* /qa P4 L-3 — 슈퍼셋 칩은 무채(빨강 = 주 행동만) @plm SRS-072 */}
           {grouped ? <Tag label={t("routines.supersetTag")} /> : null}
         </div>
-
-        {isCardio ? (
-          <CardioTargetFields re={re} metrics={metrics} repo={repo} />
-        ) : (
-          <>
-            {/* [원본] 세트 수·무게 스테퍼 + 처방 시트 — 세트 표가 맡는다(SPEC-023). 맨몸·어시스트만 무게 스테퍼 하나를 둔다. */}
-            <div className="flex gap-[var(--spacing-lg)]">
+        {!isCardio ? (
+          <div className="flex flex-wrap items-end gap-x-[var(--spacing-md)] gap-y-[var(--spacing-sm)]">
+            {/* 변형 칩 — 고를 것이 없는 종목은 아무것도 그리지 않으므로 칸도 숨긴다(빈 칸이 간격만 차지해 휴식이 밀렸다 · 리뷰 L-5) */}
+            <div className="flex min-h-[40px] flex-wrap items-center gap-[6px] empty:hidden">
+              <RecordSlotSelector
+                exerciseId={re.exerciseId}
+                baseEquipment={baseEquipment}
+                value={variant}
+                onChange={(dims) => {
+                  setVariant(dims);
+                  void repo.setRoutineExerciseVariant(re.id, dims).then(scheduleFlush);
+                }}
+                onSwap={onSwapTo}
+                plateOneSide={plateOneSide}
+                plateDefaultLoad={plate.defaultLoad}
+                onPlateOneSide={(on) => {
+                  // [원본] setPlateOneSideState(on); … m.setPlateOneSide(re.exerciseId, on) — 끄기는 기억되지 않았다
+                  plate.setChoiceLocal(on);
+                  void import("@app/core/data/exercisePrefs")
+                    .then((m) => m.setPlateOneSideChoice(re.exerciseId, on))
+                    .then(scheduleFlush);
+                }}
+              />
+            </div>
+            <div className="flex flex-wrap items-end gap-x-[var(--spacing-md)] gap-y-[var(--spacing-sm)]">
               <Field label={t("routines.restLabel")}>
                 <NumberStepper
+                  compact
                   testId="re-rest"
                   value={rest}
                   min={0}
@@ -929,6 +941,7 @@ function ExerciseEditRow({
               {allowLoad === false ? (
                 <Field label={t("routines.weightLabel", { weightUnit })}>
                   <NumberStepper
+                    compact
                     testId="re-weight"
                     value={weight}
                     min={0}
@@ -946,7 +959,13 @@ function ExerciseEditRow({
                 </Field>
               ) : null}
             </div>
+          </div>
+        ) : null}
 
+        {isCardio ? (
+          <CardioTargetFields re={re} metrics={metrics} repo={repo} />
+        ) : (
+          <>
             {allowLoad != null ? (
               <RoutineSetTable
                 key={`${re.exerciseId}:${allowLoad}`}
@@ -1009,7 +1028,8 @@ function ExerciseEditRow({
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex-1">
+    // [원본] className="flex-1" — 둘이 반씩 늘어나 좁은 폭에서 스테퍼가 카드 밖으로 밀렸다(S-14)
+    <div className="shrink-0">
       <AppText variant="label" color="textMuted" className="mb-[4px] block">
         {label}
       </AppText>
@@ -1174,11 +1194,8 @@ function RoutineSetTable({
 
   return (
     <div className="flex flex-col gap-[var(--spacing-xs)]">
-      {allowLoad ? (
-        <AppText variant="caption" color="textMuted" data-testid="set-table-hint">
-          {t("routines.setTableHint")}
-        </AppText>
-      ) : null}
+      {/* [원본] 종목 카드마다 「지난 기록이 있으면 지난 기록부터 시작해요」 — 같은 말이 카드마다 되풀이됐다.
+          [개선] 「종목」 제목 옆에 한 번만(S-14 · 2026-11-09) */}
       <PrescriptionRows
         rows={rows}
         onChange={change}

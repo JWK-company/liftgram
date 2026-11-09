@@ -96,6 +96,7 @@ export function NumberStepper({
   max = Number.POSITIVE_INFINITY,
   suffix,
   testId,
+  compact = false,
 }: {
   value: number;
   onChange: (next: number) => void;
@@ -104,7 +105,11 @@ export function NumberStepper({
   max?: number;
   suffix?: string;
   testId?: string;
+  /** 좁은 카드에 둘을 나란히 둘 때 — 간격·값 칸을 줄인다(루틴 편집 S-14 · 2026-11-09) */
+  compact?: boolean;
 }) {
+  // 값 칸의 최소 폭 — 「72.5kg」처럼 긴 값은 글자만큼 넓어진다(입력칸도 같은 폭 · 브라우저 기본 20글자 폭으로 늘지 않게)
+  const valW = compact ? "min-w-12" : "min-w-14";
   const clamp = (n: number) => Math.min(max, Math.max(min, Math.round(n * 100) / 100));
   const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
@@ -118,7 +123,10 @@ export function NumberStepper({
   };
 
   return (
-    <div className="flex items-center gap-[var(--spacing-sm)]" data-testid={testId}>
+    <div
+      className={`flex items-center ${compact ? "gap-[4px]" : "gap-[var(--spacing-sm)]"}`}
+      data-testid={testId}
+    >
       <button
         type="button"
         data-testid={testId ? `${testId}-minus` : undefined}
@@ -143,7 +151,9 @@ export function NumberStepper({
             if (e.key === "Escape") setEditing(false);
           }}
           onFocus={(e) => e.currentTarget.select()}
-          className="h-10 min-w-14 rounded-[var(--radius-sm)] border border-(--color-brand) bg-(--color-surface-alt) px-[var(--spacing-xs)] text-center text-[length:var(--text-lg)] font-bold text-(--color-ink)"
+          // [원본] h-10 min-w-14 … — 폭을 정하지 않아 입력칸이 브라우저 기본 폭(약 20글자)으로 늘어나 카드 밖으로 밀렸다(S-14)
+          style={{ width: `${Math.max(draft.length, 2) + 1.5}ch` }}
+          className={`h-10 ${valW} rounded-[var(--radius-sm)] border border-(--color-brand) bg-(--color-surface-alt) px-[2px] text-center text-[length:var(--text-lg)] font-bold text-(--color-ink)`}
         />
       ) : (
         <button
@@ -156,7 +166,7 @@ export function NumberStepper({
           // [원본] 점선 밑줄로 「눌러서 입력」을 알렸다 — 루틴 편집·프로필에 점선이 줄줄이 생겨 소음이 됐다(화면 정리 P4)
           // className="flex h-10 min-w-14 items-center justify-center border-(--color-ink3) border-b border-dashed"
           // [개선] 밑줄 없이 숫자만 — 양옆 −·＋ 상자가 이미 「조절하는 값」임을 말한다. 누르면 입력칸(그대로) @plm SRS-072
-          className="flex h-10 min-w-14 items-center justify-center rounded-[var(--radius-sm)] active:bg-(--color-surface-alt)"
+          className={`flex h-10 ${valW} shrink-0 items-center justify-center rounded-[var(--radius-sm)] active:bg-(--color-surface-alt)`}
         >
           <AppText variant="heading">
             {fmt(value)}
