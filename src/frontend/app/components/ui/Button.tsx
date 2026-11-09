@@ -9,7 +9,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { LogoSpinner } from "./LogoSpinner";
 import { Icon, type IconName } from "./Icon";
 
-type Variant = "primary" | "secondary" | "ghost" | "danger" | "quiet" | "tonal" | "tonalOnTint";
+type Variant = "primary" | "secondary" | "ghost" | "danger" | "quiet" | "tonal" | "tonalOnTint" | "outline";
 type Size = "sm" | "md" | "lg";
 
 const HEIGHT: Record<Size, number> = { sm: 36, md: 48, lg: 54 };
@@ -35,6 +35,9 @@ function palette(variant: Variant): { bg: string; fg: string; border?: string } 
     // 옅은 강조를 연한 빨강 카드(오늘 할 운동·추천 카드) 위에 둘 때 — 판이 카드와 같은 색이라 사라지므로 카드 바탕 판
     case "tonalOnTint":
       return { bg: "var(--color-card)", fg: "var(--color-brand)" };
+    // 테두리 강조 — 카드 판 + 빨간 테두리·글자. 큰 보조 버튼이 회색 판이라 밋밋할 때(운동 홈 새 루틴·빠른 운동 · 2026-11-09)
+    case "outline":
+      return { bg: "var(--color-card)", fg: "var(--color-brand)", border: "var(--color-brand)" };
   }
 }
 

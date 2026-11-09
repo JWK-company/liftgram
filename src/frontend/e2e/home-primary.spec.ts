@@ -182,20 +182,53 @@ test("루틴이 있으면 오늘 할 루틴 「시작」이 주 행동, 빠른 �
   await expect(page.getByTestId("next-card")).toContainText("주행동 루틴");
   expect(await filledBrand(page)).toEqual(["btn-start-next"]);
   // 내 루틴 「▶ 시작」은 옅은 강조(연한 빨강 판 · 빨간 글자) — 빨강 채움 목록에는 들지 않는다(2026-11-09)
-  const tone = await page.getByTestId("btn-start-routine").first().evaluate((el) => {
-    const probe = (v: string) => {
-      const d = document.createElement("div");
-      d.style.color = `var(${v})`;
-      document.body.appendChild(d);
-      const c = getComputedStyle(d).color;
-      d.remove();
-      return c;
-    };
-    const cs = getComputedStyle(el);
-    return { bg: cs.backgroundColor, fg: cs.color, muted: probe("--color-brand-muted"), brand: probe("--color-brand") };
-  });
+  const tone = await page
+    .getByTestId("btn-start-routine")
+    .first()
+    .evaluate((el) => {
+      const probe = (v: string) => {
+        const d = document.createElement("div");
+        d.style.color = `var(${v})`;
+        document.body.appendChild(d);
+        const c = getComputedStyle(d).color;
+        d.remove();
+        return c;
+      };
+      const cs = getComputedStyle(el);
+      return {
+        bg: cs.backgroundColor,
+        fg: cs.color,
+        muted: probe("--color-brand-muted"),
+        brand: probe("--color-brand"),
+      };
+    });
   expect(tone.bg).toBe(tone.muted);
   expect(tone.fg).toBe(tone.brand);
+  // 주 버튼이 아닌 「새 루틴 만들기」·「빠른 운동 시작」은 테두리 강조(빨간 테두리·글자 · 카드 판) — 빨강 채움 아님
+  for (const id of ["btn-new-routine", "btn-quick-start"]) {
+    const o = await page.getByTestId(id).evaluate((el) => {
+      const cs = getComputedStyle(el);
+      const d = document.createElement("div");
+      d.style.color = "var(--color-brand)";
+      d.style.backgroundColor = "var(--color-card)";
+      document.body.appendChild(d);
+      const brand = getComputedStyle(d).color;
+      const card = getComputedStyle(d).backgroundColor;
+      d.remove();
+      return {
+        border: cs.borderTopColor,
+        bw: cs.borderTopWidth,
+        fg: cs.color,
+        bg: cs.backgroundColor,
+        brand,
+        card,
+      };
+    });
+    expect(o.border, id).toBe(o.brand);
+    expect(o.bw, id).toBe("1px");
+    expect(o.fg, id).toBe(o.brand);
+    expect(o.bg, id).toBe(o.card); // 회색 판(surface-alt)으로 돌아가면 잡힌다(리뷰)
+  }
 });
 
 test("스케줄상 오늘 배정이면 오늘 카드 「시작」이 주 행동", async ({ page }) => {

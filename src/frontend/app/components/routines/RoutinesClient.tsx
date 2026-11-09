@@ -533,7 +533,9 @@ export default function RoutinesClient() {
             <Button
               title={t("routines.createRoutine")}
               icon="add"
-              variant={newRoutinePrimary ? "primary" : "secondary"}
+              // [원본] variant={newRoutinePrimary ? "primary" : "secondary"} — 회색 판이 밋밋하다(사용자 의견 2026-11-09) → 테두리 강조
+              // 판단 전(누를 수 없는 동안)에는 회색 — 분홍 테두리 둘이 「강조 둘」처럼 보이지 않게(리뷰)
+              variant={!homeReady ? "secondary" : newRoutinePrimary ? "primary" : "outline"}
               // 판단 전에는 누를 수 없다 — 위 카드 수가 정해지기 전이라 자리가 바뀐다(빠른 시작과 같은 이유 · qa M-2)
               disabled={!homeReady}
               testId="btn-new-routine"
@@ -549,7 +551,14 @@ export default function RoutinesClient() {
             <Button
               title={t("routines.quickStart")}
               icon="play"
-              variant={primary?.kind === "quick" && !newRoutinePrimary ? "primary" : "secondary"}
+              // [원본] variant={primary?.kind === "quick" && !newRoutinePrimary ? "primary" : "secondary"} — 위와 같은 이유로 테두리 강조
+              variant={
+                !homeReady
+                  ? "secondary"
+                  : primary?.kind === "quick" && !newRoutinePrimary
+                    ? "primary"
+                    : "outline"
+              }
               loading={busy}
               // 판단 전에는 누를 수 없다 — 아래로 밀려 다른 카드의 「시작」이 눌리는 오탭을 막는다(/qa M-2 M-2)
               disabled={!homeReady}
