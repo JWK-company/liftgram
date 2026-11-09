@@ -57,6 +57,7 @@ export async function syncCatalogToLocal(): Promise<CatalogSyncResult> {
     ).length;
 
   let first: Awaited<ReturnType<ReturnType<typeof api>["pullCatalog"]>>;
+  await unhideOnce();
   try {
     // 첫 페이지를 1건만 받아 개정 번호부터 본다 — 바뀌지 않았으면 336종을 헛되이 받지 않는다.
     first = await api().pullCatalog({ limit: 1, includeArchived: true });
@@ -93,8 +94,8 @@ export async function syncCatalogToLocal(): Promise<CatalogSyncResult> {
   const existing = await collection.query().fetch();
   const byId = new Map(existing.map((e) => [e.id, e]));
   // 계정이 숨긴 기본 종목은 서버 카탈로그가 활성이어도 숨긴 채로 둔다(/qa code M-4)
-  const { getHiddenExerciseIds } = await import("@app/core/data/exercisePrefs");
-  const hidden = await getHiddenExerciseIds();
+  // [원본] const { getHiddenExerciseIds } = await import("@app/core/data/exercisePrefs");
+  //        const hidden = await getHiddenExerciseIds(); — S-145 에서 기본 종목 숨김을 없앴다(아래 unhideOnce)
 
   const ops: unknown[] = [];
   let written = 0;
@@ -113,7 +114,9 @@ export async function syncCatalogToLocal(): Promise<CatalogSyncResult> {
       rec.isCustom = it.isCustom;
       // [원본] rec.isArchived = false;
       // [개선] 카탈로그 개편(ADR-033 · QA M1) — 보관·동작 그룹·별칭·비슷한 운동·그림 출처를 그대로 받는다.
-      rec.isArchived = it.isArchived || hidden.has(it.id);
+      // [원본] rec.isArchived = it.isArchived || hidden.has(it.id); — 계정이 숨긴 기본 종목도 숨겼다
+      // [개선] S-145(2026-11-09) 기본 종목 보관을 없앴다 — 서버 카탈로그의 보관(병합·삭제)만 따른다
+      rec.isArchived = it.isArchived;
       rec.family = it.family || null;
       rec.aliases = it.aliases;
       rec.similar = it.similar;
@@ -160,4 +163,20 @@ export async function syncCatalogToLocal(): Promise<CatalogSyncResult> {
 
   void Exercise; // 모델 클래스를 번들에 남긴다(컬렉션이 이름으로 찾으므로 트리셰이킹 방지)
   return { status: "synced", count: await activeCount(), written };
+}
+
+// S-145(2026-11-09) — 기본 종목 보관을 없애며, 전에 숨긴 기본 종목을 기기마다 한 번 되살린다(개정 번호가 같아 카탈로그를
+// 다시 받지 않는 기기에서도). 선호 행의 hidden 은 계정 동기로 다른 기기에도 꺼진다.
+const UNHIDE_KEY = "liftgram.catalog.unhide-v1";
+async function unhideOnce(): Promise<void> {
+  try {
+    if (typeof localStorage === "undefined" || localStorage.getItem(UNHIDE_KEY)) return;
+    const { unhideAllExercises } = await import("@app/core/data/exercisePrefs");
+    const n = await unhideAllExercises();
+    // 풀었으면 전량 받기를 한 번 — 그사이 서버에서 병합·삭제된 종목은 it.isArchived 로 다시 보관된다(/qa code)
+    if (n > 0) localStorage.removeItem(REVISION_KEY);
+    localStorage.setItem(UNHIDE_KEY, "1");
+  } catch {
+    // 다음 동기에 다시 해 본다
+  }
 }

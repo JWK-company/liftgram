@@ -145,3 +145,35 @@ export async function setExerciseHidden(exerciseId: string, hidden: boolean): Pr
     });
   });
 }
+
+/**
+ * 기본 종목 「보관(숨김)」을 모두 푼다 — S-145(2026-11-09)에서 기본 종목 보관을 없앴다. 되살릴 곳이 없어 숨긴 종목을 다시 찾을 수 없었다.
+ * 선호 행의 hidden 을 끄고(계정 동기로 다른 기기에도 간다), 이 기기의 종목 행도 바로 보이게 한다(내가 만든 종목은 그대로).
+ * 돌려준 값 = 푼 종목 수.
+ */
+export async function unhideAllExercises(): Promise<number> {
+  const rows = await prefs().query(Q.where('hidden', true)).fetch();
+  if (rows.length === 0) return 0;
+  const ids = rows.map((r) => r.exerciseId);
+  const exRows = await database
+    .get<import('../db/models').Exercise>('exercises')
+    .query(Q.where('id', Q.oneOf(ids)))
+    .fetch();
+  await database.write(async () => {
+    await database.batch(
+      ...rows.map((r) =>
+        r.prepareUpdate((p) => {
+          p.hidden = false;
+        }),
+      ),
+      ...exRows
+        .filter((e) => !e.isCustom && e.isArchived)
+        .map((e) =>
+          e.prepareUpdate((rec) => {
+            rec.isArchived = false;
+          }),
+        ),
+    );
+  });
+  return rows.length;
+}

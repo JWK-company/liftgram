@@ -115,13 +115,20 @@ export async function loadSummaryExtras(summary: {
     //   })),
     // },
     const { buildSharedWorkout } = await import("@app/core/domain/sharePayload");
+    // 피드에 실리는 이름 — 내가 지은 이름은 빼고 대표 이름·별칭만(S-146 · /qa code)
+    const { getExerciseShareNameMap } = await import("@app/core/data/exerciseNames");
+    const shareNames = await getExerciseShareNameMap(detail.exercises.map((ex) => ex.exerciseId));
     return {
       // [개선] 고정된 키만 싣는다 — 운동 총평(notes)은 나만 본다 @plm SRS-064
       share: buildSharedWorkout({
         summary,
         workoutName: detail.workout?.name ?? "",
         streakDays: streak.current,
-        exercises: detail.exercises,
+        // [원본] exercises: detail.exercises,
+        exercises: detail.exercises.map((ex) => ({
+          ...ex,
+          exerciseName: shareNames.get(ex.exerciseId) ?? ex.exerciseName,
+        })),
       }),
       breakdown: detail.exercises.map((ex) => ({
         id: ex.workoutExerciseId,

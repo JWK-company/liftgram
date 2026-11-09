@@ -56,14 +56,19 @@ test("별칭으로 고르면 그 이름으로 보이고, 함축 칸(로프)이 �
   await expect(page.getByTestId("picker-similar")).toContainText("덤벨 벤치프레스");
 });
 
-test("종목 상세 ⋯ 이름 바꾸기 — 별칭을 고르면 그 이름, 대표 이름으로 되돌린다", async ({ page }) => {
+test("종목 상세 ✎ 이름 바꾸기 — 별칭 칩·직접 입력·원래 이름으로 (S-146)", async ({ page }) => {
   await 카탈로그_준비(page);
   await page.goto("/exercise/seed-seated-cable-row");
   await expect(page.getByTestId("exercise-name")).toHaveText("케이블 시티드 로우", { timeout: 20_000 });
+  // 옛 ⋯ 메뉴는 없다
+  await expect(page.getByTestId("exercise-more")).toHaveCount(0);
 
-  await page.getByTestId("exercise-more").click();
+  // 별칭 칩 → 입력칸이 채워지고 저장
   await page.getByTestId("btn-rename-exercise").click();
-  await page.getByTestId("rename-exercise-sheet").getByText("롱풀", { exact: true }).click();
+  await expect(page.getByTestId("rename-input")).toBeFocused();
+  await page.getByTestId("rename-aliases").getByText("롱풀", { exact: true }).click();
+  await expect(page.getByTestId("rename-input")).toHaveValue("롱풀");
+  await page.getByTestId("rename-save").click();
   await expect(page.getByTestId("exercise-name")).toHaveText("롱풀", { timeout: 15_000 });
   await expect(page.getByTestId("exercise-official-name")).toHaveText("케이블 시티드 로우");
 
@@ -71,9 +76,29 @@ test("종목 상세 ⋯ 이름 바꾸기 — 별칭을 고르면 그 이름, 대
   await page.reload();
   await expect(page.getByTestId("exercise-name")).toHaveText("롱풀", { timeout: 20_000 });
 
-  await page.getByTestId("exercise-more").click();
+  // 별칭에 없는 이름도 직접 — Enter 로 저장
   await page.getByTestId("btn-rename-exercise").click();
-  await page.getByTestId("name-choice-official").click();
+  await page.getByTestId("rename-input").fill("내 등운동");
+  await page.getByTestId("rename-input").press("Enter");
+  await expect(page.getByTestId("exercise-name")).toHaveText("내 등운동", { timeout: 15_000 });
+
+  // 빈칸은 저장 못 함 · 30자 상한
+  await page.getByTestId("btn-rename-exercise").click();
+  await page.getByTestId("rename-input").fill("   ");
+  await expect(page.getByTestId("rename-save")).toBeDisabled();
+  await page.getByTestId("rename-input").fill("가".repeat(40));
+  await expect(page.getByTestId("rename-input")).toHaveValue("가".repeat(30));
+  await page.getByTestId("rename-cancel").click();
+
+  // 취소는 바꾸지 않는다
+  await page.getByTestId("btn-rename-exercise").click();
+  await page.getByTestId("rename-input").fill("아무거나");
+  await page.getByTestId("rename-cancel").click();
+  await expect(page.getByTestId("exercise-name")).toHaveText("내 등운동");
+
+  // 원래 이름으로
+  await page.getByTestId("name-reset").click();
   await expect(page.getByTestId("exercise-name")).toHaveText("케이블 시티드 로우", { timeout: 15_000 });
   await expect(page.getByTestId("exercise-official-name")).toHaveCount(0);
+  await expect(page.getByTestId("name-reset")).toHaveCount(0);
 });

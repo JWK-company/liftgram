@@ -29,7 +29,7 @@ import { MotionNotice } from "../../components/MotionNotice";
 import ExerciseProgress from "../../components/analytics/ExerciseProgress";
 import { UserSettingsProvider } from "../../components/UserSettingsProvider";
 import { ScreenHeader } from "../../components/ui/ScreenHeader";
-import { ExerciseAdminBar } from "../../components/ExerciseAdminBar";
+// import { ExerciseAdminBar } from "../../components/ExerciseAdminBar"; // [원본] S-145 에서 뺐다
 import { ExerciseNameHeader } from "../../components/ExerciseNameHeader";
 import { Icon } from "../../components/ui/Icon";
 import { AppText, Card, Divider, SectionHeader, Tag } from "../../components/ui/primitives";
@@ -297,7 +297,8 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
         {/* 보관은 여기서 — 서버가 아는 종목(기본 카탈로그)의 상세다.
             내가 만든 종목은 **로컬에만** 있어 이 페이지가 404다(서버가 모른다) —
             그래서 고치기·보관 진입은 카탈로그 목록 쪽에 둔다. */}
-        <ExerciseAdminBar exerciseId={exercise.id} isCustom={false} />
+        {/* [원본] <ExerciseAdminBar exerciseId={exercise.id} isCustom={false} /> — 기본 종목 「보관」. 되살릴 곳이 없고 600여 종목은
+            검색으로 찾아 감출 까닭이 적었다(S-145 · 2026-11-09). 내가 만든 종목의 「삭제」는 고치기 화면에 있다 */}
 
         {/* [원본] 종목 id · 기본 카탈로그 · 갱신 날짜 줄을 모두에게 보였다 — 지웠다(SPEC-025) */}
         <AdSlot placement="exercise" />

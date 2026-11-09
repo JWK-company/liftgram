@@ -30,6 +30,7 @@ import { Icon } from "./ui/Icon";
 import { TextField } from "./ui/inputs";
 import { AppText } from "./ui/primitives";
 import { ScreenHeader } from "./ui/ScreenHeader";
+import { ConfirmDialog } from "./ui/Dialog";
 import { LogoSpinner } from "./ui/LogoSpinner";
 
 export default function ExerciseFormClient({ exerciseId }: { exerciseId?: string }) {
@@ -46,6 +47,9 @@ export default function ExerciseFormClient({ exerciseId }: { exerciseId?: string
   const [category, setCategory] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  // 내가 만든 종목 지우기(S-145) — 속으로는 보관(감추기)이라 지난 기록의 이름이 남는다
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // 수정이면 기존 값을 채운다.
   useEffect(() => {
@@ -268,8 +272,49 @@ export default function ExerciseFormClient({ exerciseId }: { exerciseId?: string
               testId="form-save"
             />
           </div>
+
+          {/* 종목 삭제 — 고치기 화면에서만(S-145 · 기본 종목 「보관」 대신). 누르면 확인 */}
+          {isEdit && exerciseId ? (
+            <div className="mb-[var(--spacing-xl)] flex justify-center border-(--color-line) border-t pt-[var(--spacing-lg)]">
+              <Button
+                title={t("exercises.deleteCustom")}
+                icon="trash-outline"
+                variant="danger"
+                size="sm"
+                fullWidth={false}
+                loading={deleting}
+                testId="btn-delete-exercise"
+                onPress={() => setConfirmDelete(true)}
+              />
+            </div>
+          ) : null}
         </div>
       )}
+
+      {confirmDelete && exerciseId ? (
+        <ConfirmDialog
+          testId="confirm-delete-exercise"
+          title={t("exercises.deleteCustomTitle")}
+          message={t("exercises.deleteCustomMessage")}
+          confirmLabel={t("common.delete")}
+          destructive
+          onCancel={() => setConfirmDelete(false)}
+          onConfirm={() => {
+            setConfirmDelete(false);
+            setDeleting(true);
+            void (async () => {
+              try {
+                const repo = await import("@app/core/data/exerciseRepository");
+                await repo.archiveExercise(exerciseId);
+                await navigateAfterFlush("/exercises");
+              } catch {
+                toast(t("common.error"), "error");
+                setDeleting(false);
+              }
+            })();
+          }}
+        />
+      ) : null}
     </div>
   );
 }

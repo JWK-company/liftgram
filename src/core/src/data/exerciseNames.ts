@@ -33,6 +33,30 @@ export async function getExerciseDisplayNameMap(ids: string[]): Promise<Map<stri
   return out;
 }
 
+/**
+ * 남에게 보이는 곳(피드 공유 카드·트레이너 요약)에 실을 이름 — S-146 부터 표시 이름을 아무 글로나 쓸 수 있어,
+ * 내가 지은 이름(「내 등운동」)은 나만 본다. 표시 이름이 그 종목의 별칭이면 그대로, 아니면 대표 이름.
+ */
+export async function getExerciseShareNameMap(ids: string[]): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  const uniq = [...new Set(ids)].filter(Boolean);
+  if (!uniq.length) return out;
+  const exs = await database.get<Exercise>('exercises').query(Q.where('id', Q.oneOf(uniq))).fetch();
+  const byId = new Map(exs.map((e) => [e.id, e]));
+  for (const e of exs) out.set(e.id, e.nameKo);
+  const ps = await prefs()
+    .query(Q.where('exercise_id', Q.oneOf(uniq)))
+    .fetch();
+  for (const p of ps) {
+    const n = p.displayName?.trim();
+    const e = byId.get(p.exerciseId);
+    if (!n || !e) continue;
+    const k = normalizeNameKey(n);
+    if ((e.aliases ?? []).some((a) => normalizeNameKey(a) === k)) out.set(p.exerciseId, n);
+  }
+  return out;
+}
+
 /** 이 종목을 무엇이라 부를지 고르는 시트의 재료 — 대표 이름 + 한글 별칭(영문 제외) + 지금 고른 이름. */
 export async function getExerciseNameChoices(
   exerciseId: string,

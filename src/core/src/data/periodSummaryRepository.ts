@@ -69,8 +69,11 @@ export async function buildMemberSummary(range: SummaryRange, opts: MemberSummar
   const exercises = await fetchByIds('exercises', 'id', exIds);
 
   // 표시 이름(ADR-033) — 운동 화면·분석과 같은 이름
-  const { getExerciseDisplayNameMap } = await import('./exerciseNames');
-  const names = await getExerciseDisplayNameMap(exIds);
+  // [원본] const { getExerciseDisplayNameMap } = await import('./exerciseNames');
+  // const names = await getExerciseDisplayNameMap(exIds);
+  // [개선] 요약은 트레이너에게 간다 — 내가 지은 이름(S-146)은 빼고 대표 이름·별칭만
+  const { getExerciseShareNameMap } = await import('./exerciseNames');
+  const names = await getExerciseShareNameMap(exIds);
   // [원본] 체중 — 완료 판정과 같은 값(맨몸·보조 유효무게) · 이력은 기간 안 측정만
   // const bodyweightKg = await getUserBodyweightKg();
   // [개선] 세트 계산에 체중을 넣지 않는다 — 체중 섹션을 꺼도 맨몸 종목 무게로 체중이 코치에게 갔다(P4S-1). 이력은 기간 안 측정만.

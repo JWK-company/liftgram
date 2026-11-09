@@ -143,26 +143,28 @@ export async function normalizeCatalogRecords(force = false): Promise<NormalizeR
       console.warn('[normalize] 표시 이름 심기 건너뜀', e);
     }
   }
-  // 계정이 숨긴 기본 종목(/qa code M-4) — 다른 기기에서 숨겼거나 카탈로그를 다시 받아 풀린 것을 로컬 행에 다시 반영한다.
-  let hidden = 0;
-  const hiddenIds = (await prefs.query(Q.where('hidden', true)).fetch()).map((p) => p.exerciseId).filter((id) => localIds.has(id));
-  if (hiddenIds.length) {
-    const rows = await database
-      .get<Exercise>('exercises')
-      .query(Q.where('id', Q.oneOf(hiddenIds)), Q.where('is_archived', false))
-      .fetch();
-    if (rows.length) {
-      await database.write(async () => {
-        await database.batch(
-          ...rows.map((e) =>
-            e.prepareUpdate((r) => {
-              r.isArchived = true;
-            }),
-          ),
-        );
-      });
-      hidden = rows.length;
-    }
-  }
+  // [원본] 계정이 숨긴 기본 종목(/qa code M-4) — hidden 선호를 로컬 행의 isArchived 로 다시 반영했다.
+  //   S-145 에서 기본 종목 숨김을 없애(되살릴 화면이 없다) 이 반영도 끈다 — 남은 hidden 행이 다시 숨기지 않게.
+  const hidden = 0;
+  // let hidden = 0;
+  // const hiddenIds = (await prefs.query(Q.where('hidden', true)).fetch()).map((p) => p.exerciseId).filter((id) => localIds.has(id));
+  // if (hiddenIds.length) {
+  //   const rows = await database
+  //     .get<Exercise>('exercises')
+  //     .query(Q.where('id', Q.oneOf(hiddenIds)), Q.where('is_archived', false))
+  //     .fetch();
+  //   if (rows.length) {
+  //     await database.write(async () => {
+  //       await database.batch(
+  //         ...rows.map((e) =>
+  //           e.prepareUpdate((r) => {
+  //             r.isArchived = true;
+  //           }),
+  //         ),
+  //       );
+  //     });
+  //     hidden = rows.length;
+  //   }
+  // }
   return { changed, deferred, named, hidden };
 }

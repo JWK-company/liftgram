@@ -75,7 +75,9 @@ test("프로필 사진을 바꾸면 실제로 그려진다", async ({ page }) =>
     .toBeGreaterThan(0);
 });
 
-test("내가 만든 종목은 고칠 수 있고, 보관하면 목록에서 빠진다", async ({ page }) => {
+test("내가 만든 종목은 고칠 수 있고, 지우면 목록에서 빠진다 · 기본 종목엔 보관이 없다(S-145)", async ({
+  page,
+}) => {
   test.setTimeout(120_000);
   const 이름 = `보관종목${Date.now().toString(36)}`;
   const 고친이름 = `${이름}수정`;
@@ -99,17 +101,23 @@ test("내가 만든 종목은 고칠 수 있고, 보관하면 목록에서 빠�
   await page.getByTestId("search-input").fill(고친이름);
   await expect(page.getByTestId("exercise-list")).toContainText(고친이름, { timeout: 20_000 });
 
-  // 기본 카탈로그 종목은 상세에서 보관할 수 있다 — 지운 것이 아니라 감춘 것이다.
+  // [원본] 기본 카탈로그 종목은 상세에서 보관할 수 있었다 — S-145(2026-11-09)에서 없앴다(되살릴 곳이 없었다)
+  // [개선] 내가 만든 종목은 고치기 화면 맨 아래 「종목 삭제」 → 확인 → 목록에서 빠진다(지난 기록은 남는다)
+  await page.getByTestId("search-input").fill(고친이름);
+  await page.getByTestId("exercise-list").locator("[data-testid^='edit-']").first().click();
+  await expect(page.getByTestId("exercise-form")).toBeVisible({ timeout: 20_000 });
+  await page.getByTestId("btn-delete-exercise").click();
+  await expect(page.getByTestId("confirm-delete-exercise")).toContainText("지난 기록은 그대로 남아요");
+  await page.getByTestId("confirm-delete-exercise").getByTestId("dialog-confirm").click();
+  await expect(page).toHaveURL(/\/exercises$/, { timeout: 20_000 });
+  await page.getByTestId("search-input").fill(고친이름);
+  await expect(page.getByTestId("exercise-list")).toHaveCount(0, { timeout: 20_000 });
+
+  // 기본 종목 상세에는 「보관」이 없다
   await page.getByTestId("search-input").fill("바벨 벤치프레스");
   await page.getByTestId("exercise-list").locator("a").first().click();
-  await expect(page.getByTestId("btn-archive-exercise")).toBeVisible({ timeout: 20_000 });
-  await page.getByTestId("btn-archive-exercise").click();
-  await page.getByTestId("confirm-archive-exercise").getByTestId("dialog-confirm").click();
-  await expect(page).toHaveURL(/\/exercises$/, { timeout: 20_000 });
-  await page.getByTestId("search-input").fill("바벨 벤치프레스");
-  // 결과가 없으면 목록 자체가 빈 상태로 바뀐다 — "목록에 없다"가 아니라 "목록이 없다"이다.
-  await expect(page.getByTestId("exercise-list")).toHaveCount(0, { timeout: 20_000 });
-  await expect(page.locator("main")).toContainText("결과가 없어요");
+  await expect(page.getByTestId("exercise-name")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("btn-archive-exercise")).toHaveCount(0);
 });
 
 test("마친 운동을 피드에 올리면 오운완 카드가 된다", async ({ page }) => {
