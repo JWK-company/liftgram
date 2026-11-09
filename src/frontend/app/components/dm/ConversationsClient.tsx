@@ -75,15 +75,17 @@ export default function ConversationsClient() {
           </a>
         }
         // [원본] 사람 아이콘 → 「새 그룹」(dm-new-group) — 사람 찾기로 오해됐다(S-18). 사람 찾기는 피드 머리 👤 로 옮겼다.
-        // [개선] ✎ 새 메시지 — 한 명이면 1:1, 여럿이면 단체 대화(SPEC-048)
+        // [개선] 「+ 새 메시지」(처음엔 ✎ 아이콘 · 아래 참고) — 한 명이면 1:1, 여럿이면 단체 대화(SPEC-048)
         right={
+          // [원본] 아이콘만(create-outline ✎) — 무엇을 하는 버튼인지 알기 어려웠다(사용자 11-09 · 「그룹 만드는 버튼 같은데 아이콘이 어색」)
+          // [개선] 글자 버튼 「+ 새 메시지」 — 한 명이면 1:1, 여럿이면 단체 대화(SPEC-048). 누르는 자리 44px
           <a
             href="/messages/new"
-            aria-label={t("dm.newMessage")}
             data-testid="dm-new"
-            className="flex h-11 w-11 items-center justify-center"
+            className="flex min-h-11 shrink-0 items-center gap-[2px] whitespace-nowrap rounded-[var(--radius-pill)] border border-(--color-line-strong) px-[var(--spacing-md)] font-medium text-(--color-ink) text-[length:var(--text-sm)] active:bg-(--color-surface-alt)"
           >
-            <Icon name="create-outline" size={23} color="var(--color-ink)" />
+            <Icon name="add" size={18} color="var(--color-ink)" />
+            {t("dm.newMessage")}
           </a>
         }
       />

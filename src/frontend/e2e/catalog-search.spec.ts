@@ -66,6 +66,12 @@ test("종목 상세 ✎ 이름 바꾸기 — 별칭 칩·직접 입력·원래 �
   // 별칭 칩 → 입력칸이 채워지고 저장
   await page.getByTestId("btn-rename-exercise").click();
   await expect(page.getByTestId("rename-input")).toBeFocused();
+  // 칩과 저장·취소가 한 줄 — 저장·취소는 오른쪽 끝(11-09 사용자 지적)
+  const chip = await page.getByTestId("name-choice-0").boundingBox();
+  const act = await page.getByTestId("rename-actions").boundingBox();
+  const inp = await page.getByTestId("rename-input").boundingBox();
+  expect(chip && act && Math.abs(chip.y - act.y) < 8).toBe(true);
+  expect(act && inp && Math.abs(act.x + act.width - (inp.x + inp.width)) < 2).toBe(true);
   await page.getByTestId("rename-aliases").getByText("롱풀", { exact: true }).click();
   await expect(page.getByTestId("rename-input")).toHaveValue("롱풀");
   await page.getByTestId("rename-save").click();

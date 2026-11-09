@@ -106,14 +106,18 @@ test("오늘 체중 줄 — 시작해도 시트 없음 · 줄 → 시트 ± 저�
   await 빠른_운동_시작(page);
   await 시트_없음(page);
 
+  // [원본] 바탕 없는 한 줄 「오늘 체중 기록」 → 운동 종목과 같은 카드(11-09 사용자 지적) · 버튼 「기록/고치기」가 weighin-row
+  const card = page.getByTestId("weighin-card");
   const row = page.getByTestId("weighin-row");
-  await expect(row).toHaveText(/오늘 체중 기록/, { timeout: 20_000 });
-  await expect(row).toHaveAttribute("data-done", "0");
-  // 맨 위 한 줄 · 44px · 「운동 추가」보다 위
+  await expect(card).toContainText("아직 안 적었어요", { timeout: 20_000 });
+  await expect(card).toHaveAttribute("data-done", "0");
+  await expect(row).toHaveText("기록");
+  // 맨 위 카드 · 버튼 44px · 「운동 추가」보다 위
   const rb = await row.boundingBox();
+  const cb = await card.boundingBox();
   const add = await page.getByTestId("btn-add-exercise").boundingBox();
   expect(rb && Math.round(rb.height) >= 44).toBe(true);
-  expect(rb && add && rb.y < add.y).toBe(true);
+  expect(cb && add && cb.y < add.y).toBe(true);
 
   await row.click();
   const sheet = page.getByTestId("weighin-sheet");
@@ -146,21 +150,31 @@ test("오늘 체중 줄 — 시작해도 시트 없음 · 줄 → 시트 ± 저�
   await expect(sheet.getByTestId("weighin-value")).toContainText("72.4");
   await sheet.getByTestId("weighin-save").click();
   await expect(sheet).toHaveCount(0);
-  await expect(row).toHaveText(/오늘 체중 72\.4kg/);
-  await expect(row).toHaveAttribute("data-done", "1");
+  await expect(page.getByTestId("weighin-card-value")).toHaveText("72.4kg");
+  await expect(card).toHaveAttribute("data-done", "1");
+  await expect(row).toHaveText("고치기");
+  // 접기 — 요약 한 줄만 · 새로고침해도 접힌 채 · 다시 펼침
+  await page.getByTestId("weighin-card-toggle").click();
+  await expect(page.getByTestId("weighin-card-body")).toHaveCount(0);
+  await expect(page.getByTestId("weighin-card-summary")).toHaveText("72.4kg");
+  await page.reload();
+  await expect(page.getByTestId("weighin-card-summary")).toHaveText("72.4kg", { timeout: 20_000 });
+  await expect(page.getByTestId("weighin-card-toggle")).toHaveAttribute("aria-expanded", "false");
+  await page.getByTestId("weighin-card-toggle").click();
+  await expect(row).toBeVisible();
   await expect(page).toHaveURL(/\/workout/);
 
   // 같은 날 다음 운동 — 시트 없음 · 접힌 값 · 누르면 그 줄을 고친다(새 줄 아님)
   await 운동_취소(page);
   await 빠른_운동_시작(page);
   await 시트_없음(page);
-  await expect(row).toHaveText(/오늘 체중 72\.4kg/, { timeout: 20_000 });
+  await expect(page.getByTestId("weighin-card-value")).toHaveText("72.4kg", { timeout: 20_000 });
   await row.click();
   await expect(sheet.getByTestId("weighin-value")).toContainText("72.4");
   await sheet.getByTestId("weighin-step-p0_1").click();
   await sheet.getByTestId("weighin-save").click();
   await expect(sheet).toHaveCount(0);
-  await expect(row).toHaveText(/오늘 체중 72\.5kg/);
+  await expect(page.getByTestId("weighin-card-value")).toHaveText("72.5kg");
 
   expect(await 프로필_체중(page)).toBe("72.5kg");
   await 기록_전체(page);
@@ -209,7 +223,7 @@ test("오늘 체중 시트 닫기(취소·스크림·Esc·뒤로) = 이력 불�
   await expect(page).toHaveURL(/\/workout/);
   // 닫아도 운동 화면 그대로 · 기록 없음
   await expect(page).toHaveURL(/\/workout/);
-  await expect(row).toHaveAttribute("data-done", "0");
+  await expect(page.getByTestId("weighin-card")).toHaveAttribute("data-done", "0");
   await 운동_취소(page);
 
   expect(await 프로필_체중(page)).toBe("미설정");
@@ -722,13 +736,13 @@ test("오늘 체중 줄 — 「체중 미설정으로 두기」 뒤에는 ✓ �
 
   await 빠른_운동_시작(page);
   const row = page.getByTestId("weighin-row");
-  await expect(row).toHaveAttribute("data-done", "0", { timeout: 20_000 });
+  await expect(page.getByTestId("weighin-card")).toHaveAttribute("data-done", "0", { timeout: 20_000 });
   await row.click();
   const sheet = page.getByTestId("weighin-sheet");
   await expect(sheet.locator("h2")).toHaveText("오늘 체중");
   await sheet.getByTestId("weighin-save").click();
   await expect(sheet).toHaveCount(0);
-  await expect(row).toHaveAttribute("data-done", "1");
+  await expect(page.getByTestId("weighin-card")).toHaveAttribute("data-done", "1");
   await 운동_취소(page);
   expect(await 프로필_체중(page)).toBe("72.0kg");
   // 측정 줄 둘(처음 + 새로) · 표식 하나

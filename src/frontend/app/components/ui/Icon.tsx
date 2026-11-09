@@ -14,6 +14,7 @@ import {
   IoBarbell,
   IoBarbellOutline,
   IoBodyOutline,
+  IoScaleOutline,
   IoCalendar,
   IoCalendarOutline,
   IoCamera,
@@ -107,6 +108,7 @@ const GLYPHS = {
   "apps-outline": IoAppsOutline,
   "barbell-outline": IoBarbellOutline,
   "body-outline": IoBodyOutline,
+  "scale-outline": IoScaleOutline, // 체중(운동 화면 「오늘 체중」 카드 · 사람 모양은 근육 그림 버튼과 겹쳤다)
   calendar: IoCalendar,
   "calendar-outline": IoCalendarOutline,
   camera: IoCamera,

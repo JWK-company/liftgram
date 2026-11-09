@@ -94,43 +94,49 @@ export function ExerciseNameHeader({ exerciseId, fallback }: { exerciseId: strin
           data-testid="rename-input"
           className="h-[48px] w-full rounded-[var(--radius-sm)] border border-(--color-brand) bg-(--color-card) px-[var(--spacing-md)] font-bold text-(--color-ink) text-[length:var(--text-lg)] outline-none"
         />
-        {/* 별칭 칩 — 누르면 입력칸을 채운다(흔히 부르는 이름을 다시 칠 필요 없게) */}
-        {choices.aliases.length ? (
-          <div className="flex flex-wrap gap-[6px]" data-testid="rename-aliases">
-            {choices.aliases.map((a, i) => (
-              <button
-                key={a}
-                type="button"
-                data-testid={`name-choice-${i}`}
-                onClick={() => setDraft(a)}
-                className={`min-h-[36px] rounded-full border px-[12px] text-[length:var(--text-sm)] ${
-                  draft.trim() === a
-                    ? "border-(--color-brand) bg-(--color-brand-muted) text-(--color-brand)"
-                    : "border-(--color-line-strong) text-(--color-ink2)"
-                }`}
-              >
-                {a}
-              </button>
-            ))}
+        {/* [원본] 별칭 칩 줄 아래에 저장·취소 줄이 따로 있었다 — 한 줄로: 왼쪽 칩(넘치면 칩끼리 줄바꿈) · 오른쪽 저장·취소(11-09 사용자 지적) */}
+        <div className="flex items-start gap-[var(--spacing-sm)]">
+          {/* 별칭 칩 — 누르면 입력칸을 채운다(흔히 부르는 이름을 다시 칠 필요 없게) */}
+          {choices.aliases.length ? (
+            <div className="flex min-w-0 flex-1 flex-wrap gap-[6px]" data-testid="rename-aliases">
+              {choices.aliases.map((a, i) => (
+                <button
+                  key={a}
+                  type="button"
+                  data-testid={`name-choice-${i}`}
+                  onClick={() => setDraft(a)}
+                  className={`min-h-[36px] rounded-full border px-[12px] text-[length:var(--text-sm)] ${
+                    draft.trim() === a
+                      ? "border-(--color-brand) bg-(--color-brand-muted) text-(--color-brand)"
+                      : "border-(--color-line-strong) text-(--color-ink2)"
+                  }`}
+                >
+                  {a}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="flex-1" />
+          )}
+          {/* [원본] <div className="flex flex-wrap items-center gap-[var(--spacing-sm)]"> */}
+          <div className="flex shrink-0 items-center gap-[var(--spacing-xs)]" data-testid="rename-actions">
+            <Button
+              title={t("common.save")}
+              size="sm"
+              fullWidth={false}
+              disabled={!trimmed}
+              testId="rename-save"
+              onPress={() => void save(trimmed)}
+            />
+            <Button
+              title={t("common.cancel")}
+              size="sm"
+              variant="quiet"
+              fullWidth={false}
+              testId="rename-cancel"
+              onPress={() => setEditing(false)}
+            />
           </div>
-        ) : null}
-        <div className="flex flex-wrap items-center gap-[var(--spacing-sm)]">
-          <Button
-            title={t("common.save")}
-            size="sm"
-            fullWidth={false}
-            disabled={!trimmed}
-            testId="rename-save"
-            onPress={() => void save(trimmed)}
-          />
-          <Button
-            title={t("common.cancel")}
-            size="sm"
-            variant="quiet"
-            fullWidth={false}
-            testId="rename-cancel"
-            onPress={() => setEditing(false)}
-          />
         </div>
       </form>
     );

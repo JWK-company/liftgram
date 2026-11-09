@@ -147,7 +147,7 @@ test("상대가 보낸 말이 새로고침 없이 들어온다 — 실시간 스
 
 // [원본] 「그룹은 팔로우한 사람만 고를 수 있고, 나가면 목록에서 빠진다」 — 한 명을 골라 이름을 적고 「만들기」였다.
 // [개선] SPEC-048: 메시지 ✎ 「새 메시지」 — 팔로잉 목록이 먼저 · 한 명 = 1:1 · 두 명 이상 = 이름 칸 + 단체 대화
-test("✎ 새 메시지 — 팔로우한 사람만 · 한 명이면 1:1 · 두 명이면 단체 대화(SPEC-048)", async ({
+test("「+ 새 메시지」 — 팔로우한 사람만 · 한 명이면 1:1 · 두 명이면 단체 대화(SPEC-048)", async ({
   page,
   context,
 }) => {
@@ -162,9 +162,17 @@ test("✎ 새 메시지 — 팔로우한 사람만 · 한 명이면 1:1 · 두 �
   await page.evaluate(() => localStorage.removeItem("liftgram.session"));
   await 가입(page, freshEmail("gme"), "방장");
 
-  // 메시지 오른쪽 위는 ✎ 하나(옛 사람 아이콘 없음)
+  // 메시지 오른쪽 위는 「+ 새 메시지」 하나(옛 사람 아이콘 없음) · 360px 에서 잰다
+  await page.setViewportSize({ width: 360, height: 780 });
   await page.goto("/messages");
   await expect(page.getByTestId("dm-new-group")).toHaveCount(0);
+  // 아이콘만이 아니라 글자 「새 메시지」 · 누르는 자리 44px · 360px 에서 제목과 겹치지 않는다(11-09 사용자 지적)
+  await expect(page.getByTestId("dm-new")).toHaveText("새 메시지");
+  const nb = await page.getByTestId("dm-new").boundingBox();
+  const tb = await page.getByTestId("screen-title").boundingBox();
+  expect(nb && nb.height >= 44 && nb.height <= 48).toBe(true); // 한 줄
+  await expect(page.getByRole("link", { name: "새 메시지" })).toBeVisible();
+  expect(nb && tb && tb.x + tb.width <= nb.x + 0.5).toBe(true);
   await page.getByTestId("dm-new").click();
   await expect(page).toHaveURL(/\/messages\/new$/);
 

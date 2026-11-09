@@ -47,7 +47,9 @@ import { clearWeighInMarks, hasWeighInMark, readWeighInEnabled, setWeighInMark }
 import { afterBodyweightWrite, useBodyweightLogs } from "@/lib/bodyweightLogs";
 import { lang, t } from "@/lib/i18n";
 import { useToast } from "../Toast";
+import { Button } from "../ui/Button";
 import { Icon } from "../ui/Icon";
+import { Card } from "../ui/primitives";
 
 /** 인바디 두 칸(SPEC-049 Phase 3) — null = 안 적음 */
 export interface InbodyValues {
@@ -693,6 +695,8 @@ export function WeighInCheckin({ workoutId, startedAt }: { workoutId: string; st
  * 날짜는 ActiveWorkout 이 매초 넘기는 now 로 판정한다 — 자정을 넘기면 다시 「오늘 체중 기록」.
  * 모양은 SPEC-046 「다른 창을 여는 줄」 — 바탕 없는 줄 + 아이콘 + › · 누르는 자리 44px.
  */
+const WEIGHIN_CARD_KEY = "liftgram.weighinCardCollapsed";
+
 export function WeighInRow({ now }: { now: number }) {
   const { user, bodyweightKg, refresh } = useUser();
   const { logs, loaded } = useBodyweightLogs();
@@ -700,6 +704,21 @@ export function WeighInRow({ now }: { now: number }) {
   // [원본] const [open, setOpen] = useState(false); — 고칠 줄을 매초 다시 판정해 연 사이 생긴 남의 줄을 덮었다(P1-2 리뷰)
   // [개선] 열 때 고칠 줄 id 를 고정한다(null = 새 줄). 저장 때 그 줄이 사라졌으면 새로 쓴다
   const [target, setTarget] = useState<{ id: string | null } | null>(null);
+  // 접기 — 기기에 기억(운동마다 다시 펼치지 않게). 저장소가 막혀도 펼친 채로 동작
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem(WEIGHIN_CARD_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const toggleCollapsed = () =>
+    setCollapsed((c) => {
+      try {
+        localStorage.setItem(WEIGHIN_CARD_KEY, c ? "0" : "1");
+      } catch {}
+      return !c;
+    });
   const unit = bodyweightUnitOf(user?.weightUnit);
   // 옛 체크인이 남긴 `weighin:<운동>` 표시를 한 번 걷는다(체크인을 막아 더는 지우는 곳이 없다 · P1-2 리뷰)
   useEffect(() => {
@@ -715,30 +734,99 @@ export function WeighInRow({ now }: { now: number }) {
   // 「지난 기록」·±30% 기준 = 오늘 고칠 줄을 뺀 가장 최근 기록
   const before = lastEntryOf(sheetRow ? logs.filter((l) => l.id !== sheetRow.id) : logs);
   const fmt = (kg: number) => `${formatBodyweight(kg, unit)}${unit}`;
-  const label = today
-    ? t("bodyweight.rowDone", { value: fmt(today.weightKg) })
-    : before
-      ? t("bodyweight.rowLogLast", { value: fmt(before.kg) })
-      : t("bodyweight.rowLog");
+  // [원본] 한 줄 글(rowDone·rowLogLast·rowLog) — 카드에서는 제목·상태·지난 기록으로 나눴다
+  /* [원본] 바탕 없는 한 줄(사람 아이콘 + 글 + ›) — 눈에 안 띄었고 사람 아이콘이 「오늘 근육」 버튼과 겹쳤다(11-09 사용자 지적)
   return (
     <>
-      <button
-        type="button"
-        data-testid="weighin-row"
-        data-done={today ? "1" : "0"}
-        aria-label={today ? t("bodyweight.rowDoneAria", { value: fmt(today.weightKg) }) : undefined}
-        onClick={() => setTarget({ id: today?.id ?? null })}
-        className="mb-[var(--spacing-sm)] flex min-h-11 w-full items-center gap-[var(--spacing-sm)] rounded-[var(--radius-sm)] px-[var(--spacing-xs)] text-left active:bg-(--color-surface-alt)"
-      >
-        <Icon name="body-outline" size={20} color={today ? "var(--color-brand)" : "var(--color-ink2)"} />
-        <span
-          className={`min-w-0 flex-1 truncate text-[length:var(--text-sm)] ${today ? "font-semibold text-(--color-ink)" : "text-(--color-ink2)"}`}
-        >
-          {label}
-        </span>
-        {today ? <Icon name="checkmark" size={18} color="var(--color-brand)" /> : null}
-        <Icon name="chevron-forward" size={18} color="var(--color-ink3)" />
+      <button type="button" data-testid="weighin-row" data-done={today ? "1" : "0"} … onClick={() => setTarget({ id: today?.id ?? null })}
+        className="mb-[var(--spacing-sm)] flex min-h-11 w-full items-center … active:bg-(--color-surface-alt)">
+        <Icon name="body-outline" … /> <span …>{label}</span> {today ? <Icon name="checkmark" … /> : null} <Icon name="chevron-forward" … />
       </button>
+  */
+  // [개선] 운동 종목과 같은 카드 · 저울 아이콘 · 접기(접은 상태는 기기에 기억). 펼치면 오늘 값·지난 기록·인바디·「기록/고치기」
+  const smm = today?.skeletalMuscleKg;
+  const pbf = today?.bodyFatPct;
+  const inbodyText = [
+    smm != null ? `${t("bodyweight.smmLabel")} ${smm.toFixed(1)}kg` : null,
+    pbf != null ? `${t("bodyweight.pbfLabel")} ${pbf.toFixed(1)}%` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  const status = today
+    ? fmt(today.weightKg)
+    : before
+      ? t("bodyweight.cardNotYetLast", { value: fmt(before.kg) })
+      : t("bodyweight.cardNotYet");
+  return (
+    <>
+      <Card className="mb-[var(--spacing-lg)]" data-testid="weighin-card" data-done={today ? "1" : "0"}>
+        <button
+          type="button"
+          data-testid="weighin-card-toggle"
+          aria-expanded={!collapsed}
+          aria-controls="weighin-card-body"
+          onClick={() => toggleCollapsed()}
+          className="flex min-h-11 w-full items-center gap-[var(--spacing-sm)] rounded-[var(--radius-md)] text-left focus-visible:outline-2 focus-visible:outline-(--color-brand)"
+        >
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-(--color-surface-alt)">
+            <Icon name="scale-outline" size={22} color={today ? "var(--color-brand)" : "var(--color-ink2)"} />
+          </span>
+          <span className="min-w-0 flex-1 truncate whitespace-nowrap font-bold text-(--color-ink) text-[length:var(--text-lg)]">
+            {t("bodyweight.sheetCheckinTitle")}
+          </span>
+          {collapsed ? (
+            <span
+              data-testid="weighin-card-summary"
+              className="flex min-w-0 shrink items-center gap-[4px] truncate text-(--color-ink2) text-[length:var(--text-sm)] tabular-nums"
+            >
+              <span className="truncate">{status}</span>
+              {today ? <Icon name="checkmark" size={16} color="var(--color-brand)" /> : null}
+            </span>
+          ) : null}
+          <Icon name={collapsed ? "chevron-down" : "chevron-up"} size={20} color="var(--color-ink2)" />
+        </button>
+        {collapsed ? null : (
+          <div
+            id="weighin-card-body"
+            className="mt-[var(--spacing-md)] flex items-center gap-[var(--spacing-md)]"
+            data-testid="weighin-card-body"
+          >
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-[6px]">
+                <span
+                  data-testid="weighin-card-value"
+                  className={`tabular-nums ${today ? "font-bold text-(--color-ink) text-[length:var(--text-xl)]" : "text-(--color-ink2) text-[length:var(--text-md)]"}`}
+                >
+                  {today ? fmt(today.weightKg) : t("bodyweight.cardNotYet")}
+                </span>
+                {today ? <Icon name="checkmark-circle" size={20} color="var(--color-brand)" /> : null}
+              </div>
+              {inbodyText ? (
+                <p className="truncate text-(--color-ink2) text-[length:var(--text-sm)] tabular-nums">
+                  {inbodyText}
+                </p>
+              ) : null}
+              {before ? (
+                <p className="truncate text-(--color-ink3) text-[length:var(--text-sm)] tabular-nums">
+                  {t("bodyweight.cardLast", {
+                    value: fmt(before.kg),
+                    date: formatBodyweightDate(before.measuredAt),
+                  })}
+                </p>
+              ) : null}
+            </div>
+            <Button
+              title={today ? t("bodyweight.edit") : t("bodyweight.record")}
+              variant="outline" // 운동 화면의 빨강 채움은 「완료」 하나
+              size="sm"
+              fullWidth={false}
+              testId="weighin-row"
+              className="min-h-11 shrink-0 self-center! px-[var(--spacing-lg)]!"
+              onPress={() => setTarget({ id: today?.id ?? null })}
+            />
+          </div>
+        )}
+      </Card>
       {target ? (
         <WeighInSheet
           testId="weighin-sheet"
