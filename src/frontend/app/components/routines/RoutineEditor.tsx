@@ -55,7 +55,7 @@ import { ExerciseName } from "../session/ExerciseName";
 import { useSession } from "../SessionProvider";
 import { SubAppBar } from "../ui/AppBar";
 import { LogoSpinner } from "../ui/LogoSpinner";
-import { MoreMenu } from "../ui/MoreMenu";
+// import { MoreMenu } from "../ui/MoreMenu"; // [원본] 앱바 ⋯ — S-104 에서 뺐다
 import { type RoutineLineSets, routineLinePatch, rowsFromRoutineLine } from "@app/core/domain/routineSets";
 import { PrescriptionRows } from "./PrescriptionRows";
 import { RxTypeHint } from "../CoachHints";
@@ -353,20 +353,9 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
             await navigateAfterFlush("/");
           })();
         }}
-        right={
-          <MoreMenu
-            testId="btn-routine-menu"
-            sheetTestId="routine-menu"
-            options={[
-              {
-                label: t("routines.deleteRoutineTitle"),
-                destructive: true,
-                testId: "btn-delete-routine",
-                onPress: () => setConfirmDeleteRoutine(true),
-              },
-            ]}
-          />
-        }
+        // [원본] right={<MoreMenu testId="btn-routine-menu" sheetTestId="routine-menu" options={[{ label: 루틴 삭제, destructive, testId: "btn-delete-routine", onPress: () => setConfirmDeleteRoutine(true) }]} />}
+        //   — 항목이 「루틴 삭제」 하나뿐인데 시트를 한 번 더 올렸다(S-104 · 피드백 2026-11-09)
+        // [개선] ⋯ 없이 편집 화면 맨 아래 「루틴 삭제」 버튼(아래) → 바로 삭제 확인(S-107)
       />
 
       <div className="flex-1 p-[var(--spacing-lg)]">
@@ -511,6 +500,21 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
             onPress={() => setPicking({ mode: "add" })}
           />
         </div>
+
+        {/* 루틴 삭제 — 앱바 ⋯ 시트 대신 화면 맨 아래(S-104). 저장된 루틴에만 · 누르면 삭제 확인(S-107) */}
+        {routineId ? (
+          <div className="mt-[var(--spacing-xl)] flex justify-center border-(--color-line) border-t pt-[var(--spacing-lg)]">
+            <Button
+              title={t("routines.deleteRoutineTitle")}
+              icon="trash-outline"
+              variant="danger"
+              size="sm"
+              fullWidth={false}
+              testId="btn-delete-routine"
+              onPress={() => setConfirmDeleteRoutine(true)}
+            />
+          </div>
+        ) : null}
 
         {/* [원본] 편집 화면 아래에 끼운 작은 카드 피커 — 몇 줄밖에 안 보이고 부위로 못 좁히고 하나씩만 골랐다(피드백 2026-10-30)
         // {picking ? (

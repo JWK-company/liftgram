@@ -49,6 +49,36 @@ test("메시지를 주고받고, 안 읽은 수가 섰다가 사라진다", asyn
   await expect(page.getByTestId("conv-input")).toBeVisible({ timeout: 20_000 });
   const 방주소 = page.url();
 
+  // S-23 입력줄 — 사진·입력칸·전송이 같은 높이(44)로 아래 선에 맞는다 · 쓸 글이 없으면 전송은 꺼짐
+  const 입력줄 = async () =>
+    Promise.all(["conv-image", "conv-input", "conv-send"].map((id) => page.getByTestId(id).boundingBox()));
+  {
+    const [img, input, send] = await 입력줄();
+    expect(img && input && send).toBeTruthy();
+    if (img && input && send) {
+      for (const b of [img, input, send]) expect(Math.round(b.height)).toBe(44);
+      expect(Math.abs(img.y + img.height - (input.y + input.height))).toBeLessThanOrEqual(1);
+      expect(Math.abs(send.y + send.height - (input.y + input.height))).toBeLessThanOrEqual(1);
+    }
+    await expect(page.getByTestId("conv-send")).toBeDisabled();
+  }
+  // 여러 줄이면 늘어나고(아래 선은 그대로), 보내면 한 줄로 돌아온다
+  await page.getByTestId("conv-input").fill("");
+  await page.getByTestId("conv-input").pressSequentially("한 줄\n두 줄\n세 줄");
+  {
+    const [img, input, send] = await 입력줄();
+    if (img && input && send) {
+      expect(input.height).toBeGreaterThan(60);
+      expect(Math.abs(send.y + send.height - (input.y + input.height))).toBeLessThanOrEqual(1);
+      expect(Math.round(img.height)).toBe(44);
+    }
+  }
+  await page.getByTestId("conv-send").click();
+  await expect(page.getByTestId("conv-messages")).toContainText("세 줄", { timeout: 20_000 });
+  await expect
+    .poll(async () => Math.round((await page.getByTestId("conv-input").boundingBox())?.height ?? 0))
+    .toBe(44);
+
   await page.getByTestId("conv-input").fill("안녕하세요!");
   await page.getByTestId("conv-send").click();
   await expect(page.getByTestId("conv-messages")).toContainText("안녕하세요!", { timeout: 20_000 });
@@ -199,10 +229,21 @@ test("팔로우·좋아요·댓글이 알림으로 쌓이고, 열면 배지가 �
   await expect(page.getByTestId("notif-list")).toContainText("팔로우했어요");
   await expect(page.getByTestId("notif-list")).toContainText("좋아해요");
   await expect(page.getByTestId("notif-list")).toContainText("댓글을 남겼어요");
+  // S-25 — 안 읽은 셋은 「새 알림」 묶음 · 줄마다 온 때(방금·N분 전)
+  await expect(page.getByTestId("notif-section-new").getByTestId("notif-row")).toHaveCount(3);
+  await expect(page.getByTestId("notif-section-earlier")).toHaveCount(0);
+  await expect(page.getByTestId("notif-when")).toHaveCount(3);
+  await expect(page.getByTestId("notif-when").first()).toHaveText(/방금|분 전/);
 
   // 열었으니 읽음 — 돌아가면 배지가 없다.
   await page.goto("/feed?tab=following");
   await expect(page.getByTestId("feed-unread-badge")).toHaveCount(0, { timeout: 20_000 });
+  // 다시 열면 같은 셋이 「이전 알림」(읽음) 묶음에
+  await page.getByTestId("feed-notifications").click();
+  await expect(page.getByTestId("notif-section-earlier").getByTestId("notif-row")).toHaveCount(3, {
+    timeout: 20_000,
+  });
+  await expect(page.getByTestId("notif-section-new")).toHaveCount(0);
 });
 
 test("사진 한 장을 보내면 말풍선에 그대로 뜬다", async ({ page, browser }) => {

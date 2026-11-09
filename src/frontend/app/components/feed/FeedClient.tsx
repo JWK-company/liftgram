@@ -237,6 +237,30 @@ export default function FeedClient() {
   useEffect(() => {
     if (userId) void load();
   }, [userId, load]);
+  // 알림 수 — 피드로 돌아오거나 앱이 다시 보일 때도 다시 읽는다(S-25 · 처음 그릴 때만 읽어 배지가 늦었다)
+  // 로그인했을 때만(리뷰 M-1) · 돌아올 때 focus·visibilitychange·pageshow 가 겹쳐 오므로 1초 안 재호출은 건너뛴다(리뷰 L-5)
+  useEffect(() => {
+    if (!userId) return;
+    let last = 0;
+    const refresh = () => {
+      if (document.visibilityState !== "visible") return;
+      const now = Date.now();
+      if (now - last < 1000) return;
+      last = now;
+      void notificationClient()
+        .unreadCount({})
+        .then((r) => setUnread(r.count))
+        .catch(() => {});
+    };
+    window.addEventListener("focus", refresh);
+    window.addEventListener("pageshow", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener("pageshow", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [userId]);
   useEffect(() => {
     if (!authLoading && !userId) setLoading(false);
   }, [authLoading, userId]);
@@ -421,9 +445,10 @@ export default function FeedClient() {
                 unread > 0 ? (
                   <span
                     data-testid="feed-unread-badge"
-                    className="absolute top-1.5 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-(--color-brand) px-[3px] font-bold text-(--color-on-brand) text-[9px]"
+                    // [원본] h-4 min-w-4 · 9px 글자 · 9+ — 너무 작아 숫자가 잘 안 보였다(S-25)
+                    className="absolute top-0.5 right-0 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-(--color-brand) px-[4px] font-bold text-(--color-on-brand) text-[11px] leading-none ring-2 ring-(--color-surface)"
                   >
-                    {unread > 9 ? "9+" : String(unread)}
+                    {unread > 99 ? "99+" : String(unread)}
                   </span>
                 ) : null
               }

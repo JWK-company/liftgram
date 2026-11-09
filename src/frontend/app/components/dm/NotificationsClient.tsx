@@ -9,7 +9,7 @@
 import type { Notification } from "@app/contracts";
 import { NotificationKind, routes } from "@app/contracts";
 import { useCallback, useEffect, useState } from "react";
-import { t } from "@/lib/i18n";
+import { lang, t } from "@/lib/i18n";
 import { dmClient, notificationClient } from "@/lib/dmClient";
 import { navigate } from "@/lib/nav";
 import { Avatar } from "../ui/Avatar";
@@ -59,6 +59,25 @@ async function openSummary(n: Notification): Promise<void> {
   }
 }
 
+/** 알림이 온 때 — 방금 · N분 전 · N시간 전 · 어제 · N일 전(일주일 안) · 그 뒤는 날짜(S-25 · 2026-11-09) */
+export function notifWhen(ms: number, now = Date.now()): string {
+  const diff = Math.max(0, now - ms);
+  const min = Math.floor(diff / 60_000);
+  if (min < 1) return t("notif.justNow");
+  if (min < 60) return t("notif.minutesAgo", { n: min });
+  const d = new Date(ms);
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  const days = Math.round((today.getTime() - new Date(d).setHours(0, 0, 0, 0)) / 86_400_000); // round — 서머타임 23·25시간 날(리뷰 L-4)
+  if (days <= 0) return t("notif.hoursAgo", { n: Math.max(1, Math.floor(min / 60)) });
+  if (days === 1) return t("notif.yesterday");
+  if (days < 7) return t("notif.daysAgo", { n: days });
+  const loc = lang === "ko" ? "ko-KR" : "en-US";
+  return d.getFullYear() === today.getFullYear()
+    ? d.toLocaleDateString(loc, { month: "long", day: "numeric" })
+    : d.toLocaleDateString(loc, { year: "numeric", month: "long", day: "numeric" });
+}
+
 export default function NotificationsClient() {
   const [items, setItems] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -105,35 +124,78 @@ export default function NotificationsClient() {
             emptyMessage="notif.emptyMessage"
           />
         ) : (
-          // 줄 목록(SRS-054): 안 읽은 줄은 옅은 브랜드 바탕 + 점 — 읽음 표시가 약하던 것(29개 표).
-          <div className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t">
-            {items.map((n) => (
-              <a
-                key={n.id}
-                href={target(n)}
-                onClick={
-                  n.kind === NotificationKind.COACHING_SUMMARY
-                    ? (e) => {
-                        e.preventDefault();
-                        void openSummary(n);
-                      }
-                    : undefined
-                }
-                data-testid="notif-row"
-                className={`block px-[var(--spacing-md)] py-[var(--spacing-md)] active:bg-(--color-surface-alt) ${
-                  n.read ? "" : "bg-(--color-brand-muted)"
-                }`}
-              >
-                <div className="flex items-center gap-[var(--spacing-md)]">
-                  <Avatar name={n.actor?.displayName} url={n.actor?.avatarUrl} size={40} />
-                  <AppText variant="body" className="min-w-0 flex-1">
-                    {sentence(n)}
+          // [원본] 한 목록에 안 읽은 줄만 옅은 브랜드 바탕 + 점 — 날짜가 없고, 읽은 줄과 차이가 약했다(S-25 · 피드백 2026-11-09).
+          //   옮기기 전 판은 git a5084b3 의 이 파일
+          // [개선] 「새 알림」(안 읽음 — 굵은 글 · 점 · 옅은 빨강 바탕)과 「이전 알림」(읽음 — 흐린 글)으로 나누고 줄마다 온 때
+          <div className="flex flex-col gap-[var(--spacing-lg)]">
+            {(
+              [
+                ["new", items.filter((n) => !n.read)],
+                ["earlier", items.filter((n) => n.read)],
+              ] as const
+            ).map(([key, rows]) =>
+              rows.length === 0 ? null : (
+                <section key={key} data-testid={`notif-section-${key}`}>
+                  <AppText
+                    variant="label"
+                    color="textMuted"
+                    className="mb-[var(--spacing-xs)] block px-[2px]"
+                  >
+                    {t(key === "new" ? "notif.sectionNew" : "notif.sectionEarlier")}
                   </AppText>
-                  {/* 안 읽은 것은 점 하나로만 구분한다 — 목록이 요란해지지 않게. */}
-                  {n.read ? null : <span className="h-2 w-2 shrink-0 rounded-full bg-(--color-brand)" />}
-                </div>
-              </a>
-            ))}
+                  <div className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t">
+                    {rows.map((n) => (
+                      <a
+                        key={n.id}
+                        href={target(n)}
+                        onClick={
+                          n.kind === NotificationKind.COACHING_SUMMARY
+                            ? (e) => {
+                                e.preventDefault();
+                                void openSummary(n);
+                              }
+                            : undefined
+                        }
+                        data-testid="notif-row"
+                        data-read={n.read ? "1" : "0"}
+                        className={`block px-[var(--spacing-md)] py-[var(--spacing-md)] active:bg-(--color-surface-alt) ${
+                          n.read ? "" : "bg-(--color-brand-muted)"
+                        }`}
+                      >
+                        <div className="flex items-center gap-[var(--spacing-md)]">
+                          <Avatar name={n.actor?.displayName} url={n.actor?.avatarUrl} size={40} />
+                          <div className="min-w-0 flex-1">
+                            <AppText
+                              variant="body"
+                              color={n.read ? "textMuted" : undefined}
+                              className={`block ${n.read ? "" : "font-semibold"}`}
+                            >
+                              {sentence(n)}
+                            </AppText>
+                            {n.createdAt ? (
+                              <AppText
+                                variant="caption"
+                                color="textMuted"
+                                className="block"
+                                data-testid="notif-when"
+                              >
+                                {notifWhen(Number(n.createdAt.seconds) * 1000)}
+                              </AppText>
+                            ) : null}
+                          </div>
+                          {n.read ? null : (
+                            <span
+                              className="h-2 w-2 shrink-0 rounded-full bg-(--color-brand)"
+                              aria-hidden="true"
+                            />
+                          )}
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </section>
+              ),
+            )}
           </div>
         )}
       </div>

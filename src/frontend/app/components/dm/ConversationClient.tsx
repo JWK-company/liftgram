@@ -23,9 +23,10 @@ import { restoreSession } from "@/lib/session";
 import { feedErrorMessage } from "@/lib/feedClient";
 import { mediaSrc, uploadImage } from "@/lib/mediaClient";
 import { useAuth } from "../AuthProvider";
-import { Button } from "../ui/Button";
+// import { Button } from "../ui/Button"; // [원본] 전송 글자 버튼 — S-23 동그란 버튼으로
 import { Icon } from "../ui/Icon";
-import { TextArea } from "../ui/inputs";
+import { LogoSpinner } from "../ui/LogoSpinner";
+// import { TextArea } from "../ui/inputs"; // [원본] 입력칸 — S-23 둥근 입력칸으로
 import { ListState } from "../ui/ListState";
 import { AppText } from "../ui/primitives";
 import { ConfirmDialog } from "../ui/Dialog";
@@ -54,6 +55,11 @@ export default function ConversationClient({ conversationId }: { conversationId:
   const [typing, setTyping] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  // 입력칸 높이 — 보내고 비면 한 줄로 되돌린다(S-23)
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (!text && inputRef.current) inputRef.current.style.height = "";
+  }, [text]);
   const lastTypingSent = useRef(0);
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -188,7 +194,7 @@ export default function ConversationClient({ conversationId }: { conversationId:
     try {
       const res = await dmClient().sendMessage({ conversationId, kind: MessageKind.TEXT, body });
       if (res.message) merge([res.message]);
-      setText("");
+      setText((cur) => (cur.trim() === body ? "" : cur)); // 보내는 사이 새로 쓴 글은 남긴다(리뷰 L-3) · [원본] setText("")
     } catch (e) {
       setError(feedErrorMessage(e));
       setText(body); // 다시 보낼 수 있게 되돌려 둔다
@@ -316,14 +322,23 @@ export default function ConversationClient({ conversationId }: { conversationId:
         </div>
       ) : null}
 
-      <div className="sticky bottom-[calc(56px+var(--shell-workout-bar,0px)+env(safe-area-inset-bottom))] z-20 flex items-end gap-[var(--spacing-sm)] border-(--color-line) border-t bg-(--color-surface) p-[var(--spacing-md)] lg:bottom-[var(--shell-workout-bar,0px)]">
-        {/* 사진 — 고르는 즉시 올라가고 보내진다. 미리보기 단계를 두지 않는다(메신저의 관례다). */}
-        <label className="flex h-[38px] w-[38px] shrink-0 cursor-pointer items-center justify-center rounded-[var(--radius-md)] bg-(--color-surface-alt)">
+      {/* [원본] 사진 38px 상자 · TextArea(48px · 아래 여백 · 크기 조절 손잡이) · 「전송」 글자 Button(sm 36px) —
+          높이·모양이 제각각이었다(S-23 · 피드백 2026-11-09). 옮기기 전 판은 git a5084b3 의 이 파일 */}
+      {/* [개선] 메신저 입력줄 — 동그란 사진(44) · 둥근 입력칸(44에서 4줄까지 늘어남) · 동그란 전송(44, 쓸 글이 있으면 빨강). 아래 선에 맞춘다 */}
+      <div
+        data-testid="conv-composer"
+        className="sticky bottom-[calc(56px+var(--shell-workout-bar,0px)+env(safe-area-inset-bottom))] z-20 flex items-end gap-[var(--spacing-sm)] border-(--color-line) border-t bg-(--color-surface) px-[var(--spacing-md)] py-[var(--spacing-sm)] lg:bottom-[var(--shell-workout-bar,0px)]"
+      >
+        <label
+          className="flex h-[44px] w-[44px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-(--color-surface-alt) focus-within:outline-2 focus-within:outline-(--color-brand) has-[:disabled]:cursor-default has-[:disabled]:opacity-50"
+          data-testid="conv-image"
+        >
           <input
             type="file"
             accept="image/jpeg,image/png,image/webp,image/gif"
-            className="hidden"
+            className="sr-only"
             data-testid="conv-image-file"
+            aria-label={t("dm.photo")}
             disabled={sending}
             onChange={(e) => {
               const f = e.target.files?.[0];
@@ -332,28 +347,39 @@ export default function ConversationClient({ conversationId }: { conversationId:
               e.target.value = "";
             }}
           />
-          <Icon name="image-outline" size={20} color="var(--color-ink2)" />
+          <Icon name="image-outline" size={22} color="var(--color-ink2)" />
         </label>
-        <div className="flex-1">
-          <TextArea
-            value={text}
-            onChange={(e) => onType(e.target.value)}
-            placeholder={t("dm.messagePlaceholder")}
-            rows={1}
-            testId="conv-input"
-            className="mb-0!"
-          />
-        </div>
-        <Button
-          title={t("dm.send")}
-          icon="send"
-          size="sm"
-          fullWidth={false}
-          loading={sending}
-          disabled={!text.trim()}
-          onPress={send}
-          testId="conv-send"
+        <textarea
+          value={text}
+          onChange={(e) => {
+            onType(e.target.value);
+            // 글 길이에 맞춰 늘린다(4줄까지) — 줄이 줄면 다시 줄어든다
+            const el = e.currentTarget;
+            el.style.height = "auto";
+            // border-box 라 테두리를 더한다(빼면 줄마다 2px 모자라 안에서 스크롤 · 리뷰 L-2) · 상한은 max-h(110px)가 맡는다
+            el.style.height = `${el.scrollHeight + (el.offsetHeight - el.clientHeight)}px`;
+          }}
+          placeholder={t("dm.messagePlaceholder")}
+          rows={1}
+          ref={inputRef}
+          data-testid="conv-input"
+          aria-label={t("dm.messagePlaceholder")}
+          className="block max-h-[110px] min-h-[44px] min-w-0 flex-1 resize-none rounded-[22px] border border-(--color-line-strong) bg-(--color-card) px-[var(--spacing-lg)] py-[10px] text-[length:var(--text-md)] text-(--color-ink) leading-[22px] outline-none placeholder:text-(--color-ink3) focus:border-(--color-brand)"
         />
+        <button
+          type="button"
+          data-testid="conv-send"
+          aria-label={t("dm.send")}
+          disabled={!text.trim() || sending}
+          onClick={send}
+          className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full bg-(--color-brand) focus-visible:outline-2 focus-visible:outline-(--color-brand) focus-visible:outline-offset-2 disabled:bg-(--color-surface-alt)"
+        >
+          {sending ? (
+            <LogoSpinner size={18} tone="current" label={t("dm.sending")} />
+          ) : (
+            <Icon name="send" size={20} color={text.trim() ? "var(--color-on-brand)" : "var(--color-ink3)"} />
+          )}
+        </button>
       </div>
     </div>
   );

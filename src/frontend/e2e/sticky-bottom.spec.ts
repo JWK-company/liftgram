@@ -370,3 +370,36 @@ test.describe("1280×560 · 넓은 화면(세로 탭바)", () => {
     );
   });
 });
+
+test("루틴 편집(S-104) — 앱바 ⋯ 없이 화면 맨 아래 「루틴 삭제」 → 삭제 확인(S-107) → 홈에서 사라진다", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await 카탈로그_준비(page);
+  await page.goto("/");
+  await page.getByTestId("btn-new-routine").click();
+  const 이름 = `지울루틴${Date.now().toString(36)}`;
+  await page.getByTestId("routine-name").fill(이름);
+  await page.getByTestId("routine-name").blur();
+  await page.getByTestId("btn-add-routine-exercise").click();
+  await page.getByTestId("picker-search").fill("바벨 벤치프레스");
+  await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click();
+  await expect(page.getByTestId("routine-exercises").locator("> div")).toHaveCount(1, { timeout: 20_000 });
+  await expect(page.getByTestId("btn-routine-menu")).toHaveCount(0);
+  const del = page.getByTestId("btn-delete-routine");
+  await del.scrollIntoViewIfNeeded();
+  await expect(del).toBeVisible();
+  // 「운동 추가」 아래에 있다
+  const [add, d] = await Promise.all([
+    page.getByTestId("btn-add-routine-exercise").boundingBox(),
+    del.boundingBox(),
+  ]);
+  expect(add && d && d.y > add.y + add.height).toBe(true);
+  await del.click();
+  await expect(page.getByTestId("confirm-delete-routine")).toBeVisible();
+  await page.getByTestId("confirm-delete-routine").getByRole("button", { name: "삭제" }).click();
+  await expect(page).toHaveURL(/\/$/, { timeout: 20_000 });
+  await expect(page.getByTestId("btn-quick-start")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText(이름)).toHaveCount(0);
+});
