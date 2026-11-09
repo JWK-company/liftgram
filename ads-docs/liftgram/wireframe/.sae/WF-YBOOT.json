@@ -1,0 +1,148 @@
+{
+ "schemaVersion": 1,
+ "id": "WF-YBOOT",
+ "type": "Wireframe",
+ "title": "S-164 부팅 덮개",
+ "status": "Draft",
+ "screen_code": "YBOOT",
+ "route": "",
+ "note": "S-164 · 로고 스피너, 상한 2500ms · 조건: 앱 웹뷰",
+ "relations": {
+  "covers": [
+   "SRS-085",
+   "SRS-054",
+   "SRS-066",
+   "SRS-089",
+   "SRS-073"
+  ]
+ },
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "부팅 덮개 · YBOOT · "
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "노트: ",
+      "marks": [
+       {
+        "type": "strong"
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": "로고 스피너, 상한 2500ms · 조건: 앱 웹뷰"
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "SAE — 요소별 상태·액션·이펙트"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "YBOOT.01",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "  부팅 덮개  [display]"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: ",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "기본 / 앱 웹뷰"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: ",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "—"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: ",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "로고 스피너, 상한 2500ms"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "group": "liftgram",
+ "device": "mobile",
+ "entry": [],
+ "family": "시스템 상태",
+ "order": 158,
+ "archetype": "mobile"
+}

@@ -1,0 +1,150 @@
+{
+ "schemaVersion": 1,
+ "id": "WF-APPC",
+ "type": "Wireframe",
+ "title": "S-40 앱에 로그인",
+ "status": "Draft",
+ "screen_code": "APPC",
+ "route": "/app/continue",
+ "note": "S-40 · 웹 계정을 앱으로 넘기는 확인 · 조건: 앱에서 만든 주소만 유효",
+ "relations": {
+  "covers": [
+   "SRS-081",
+   "SRS-072",
+   "SRS-095",
+   "SRS-052",
+   "SRS-054"
+  ]
+ },
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "앱에 로그인 · APPC · /app/continue"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "노트: ",
+      "marks": [
+       {
+        "type": "strong"
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": "웹 계정을 앱으로 넘기는 확인 · 조건: 앱에서 만든 주소만 유효"
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "SAE — 요소별 상태·액션·이펙트"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "APPC.01",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "  앱에 로그인  [display]"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: ",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "기본 / 앱에서 만든 주소만 유효"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: ",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "—"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: ",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "웹 계정을 앱으로 넘기는 확인"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "group": "liftgram",
+ "device": "mobile",
+ "entry": [
+  "주소 /app/continue 직접"
+ ],
+ "family": "계정",
+ "order": 78,
+ "archetype": "mobile"
+}

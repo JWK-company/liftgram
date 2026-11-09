@@ -1,0 +1,146 @@
+{
+ "schemaVersion": 1,
+ "id": "WF-SIGN",
+ "type": "Wireframe",
+ "title": "S-33 로그인",
+ "status": "Draft",
+ "screen_code": "SIGN",
+ "route": "/signin",
+ "note": "S-33 · 로그인 폼(계정 화면과 같은 컴포넌트). 폼 전환 때 주소만 이렇게 바뀜 · 조건: 이미 로그인 상태면 계정 화면",
+ "relations": {
+  "covers": [
+   "SRS-083"
+  ]
+ },
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "로그인 · SIGN · /signin"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "노트: ",
+      "marks": [
+       {
+        "type": "strong"
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": "로그인 폼(계정 화면과 같은 컴포넌트). 폼 전환 때 주소만 이렇게 바뀜 · 조건: 이미 로그인 상태면 계정 화면"
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "SAE — 요소별 상태·액션·이펙트"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "SIGN.01",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "  로그인  [display]"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: ",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "기본 / 이미 로그인 상태면 계정 화면"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: ",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "—"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: ",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "로그인 폼(계정 화면과 같은 컴포넌트). 폼 전환 때 주소만 이렇게 바뀜"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "group": "liftgram",
+ "device": "mobile",
+ "entry": [
+  "주소 /signin 직접"
+ ],
+ "family": "계정",
+ "order": 71,
+ "archetype": "mobile"
+}

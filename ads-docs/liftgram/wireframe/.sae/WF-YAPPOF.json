@@ -1,0 +1,148 @@
+{
+ "schemaVersion": 1,
+ "id": "WF-YAPPOF",
+ "type": "Wireframe",
+ "title": "S-167 앱 오프라인: 인터넷에 연결되어 있지 않아요",
+ "status": "Draft",
+ "screen_code": "YAPPOF",
+ "route": "",
+ "note": "S-167 · 「다시 시도」 · 조건: 앱 웹뷰 로드 실패",
+ "relations": {
+  "covers": [
+   "SRS-085",
+   "SRS-089",
+   "SRS-054",
+   "SRS-066",
+   "SRS-073"
+  ]
+ },
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "앱 오프라인: 인터넷에 연결되어 있지 않아요 · YAPPOF · "
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "노트: ",
+      "marks": [
+       {
+        "type": "strong"
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": "「다시 시도」 · 조건: 앱 웹뷰 로드 실패"
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "SAE — 요소별 상태·액션·이펙트"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "YAPPOF.01",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "  앱 오프라인: 인터넷에 연결되어 있지 않아요  [display]"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: ",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "기본 / 앱 웹뷰 로드 실패"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: ",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "—"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: ",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "「다시 시도」"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "group": "liftgram",
+ "device": "mobile",
+ "entry": [],
+ "family": "시스템 상태",
+ "order": 161,
+ "archetype": "mobile"
+}

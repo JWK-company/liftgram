@@ -1,0 +1,146 @@
+{
+ "schemaVersion": 1,
+ "id": "WF-JOIN",
+ "type": "Wireframe",
+ "title": "S-34 가입",
+ "status": "Draft",
+ "screen_code": "JOIN",
+ "route": "/signup",
+ "note": "S-34 · 가입 폼(같은 컴포넌트). 폼 전환 때 주소만 이렇게 바뀜 · 조건: 이미 로그인 상태면 계정 화면",
+ "relations": {
+  "covers": [
+   "SRS-083"
+  ]
+ },
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "가입 · JOIN · /signup"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "노트: ",
+      "marks": [
+       {
+        "type": "strong"
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": "가입 폼(같은 컴포넌트). 폼 전환 때 주소만 이렇게 바뀜 · 조건: 이미 로그인 상태면 계정 화면"
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "SAE — 요소별 상태·액션·이펙트"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "JOIN.01",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "  가입  [display]"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: ",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "기본 / 이미 로그인 상태면 계정 화면"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: ",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "—"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: ",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "가입 폼(같은 컴포넌트). 폼 전환 때 주소만 이렇게 바뀜"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "group": "liftgram",
+ "device": "mobile",
+ "entry": [
+  "주소 /signup 직접"
+ ],
+ "family": "계정",
+ "order": 72,
+ "archetype": "mobile"
+}

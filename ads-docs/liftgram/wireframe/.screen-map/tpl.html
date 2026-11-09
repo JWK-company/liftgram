@@ -1,0 +1,236 @@
+<title>Liftgram 화면 지도</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* 레이아웃: 위에서 판정(고아), 가운데 왼쪽에 지도·오른쪽에 선택한 화면, 아래에 전체 목록 */
+:root{--bg:#F7F7F7;--card:#FFFFFF;--alt:#F1F2F4;--line:#DBDBDB;--ink:#141619;--ink2:#3E4348;--ink3:#6A737B;--brand:#C8381C;--brandbg:#FFF0EB;--in:#0B6E8F;--inbg:#E3F3F8;--warn:#9A5B00;--warnbg:#FFF3DC;--dead:#8A9098;--edge:#B9BEC4;
+--sans:'IBM Plex Sans KR','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161616;--card:#2B2B2B;--alt:#3A3A3A;--line:#424242;--ink:#F5F7F9;--ink2:#D8DBDF;--ink3:#98A1AD;--brand:#FF7A57;--brandbg:#3D2620;--in:#62C5E3;--inbg:#17333D;--warn:#F2B661;--warnbg:#3A2C14;--dead:#7D848C;--edge:#565B61;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#161616;--card:#2B2B2B;--alt:#3A3A3A;--line:#424242;--ink:#F5F7F9;--ink2:#D8DBDF;--ink3:#98A1AD;--brand:#FF7A57;--brandbg:#3D2620;--in:#62C5E3;--inbg:#17333D;--warn:#F2B661;--warnbg:#3A2C14;--dead:#7D848C;--edge:#565B61;color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:400 15px/1.55 var(--sans)}
+.wrap{max-width:1500px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:32px}
+h1{font-size:30px;line-height:1.25;margin:0;text-wrap:balance}h2{font-size:20px;margin:0;text-wrap:balance}h3{font-size:15px;margin:0}
+p{margin:0;max-width:72ch}.lead{color:var(--ink2);margin-top:8px}
+.stats{display:flex;flex-wrap:wrap;gap:8px 24px;margin-top:14px;font-variant-numeric:tabular-nums;color:var(--ink2)}.stats b{color:var(--ink);font-size:18px;margin-right:4px}
+section{display:flex;flex-direction:column;gap:14px;min-width:0}
+.orph{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.ob{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.ob.hot{border-color:var(--warn);background:var(--warnbg)}
+.ob small{color:var(--ink2);font-size:13px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font:500 12.5px/1.3 var(--mono);padding:4px 8px;border-radius:6px;background:var(--alt);color:var(--ink);border:0;cursor:pointer;text-align:left;max-width:100%;overflow-wrap:anywhere}
+.tag.k{font-family:var(--sans)}.tag:hover{background:var(--brandbg)}
+.odd{display:grid;grid-template-columns:minmax(0,1fr);gap:0;background:var(--card);border:1px solid var(--line);border-radius:10px}
+.odd>div{padding:10px 16px;border-top:1px solid var(--line);display:grid;grid-template-columns:minmax(160px,240px) minmax(0,1fr);gap:4px 16px}.odd>div:first-child{border-top:0}
+.odd b{font-weight:500}.odd span{color:var(--ink2)}.odd em{font-style:normal;font-size:12px;color:var(--warn)}
+@media(max-width:640px){.odd>div{grid-template-columns:minmax(0,1fr)}}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px;align-items:start}
+@media(max-width:1020px){.main{grid-template-columns:minmax(0,1fr)}}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{font:500 13px/1 var(--sans);padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink2);cursor:pointer;min-height:36px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip:focus-visible,.tag:focus-visible,.nd:focus-visible,tr:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.sp{flex:1 1 auto}
+.graph{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:auto;height:min(78vh,860px);min-width:0}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--ink2)}.legend i{display:inline-block;width:18px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1.5px solid var(--line);background:var(--card)}
+svg text{font-family:var(--sans)}
+.nd{cursor:pointer}.nd rect.b{fill:var(--card);stroke:var(--line);stroke-width:1.2}
+.nd .t{fill:var(--ink);font-size:13px;font-weight:500}.nd .u{fill:var(--ink3);font:400 10.5px var(--mono)}
+.nd.tab rect.b{fill:var(--brand);stroke:var(--brand)}.nd.tab .t{fill:var(--card);font-weight:700}.nd.tab .u{fill:var(--card);opacity:.85}
+.nd.sheet rect.b,.nd.system rect.b{stroke-dasharray:4 3;fill:var(--alt)}
+.nd.native rect.b{stroke:var(--in);stroke-width:1.6}
+.nd.entry rect.b,.nd.global rect.b{fill:var(--alt);stroke:transparent}
+.nd.redirect rect.b{stroke-dasharray:1 3;stroke-width:1.6}
+.nd.dead rect.b{fill:transparent;stroke:var(--dead);stroke-dasharray:2 3}.nd.dead .t{fill:var(--dead);text-decoration:line-through}
+.nd.orphan rect.b{stroke:var(--warn);stroke-width:2;fill:var(--warnbg)}
+.nd.sel rect.b{stroke:var(--ink);stroke-width:2.4}
+.g.has .nd:not(.on) text{opacity:.32}.g.has .nd:not(.on) rect.b{stroke:var(--line)}.g.has .nd.tab:not(.on) rect.b{fill:var(--alt)}.g.has .nd.tab:not(.on) text{fill:var(--ink)}
+path.e{fill:none;stroke:var(--edge);stroke-width:1;opacity:.55}
+path.e.back{stroke-dasharray:3 4}path.e.redir{stroke-dasharray:6 3}path.e.open{stroke-dasharray:2 3}
+.g.has path.e{opacity:.1}
+.g.has path.e.i{stroke:var(--in);stroke-width:2;opacity:1}.g.has path.e.o{stroke:var(--brand);stroke-width:2;opacity:1}
+.lb rect{fill:var(--card)}.lb text{font-size:11px;fill:var(--ink)}
+.colt{font-size:12px;fill:var(--ink3);font-weight:500}
+.lane{fill:var(--warnbg);opacity:.55}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);max-height:calc(100vh - 24px);overflow:auto;min-width:0}
+@media(max-width:1020px){.panel{position:static;max-height:none}}
+.panel .url{font:500 13px var(--mono);color:var(--ink2);overflow-wrap:anywhere}
+.pill{display:inline-block;font-size:12px;font-weight:500;padding:2px 8px;border-radius:99px;background:var(--alt);color:var(--ink2)}.pill.w{background:var(--warnbg);color:var(--warn)}
+.kv{font-size:13.5px;color:var(--ink2)}
+.path{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.path li button{all:unset;display:block;box-sizing:border-box;width:100%;cursor:pointer;padding:8px 10px;border-radius:8px;background:var(--alt)}
+.path li button:hover{background:var(--brandbg)}.path li button:focus-visible{outline:2px solid var(--brand)}
+.path .a{font-size:13.5px;font-weight:500}.path .a b{font-weight:500;color:var(--ink3)}.path .why{display:block;font-size:13px;color:var(--ink2)}.path .ev{display:block;font:400 10.5px var(--mono);color:var(--ink3);overflow-wrap:anywhere;margin-top:2px}
+h3.in{color:var(--in)}h3.out{color:var(--brand)}
+.empty{font-size:13px;color:var(--ink3)}
+.tw{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:auto;max-height:640px}
+table{border-collapse:collapse;width:100%;min-width:780px;font-size:13.5px}th{position:sticky;top:0;background:var(--alt);text-align:left;font-weight:500;padding:9px 12px;white-space:nowrap}td{padding:8px 12px;border-top:1px solid var(--line);vertical-align:top}
+tr.r{cursor:pointer}tr.r:hover td{background:var(--brandbg)}td.m{font:400 12px var(--mono);color:var(--ink2);overflow-wrap:anywhere}td.n{font-variant-numeric:tabular-nums;text-align:right}
+input[type=search]{font:400 14px var(--sans);padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);min-height:36px;width:min(260px,100%)}
+.foot{font-size:13px;color:var(--ink3)}
+.gal{display:flex;flex-direction:column;gap:18px}.gal h3{color:var(--ink2)}.gg{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px;margin-top:8px}
+.gc{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}.gc:hover{border-color:var(--brand)}.gc:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.gc img{display:block;width:100%;aspect-ratio:390/700;object-fit:cover;object-position:top;background:var(--alt)}.gc span{font-size:12.5px;line-height:1.35;padding:6px 8px;overflow-wrap:anywhere}
+.shotb{all:unset;display:block;flex:none;cursor:zoom-in;border:1px solid var(--line);border-radius:10px;overflow:hidden;max-height:560px}.shotb:focus-visible{outline:2px solid var(--brand)}.shotb img{display:block;width:100%}.noshot{font-size:13px;color:var(--warn);background:var(--warnbg);padding:8px 10px;border-radius:8px}
+dialog#lb{padding:0;border:0;background:transparent;max-width:min(430px,94vw);max-height:94vh;overflow:auto}dialog#lb::backdrop{background:rgba(0,0,0,.72)}dialog#lb img{display:block;width:100%}
+td img.th{display:block;width:44px;height:78px;object-fit:cover;object-position:top;border-radius:4px;border:1px solid var(--line)}
+.tg{display:inline-block;font:600 11.5px var(--mono);color:var(--brand);background:var(--brandbg);padding:1px 6px;border-radius:4px;white-space:nowrap}
+.areas{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}.areas li{font-size:13px;line-height:1.45;padding:6px 8px;border-radius:6px;background:var(--alt)}.areas li .tg{margin-right:6px}.areas li .d{display:block;color:var(--ink2);font-size:12.5px}.areas li .ev{display:block;font:400 10.5px var(--mono);color:var(--ink3);overflow-wrap:anywhere}
+.idx{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:6px 14px}.idx button{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:8px;align-items:baseline;padding:5px 6px;border-radius:6px;min-width:0}.idx button:hover{background:var(--brandbg)}.idx button:focus-visible{outline:2px solid var(--brand)}.idx .nm{font-size:13.5px;overflow-wrap:anywhere}.idx .ar{font-size:11.5px;color:var(--ink3)}
+.idxg h3{color:var(--ink2);margin:10px 0 4px}
+</style>
+<div class="wrap">
+<header>
+<h1>Liftgram 화면 지도</h1>
+<p class="lead">앱에서 볼 수 있는 화면 전부와, 어떤 버튼으로 어디로 가는지를 코드에서 뽑았습니다. 화면을 누르면 들어오는 길과 나가는 길이 화살표로 표시됩니다.</p>
+<p class="lead">화면마다 번호가 있습니다(<span class="tg">S-06</span> 운동 중). 주요 화면은 안의 구역에도 번호가 있습니다(<span class="tg">S-06.4</span>). 고칠 곳을 말할 때 이 번호로 부르면 바로 찾습니다.</p>
+<div class="stats" id="stats"></div>
+</header>
+<section><h2>화면 번호표</h2><p class="lead" id="idxn"></p><div id="idx"></div></section>
+<section><h2>들어오는 길이 없는 화면</h2><div class="orph" id="orph"></div></section>
+<section><h2>길이 이상한 곳</h2><div class="odd" id="odd"></div></section>
+<section><h2>화면 캡처</h2><p class="lead" id="galn"></p><div class="ctrl" id="gk"></div><div class="gal" id="gal"></div><details id="nos"><summary style="cursor:pointer;font-weight:500"></summary><div class="odd" id="nosl" style="margin-top:8px"></div></details></section>
+<section><h2>화면 연결 지도</h2>
+<div class="ctrl" id="ctrl">
+<button class="chip" data-m="pages" aria-pressed="true">주소 있는 화면</button>
+<button class="chip" data-m="sheets" aria-pressed="false">시트·대화상자까지</button>
+<button class="chip" data-m="all" aria-pressed="false">앱 전용·도달 불가까지</button>
+<button class="chip" id="bk" aria-pressed="false">뒤로 가기 표시</button>
+<span class="sp"></span>
+<button class="chip" id="zo" aria-label="축소">−</button><button class="chip" id="zi" aria-label="확대">+</button>
+<input type="search" id="q2" placeholder="화면 찾기(번호도)" aria-label="지도에서 화면 찾기" list="dl"><datalist id="dl"></datalist>
+</div>
+<div class="legend"><span><i style="background:var(--brand);border-color:var(--brand)"></i>탭</span><span><i></i>주소 있는 화면</span><span><i style="border-style:dashed;background:var(--alt)"></i>시트·시스템 상태</span><span><i style="border-color:var(--in)"></i>앱 전용</span><span><i style="background:var(--alt);border-color:transparent"></i>앱 밖·전역 입구</span><span><i style="border-color:var(--warn);background:var(--warnbg)"></i>들어오는 길 없음</span><span><i style="border-color:var(--in);background:var(--inbg)"></i>파란 선: 들어오는 길</span><span><i style="border-color:var(--brand);background:var(--brandbg)"></i>빨간 선: 나가는 길</span></div>
+<div class="main">
+<div class="graph" id="gw" tabindex="0" aria-label="화면 연결 지도. 가로세로로 스크롤합니다"></div>
+<aside class="panel" id="panel" aria-live="polite"></aside>
+</div></section>
+<section><h2>전체 화면 목록</h2>
+<div class="ctrl" id="fk"></div>
+<div class="ctrl"><input type="search" id="q" placeholder="번호·이름·주소·설명 검색" aria-label="목록 검색"><span id="cnt" class="foot"></span></div>
+<div class="tw"><table><thead><tr><th>번호</th><th>캡처</th><th>화면</th><th>주소</th><th>종류</th><th>설명</th><th>접근 조건</th><th>들어옴</th><th>나감</th></tr></thead><tbody id="tb"></tbody></table></div>
+</section>
+<dialog id="lb" aria-label="화면 크게 보기"><img alt=""></dialog>
+<p class="foot" id="foot"></p>
+</div>
+<script>
+const D=/*DATA*/;
+const N=D.nodes,E=D.edges,byId=Object.fromEntries(N.map(n=>[n.id,n]));
+const KL={tab:'탭',page:'주소 있는 화면',redirect:'넘기는 주소',global:'전역 입구',sheet:'시트·대화상자',system:'시스템 상태',native:'앱 전용',entry:'앱 밖 입구',raw:'화면 아닌 응답',dead:'도달 불가 코드'};
+const TL={go:'버튼',open:'열림',back:'뒤로',redir:'자동 이동',ext:'앱 밖'};
+const IN={},OUT={};N.forEach(n=>{IN[n.id]=[];OUT[n.id]=[]});E.forEach(e=>{OUT[e.a].push(e);IN[e.b].push(e)});
+const real=e=>e.t!=='back'&&e.a!==e.b;
+const isSrc=n=>n.kind==='entry'||n.kind==='global';
+const scr=N.filter(n=>!['raw','entry','global','tab'].includes(n.kind));
+const noIn=scr.filter(n=>n.kind!=='dead'&&!IN[n.id].some(real));
+const extOnly=scr.filter(n=>n.kind!=='dead'&&n.kind!=='sheet'&&n.kind!=='system'&&n.kind!=='native'&&IN[n.id].some(real)&&IN[n.id].filter(real).every(e=>byId[e.a].kind==='entry'));
+const dead=N.filter(n=>n.kind==='dead');
+const orphan=new Set(noIn.map(n=>n.id));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const cnt=k=>N.filter(n=>k.includes(n.kind)).length;
+document.getElementById('stats').innerHTML=[['주소 있는 화면',cnt(['tab','page','redirect'])],['시트·대화상자',cnt(['sheet'])],['시스템 상태',cnt(['system'])],['앱 전용',cnt(['native'])],['앱 밖 입구',cnt(['entry'])],['화면 아닌 응답',cnt(['raw'])],['연결',E.length]].map(([a,b])=>`<span><b>${b}</b>${a}</span>`).join('');
+const tags=(l,why)=>'<div class="tags">'+l.map(n=>`<button class="tag${n.url?'':' k'}" data-go="${esc(n.id)}" title="${esc(n.desc||'')}">${esc(n.url||n.name)}</button>`).join('')+'</div>';
+document.getElementById('orph').innerHTML=`<div class="ob hot"><h3>주소 입력으로만 열림 ${noIn.length}개</h3><small>앱 안 버튼도 앱 밖 링크도 없습니다. 이번 점검의 고아 화면입니다.</small>${tags(noIn)}<small>${D.orphanNote}</small></div>
+<div class="ob"><h3>앱 밖에서만 들어옴 ${extOnly.length}개</h3><small>메일·소셜 로그인·서비스 워커·스토어에서 오는 화면입니다. 의도된 구조라 문제는 아닙니다.</small>${tags(extOnly)}</div>
+<div class="ob"><h3>코드만 남고 도달 불가 ${dead.length}개</h3><small>호출이 주석이거나 빌드에 들어가지 않습니다. 사용자에게는 보이지 않으며 정리 후보입니다.</small>${tags(dead)}</div>`;
+document.getElementById('odd').innerHTML=D.odd.map(o=>`<div><b>${esc(o[0])}</b><span>${esc(o[1])}${o[2]?` <em>${esc(o[2])}</em>`:''}</span></div>`).join('');
+document.getElementById('foot').textContent=D.foot;
+// ── 화면 번호표 — 번호 순, 묶음별
+{const T=N.filter(n=>n.tag).sort((x,y)=>+x.tag.slice(2)-+y.tag.slice(2)),G=[];T.forEach(n=>{let g=G.find(g=>g.k===n.group);if(!g)G.push(g={k:n.group,l:[]});g.l.push(n)});
+document.getElementById('idxn').textContent=`화면 ${T.length}개 · 구역 ${T.reduce((a,n)=>a+(n.areas||[]).length,0)}개 — 누르면 지도에서 그 화면을 엽니다.`;
+document.getElementById('idx').innerHTML=G.map(g=>`<div class="idxg"><h3>${esc(g.k||'기타')}</h3><div class="idx">${g.l.map(n=>`<button class="tag" data-go="${esc(n.id)}"><span class="tg">${esc(n.tag)}</span><span class="nm">${esc(n.name)}${n.url?` <span class="ar">${esc(n.url)}</span>`:''}${n.areas?` <span class="ar">· 구역 ${n.areas.length}</span>`:''}</span></button>`).join('')}</div></div>`).join('')}
+document.getElementById('dl').innerHTML=N.filter(n=>n.kind!=='raw').map(n=>`<option value="${esc(n.tag||n.url||n.name)}">${esc(n.name)}${n.url?' '+esc(n.url):''}</option>`).join('');
+// ── 지도
+let mode='pages',showBack=false,sel=null,zoom=.85;
+const W=178,H=46,GX=128,GY=12,TOP=40;
+const vis=n=>({pages:['tab','page','redirect','global','entry'],sheets:['tab','page','redirect','global','entry','sheet','system'],all:['tab','page','redirect','global','entry','sheet','system','native','dead']})[mode].includes(n.kind);
+function viaVisible(id,seen=new Set()){ // 숨은 시트에서 나가는 길은 그 시트를 여는 보이는 화면으로 묶는다
+ if(seen.has(id))return[];seen.add(id);const out=[];IN[id].filter(e=>e.t==='open'||e.t==='go').forEach(e=>{const s=byId[e.a];if(vis(s))out.push({id:s.id,via:[byId[id].name]});else viaVisible(e.a,seen).forEach(x=>out.push({id:x.id,via:[...x.via,byId[id].name]}))});return out}
+function view(){
+ const nodes=N.filter(vis),ids=new Set(nodes.map(n=>n.id)),m=new Map();
+ const add=(a,b,lab,e)=>{if(a===b)return;const k=a+'>'+b;if(!m.has(k))m.set(k,{a,b,t:e.t,labels:[],evs:[]});const r=m.get(k);r.labels.push(lab);if(e.ev)r.evs.push(e.ev);if(e.t==='go')r.t='go'};
+ E.forEach(e=>{if(e.t==='back'&&!showBack)return;if(!ids.has(e.b))return;
+  if(ids.has(e.a))add(e.a,e.b,e.label,e);else viaVisible(e.a).forEach(x=>add(x.id,e.b,x.via.reverse().join(' › ')+' › '+e.label,e))});
+ return{nodes,edges:[...m.values()],ids}}
+function layout(v){
+ const depth={},q=[];v.nodes.forEach(n=>{if(isSrc(n)){depth[n.id]=1;q.push(n.id)}});
+ const ad={};v.edges.filter(e=>e.t!=='back').forEach(e=>(ad[e.a]=ad[e.a]||[]).push(e.b));
+ while(q.length){const a=q.shift();(ad[a]||[]).forEach(b=>{if(depth[b]===undefined){depth[b]=depth[a]+1;q.push(b)}})}
+ const inV={};v.edges.filter(e=>e.t!=='back').forEach(e=>(inV[e.b]=inV[e.b]||[]).push(e.a));
+ const cols={};v.nodes.forEach(n=>{const d=depth[n.id]===undefined?0:depth[n.id];(cols[d]=cols[d]||[]).push(n)});
+ const pos={},keys=Object.keys(cols).map(Number).sort((a,b)=>a-b);let h=0;
+ const gorder=['전역','앱 밖','운동','운동 중','기록','분석','기록·분석','소셜','피드','코칭','프로필','계정','가져오기','앱 배포','운영','법적','시스템','시스템 상태','전역 가드','앱 전용','넘김','개발','도달 불가 코드','기타'];
+ keys.forEach((k,ci)=>{const c=cols[k];c.forEach(n=>{const p=(inV[n.id]||[]).map(i=>pos[i]).filter(Boolean);n._b=p.length?p.reduce((s,x)=>s+x.y,0)/p.length:0});
+  c.sort((a,b)=>((b.kind==='tab')-(a.kind==='tab'))||(k>1?(a._b-b._b):0)||gorder.indexOf(a.group)-gorder.indexOf(b.group)||a.name.localeCompare(b.name,'ko'));
+  c.forEach((n,i)=>{pos[n.id]={x:24+ci*(W+GX),y:TOP+i*(H+GY)}});h=Math.max(h,TOP+c.length*(H+GY))});
+ return{pos,keys,w:24+keys.length*(W+GX),h:h+20}}
+function curve(a,b,bk){const x1=a.x+W,y1=a.y+H/2,x2=b.x,y2=b.y+H/2;
+ if(x2>x1-2){const dx=Math.max(36,(x2-x1)/2);return`M${x1} ${y1}C${x1+dx} ${y1} ${x2-dx} ${y2} ${x2-3} ${y2}`}
+ const ya=y1,yb=y2,lift=Math.max(30,Math.abs(x1-x2)/5);return`M${a.x} ${ya}C${a.x-lift} ${ya} ${x2+W+lift} ${yb} ${x2+W+3} ${yb}`}
+const trunc=(s,n)=>[...s].length>n?[...s].slice(0,n-1).join('')+'…':s;
+let cur;
+function draw(){
+ const v=view(),L=layout(v);cur={v,L};
+ const on=new Set([sel]);v.edges.forEach(e=>{if(e.a===sel)on.add(e.b);if(e.b===sel)on.add(e.a)});
+ const has=!!sel&&v.ids.has(sel);
+ const col=d=>d===0?'입구 없음':d===1?'입구':d===2?'탭·첫 화면':`${d-2}번 더 눌러서`;
+ let s=`<svg class="g${has?' has':''}" xmlns="http://www.w3.org/2000/svg" width="${L.w*zoom}" height="${L.h*zoom}" viewBox="0 0 ${L.w} ${L.h}" role="img" aria-label="화면 연결 지도"><defs><marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8Z" fill="var(--edge)"/></marker><marker id="ai" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8Z" fill="var(--in)"/></marker><marker id="ao" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8Z" fill="var(--brand)"/></marker></defs>`;
+ L.keys.forEach((k,i)=>{const x=24+i*(W+GX);if(k===0)s+=`<rect class="lane" x="${x-12}" y="8" width="${W+24}" height="${L.h-16}" rx="8"/>`;s+=`<text class="colt" x="${x}" y="26">${col(k)}</text>`});
+ const es=v.edges.map(e=>{const c=e.b===sel?'i':e.a===sel?'o':'';return{e,c}}).sort((a,b)=>(a.c?1:0)-(b.c?1:0));
+ es.forEach(({e,c})=>{const a=L.pos[e.a],b=L.pos[e.b];if(!a||!b)return;s+=`<path class="e ${e.t} ${c}" d="${curve(a,b)}" marker-end="url(#${c==='i'?'ai':c==='o'?'ao':'ar'})"><title>${esc(byId[e.a].name)} → ${esc(byId[e.b].name)}: ${esc(e.labels.join(', '))}</title></path>`});
+ v.nodes.forEach(n=>{const p=L.pos[n.id],cls=['nd',n.kind,orphan.has(n.id)?'orphan':'',n.id===sel?'sel':'',on.has(n.id)?'on':''].join(' ');
+  s+=`<g class="${cls}" data-id="${esc(n.id)}" transform="translate(${p.x} ${p.y})" tabindex="0" role="button" aria-label="${esc((n.tag?n.tag+' ':'')+n.name)}"><title>${esc((n.tag?n.tag+' ':'')+n.name)}</title><rect class="b" width="${W}" height="${H}" rx="8"/><text class="t" x="10" y="${n.url||n.tag?19:27}">${esc(trunc(n.name,13))}</text>${n.url||n.tag?`<text class="u" x="10" y="35">${esc(trunc((n.tag?n.tag+' ':'')+(n.url||''),25))}</text>`:''}</g>`});
+ // 선택한 화면의 연결에 버튼 이름을 붙인다
+ if(has)es.filter(x=>x.c).forEach(({e,c})=>{const a=L.pos[e.a],b=L.pos[e.b];if(!a||!b)return;const lab=trunc(e.labels[0]+(e.labels.length>1?` 외 ${e.labels.length-1}`:''),10),other=c==='o'?b:a;
+  const fw=[...lab].length*11+8,x=c==='o'?(other.x-fw-6):(other.x+W+6),y=other.y+H/2;
+  s+=`<g class="lb"><rect x="${x}" y="${y-9}" width="${fw}" height="17" rx="3"/><text x="${x+4}" y="${y+4}">${esc(lab)}</text></g>`});
+ s+='</svg>';const gw=document.getElementById('gw');gw.innerHTML=s;
+ gw.querySelectorAll('.nd').forEach(g=>{g.addEventListener('click',ev=>{ev.stopPropagation();pick(g.dataset.id,false)});g.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();pick(g.dataset.id)}})});
+ const svg=gw.querySelector('svg');svg.addEventListener('click',()=>{if(sel){sel=null;draw()}});
+ panel()}
+function row(e,dir){const o=dir==='in'?byId[e.a]:byId[e.b];return`<li><button data-go="${esc(o.id)}"><span class="a">${o.tag?`<span class="tg">${esc(o.tag)}</span> `:''}${esc(o.name)} ${o.url?`<b>${esc(o.url)}</b>`:''}</span><span class="why">${esc(TL[e.t])}: ${esc(e.label)}</span>${e.ev?`<span class="ev">${esc(D.exp(e.ev))}</span>`:''}</button></li>`}
+function panel(){if(!sel){document.getElementById('panel').innerHTML=`<h2>화면을 눌러 보세요</h2><p class="kv">지도의 화면을 누르면 어떤 버튼으로 들어오고 나가는지 여기에 나옵니다. 지도에서는 파란 선이 들어오는 길, 빨간 선이 나가는 길입니다.</p><p class="kv">왼쪽 노란 줄이 들어오는 길이 없는 화면입니다. 빈 곳을 누르면 선택이 풀립니다.</p>`;return}const n=byId[sel];const ins=IN[sel].filter(e=>e.t!=='back'),outs=OUT[sel].filter(e=>e.t!=='back'),bk=OUT[sel].filter(e=>e.t==='back');
+ const sheet=outs.filter(e=>e.t==='open'),go=outs.filter(e=>e.t!=='open');
+ document.getElementById('panel').innerHTML=`<div>${n.tag?`<span class="tg">${esc(n.tag)}</span> `:''}<span class="pill">${KL[n.kind]}</span>${orphan.has(n.id)?' <span class="pill w">들어오는 길 없음</span>':''}<h2 style="margin-top:8px">${esc(n.name)}</h2>${n.url?`<div class="url">${esc(n.url)}</div>`:''}</div>
+ ${n.shot?`<button class="shotb" data-shot="${esc(n.shot)}" aria-label="${esc(n.name)} 크게 보기"><img src="${esc(n.shot)}" alt="${esc(n.name)} 화면 캡처"></button>`:n.noshot?`<p class="noshot">캡처 없음: ${esc(n.noshot)}</p>`:''}${n.note?`<p class="kv">${esc(n.note)}</p>`:''}${n.desc?`<p class="kv">${esc(n.desc)}</p>`:''}${n.cond?`<p class="kv"><b>조건</b> ${esc(n.cond)}</p>`:''}${n.ev?`<p class="kv" style="font:400 11px var(--mono);overflow-wrap:anywhere">${esc(D.exp(n.ev))}</p>`:''}
+ ${n.areas?`<h3>화면 안 구역 ${n.areas.length}</h3><ol class="areas">${n.areas.map(a=>`<li><span class="tg">${esc(a.tag)}</span>${esc(a.name)}${a.desc?`<span class="d">${esc(a.desc)}</span>`:''}${a.ev?`<span class="ev">${esc(a.ev)}</span>`:''}</li>`).join('')}</ol>`:''}
+ <h3 class="in">들어오는 길 ${ins.length}</h3>${ins.length?`<ul class="path">${ins.map(e=>row(e,'in')).join('')}</ul>`:`<p class="empty">${n.url?'앱 안에도 앱 밖에도 입구가 없습니다. 주소 입력으로만 열립니다.':'연결된 입구가 없습니다.'}</p>`}
+ <h3 class="out">나가는 길 ${go.length}</h3>${go.length?`<ul class="path">${go.map(e=>row(e,'out')).join('')}</ul>`:`<p class="empty">이 화면에서 다른 화면으로 가는 버튼이 없습니다${n.kind==='page'?'. 하단 탭바로만 나갑니다':''}.</p>`}
+ ${sheet.length?`<h3 class="out">이 화면에서 뜨는 시트 ${sheet.length}</h3><ul class="path">${sheet.map(e=>row(e,'out')).join('')}</ul>`:''}
+ ${bk.length?`<h3>뒤로 가기</h3><ul class="path">${bk.map(e=>row(e,'out')).join('')}</ul>`:''}`;
+ document.querySelectorAll('#panel [data-go]').forEach(b=>b.addEventListener('click',()=>pick(b.dataset.go)))}
+function pick(id,scroll){sel=id;const n=byId[id];
+ if(n.kind==='sheet'||n.kind==='system'){if(mode==='pages'){mode='sheets'}}
+ if(n.kind==='native'||n.kind==='dead')mode='all';
+ document.querySelectorAll('[data-m]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===mode));
+ draw();if(scroll!==false)center(id)}
+function center(id){const p=cur.L.pos[id],gw=document.getElementById('gw');if(!p)return;gw.scrollTo({left:p.x*zoom-gw.clientWidth/2+W*zoom/2,top:p.y*zoom-gw.clientHeight/2,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'})}
+document.querySelectorAll('[data-m]').forEach(b=>b.addEventListener('click',()=>{mode=b.dataset.m;document.querySelectorAll('[data-m]').forEach(x=>x.setAttribute('aria-pressed',x===b));draw()}));
+document.getElementById('bk').addEventListener('click',e=>{showBack=!showBack;e.currentTarget.setAttribute('aria-pressed',showBack);draw()});
+document.getElementById('zi').addEventListener('click',()=>{zoom=Math.min(1.3,zoom+.15);draw()});document.getElementById('zo').addEventListener('click',()=>{zoom=Math.max(.4,zoom-.15);draw()});
+document.getElementById('q2').addEventListener('change',e=>{const v=e.target.value.trim();const tv=v.toUpperCase().replace(/^S(\d)/,'S-$1'),tb=tv.replace(/\.\d+$/,'');const n=N.find(x=>x.tag&&(x.tag===tv||x.tag===tb))||N.find(x=>x.kind!=='raw'&&(x.url===v||x.name===v))||N.find(x=>x.kind!=='raw'&&(x.name+(x.url||'')).includes(v));if(n){pick(n.id);document.getElementById('gw').scrollIntoView({block:'nearest'})}});
+document.addEventListener('click',e=>{const t=e.target.closest('.tag[data-go]');if(t){pick(t.dataset.go);document.getElementById('gw').scrollIntoView({block:'center'})}});
+// ── 목록
+let fk='전체';const FK=[['전체',null],['주소 있는 화면',['tab','page','redirect']],['시트·대화상자',['sheet']],['시스템 상태',['system']],['앱 전용',['native']],['앱 밖 입구',['entry','global']],['화면 아닌 응답',['raw']],['도달 불가',['dead']]];
+document.getElementById('fk').innerHTML=FK.map(([l])=>`<button class="chip" data-k="${l}" aria-pressed="${l==='전체'}">${l}</button>`).join('');
+function table(){const q=document.getElementById('q').value.trim().toLowerCase(),ks=FK.find(x=>x[0]===fk)[1];
+ const l=N.filter(n=>(!ks||ks.includes(n.kind))&&(!q||((n.tag||'')+' '+(n.areas||[]).map(a=>a.tag+' '+a.name).join(' ')+' '+n.name+' '+(n.url||'')+' '+n.desc+' '+n.group).toLowerCase().includes(q)));
+ document.getElementById('cnt').textContent=`${l.length}개`;
+ document.getElementById('tb').innerHTML=l.map(n=>`<tr class="r" data-id="${esc(n.id)}" tabindex="0"><td>${n.tag?`<span class="tg">${esc(n.tag)}</span>`:'—'}</td><td>${n.shot?`<img class="th" loading="lazy" src="${esc(n.shot)}" alt="">`:''}</td><td>${esc(n.name)}${orphan.has(n.id)?' <span class="pill w">고아</span>':''}</td><td class="m">${esc(n.url||'—')}</td><td>${KL[n.kind]}</td><td>${esc(n.desc||'—')}</td><td>${esc(n.cond||'—')}</td><td class="n">${IN[n.id].filter(real).length}</td><td class="n">${OUT[n.id].filter(real).length}</td></tr>`).join('');
+ document.querySelectorAll('#tb tr').forEach(r=>{const go=()=>{if(byId[r.dataset.id].kind==='raw')return;pick(r.dataset.id);document.getElementById('gw').scrollIntoView({block:'center'})};r.addEventListener('click',go);r.addEventListener('keydown',e=>{if(e.key==='Enter')go()})})}
+document.getElementById('fk').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b)return;fk=b.dataset.k;document.querySelectorAll('[data-k]').forEach(x=>x.setAttribute('aria-pressed',x===b));table()});
+document.getElementById('q').addEventListener('input',table);
+table();draw();
+
+// ── 캡처 모음
+{const V=N.filter(n=>n.shot),Z=N.filter(n=>n.noshot);let gk='전체';const GK=[['전체',null],['주소 있는 화면',['tab','page','redirect']],['시트·대화상자',['sheet']],['시스템·전역',['system','global']]];
+ document.getElementById('galn').textContent=`화면 ${V.length+Z.length}개 중 ${V.length}개를 찍었습니다. 캡처를 누르면 지도에서 그 화면의 들어오는 길과 나가는 길을 봅니다.`;
+ document.getElementById('gk').innerHTML=GK.map(([l])=>`<button class="chip" data-g="${l}" aria-pressed="${l==='전체'}">${l}</button>`).join('');
+ const gal=()=>{const ks=GK.find(x=>x[0]===gk)[1],gs=new Map();V.filter(n=>!ks||ks.includes(n.kind)).forEach(n=>{if(!gs.has(n.group))gs.set(n.group,[]);gs.get(n.group).push(n)});
+  document.getElementById('gal').innerHTML=[...gs].map(([g,l])=>`<div><h3>${esc(g)} ${l.length}</h3><div class="gg">${l.map(n=>`<button class="gc" data-pick="${esc(n.id)}"><img loading="lazy" src="${esc(n.shot)}" alt=""><span>${n.tag?`<span class="tg">${esc(n.tag)}</span> `:''}${esc(n.name)}</span></button>`).join('')}</div></div>`).join('')};
+ gal();document.getElementById('gk').addEventListener('click',e=>{const b=e.target.closest('[data-g]');if(!b)return;gk=b.dataset.g;document.querySelectorAll('[data-g]').forEach(x=>x.setAttribute('aria-pressed',x===b));gal()});
+ document.getElementById('gal').addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if(!b)return;pick(b.dataset.pick);document.querySelector('.main').scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'})});
+ document.querySelector('#nos summary').textContent=`캡처가 없는 화면 ${Z.length}개와 이유`;
+ document.getElementById('nosl').innerHTML=Z.map(n=>`<div><b>${esc(n.name)}</b><span>${esc(n.noshot)}</span></div>`).join('');
+ const lb=document.getElementById('lb');document.getElementById('panel').addEventListener('click',e=>{const b=e.target.closest('[data-shot]');if(!b)return;lb.querySelector('img').src=b.dataset.shot;lb.querySelector('img').alt=b.getAttribute('aria-label');lb.showModal();lb.scrollTop=0});lb.addEventListener('click',()=>lb.close());}
+</script>

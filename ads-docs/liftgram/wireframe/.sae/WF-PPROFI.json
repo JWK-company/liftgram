@@ -1,0 +1,150 @@
+{
+ "schemaVersion": 1,
+ "id": "WF-PPROFI",
+ "type": "Wireframe",
+ "title": "S-41 의견 보내기",
+ "status": "Draft",
+ "screen_code": "PPROFI",
+ "route": "/profile/feedback",
+ "note": "S-41 · 앱 사용자가 보내는 의견과 내가 보낸 목록 · 조건: 로그인 사용자(비로그인은 로그인 안내)",
+ "relations": {
+  "covers": [
+   "SRS-077",
+   "SRS-085",
+   "SRS-073",
+   "SRS-075",
+   "SRS-111"
+  ]
+ },
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "의견 보내기 · PPROFI · /profile/feedback"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "노트: ",
+      "marks": [
+       {
+        "type": "strong"
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": "앱 사용자가 보내는 의견과 내가 보낸 목록 · 조건: 로그인 사용자(비로그인은 로그인 안내)"
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "SAE — 요소별 상태·액션·이펙트"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "PPROFI.01",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "  의견 보내기  [display]"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: ",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "기본 / 로그인 사용자(비로그인은 로그인 안내)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: ",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "—"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: ",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "앱 사용자가 보내는 의견과 내가 보낸 목록"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "group": "liftgram",
+ "device": "mobile",
+ "entry": [
+  "주소 /profile/feedback 직접"
+ ],
+ "family": "계정",
+ "order": 79,
+ "archetype": "mobile"
+}
