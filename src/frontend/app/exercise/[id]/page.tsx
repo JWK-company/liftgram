@@ -15,7 +15,10 @@ import { hasPictogram } from "@app/core/data/exerciseVisual";
 import { exerciseCautionOf } from "@app/core/domain/exerciseCautions";
 import { exerciseAltName, exerciseListName } from "@app/core/domain/exerciseName";
 import { exerciseClient } from "@/lib/api";
-import { EQUIPMENT_KEY } from "@/lib/contractMap";
+// [원본] import { EQUIPMENT_KEY } from "@/lib/contractMap";
+import { EQUIPMENT_KEY, toMuscles } from "@/lib/contractMap";
+import { tipsForExercise } from "@app/core/domain/creatorTips";
+import { RelatedTips } from "../../components/routines/RelatedTips";
 import { t } from "@/lib/i18n";
 import { equipmentLabel, kindLabel, loadModeLabel, muscleLabel } from "@/lib/labels";
 import { AdSlot } from "../../components/ads/AdSlot";
@@ -75,6 +78,8 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
   if (!exercise) notFound();
 
   const caution = exerciseCautionOf(exercise.id);
+  // 관련 팁(SPEC-047) — 지목한 팁 먼저 → 주동근이 겹치는 팁 · 최대 3개 · 0개면 카드 없음
+  const relatedTipIds = tipsForExercise(exercise.id, toMuscles(exercise.primaryMuscles), 3).map((x) => x.id);
 
   // 대체운동 이름 — 하나가 사라져도 나머지는 보여야 하므로 실패를 개별로 삼킨다.
   const substitutes = (
@@ -195,6 +200,8 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
             </ol>
           </Card>
         ) : null}
+
+        {relatedTipIds.length ? <RelatedTips tipIds={relatedTipIds} /> : null}
 
         {/* 분류 — 주동근·보조근·기구. 주동근도 무채 칩(화면 정리 P4 — 빨강은 주 행동만). */}
         <Card>

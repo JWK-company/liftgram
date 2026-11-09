@@ -9,21 +9,42 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const text = readFileSync(join(here, "../core/src/domain/creatorRoutines.ts"), "utf8");
 const unq = (s) => s.replace(/\\'/g, "'");
-const rows = [
-  ...text.matchAll(
-    /videoId:\s*'([A-Za-z0-9_-]{11})',\s*title:\s*'((?:[^'\\]|\\.)*)',\s*channel:\s*'((?:[^'\\]|\\.)*)',[\s\S]*?verifiedAt:\s*'(\d{4}-\d{2}-\d{2})'/g,
-  ),
-].map((m) => ({ videoId: m[1], title: unq(m[2]), channel: unq(m[3]), verifiedAt: m[4] }));
-const declared = (text.match(/videoId:\s*'/g) ?? []).length;
-if (!rows.length || rows.length !== declared) {
-  console.error(
-    `데이터를 읽지 못했다: videoId ${declared}개 중 ${rows.length}개만 해석 — source 필드 순서(videoId·title·channel·…·verifiedAt)를 확인`,
-  );
-  process.exit(1);
+// [원본] 루틴 파일 하나만 읽었다 — 운동 팁(SPEC-047)도 같은 규칙으로 본다. 파일마다 declared === rows 를 따로 확인한다(qa D4)
+// const text = readFileSync(join(here, "../core/src/domain/creatorRoutines.ts"), "utf8");
+const FILES = ["../core/src/domain/creatorRoutines.ts", "../core/src/domain/creatorTips.ts"];
+const SOURCE_RE =
+  /videoId:\s*'([A-Za-z0-9_-]{11})',\s*title:\s*'((?:[^'\\]|\\.)*)',\s*channel:\s*'((?:[^'\\]|\\.)*)',[\s\S]*?verifiedAt:\s*'(\d{4}-\d{2}-\d{2})'/g;
+const rows = [];
+let text = "";
+for (const f of FILES) {
+  const t = readFileSync(join(here, f), "utf8");
+  text += t;
+  const starts = [...t.matchAll(/videoId:\s*'/g)].map((m) => m.index);
+  // 항목(객체) 경계 = 배열 원소의 시작 줄 「  {」 + 「    id: '」 — hidden 은 source 앞에도 뒤에도 올 수 있다(코드 리뷰 REV-089 H-1:
+  // [원본] 「이 videoId ~ 다음 videoId」 구간으로 봐서 source 앞의 hidden 이 앞 항목으로 밀렸다)
+  const objStarts = [...t.matchAll(/^ {2}\{\n {4}id: '/gm)].map((m) => m.index);
+  const found = [...t.matchAll(SOURCE_RE)].map((m) => {
+    const from = objStarts.filter((i) => i <= m.index).pop() ?? 0;
+    const to = objStarts.find((i) => i > m.index) ?? t.length;
+    const hidden = /^\s*hidden:\s*true/m.test(t.slice(from, to));
+    return {
+      file: f.split("/").pop(),
+      videoId: m[1],
+      title: unq(m[2]),
+      channel: unq(m[3]),
+      verifiedAt: m[4],
+      hidden,
+    };
+  });
+  if (!found.length || found.length !== starts.length) {
+    console.error(
+      `${f}: 데이터를 읽지 못했다 — videoId ${starts.length}개 중 ${found.length}개만 해석 — source 필드 순서(videoId·title·channel·…·verifiedAt)를 확인`,
+    );
+    process.exit(1);
+  }
+  rows.push(...found);
 }
-
 const drafts = (text.match(/^\s*draft:\s*true/gm) ?? []).length;
 if (drafts)
   console.log(`✗ draft: true 가 ${drafts}개 — 사람 검수 전 버전은 화면에 안 나간다(검수 뒤 지울 것)`);
@@ -45,6 +66,12 @@ for (const r of rows) {
     continue;
   }
   if (!res.ok) {
+    // [원본] 숨긴 항목도 실패로 셌다 — 삭제된 영상을 숨긴 상태가 ✗ 로 남았다(qa D3)
+    if (r.hidden) {
+      console.log(`! ${r.videoId} ${r.channel} — oEmbed ${res.status}(숨긴 항목 · 데이터에서 빼도 된다)`);
+      warn += 1;
+      continue;
+    }
     console.log(`✗ ${r.videoId} ${r.channel} — oEmbed ${res.status}(삭제·비공개?) → hidden: true`);
     bad += 1;
     continue;

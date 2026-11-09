@@ -14,6 +14,7 @@ export * from './weeklySchedule'; // @plm SRS-044
 export * from './movementPatterns'; // @plm SRS-047
 export * from './conceptRoutines'; // @plm SRS-047
 export * from './creatorRoutines'; // @plm SRS-091
+export * from './creatorTips'; // 운동 팁(SPEC-047 · SRS-112)
 export * from './programGenerator';
 export * from './plateCalculator';
 export * from './wellness';

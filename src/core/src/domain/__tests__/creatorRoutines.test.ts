@@ -171,3 +171,10 @@ test('영상·자막 내려받기 경로가 코드에 없다 (SRS-092 · qa M-6)
   }
   assert.ok(readdirSync(join(root, 'scripts')).length > 0);
 });
+
+test('보강(SPEC-047): 프로 전신·푸시·초보자 분할은 7개 이상 — 모든 주제가 7개 이상 화면에 있다', () => {
+  for (const id of ['pro-full', 'pro-push', 'beginner-split'] as const) {
+    assert.ok(creatorRoutinesFor(id).length >= 7, `${id}: ${creatorRoutinesFor(id).length}개`);
+  }
+  for (const t of CREATOR_TOPICS) assert.ok(creatorRoutinesFor(t.id).length >= 7, `${t.id}: ${creatorRoutinesFor(t.id).length}개`);
+});

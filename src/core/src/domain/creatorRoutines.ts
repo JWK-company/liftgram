@@ -2927,6 +2927,777 @@ export const CREATOR_ROUTINES: CreatorRoutine[] = [
       },
     ],
   },
+  // ── 2026-11-09 보강(SPEC-047 Phase 3) — 공식 Data API 설명란 기준 · 채널 업로드 목록으로 후보를 찾음 ──
+  {
+    id: 'cr-pro-fb-abc',
+    topicId: 'pro-full',
+    labelKo: '주 3회 전신 A·B·C',
+    source: {
+      videoId: 'B12MXF0bSFo',
+      title: 'The #1 Full Body Routine to Build Muscle & Lose Fat',
+      channel: 'Jeremy Ethier',
+      channelUrl: 'https://www.youtube.com/@JeremyEthier',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '한 주에 세 번, 날마다 다른 6~7종으로 온몸을 도는 전신 루틴이에요. 마지막 세트는 늘어난 자리에서 반쪽 반복 3~5회를 더해요. 영어 영상이에요.',
+    days: [
+      {
+        nameKo: 'A',
+        items: [
+          { exerciseId: 'seed-incline-press-dumbbell', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-barbell-squat', sets: 3, repsMin: 6, repsMax: 8, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-chest-supported-row-dumbbell', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '마지막 세트 뒤 아래쪽 반쪽 반복 3~5회' },
+          { exerciseId: 'seed-lying-leg-curl', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '영상은 레그 컬 동작으로만 적음' },
+          { exerciseId: 'seed-incline-dumbbell-curl', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'video', reps: 'default' }, noteKo: '덤벨 오버헤드 익스텐션과 슈퍼세트' },
+          { exerciseId: 'seed-overhead-triceps-extension', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'video', reps: 'default' } },
+        ],
+      },
+      {
+        nameKo: 'B',
+        items: [
+          { exerciseId: 'seed-barbell-bench-press', sets: 3, repsMin: 4, repsMax: 6, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-romanian-deadlift', sets: 3, repsMin: 6, repsMax: 8, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-lat-pulldown', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '마지막 세트 뒤 늘어난 자리 반쪽 반복 3~5회' },
+          { exerciseId: 'seed-walking-lunge', sets: 3, repsMin: 6, repsMax: 10, src: { sets: 'video', reps: 'video' }, noteKo: '다리마다' },
+          { exerciseId: 'seed-cable-lateral-raise', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'video', reps: 'default' }, noteKo: '몸 뒤로 지나가게 · 리버스 크런치와 슈퍼세트' },
+          { exerciseId: 'seed-reverse-crunch', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'video', reps: 'default' } },
+        ],
+      },
+      {
+        nameKo: 'C',
+        items: [
+          { exerciseId: 'seed-dumbbell-shoulder-press', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '앉아서' },
+          { exerciseId: 'seed-dumbbell-row', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-hip-thrust', sets: 3, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '대안: 덤벨 스텝업' },
+          { exerciseId: 'seed-leg-extension', sets: 3, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-seated-cable-fly', sets: 3, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-standing-calf-raise', sets: 3, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'default' }, noteKo: '케이블 리어 델트 플라이와 슈퍼세트' },
+          { exerciseId: 'seed-cable-rear-delt-fly', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'video', reps: 'default' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-pro-fb-pure',
+    topicId: 'pro-full',
+    labelKo: '보디빌딩 전신 6종',
+    source: {
+      videoId: 'czkGj5vJEFQ',
+      title: 'My New Science-Based Full Body Workout For Pure Bodybuilding',
+      channel: 'Jeff Nippard',
+      channelUrl: 'https://www.youtube.com/@JeffNippard',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '보디빌딩 프로그램의 전신 버전 중 하루예요. 등·가슴·하체를 한 번씩 돌고 페이스 풀과 복근으로 끝내요. 영어 영상이에요.',
+    days: [
+      {
+        nameKo: '전신',
+        items: [
+          { exerciseId: 'seed-lat-pulldown', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '한 팔씩 몸을 가로질러 당기기' },
+          { exerciseId: 'seed-incline-press-smith', sets: 3, repsMin: 8, repsMax: 10, src: { sets: 'video', reps: 'video' }, noteKo: '낮은 각도' },
+          { exerciseId: 'seed-hip-adduction-machine', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-leg-press', sets: 3, repsMin: 8, repsMax: 8, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-face-pull', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '누워서 · 당긴 자리에서 멈춤' },
+          { exerciseId: 'seed-cable-crunch', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'video', reps: 'video' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-pro-fb-er',
+    topicId: 'pro-full',
+    labelKo: '유효 반복 전신 A·B',
+    source: {
+      videoId: 'Ag7Dui9Plys',
+      title: 'The Most EFFECTIVE Total Body Workout (HIT EVERY MUSCLE)',
+      channel: 'ATHLEAN-X™',
+      channelUrl: 'https://www.youtube.com/@athleanx',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '주 3회 A·B를 번갈아 하는 전신 루틴이에요. 12회 한계 무게로 한 세트를 한 뒤 짧게 쉬며 유효 반복을 채우는 방식이라 세트 수는 정해져 있지 않아요. 영어 영상이에요.',
+    days: [
+      {
+        nameKo: 'A',
+        items: [
+          { exerciseId: 'seed-incline-press-dumbbell', sets: 3, repsMin: 12, repsMax: 12, restSec: 180, src: { sets: 'default', reps: 'default' }, noteKo: '12회 한계 무게로 1세트 → 15~30초 쉬고 실패까지를 되풀이해 유효 반복 20회 채우기' },
+          { exerciseId: 'seed-barbell-row', sets: 3, repsMin: 12, repsMax: 12, restSec: 180, src: { sets: 'default', reps: 'default' }, noteKo: '언더핸드 · 12회 한계 무게로 1세트 → 15~30초 쉬고 실패까지를 되풀이해 유효 반복 20회 채우기' },
+          { exerciseId: 'seed-upright-row-dumbbell', sets: 3, repsMin: 12, repsMax: 12, restSec: 180, src: { sets: 'default', reps: 'default' }, noteKo: '영상은 덤벨 하이 풀 · 12회 한계 무게로 1세트 → 15~30초 쉬고 실패까지를 되풀이해 유효 반복 20회 채우기' },
+          { exerciseId: 'seed-dumbbell-pullover', sets: 3, repsMin: 12, repsMax: 12, restSec: 180, src: { sets: 'default', reps: 'default' }, noteKo: 'PJR 풀오버 · 12회 한계 무게로 1세트 → 15~30초 쉬고 실패까지를 되풀이해 유효 반복 20회 채우기' },
+          { exerciseId: 'seed-goblet-squat', sets: 3, repsMin: 20, repsMax: 20, restSec: 180, src: { sets: 'default', reps: 'default' }, noteKo: '20회 한계 무게 · 유효 반복 40회' },
+          { exerciseId: 'seed-leg-extension', sets: 3, repsMin: 12, repsMax: 12, restSec: 180, src: { sets: 'default', reps: 'default' }, noteKo: '선택 · 12회 한계 무게로 1세트 → 15~30초 쉬고 실패까지를 되풀이해 유효 반복 20회 채우기' },
+          { exerciseId: 'seed-romanian-deadlift', sets: 3, repsMin: 12, repsMax: 12, restSec: 180, src: { sets: 'default', reps: 'default' }, noteKo: '12회 한계 무게로 1세트 → 15~30초 쉬고 실패까지를 되풀이해 유효 반복 20회 채우기' },
+        ],
+      },
+      {
+        nameKo: 'B',
+        items: [
+          { exerciseId: 'seed-dips', sets: 3, repsMin: 12, repsMax: 12, restSec: 180, src: { sets: 'default', reps: 'default' }, noteKo: '중량 또는 맨몸 · 12회 한계 무게로 1세트 → 15~30초 쉬고 실패까지를 되풀이해 유효 반복 20회 채우기' },
+          { exerciseId: 'seed-cable-high-row', sets: 3, repsMin: 12, repsMax: 12, restSec: 180, src: { sets: 'default', reps: 'default' }, noteKo: '한 팔씩 · 12회 한계 무게로 1세트 → 15~30초 쉬고 실패까지를 되풀이해 유효 반복 20회 채우기' },
+          { exerciseId: 'seed-cable-lateral-raise', sets: 3, repsMin: 12, repsMax: 12, restSec: 180, src: { sets: 'default', reps: 'default' }, noteKo: '한 팔씩 · 12회 한계 무게로 1세트 → 15~30초 쉬고 실패까지를 되풀이해 유효 반복 20회 채우기' },
+          { exerciseId: 'seed-barbell-curl', sets: 3, repsMin: 12, repsMax: 12, restSec: 180, src: { sets: 'default', reps: 'default' }, noteKo: '12회 한계 무게로 1세트 → 15~30초 쉬고 실패까지를 되풀이해 유효 반복 20회 채우기' },
+          { exerciseId: 'seed-dumbbell-reverse-lunge', sets: 3, repsMin: 12, repsMax: 12, restSec: 180, src: { sets: 'default', reps: 'default' }, noteKo: '다리마다 · 12회 한계 무게로 1세트 → 15~30초 쉬고 실패까지를 되풀이해 유효 반복 20회 채우기' },
+          { exerciseId: 'seed-seated-leg-curl', sets: 3, repsMin: 12, repsMax: 12, restSec: 180, src: { sets: 'default', reps: 'default' }, noteKo: '12회 한계 무게로 1세트 → 15~30초 쉬고 실패까지를 되풀이해 유효 반복 20회 채우기' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-pro-fb-once',
+    topicId: 'pro-full',
+    labelKo: '주 1회 전신 9종',
+    source: {
+      videoId: 'rL5FdSd1tQ4',
+      title: 'The BEST Exercises For A Full Body Workout',
+      channel: 'Mike Thurston',
+      channelUrl: 'https://www.youtube.com/@MikeThurston',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '한 주에 한 번만 운동한다면 어떻게 할지 보여 주는 전신 루틴이에요. 9종 모두 3세트 8~12회로 해요. 영어 영상이에요.',
+    days: [
+      {
+        nameKo: '전신',
+        items: [
+          { exerciseId: 'seed-incline-press-dumbbell', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '티바 로우와 슈퍼세트' },
+          { exerciseId: 'seed-t-bar-row', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-seated-leg-curl', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-pendulum-squat', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-lat-pulldown', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '한 팔씩' },
+          { exerciseId: 'seed-machine-lateral-raise', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-bulgarian-split-squat', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-preacher-curl-dumbbell', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '한 팔씩 · 케이블 트라이셉스 익스텐션과 슈퍼세트' },
+          { exerciseId: 'seed-triceps-pushdown', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '영상 표기 케이블 트라이셉스 익스텐션' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-pro-fb-silver',
+    topicId: 'pro-full',
+    labelKo: '실버 에라 전신 3일',
+    source: {
+      videoId: 'g-pqgciOSgE',
+      title: 'Silver Era Aesthetics Program (Steve Reeves Physique Workout)',
+      channel: 'Natural Hypertrophy',
+      channelUrl: 'https://www.youtube.com/@NaturalHypertrophy',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '1950년대 보디빌더의 몸을 본뜬 주 3회 전신 프로그램이에요. 월·수·금마다 두 종목씩 짝지어 번갈아 해요. 설명란에 대안 종목도 있는데 첫 번째 것만 담았어요. 영어 영상이에요.',
+    days: [
+      {
+        nameKo: '월',
+        items: [
+          { exerciseId: 'seed-barbell-squat', sets: 3, repsMin: 6, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '3~4세트 · 케이블 시티드 로우와 짝' },
+          { exerciseId: 'seed-seated-cable-row', sets: 3, repsMin: 8, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '3~4세트' },
+          { exerciseId: 'seed-incline-press', sets: 3, repsMin: 6, repsMax: 10, src: { sets: 'video', reps: 'video' }, noteKo: '3~4세트 · 바벨 또는 덤벨 · 리버스 컬과 짝' },
+          { exerciseId: 'seed-reverse-barbell-curl', sets: 3, repsMin: 6, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '3~4세트' },
+          { exerciseId: 'seed-romanian-deadlift', sets: 4, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '업라이트 로우·넥 컬과 묶음' },
+          { exerciseId: 'seed-upright-row', sets: 4, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-lying-neck-curl', sets: 4, repsMin: 15, repsMax: 20, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-cable-curl', sets: 4, repsMin: 12, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '프렌치 프레스·시티드 카프 레이즈와 묶음' },
+          { exerciseId: 'seed-ez-bar-overhead-triceps-extension', sets: 4, repsMin: 6, repsMax: 10, src: { sets: 'video', reps: 'video' }, noteKo: '프렌치 프레스' },
+          { exerciseId: 'seed-seated-calf-raise', sets: 4, repsMin: 15, repsMax: 20, src: { sets: 'video', reps: 'video' } },
+        ],
+      },
+      {
+        nameKo: '수',
+        items: [
+          { exerciseId: 'seed-barbell-row', sets: 3, repsMin: 8, repsMax: 10, src: { sets: 'video', reps: 'video' }, noteKo: '3~4세트 · 슈러그와 짝' },
+          { exerciseId: 'seed-barbell-shrug', sets: 3, repsMin: 12, repsMax: 20, src: { sets: 'video', reps: 'video' }, noteKo: '3~4세트 · 넓은 그립' },
+          { exerciseId: 'seed-dips', sets: 3, repsMin: 6, repsMax: 10, src: { sets: 'video', reps: 'video' }, noteKo: '3~4세트 · 중량 · 스플릿 스쿼트와 짝' },
+          { exerciseId: 'seed-split-squat', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '3~4세트' },
+          { exerciseId: 'seed-chin-up', sets: 3, repsMin: 4, repsMax: 6, src: { sets: 'video', reps: 'video' }, noteKo: '중량 · 숄더 프레스·레그 컬과 묶음' },
+          { exerciseId: 'seed-dumbbell-shoulder-press', sets: 3, repsMin: 6, repsMax: 10, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-lying-leg-curl', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-cable-curl', sets: 4, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '펠리컨 컬 · 푸시다운·레터럴 레이즈와 묶음' },
+          { exerciseId: 'seed-triceps-pushdown', sets: 4, repsMin: 8, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-side-lateral-raise', sets: 3, repsMin: 15, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+        ],
+      },
+      {
+        nameKo: '금',
+        items: [
+          { exerciseId: 'seed-deadlift', sets: 3, repsMin: 3, repsMax: 5, src: { sets: 'video', reps: 'video' }, noteKo: '3회 3세트 또는 5회 3세트 · 케이블 익스텐션과 짝' },
+          { exerciseId: 'seed-cable-overhead-extension', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '영상 표기 케이블 트라이셉스 익스텐션' },
+          { exerciseId: 'seed-overhead-press', sets: 3, repsMin: 6, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '3~4세트 · 덤벨 풀오버와 짝' },
+          { exerciseId: 'seed-dumbbell-pullover', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '3~4세트' },
+          { exerciseId: 'seed-leg-press', sets: 4, repsMin: 8, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '체스트 플라이·해머 컬과 묶음' },
+          { exerciseId: 'seed-dumbbell-fly', sets: 4, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-hammer-curl', sets: 4, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-pull-up', sets: 4, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '넓은 그립 · 하이퍼익스텐션·카프 레이즈와 묶음' },
+          { exerciseId: 'seed-hyperextension', sets: 4, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-standing-calf-raise', sets: 4, repsMin: 12, repsMax: 20, src: { sets: 'video', reps: 'video' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-sp-upper-machine',
+    topicId: 'beginner-split',
+    labelKo: '상체 머신 입문',
+    source: {
+      videoId: 'bjeCTtcSNRw',
+      title: '{헬스장 초보자(헬린이)를 위한} 7분안에 상체머신 배우기 독학 무조건 가능함',
+      channel: '웨이트연구소 I 덕코치',
+      channelUrl: 'https://www.youtube.com/@%EC%9B%A8%EC%9D%B4%ED%8A%B8%EC%97%B0%EA%B5%AC%EC%86%8C%EB%8D%95%EC%BD%94%EC%B9%98',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '헬스장이 처음인 사람을 위해 상체 날에 쓸 머신 세 가지의 사용법을 알려 주는 영상이에요. 세트·횟수는 설명란에 없어 기본값으로 채웠어요.',
+    days: [
+      {
+        nameKo: '상체',
+        items: [
+          { exerciseId: 'seed-lat-pulldown', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-shoulder-press-machine', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-chest-press-machine', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-sp-upper4',
+    topicId: 'beginner-split',
+    labelKo: '직장인 상체 4종',
+    source: {
+      videoId: 'gnHnhlrENM4',
+      title: '직장인 상체운동, 헬스장 가면 딱 이 4가지만 하세요',
+      channel: '웨이트연구소 I 덕코치',
+      channelUrl: 'https://www.youtube.com/@%EC%9B%A8%EC%9D%B4%ED%8A%B8%EC%97%B0%EA%B5%AC%EC%86%8C%EB%8D%95%EC%BD%94%EC%B9%98',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '오래 앉아 일하는 사람을 위한 상체 날이에요. 당기기로 시작해 가슴·어깨를 밀고 페이스 풀로 마무리해요. 헬스 초보자도 따라 할 수 있게 자세를 설명해요.',
+    days: [
+      {
+        nameKo: '상체',
+        items: [
+          { exerciseId: 'seed-chest-supported-row-dumbbell', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '인클라인 벤치에 엎드려' },
+          { exerciseId: 'seed-dumbbell-bench-press', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-dumbbell-shoulder-press', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-face-pull', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'default', reps: 'default' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-sp-day1',
+    topicId: 'beginner-full',
+    labelKo: '첫날 상·하체 스트렝스',
+    source: {
+      videoId: 'kD7fRsVrFbQ',
+      title: '【Day.1】초보자도 따라 할 수 있는 상/하체 스트렝스 루틴',
+      channel: '마선호',
+      channelUrl: 'https://www.youtube.com/@Masunho',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '초보자도 따라 할 수 있다고 밝힌 상·하체 스트렝스 루틴의 첫날이에요. 준비 운동 뒤 메인 종목인 스쿼트·벤치프레스를 하고 서브 종목을 더해요. 세트·횟수는 설명란에 없어 기본값으로 채웠어요.',
+    days: [
+      {
+        nameKo: '1일차',
+        items: [
+          { exerciseId: 'seed-hang-clean', sets: 3, repsMin: 5, repsMax: 8, src: { sets: 'default', reps: 'default' }, noteKo: '서브 · 오버헤드 프레스와 이어서' },
+          { exerciseId: 'seed-overhead-press', sets: 3, repsMin: 8, repsMax: 10, src: { sets: 'default', reps: 'default' }, noteKo: '서브' },
+          { exerciseId: 'seed-barbell-squat', sets: 4, repsMin: 8, repsMax: 10, src: { sets: 'default', reps: 'default' }, noteKo: '메인' },
+          { exerciseId: 'seed-barbell-bench-press', sets: 4, repsMin: 8, repsMax: 10, src: { sets: 'default', reps: 'default' }, noteKo: '메인' },
+          { exerciseId: 'seed-hack-squat', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '서브' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-fb-5x5',
+    topicId: 'beginner-full',
+    labelKo: '5×5 기초 전신 3일',
+    source: {
+      videoId: 'Umu4cxTPaC8',
+      title: 'Best Beginner\'s Workout Routine',
+      channel: 'Buff Dudes',
+      channelUrl: 'https://www.youtube.com/@buffdudes',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '초보자에게 권하는 주 3회 전신 루틴이에요. 하루걸러 3주 동안 하고, 큰 종목은 5회 5세트, 작은 종목은 10회 3세트예요. 쉬는 시간은 큰 종목 90초·작은 종목 60초예요. 영어 영상이에요.',
+    days: [
+      {
+        nameKo: '1일',
+        items: [
+          { exerciseId: 'seed-barbell-squat', sets: 5, repsMin: 5, repsMax: 5, restSec: 90, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-barbell-row', sets: 5, repsMin: 5, repsMax: 5, restSec: 90, src: { sets: 'video', reps: 'video' }, noteKo: '벤트오버' },
+          { exerciseId: 'seed-barbell-bench-press', sets: 5, repsMin: 5, repsMax: 5, restSec: 90, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-push-press', sets: 5, repsMin: 5, repsMax: 5, restSec: 90, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-triceps-pushdown', sets: 3, repsMin: 10, repsMax: 10, restSec: 60, src: { sets: 'video', reps: 'video' }, noteKo: '로프' },
+          { exerciseId: 'seed-side-lateral-raise', sets: 3, repsMin: 10, repsMax: 10, restSec: 60, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-seated-calf-raise', sets: 3, repsMin: 10, repsMax: 10, restSec: 60, src: { sets: 'video', reps: 'video' } },
+        ],
+      },
+      {
+        nameKo: '2일',
+        items: [
+          { exerciseId: 'seed-deadlift', sets: 5, repsMin: 5, repsMax: 5, restSec: 90, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-pull-up', sets: 5, repsMin: 5, repsMax: 5, restSec: 90, src: { sets: 'video', reps: 'video' }, noteKo: '필요하면 중량' },
+          { exerciseId: 'seed-incline-press', sets: 5, repsMin: 5, repsMax: 5, restSec: 90, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-overhead-press', sets: 5, repsMin: 5, repsMax: 5, restSec: 90, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-barbell-curl', sets: 3, repsMin: 10, repsMax: 10, restSec: 60, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-rear-delt-fly', sets: 3, repsMin: 10, repsMax: 10, restSec: 60, src: { sets: 'video', reps: 'video' }, noteKo: '숙여서' },
+          { exerciseId: 'seed-standing-calf-raise', sets: 3, repsMin: 10, repsMax: 10, restSec: 60, src: { sets: 'video', reps: 'video' } },
+        ],
+      },
+      {
+        nameKo: '3일',
+        items: [
+          { exerciseId: 'seed-front-squat', sets: 5, repsMin: 5, repsMax: 5, restSec: 90, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-pendlay-row', sets: 5, repsMin: 5, repsMax: 5, restSec: 90, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-dips', sets: 5, repsMin: 5, repsMax: 5, restSec: 90, src: { sets: 'video', reps: 'video' }, noteKo: '필요하면 중량' },
+          { exerciseId: 'seed-dumbbell-shoulder-press', sets: 5, repsMin: 5, repsMax: 5, restSec: 90, src: { sets: 'video', reps: 'video' }, noteKo: '한 팔씩' },
+          { exerciseId: 'seed-overhead-triceps-extension', sets: 3, repsMin: 10, repsMax: 10, restSec: 60, src: { sets: 'video', reps: 'video' }, noteKo: '한 팔씩' },
+          { exerciseId: 'seed-front-raise-cable', sets: 3, repsMin: 10, repsMax: 10, restSec: 60, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-seated-calf-raise', sets: 3, repsMin: 10, repsMax: 10, restSec: 60, src: { sets: 'video', reps: 'video' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-fb-basic5',
+    topicId: 'beginner-full',
+    labelKo: '기본 동작 전신 5종',
+    source: {
+      videoId: 'R8X-gXpe9C0',
+      title: 'The BEST Workout for Beginners',
+      channel: 'ATHLEAN-X™',
+      channelUrl: 'https://www.youtube.com/@athleanx',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '초보자를 위한 전신 운동이에요. 스쿼트·밀기·당기기·한 다리·복근을 한 번씩 해서 기본 움직임을 익혀요. 세트·횟수는 설명란에 없어 기본값으로 채웠어요. 영어 영상이에요.',
+    days: [
+      {
+        nameKo: '전신',
+        items: [
+          { exerciseId: 'seed-dumbbell-squat', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '드롭 스쿼트(빠르게 앉았다 일어나기)' },
+          { exerciseId: 'seed-dumbbell-shoulder-press', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '한 팔씩' },
+          { exerciseId: 'seed-chest-supported-row-dumbbell', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-bodyweight-split-squat', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '다리마다' },
+          { exerciseId: 'seed-sit-up', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '롤업' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-pt-back4',
+    topicId: 'beginner-part',
+    labelKo: '등 입문 4종',
+    source: {
+      videoId: 'DCAl5OsyUTI',
+      title: '헬스 초보자가 헬스장가서 꼭 해야하는 필수 등 운동 4가지',
+      channel: '웨이트연구소 I 덕코치',
+      channelUrl: 'https://www.youtube.com/@%EC%9B%A8%EC%9D%B4%ED%8A%B8%EC%97%B0%EA%B5%AC%EC%86%8C%EB%8D%95%EC%BD%94%EC%B9%98',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '헬스 초보자가 등 운동을 할 때 꼭 해 볼 네 가지예요. 위에서 당기기와 엎드려 당기기 뒤에 한 팔 하이 로우, 팔 펴고 당기기로 마무리해요. 1시간 안에 끝낼 수 있어요.',
+    days: [
+      {
+        nameKo: '등',
+        items: [
+          { exerciseId: 'seed-lat-pulldown', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-chest-supported-row-dumbbell', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '인클라인 벤치에 엎드려' },
+          { exerciseId: 'seed-cable-high-row', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '한 팔씩' },
+          { exerciseId: 'seed-straight-arm-pulldown', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'default', reps: 'default' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-pt-arm4',
+    topicId: 'beginner-part',
+    labelKo: '팔 입문 4종',
+    source: {
+      videoId: '-4I4B4GNjIk',
+      title: '따라만 하면 팔이 두꺼워지는 운동 루틴ㅣ초보자는 이렇게 해보세요',
+      channel: '웨이트연구소 I 덕코치',
+      channelUrl: 'https://www.youtube.com/@%EC%9B%A8%EC%9D%B4%ED%8A%B8%EC%97%B0%EA%B5%AC%EC%86%8C%EB%8D%95%EC%BD%94%EC%B9%98',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '초보자를 위한 팔 운동이에요. 삼두와 이두를 번갈아 두 가지씩 해요.',
+    days: [
+      {
+        nameKo: '팔',
+        items: [
+          { exerciseId: 'seed-bench-dip', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-barbell-curl', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-overhead-triceps-extension', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-incline-dumbbell-curl', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-pro-pu-science',
+    topicId: 'pro-push',
+    labelKo: '과학 기반 푸시',
+    source: {
+      videoId: 'bvwg4D9UWGI',
+      title: 'Best Push Workout (Chest, Shoulders & Triceps)',
+      channel: 'Jeff Nippard',
+      channelUrl: 'https://www.youtube.com/@JeffNippard',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '벤치프레스로 시작해 머신 숄더 프레스, 펙 덱, 측면 어깨를 거쳐 삼두 두 가지로 끝내는 근비대용 푸시데이예요. 영어 영상이에요.',
+    days: [
+      {
+        nameKo: '푸시',
+        items: [
+          { exerciseId: 'seed-barbell-bench-press', sets: 3, repsMin: 8, repsMax: 10, src: { sets: 'video', reps: 'video' }, noteKo: '가슴에서 멈췄다가 밀기' },
+          { exerciseId: 'seed-shoulder-press-machine', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-pec-deck-fly', sets: 3, repsMin: 15, repsMax: 20, src: { sets: 'video', reps: 'video' }, noteKo: '마지막 세트 뒤 늘어난 자리 부분 반복 4~5회' },
+          { exerciseId: 'seed-cable-lateral-raise', sets: 3, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '높은 도르래' },
+          { exerciseId: 'seed-cable-overhead-extension', sets: 3, repsMin: 5, repsMax: 10, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-triceps-kickback-cable', sets: 3, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-pro-pu-ppl',
+    topicId: 'pro-push',
+    labelKo: 'PPL 중 푸시 이틀',
+    source: {
+      videoId: 'DA7QvIAyptw',
+      title: 'The ULTIMATE PPL Program (Doom Slayer Physique)',
+      channel: 'Natural Hypertrophy',
+      channelUrl: 'https://www.youtube.com/@NaturalHypertrophy',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '밀기·당기기·하체를 두 번씩 도는 주 6일 프로그램의 푸시 이틀이에요. 두 종목씩 짝지어 번갈아 하고, 사이사이 팔·목·복근을 끼워 넣어요. 설명란의 대안 종목은 첫 번째 것만 담았어요. 영어 영상이에요.',
+    days: [
+      {
+        nameKo: '푸시 1',
+        items: [
+          { exerciseId: 'seed-dips', sets: 3, repsMin: 6, repsMax: 10, src: { sets: 'video', reps: 'video' }, noteKo: '대안: 벤치프레스 · 리어 델트 로우와 짝' },
+          { exerciseId: 'seed-dumbbell-rear-delt-row', sets: 3, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-overhead-press', sets: 4, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '영상 표기 AD 프레스 또는 밀리터리 프레스 · 해머 컬과 짝' },
+          { exerciseId: 'seed-hammer-curl', sets: 4, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-cable-lateral-raise', sets: 4, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '크로스 익스텐션·케이블 플라이와 묶음' },
+          { exerciseId: 'seed-cable-cross-triceps-extension', sets: 4, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-cable-crossover', sets: 4, repsMin: 6, repsMax: 10, src: { sets: 'video', reps: 'video' } },
+        ],
+      },
+      {
+        nameKo: '푸시 2',
+        items: [
+          { exerciseId: 'seed-incline-press-dumbbell', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '덤벨 또는 바벨 · 목 운동과 짝' },
+          { exerciseId: 'seed-lying-neck-curl', sets: 3, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '목 굽히기·펴기' },
+          { exerciseId: 'seed-chest-press-machine', sets: 3, repsMin: 6, repsMax: 10, src: { sets: 'video', reps: 'video' }, noteKo: '컨버징 체스트 프레스 · 디클라인 싯업과 짝' },
+          { exerciseId: 'seed-decline-sit-up', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-jm-press', sets: 4, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '해머 프리처 컬과 짝' },
+          { exerciseId: 'seed-preacher-curl-dumbbell', sets: 4, repsMin: 6, repsMax: 10, src: { sets: 'video', reps: 'video' }, noteKo: '해머 그립 · 첫 대안 행맨 컬은 종목표에 없어 두 번째 대안으로' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-pro-sh-3ex',
+    topicId: 'pro-shoulders',
+    labelKo: '어깨 3종 압축',
+    source: {
+      videoId: 'ufrFCjERMDc',
+      title: 'The #1 Workout That BLEW UP My Shoulders (3 Exercises)',
+      channel: 'Jeremy Ethier',
+      channelUrl: 'https://www.youtube.com/@JeremyEthier',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '전면·측면·후면에 한 가지씩, 세 종목만으로 어깨를 채우는 루틴이에요. 영상은 이 세 종목을 한 주의 여러 날에 나눠 넣기를 권해요. 영어 영상이에요.',
+    days: [
+      {
+        nameKo: '어깨',
+        items: [
+          { exerciseId: 'seed-dumbbell-shoulder-press', sets: 3, repsMin: 6, repsMax: 10, src: { sets: 'video', reps: 'video' }, noteKo: '앉아서 · 등받이를 1~2칸 뒤로 · 주 1회' },
+          { exerciseId: 'seed-cable-lateral-raise', sets: 3, repsMin: 10, repsMax: 20, src: { sets: 'video', reps: 'video' }, noteKo: '3~4세트 · 케이블이 몸 뒤로 지나가게 · 주 2~3회' },
+          { exerciseId: 'seed-cable-rear-delt-fly', sets: 3, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '팔 45도 · 주 1~2회' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-pro-sh-gvt',
+    topicId: 'pro-shoulders',
+    labelKo: '10×10 어깨',
+    source: {
+      videoId: '4Ll9T61lEMQ',
+      title: 'German Volume Training - Shoulders',
+      channel: 'Mike Thurston',
+      channelUrl: 'https://www.youtube.com/@MikeThurston',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '오버헤드 프레스를 10회 10세트 하는 저먼 볼륨 트레이닝 어깨 날이에요. 이어서 측면·후면을 슈퍼세트로, 마지막에 덤벨 프레스 20회로 끝내요. 영어 영상이에요.',
+    days: [
+      {
+        nameKo: '어깨',
+        items: [
+          { exerciseId: 'seed-overhead-press', sets: 10, repsMin: 10, repsMax: 10, restSec: 60, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-side-lateral-raise', sets: 4, repsMin: 10, repsMax: 12, restSec: 90, src: { sets: 'video', reps: 'video' }, noteKo: '리어 델트 플라이와 슈퍼세트 · 쉬는 시간 90~120초' },
+          { exerciseId: 'seed-rear-delt-fly', sets: 4, repsMin: 10, repsMax: 12, restSec: 90, src: { sets: 'video', reps: 'video' }, noteKo: '숙여서' },
+          { exerciseId: 'seed-dumbbell-shoulder-press', sets: 3, repsMin: 20, repsMax: 20, restSec: 80, src: { sets: 'video', reps: 'video' }, noteKo: '번갈아' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-pro-ch-kr-8set',
+    topicId: 'pro-chest',
+    labelKo: '인클라인 8세트 가슴',
+    source: {
+      videoId: 'OzpB0jHuytg',
+      title: '가슴 운동 5가지 - 강경원 루틴',
+      channel: '강경원',
+      channelUrl: 'https://www.youtube.com/@kangkyungwon',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '인클라인 벤치프레스를 8세트로 길게 하고, 플랫 벤치·인클라인 덤벨·딥스·인클라인 푸시업을 5세트씩 이어 가는 가슴 날이에요. 횟수는 설명란에 없어 기본값으로 채웠어요.',
+    days: [
+      {
+        nameKo: '가슴',
+        items: [
+          { exerciseId: 'seed-incline-press', sets: 8, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'default' }, noteKo: '마지막 2세트 드롭세트' },
+          { exerciseId: 'seed-barbell-bench-press', sets: 5, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'default' }, noteKo: '마지막 2세트 드롭세트' },
+          { exerciseId: 'seed-incline-press-dumbbell', sets: 5, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'default' } },
+          { exerciseId: 'seed-dips', sets: 5, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'default' } },
+          { exerciseId: 'seed-incline-push-up', sets: 5, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'default' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-pro-ch-perfect',
+    topicId: 'pro-chest',
+    labelKo: '실패 지점 가슴',
+    source: {
+      videoId: 'zD266B2jk0s',
+      title: 'The PERFECT Chest Workout (2025 EDITION)',
+      channel: 'ATHLEAN-X™',
+      channelUrl: 'https://www.youtube.com/@athleanx',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '회전근 준비 운동 뒤 위쪽·가운데·아래쪽 가슴을 차례로 하는 가슴 날이에요. 세트마다 실패한 뒤 부분 반복이나 내리기만 하는 반복을 더해요. 영상은 한 주에 두 번째 가슴 날도 따로 다뤄요. 영어 영상이에요.',
+    days: [
+      {
+        nameKo: '가슴',
+        items: [
+          { exerciseId: 'seed-band-external-rotation', sets: 2, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '준비 운동 1~2세트 · 가볍게' },
+          { exerciseId: 'seed-incline-press-dumbbell', sets: 3, repsMin: 5, repsMax: 8, src: { sets: 'video', reps: 'video' }, noteKo: '실패까지' },
+          { exerciseId: 'seed-cable-crossover', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '실패 뒤 부분 반복' },
+          { exerciseId: 'seed-dumbbell-floor-fly', sets: 3, repsMin: 8, repsMax: 10, src: { sets: 'video', reps: 'video' }, noteKo: '2~3세트 · 실패 뒤 내리기만 반복' },
+          { exerciseId: 'seed-deficit-push-up', sets: 1, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'default' }, noteKo: '1.5회 반복 · 아래에서 1초씩 늘려 버티기 · 실패까지' },
+          { exerciseId: 'seed-dips', sets: 1, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'default' }, noteKo: '실패까지 · 이어서 부분 반복' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-pro-bk-machine',
+    topicId: 'pro-back',
+    labelKo: '머신 위주 등 6종',
+    source: {
+      videoId: 'vIiDL50Y6nU',
+      title: 'Phil Heath Back Day',
+      channel: 'Phil Heath',
+      channelUrl: 'https://www.youtube.com/@PhilHeathTV',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '머신 풀업으로 시작해 후면 어깨, 스미스 로우, 한 팔 로우를 거쳐 풀다운 7세트로 끝내는 등 날이에요. 모든 세트 사이에 60~90초 쉬어요. 영어 영상이에요.',
+    days: [
+      {
+        nameKo: '등',
+        items: [
+          { exerciseId: 'seed-machine-lat-pulldown', sets: 4, repsMin: 8, repsMax: 10, restSec: 90, src: { sets: 'video', reps: 'video' }, noteKo: '영상 표기 머신 풀업 · 손바닥이 마주 보게 · 영상은 이어서 넓은 그립 머신 풀업 4세트도 해요(같은 종목이라 메모로)' },
+          { exerciseId: 'seed-reverse-pec-deck', sets: 4, repsMin: 10, repsMax: 12, restSec: 90, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-row-smith', sets: 4, repsMin: 8, repsMax: 8, restSec: 90, src: { sets: 'video', reps: 'video' }, noteKo: '오버핸드 · 숙여서' },
+          { exerciseId: 'seed-seated-cable-row', sets: 4, repsMin: 8, repsMax: 10, restSec: 90, src: { sets: 'video', reps: 'video' }, noteKo: '한 팔씩' },
+          { exerciseId: 'seed-lat-pulldown', sets: 7, repsMin: 10, repsMax: 12, restSec: 90, src: { sets: 'video', reps: 'video' }, noteKo: '영상 표기 머신 풀다운' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-pro-bk-wide',
+    topicId: 'pro-back',
+    labelKo: '광배 너비 등',
+    source: {
+      videoId: 'MdnwXG3WhwY',
+      title: 'How To Get a WIDER BACK!',
+      channel: 'Ryan Humiston',
+      channelUrl: 'https://www.youtube.com/@RyanHumiston',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '등의 너비를 노리는 5종이에요. 케이블 풀오버로 광배를 먼저 깨우고, 한 팔 로우와 넓은 그립 풀다운, 인클라인 로우를 거쳐 드롭세트 로우로 끝내요. 영어 영상이에요.',
+    days: [
+      {
+        nameKo: '등',
+        items: [
+          { exerciseId: 'seed-straight-arm-pulldown', sets: 4, repsMin: 20, repsMax: 20, src: { sets: 'video', reps: 'video' }, noteKo: '영상 표기 케이블 풀오버' },
+          { exerciseId: 'seed-landmine-row', sets: 4, repsMin: 8, repsMax: 15, src: { sets: 'video', reps: 'default' }, noteKo: '한 팔씩 · 15·10·8·8회' },
+          { exerciseId: 'seed-lat-pulldown', sets: 3, repsMin: 15, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '넓은 그립 · 영상은 이어서 V바 풀다운 3세트(10·8·8회)도 해요' },
+          { exerciseId: 'seed-chest-supported-row-dumbbell', sets: 4, repsMin: 15, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '인클라인 · 팔꿈치 높게' },
+          { exerciseId: 'seed-barbell-row', sets: 2, repsMin: 6, repsMax: 6, src: { sets: 'video', reps: 'default' }, noteKo: '6회 뒤 두 번 무게를 내려 이어 가는 드롭세트' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-pro-lg-20rep',
+    topicId: 'pro-legs',
+    labelKo: '20회 고반복 하체',
+    source: {
+      videoId: '7uMRxo8BRkM',
+      title: 'The PERFECT LEG WORKOUT (The Science LIES!)',
+      channel: 'Ryan Humiston',
+      channelUrl: 'https://www.youtube.com/@RyanHumiston',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '대퇴·햄스트링·엉덩이·종아리를 고반복으로 채우는 하체 날이에요. 대부분 4세트 20회이고, 종아리는 세 방향으로 50회씩 해요. 영어 영상이에요.',
+    days: [
+      {
+        nameKo: '하체',
+        items: [
+          { exerciseId: 'seed-leg-press', sets: 4, repsMin: 20, repsMax: 20, src: { sets: 'video', reps: 'video' }, noteKo: '발 모으고 3/4만 · 대안 묶음: 레그 익스텐션 4×20 + 핵 스쿼트 드롭세트' },
+          { exerciseId: 'seed-split-squat', sets: 4, repsMin: 20, repsMax: 20, src: { sets: 'video', reps: 'video' }, noteKo: '다리마다 · 3/4만' },
+          { exerciseId: 'seed-stiff-leg-deadlift', sets: 4, repsMin: 20, repsMax: 20, src: { sets: 'video', reps: 'video' }, noteKo: '3/4만 올라오기' },
+          { exerciseId: 'seed-seated-leg-curl', sets: 4, repsMin: 30, repsMax: 30, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-sumo-deadlift', sets: 3, repsMin: 20, repsMax: 20, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-step-up', sets: 4, repsMin: 20, repsMax: 20, src: { sets: 'video', reps: 'video' }, noteKo: '다리마다 · 앞으로 기울여' },
+          { exerciseId: 'seed-seated-calf-raise', sets: 3, repsMin: 50, repsMax: 50, src: { sets: 'video', reps: 'video' }, noteKo: '발 방향 세 가지로 50회씩' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-pro-lg-topset',
+    topicId: 'pro-legs',
+    labelKo: '탑세트 하체',
+    source: {
+      videoId: 'kO_SBJDkbPA',
+      title: 'LOWER BODY DAY with Ruff Diesel | Difficulty is the price we pay for strength | Terrence Ruffin',
+      channel: 'Ruff Diesel',
+      channelUrl: 'https://www.youtube.com/@RuffDiesel',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '루마니안 데드리프트로 시작해 레그 컬, 불가리안 스플릿 스쿼트, 레그 프레스를 하고 측면 어깨로 끝내는 하체 날이에요. 종목마다 마지막에 가장 무거운 탑세트를 해요. 세트·횟수는 설명란에 없어 기본값으로 채웠어요. 영어 영상이에요.',
+    days: [
+      {
+        nameKo: '하체',
+        items: [
+          { exerciseId: 'seed-romanian-deadlift', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '마지막 탑세트' },
+          { exerciseId: 'seed-lying-leg-curl', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '마지막 탑세트' },
+          { exerciseId: 'seed-bulgarian-split-squat', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '다리마다 · 마지막 탑세트' },
+          { exerciseId: 'seed-leg-press', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '마지막 탑세트' },
+          { exerciseId: 'seed-side-lateral-raise', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'default', reps: 'default' }, noteKo: '마지막 탑세트' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-pro-ar-stubborn',
+    topicId: 'pro-arms',
+    labelKo: '안 크는 팔 6종',
+    source: {
+      videoId: 'KDaVyPGEidU',
+      title: 'How To Grow Stubborn Arms',
+      channel: 'Mike Thurston',
+      channelUrl: 'https://www.youtube.com/@MikeThurston',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '삼두와 이두를 한 종목씩 번갈아 하는 팔 루틴이에요. 삼두는 3세트, 이두는 2세트로 6~10회를 해요. 영어 영상이에요.',
+    days: [
+      {
+        nameKo: '팔',
+        items: [
+          { exerciseId: 'seed-smith-close-grip-bench-press', sets: 3, repsMin: 6, repsMax: 8, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-preacher-curl-dumbbell', sets: 2, repsMin: 6, repsMax: 8, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-cable-cross-triceps-extension', sets: 3, repsMin: 8, repsMax: 8, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-chin-up', sets: 2, repsMin: 8, repsMax: 10, src: { sets: 'video', reps: 'video' }, noteKo: '중량 · 이두 위주' },
+          { exerciseId: 'seed-overhead-triceps-extension', sets: 3, repsMin: 8, repsMax: 10, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-cable-hammer-curl', sets: 2, repsMin: 8, repsMax: 10, src: { sets: 'video', reps: 'video' }, noteKo: '로프' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-pro-ar-20rep',
+    topicId: 'pro-arms',
+    labelKo: '20회 슈퍼세트 팔',
+    source: {
+      videoId: 'lSmhIVFl8Z0',
+      title: 'How To Grow 19in ARMS (Sets & Reps!)',
+      channel: 'Ryan Humiston',
+      channelUrl: 'https://www.youtube.com/@RyanHumiston',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '삼두와 이두를 슈퍼세트 네 쌍으로 묶어 4세트 20회씩 하는 팔 루틴이에요. 마지막 푸시업은 실패까지 해요. 영어 영상이에요.',
+    days: [
+      {
+        nameKo: '팔',
+        items: [
+          { exerciseId: 'seed-triceps-pushdown', sets: 4, repsMin: 20, repsMax: 20, src: { sets: 'video', reps: 'video' }, noteKo: '로프 · 로프 컬과 슈퍼세트' },
+          { exerciseId: 'seed-cable-hammer-curl', sets: 4, repsMin: 20, repsMax: 20, src: { sets: 'video', reps: 'video' }, noteKo: '로프 컬' },
+          { exerciseId: 'seed-ez-bar-skull-crusher', sets: 4, repsMin: 20, repsMax: 20, src: { sets: 'video', reps: 'video' }, noteKo: '드래그 컬과 슈퍼세트' },
+          { exerciseId: 'seed-drag-curl', sets: 4, repsMin: 20, repsMax: 20, src: { sets: 'video', reps: 'video' }, noteKo: 'EZ바 · 넓은 그립' },
+          { exerciseId: 'seed-overhead-triceps-extension', sets: 4, repsMin: 20, repsMax: 20, src: { sets: 'video', reps: 'video' }, noteKo: '덤벨 프렌치 프레스 · 해머 컬과 슈퍼세트' },
+          { exerciseId: 'seed-hammer-curl', sets: 4, repsMin: 20, repsMax: 20, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-incline-dumbbell-curl', sets: 4, repsMin: 20, repsMax: 20, src: { sets: 'video', reps: 'video' }, noteKo: '트라이셉스 푸시업과 슈퍼세트' },
+          { exerciseId: 'seed-diamond-push-up', sets: 4, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'default' }, noteKo: '영상 표기 트라이셉스 푸시업 · 실패까지' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-pro-pl-kr-season',
+    topicId: 'pro-pull',
+    labelKo: '시즌 등·이두 8종',
+    source: {
+      videoId: 'gFUxaWYtef0',
+      title: '보디빌더 이장민 | 시즌 5주차 | 등, 이두 운동 | 파트너십 운동 | 풀영상',
+      channel: 'Bodybuilder이장민',
+      channelUrl: 'https://www.youtube.com/@leejangmin',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '시즌 중 파트너와 함께 하는 등·이두 날이에요. 풀다운과 머신 로우 세 가지로 등을 채우고, 컬 세 가지로 이두를 마무리해요. 세트·횟수는 설명란에 없어 기본값으로 채웠어요.',
+    days: [
+      {
+        nameKo: '등·이두',
+        items: [
+          { exerciseId: 'seed-lat-pulldown', sets: 4, repsMin: 8, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-high-row', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-machine-row', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '미드 로우' },
+          { exerciseId: 'seed-seated-cable-row', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-straight-arm-pulldown', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-dumbbell-curl', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-barbell-curl', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-machine-curl', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-pro-pl-science',
+    topicId: 'pro-pull',
+    labelKo: '과학 기반 풀',
+    source: {
+      videoId: 'tPphF8gepd8',
+      title: 'The Best Science-Based PULL Workout For Growth (Back/Biceps/Rear Delts)',
+      channel: 'Jeremy Ethier',
+      channelUrl: 'https://www.youtube.com/@JeremyEthier',
+      verifiedAt: '2026-11-09',
+    },
+    summaryKo: '풀업으로 시작해 바벨 로우, 언더그립 풀다운, 후면 어깨 로우, 바벨 컬, 페이스 풀로 끝내는 풀데이예요. 영어 영상이에요.',
+    days: [
+      {
+        nameKo: '풀',
+        items: [
+          { exerciseId: 'seed-pull-up', sets: 3, repsMin: 6, repsMax: 10, src: { sets: 'video', reps: 'video' }, noteKo: '3~4세트 · 대안: 무릎 꿇고 랫풀다운 10~15회' },
+          { exerciseId: 'seed-barbell-row', sets: 3, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '3~4세트' },
+          { exerciseId: 'seed-lat-pulldown', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '3~4세트 · 언더그립' },
+          { exerciseId: 'seed-dumbbell-rear-delt-row', sets: 3, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '3~4세트 · 가슴 지지' },
+          { exerciseId: 'seed-barbell-curl', sets: 2, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '2~3세트 · 좁은 그립' },
+          { exerciseId: 'seed-face-pull', sets: 2, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '2~3세트 · 무릎 꿇고' },
+        ],
+      },
+    ],
+  },
 ];
 
 /** 논란 보도 등으로 싣지 않는 채널(spec rev1 M-5) — 테스트가 데이터에 없음을 확인한다. */
@@ -2975,6 +3746,18 @@ export const CHANNEL_NAMES_KO: Readonly<Record<string, string>> = {
   'Jeremy Ethier': '제러미 에시어',
   'Will Tennyson': '윌 테니슨',
   'Natural Hypertrophy': 'Natural Hypertrophy',
+  // 2026-11-09 보강 루틴 채널(SPEC-047)
+  'Mike Thurston': '마이크 서스턴',
+  'Ryan Humiston': '라이언 휴미스턴',
+  'Buff Dudes': '버프 듀즈',
+  // 운동 팁 채널(SPEC-047)
+  '어썸블리스 AwesomeBLISS': '어썸블리스',
+  '건강의학전문채널 하이닥': '하이닥',
+  '물리치료사.PT재석': 'PT재석',
+  '몸쌤 - 무브어게인': '몸쌤',
+  '빅씨스 Bigsis': '빅씨스',
+  운동가이더: '운동가이더',
+  '허리&PT : 부상 없이 헬스합시다': '허리&PT',
 };
 
 /** 「흔히 부르는 이름(채널명)」 — 두 이름이 같으면 하나만, 표에 없으면 채널명 그대로 */
@@ -3010,8 +3793,14 @@ export function visibleCreatorSections(): { section: CreatorTopicSection; topics
     .filter((s) => s.topics.length > 0);
 }
 
-export function youtubeWatchUrl(videoId: string): string {
-  return `https://www.youtube.com/watch?v=${videoId}`;
+// [원본] export function youtubeWatchUrl(videoId: string): string {
+//   return `https://www.youtube.com/watch?v=${videoId}`;
+// }
+// [개선] 운동 팁의 챕터 링크 — 양의 초가 있으면 그 시각부터(SPEC-047). 0·음수·NaN 이면 처음부터(기존 호출 그대로)
+export function youtubeWatchUrl(videoId: string, sec?: number): string {
+  const base = `https://www.youtube.com/watch?v=${videoId}`;
+  const t = sec === undefined || !Number.isFinite(sec) ? 0 : Math.floor(sec);
+  return t > 0 ? `${base}&t=${t}s` : base;
 }
 
 /** 루틴 메모 — 출처를 함께 저장(이름에는 채널명을 넣지 않는다) */

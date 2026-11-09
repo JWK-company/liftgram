@@ -10,13 +10,16 @@ import {
   sessionOrderLabels,
   type RoutineLineSummary,
 } from "@app/core/domain/routineSummary";
+import { type CreatorTip, dayNumber, type MuscleGroup, preWorkoutTip } from "@app/core";
 import { useEffect, useMemo, useState } from "react";
 import { useExerciseNames } from "@/lib/exerciseNames";
+import { useBackToClose } from "@/lib/useBackToClose";
 import { t } from "@/lib/i18n";
 import { Button } from "../ui/Button";
 import { SheetShell } from "../ui/Dialog";
 import { AppText } from "../ui/primitives";
 import { ListGroup, ListRow } from "../ui/rows";
+import { TipDetail } from "./CreatorTipSheet";
 
 type RoutineRepo = typeof import("@app/core/data/routineRepository");
 /** 시트 — 세트 수·횟수·처방·묶음까지 지켜본다 */
@@ -29,6 +32,7 @@ const WATCH = [
   "prescription",
   "superset_group",
 ];
+const EMPTY_MUSCLES: MuscleGroup[] = [];
 /** 목록 줄 — 이름 한 줄만 그리므로 종목·순서만(루틴 수만큼 도는 구독을 가볍게 · 코드 리뷰 정확성 5) */
 const WATCH_LINE = ["exercise_id", "sort_order"];
 
@@ -48,7 +52,13 @@ function useRoutineLines(repo: RoutineRepo | null, routineId: string, opts: { wi
   const ids = useMemo(() => sorted.map((r) => r.exerciseId), [sorted]);
   const nameMap = useExerciseNames(ids);
   const key = ids.join(",");
-  const [kinds, setKinds] = useState<{ key: string; map: Map<string, string> } | null>(null);
+  // [원본] const [kinds, setKinds] = useState<{ key: string; map: Map<string, string> } | null>(null);
+  // [개선] 주동근도 같은 단계에서 읽는다 — 「시작 전」 팁 줄이 목록·버튼과 같은 순간에 나타나게(SPEC-047 · 스펙 리뷰 U1)
+  const [kinds, setKinds] = useState<{
+    key: string;
+    map: Map<string, string>;
+    muscles: MuscleGroup[];
+  } | null>(null);
   const withKinds = opts.withKinds === true;
   useEffect(() => {
     if (!withKinds) return;
@@ -56,11 +66,17 @@ function useRoutineLines(repo: RoutineRepo | null, routineId: string, opts: { wi
     const list = key ? key.split(",") : [];
     void (async () => {
       try {
-        const { getExerciseKinds } = await import("@app/core/data/exerciseRepository");
-        const k = await getExerciseKinds(list);
-        if (alive) setKinds({ key, map: k as Map<string, string> });
+        // [원본] const { getExerciseKinds } = await import("@app/core/data/exerciseRepository");
+        // const k = await getExerciseKinds(list);
+        // if (alive) setKinds({ key, map: k as Map<string, string> });
+        const { getExerciseKinds, getExercisePrimaryMuscles } = await import(
+          "@app/core/data/exerciseRepository"
+        );
+        const [k, pm] = await Promise.all([getExerciseKinds(list), getExercisePrimaryMuscles(list)]);
+        const muscles = [...new Set([...pm.values()].flat())];
+        if (alive) setKinds({ key, map: k as Map<string, string>, muscles });
       } catch {
-        if (alive) setKinds({ key, map: new Map() });
+        if (alive) setKinds({ key, map: new Map(), muscles: [] });
       }
     })();
     return () => {
@@ -72,7 +88,8 @@ function useRoutineLines(repo: RoutineRepo | null, routineId: string, opts: { wi
   const ready = loaded && nameMap != null && (!withKinds || kindMap != null);
   /** 이름 — 이 기기에 없는 종목은 「이 기기에 없는 종목」(빈 제목·개수 어긋남 방지 · 정확성 7 · UX 5) */
   const nameOf = (id: string) => nameMap?.get(id) ?? t("creator.missingExercise");
-  return { sorted, ready, nameOf, kinds: kindMap ?? new Map<string, string>() };
+  const muscles = kinds && kinds.key === key ? kinds.muscles : EMPTY_MUSCLES;
+  return { sorted, ready, nameOf, kinds: kindMap ?? new Map<string, string>(), muscles };
 }
 
 // 목록 안 표식은 「routine-」로 시작하지 않는다 — e2e 여러 곳이 [data-testid^=routine-] 를 루틴 줄로 센다
@@ -149,11 +166,39 @@ export function RoutinePreviewSheet({
   onStart: () => void;
   onEdit: () => void;
 }) {
-  const { sorted, ready, nameOf, kinds } = useRoutineLines(repo, routineId, { withKinds: true });
+  const { sorted, ready, nameOf, kinds, muscles } = useRoutineLines(repo, routineId, { withKinds: true });
+  // 「시작 전」 팁(SPEC-047) — ready 와 같은 순간에 정해진다(부위를 같은 단계에서 읽는다). 같은 날·같은 루틴이면 같은 팁
+  // 날짜는 시트를 연(목록이 준비된) 시점의 값으로 고정한다 — 시트를 연 채 자정을 넘겨도 바꾸지 않는다(의도)
+  const tipKey = sorted.map((r) => r.exerciseId).join(",");
+  const tip = useMemo(
+    () => (ready ? preWorkoutTip(tipKey ? tipKey.split(",") : [], muscles, dayNumber(Date.now())) : null),
+    [ready, tipKey, muscles],
+  );
+  const [tipOpen, setTipOpen] = useState<CreatorTip | null>(null);
+  // 기기 뒤로 = 팁 상세만 닫기(칸 하나 더) — 다시 뒤로면 미리보기 닫기(코드 리뷰 REV-089 H-1)
+  useBackToClose(() => setTipOpen(null), tipOpen !== null);
   // [원본] 연달아 있는 같은 그룹만 A1·A2(스펙 리뷰 M4) — 운동 화면 순서와 어긋났다
   // const ss = useMemo(() => supersetLabels(sorted.map((r) => r.supersetGroup ?? null)), [sorted]);
   // [개선] 운동 화면과 같은 순서·묶음(groupSessionRows · 코드 리뷰 정확성 4)
   const order = useMemo(() => sessionOrderLabels(sorted.map((r) => r.supersetGroup ?? null)), [sorted]);
+  if (tipOpen) {
+    // 시트를 겹치지 않고 같은 미리보기 안에서 팁 상세로 — 「‹ 루틴」·기기 뒤로가 미리보기로 돌아온다(스펙 리뷰 U3)
+    return (
+      <SheetShell
+        title=""
+        ariaLabel={tipOpen.titleKo}
+        onClose={() => setTipOpen(null)}
+        hideOk
+        testId="routine-preview"
+      >
+        <TipDetail
+          tip={tipOpen}
+          backLabel={t("tips.backToRoutine", { name })}
+          onBack={() => setTipOpen(null)}
+        />
+      </SheetShell>
+    );
+  }
   return (
     <SheetShell title={name} onClose={onClose} hideOk testId="routine-preview">
       {!ready ? (
@@ -191,6 +236,24 @@ export function RoutinePreviewSheet({
           })}
         </ListGroup>
       )}
+      {ready && tip ? (
+        <button
+          type="button"
+          data-testid="routine-preview-tip"
+          onClick={() => setTipOpen(tip)}
+          className="mb-[var(--spacing-md)] flex min-h-[44px] w-full min-w-0 items-center gap-[var(--spacing-sm)] rounded-[var(--radius-md)] bg-(--color-surface-alt) px-[var(--spacing-md)] text-left"
+        >
+          <span className="shrink-0 text-(--color-ink3) text-[length:var(--text-xs)]">
+            {t("tips.preWorkout")}
+          </span>
+          <span className="min-w-0 flex-1 truncate text-(--color-ink) text-[length:var(--text-sm)]">
+            {tip.titleKo}
+          </span>
+          <span aria-hidden className="shrink-0 text-(--color-ink3)">
+            ›
+          </span>
+        </button>
+      ) : null}
       <div className="flex gap-[var(--spacing-sm)]">
         <div className="flex-1">
           <Button

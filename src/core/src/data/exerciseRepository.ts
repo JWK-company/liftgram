@@ -33,6 +33,13 @@ export async function getExerciseKinds(ids: string[]): Promise<Map<string, Exerc
   return new Map(rows.map((e) => [e.id, e.kind as ExerciseKind]));
 }
 
+// 종목 id → 주동근 — 루틴 미리보기의 「시작 전」 팁 고르기(SPEC-047). 이 기기에 없는 종목은 빠진다
+export async function getExercisePrimaryMuscles(ids: string[]): Promise<Map<string, MuscleGroup[]>> {
+  if (ids.length === 0) return new Map();
+  const rows = await exercises().query(Q.where('id', Q.oneOf([...new Set(ids)]))).fetch();
+  return new Map(rows.map((e) => [e.id, [...(e.primaryMuscles ?? [])]]));
+}
+
 export interface ExerciseFilter {
   search?: string;
   muscle?: MuscleGroup | null;

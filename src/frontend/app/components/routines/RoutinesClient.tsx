@@ -31,6 +31,9 @@ import {
   muscleLabel,
   todayPlan,
   type MissedPlan,
+  type TipTopic,
+  tipsFor,
+  visibleTipTopics,
 } from "@app/core";
 import { useQueryDataStatus } from "@app/core/db/hooks";
 import { type HomePrimary, pickHomePrimary } from "@app/core/domain/homePrimary";
@@ -46,6 +49,7 @@ import { IconButton } from "../ui/IconButton";
 import { AppText, Card, EmptyState } from "../ui/primitives";
 import { ScheduleEditor } from "./ScheduleEditor";
 import { CreatorTopicSheet } from "./CreatorRoutineSheet"; // 크리에이터 루틴 @plm SRS-091
+import { CreatorTipTopicSheet } from "./CreatorTipSheet"; // 운동 팁(SPEC-047)
 import { AppBar, AppBarAction } from "../ui/AppBar";
 import { ListGroup, SectionLabel } from "../ui/rows";
 import { AdSlot } from "../ads/AdSlot";
@@ -97,6 +101,9 @@ export default function RoutinesClient() {
   // [원본] const creatorTopics = useMemo(() => visibleCreatorTopics(), []);
   // [개선] 초보자 주제를 프로 루틴과 따로 묶는다(사용자 지시 2026-11-06)
   const creatorSections = useMemo(() => visibleCreatorSections(), []);
+  // 운동 팁 — 루틴 구역 다음(SPEC-047 · SRS-112). 팁 0개 주제는 숨긴다
+  const tipTopics = useMemo(() => visibleTipTopics(), []);
+  const [tipTopic, setTipTopic] = useState<TipTopic | null>(null);
   const [actionsFor, setActionsFor] = useState<Routine | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Routine | null>(null);
   const [activeExists, setActiveExists] = useState<null | (() => Promise<void>)>(null);
@@ -652,9 +659,38 @@ export default function RoutinesClient() {
           </div>
         ))}
 
+        {/* 운동 팁(SPEC-047) — 루틴이 아닌 지식이라 소개 한 줄로 구분한다(스펙 리뷰 U8) */}
+        {tipTopics.length ? (
+          <div data-testid="tip-section" className="mb-[var(--spacing-sm)]">
+            <SectionLabel className="mt-[var(--spacing-xl)]" title={t("tips.sectionTitle")} />
+            <AppText variant="caption" color="textMuted" className="-mt-[2px] mb-[var(--spacing-sm)] block">
+              {t("tips.sectionBlurb")}
+            </AppText>
+            <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-[var(--spacing-sm)]">
+              {tipTopics.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  data-testid={`tip-topic-${c.id}`}
+                  onClick={() => setTipTopic(c)}
+                  className="flex min-w-0 flex-1 flex-col gap-[2px] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface) p-[var(--spacing-md)] text-left"
+                >
+                  <AppText variant="body" className="block truncate font-bold">
+                    {lang === "ko" ? c.nameKo : c.nameEn}
+                  </AppText>
+                  <AppText variant="label" color="textMuted">
+                    {t("tips.topicCount", { count: tipsFor(c.id).length })}
+                  </AppText>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
         <RecentWorkouts />
 
         {/* ── 대화상자들 ── */}
+        {tipTopic ? <CreatorTipTopicSheet topic={tipTopic} onClose={() => setTipTopic(null)} /> : null}
         {creatorTopic ? (
           <CreatorTopicSheet
             topic={creatorTopic}

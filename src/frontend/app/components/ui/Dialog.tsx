@@ -35,10 +35,13 @@ export function Overlay({
   children,
   testId,
   placement = "center",
+  ariaLabel,
 }: {
   onClose: () => void;
   children: ReactNode;
   testId?: string;
+  /** 제목 줄이 없는 창의 이름(화면 읽기) — 운동 팁 상세(SPEC-047) */
+  ariaLabel?: string;
   /** bottom = 바닥 시트(SRS-054) — 선택지·설정처럼 엄지 근처에서 고르는 것. center = 확인창. */
   placement?: "center" | "bottom";
 }) {
@@ -79,6 +82,7 @@ export function Overlay({
       <div
         role="dialog"
         aria-modal="true"
+        aria-label={ariaLabel}
         className={
           bottom
             ? "relative max-h-[88dvh] w-full max-w-[560px] overflow-y-auto rounded-t-[var(--radius-lg)] bg-(--color-surface) px-[var(--spacing-lg)] pt-[var(--spacing-sm)] pb-[calc(var(--spacing-lg)+env(safe-area-inset-bottom))]"
@@ -108,6 +112,7 @@ export function SheetShell({
   onClose,
   hideOk,
   testId,
+  ariaLabel,
 }: {
   title: string;
   children: ReactNode;
@@ -115,9 +120,16 @@ export function SheetShell({
   /** 내용이 자기 버튼을 갖고 있을 때(가이드의 이전/다음) 확인 버튼을 뺀다. */
   hideOk?: boolean;
   testId?: string;
+  /** 제목 없이 여는 시트의 이름(화면 읽기) */
+  ariaLabel?: string;
 }) {
   return (
-    <Overlay onClose={onClose} testId={testId} placement="bottom">
+    <Overlay
+      onClose={onClose}
+      testId={testId}
+      placement="bottom"
+      ariaLabel={ariaLabel ?? (title || undefined)}
+    >
       {title ? <AppText variant="heading">{title}</AppText> : null}
       {children}
       {hideOk ? null : (
