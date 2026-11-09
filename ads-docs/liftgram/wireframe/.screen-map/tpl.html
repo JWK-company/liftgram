@@ -132,7 +132,7 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 const cnt=k=>N.filter(n=>k.includes(n.kind)).length;
 document.getElementById('stats').innerHTML=[['주소 있는 화면',cnt(['tab','page','redirect'])],['시트·대화상자',cnt(['sheet'])],['시스템 상태',cnt(['system'])],['앱 전용',cnt(['native'])],['앱 밖 입구',cnt(['entry'])],['화면 아닌 응답',cnt(['raw'])],['연결',E.length]].map(([a,b])=>`<span><b>${b}</b>${a}</span>`).join('');
 const tags=(l,why)=>'<div class="tags">'+l.map(n=>`<button class="tag${n.url?'':' k'}" data-go="${esc(n.id)}" title="${esc(n.desc||'')}">${esc(n.url||n.name)}</button>`).join('')+'</div>';
-document.getElementById('orph').innerHTML=`<div class="ob hot"><h3>주소 입력으로만 열림 ${noIn.length}개</h3><small>앱 안 버튼도 앱 밖 링크도 없습니다. 이번 점검의 고아 화면입니다.</small>${tags(noIn)}<small>${D.orphanNote}</small></div>
+document.getElementById('orph').innerHTML=(noIn.length?`<div class="ob hot"><h3>주소 입력으로만 열림 ${noIn.length}개</h3><small>앱 안 버튼도 앱 밖 링크도 없습니다. 이번 점검의 고아 화면입니다.</small>${tags(noIn)}<small>${D.orphanNote}</small></div>`:'')+`
 <div class="ob"><h3>앱 밖에서만 들어옴 ${extOnly.length}개</h3><small>메일·소셜 로그인·서비스 워커·스토어에서 오는 화면입니다. 의도된 구조라 문제는 아닙니다.</small>${tags(extOnly)}</div>
 <div class="ob"><h3>코드만 남고 도달 불가 ${dead.length}개</h3><small>빌드에 들어가지 않는 코드입니다. 옛 화면 12개는 2026-11-09 지웠고, 남은 것은 잠금화면 작업(SPEC-017)이 쓸 iOS Live Activity입니다.</small>${tags(dead)}</div>`;
 document.getElementById('odd').innerHTML=D.odd.map(o=>`<div><b>${esc(o[0])}</b><span>${esc(o[1])}${o[2]?` <em>${esc(o[2])}</em>`:''}</span></div>`).join('');

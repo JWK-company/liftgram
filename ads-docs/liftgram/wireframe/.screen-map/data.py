@@ -248,10 +248,10 @@ e('/feed','s.active','새로 시작','C/feed/WorkoutBox.tsx:373','open'); e('s.s
 R='/routines/[id]'
 for id,name,label,ev,desc in [
  ('s.rxtype','세트 타입(처방)','세트 번호','C/routines/PrescriptionRows.tsx:471','세트 종류 바꾸기 · 복사 · 삭제(루틴 편집의 세트 메뉴)'),
- ('s.rmenu','루틴 ⋯ 메뉴','⋯ 탭','C/routines/RoutineEditor.tsx:350','루틴 편집 메뉴'),
+ # [원본] ('s.rmenu','루틴 ⋯ 메뉴','⋯ 탭','C/routines/RoutineEditor.tsx:350','루틴 편집 메뉴'), — S-104 v0.84.5 에서 없앴다(화면 맨 아래 「루틴 삭제」)
  ('s.rss','루틴 슈퍼셋 짝','종목 메뉴','C/routines/RoutineEditor.tsx:629','짝 고르기'),
  ('s.rrmex','종목 삭제','종목 메뉴','C/routines/RoutineEditor.tsx:679','삭제 확인'),
- ('s.rrm','루틴 삭제(편집기)','⋯ 메뉴','C/routines/RoutineEditor.tsx:698','삭제 확인'),
+ ('s.rrm','루틴 삭제(편집기)','맨 아래 「루틴 삭제」','C/routines/RoutineEditor.tsx:513','삭제 확인'),
  ('s.rexit','저장하지 않고 나갈까요?','뒤로','C/routines/RoutineEditor.tsx:718','나가기 확인'),
 ]:
     sh(id,name,R,label,ev,desc)
@@ -289,8 +289,9 @@ for id,name,par,label,ev,desc,g in [
  ('s.mreport','회원 리포트','/coaching','리포트 버튼','C/summary/MemberReportDialog.tsx:118','회원 리포트','코칭'),
  ('s.mrx','회원 루틴 처방','/coaching','처방 버튼','C/coaching/CoachingClient.tsx:276','처방 관리','코칭'),
  ('s.rxed','처방 편집기','s.mrx','종목 탭','C/coaching/PrescriptionEditor.tsx:168','세트 처방 편집','코칭'),
- ('s.archive','운동 보관','/exercise/[id]','보관 버튼','C/ExerciseAdminBar.tsx:68','종목 보관 확인','운동'),
- ('s.alias','이 종목을 무엇이라 부를까요?','/exercise/[id]','이름 탭','C/ExerciseNameHeader.tsx:67','별칭 고르기','운동'),
+ # [원본] ('s.archive','운동 보관','/exercise/[id]','보관 버튼','C/ExerciseAdminBar.tsx:68','종목 보관 확인','운동'), — S-145 v0.84.6 에서 없앴다
+ ('s.exdel','이 종목을 지울까요?','/exercises/[id]/edit','「종목 삭제」','C/ExerciseFormClient.tsx:286','직접 만든 종목 삭제 확인 · 지난 기록은 남는다','운동'),
+ # [원본] ('s.alias','이 종목을 무엇이라 부를까요?','/exercise/[id]','이름 탭','C/ExerciseNameHeader.tsx:67','별칭 고르기','운동'), — S-146 v0.84.6 에서 ✎ 그 자리 입력으로
  ('s.imppick','가져오기 종목 피커','/account/import','종목 대응','C/sync/ImportFlow.tsx:1027','종목 대응 고르기','가져오기'),
  ('s.impun','확인 안 한 종목이 있어요','/account/import','진행','C/sync/ImportFlow.tsx:1043','진행 확인','가져오기'),
  ('s.impleave','고른 내용이 사라져요','/account/import','나가기','C/sync/ImportFlow.tsx:1060','나가기 확인','가져오기'),
@@ -414,8 +415,8 @@ AREAS={
  ('계정과 데이터','로그인·보안 · 백업 · 장비함 · 코칭 · 저장한 글 · 차단 목록',PC+':366'),('앱 버전·업데이트','',PC+':408'),('바닥 고지','의료 아님 · 약관 · 개인정보 · 오픈소스 · 사업자',PC+':417')],
 '/exercises':[('머리','← · 「운동」 · + 커스텀 운동','F/app/exercises/page.tsx:29'),('검색칸','',CC+':241'),('스무고개·초기화 줄','',CC+':249'),('스무고개 경로','',CC+':282'),
  ('근육군 칩','',CC+':291'),('기구 칩','',CC+':320'),('종목 목록','그림 · 이름 · 부위·기구',CC+':336'),('오프라인 안내','',CC+':361')],
-'/exercise/[id]':[('머리','← · 「운동 상세」',EX+':121'),('이름·별칭','⋯ 이름 바꾸기',EX+':133'),('내 기록','추정 1RM 추세',EX+':145'),('자세 그림·영상','',EX+':151'),
- ('시연 사진','',EX+':163'),('동작 주의','',EX+':173'),('자세 설명','',EX+':179'),('분류','주동근 · 보조근 · 기구 · 하중',EX+':199'),('대체 운동','',EX+':258'),('관리 줄','편집 · 보관',EX+':293')],
+'/exercise/[id]':[('머리','← · 「운동 상세」',EX+':121'),('이름','✎ 그 자리에서 이름 바꾸기 · 별칭 칩 · 원래 이름으로',EX+':140'),('내 기록','추정 1RM 추세',EX+':145'),('자세 그림·영상','',EX+':151'),
+ ('시연 사진','',EX+':163'),('동작 주의','',EX+':173'),('자세 설명','',EX+':179'),('분류','주동근 · 보조근 · 기구 · 하중',EX+':199'),('대체 운동','',EX+':258')],
 '/feed':[('앱바','탐색 · 메시지 · 알림',FC+':398'),('탭','추천 · 팔로잉 · 발견',FC+':434'),('주변 헬스장 줄','',FC+':457'),('스토리 줄','',FC+':459'),
  ('추천 목록','',FC+':470'),('발견 탭','',FC+':495'),('팔로잉 글 목록','글 카드 · 광고 · 끝없이 불러오기','C/feed/PostCard.tsx:134'),('+ 글쓰기','',FC+':552')],
 '/account':[('하위 앱바','「계정」',AC+':200'),('계정 카드','이름 · 주소 · 로그아웃',AC+':202'),('프로필 편집','',AC+':243'),('로그인·보안','',AC+':244'),
