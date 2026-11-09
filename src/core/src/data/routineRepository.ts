@@ -8,6 +8,7 @@ import { randomId } from '../utils/id';
 import { variantColumns, normalizeVariantDims, normalizeVariantDimsV34, type VariantDims } from '../domain/variants'; // @plm SRS-028
 import { getExercise } from './exerciseRepository';
 import { getLatestVariantUsage } from './workoutRepository';
+import { isCoachLockedOrigin } from '../domain/routineOrigin'; // 코치 루틴 잠금(SPEC-050 P3a)
 
 const routines = () => database.get<Routine>('routines');
 const routineExercises = () => database.get<RoutineExercise>('routine_exercises');
@@ -31,6 +32,41 @@ export function getRoutine(id: string): Promise<Routine> {
   return routines().find(id);
 }
 
+// ── 코치 루틴 잠금(SPEC-050 P3a · REV-097) ─────────────────────────────────────
+// 코치가 보낸 루틴(origin='coach')은 회원이 이름·메모·종목·세트를 못 바꾼다 — 화면만 막으면 다른 길(운동 끝 「루틴에 반영」·
+// 운동 중 「루틴에도 교체」·옛 화면)로 새므로 **저장소 층에서** 막는다. 폴더·삭제·순서(목록)·변형(기록 칸)은 회원 것이라 열어 둔다.
+// 동기(pull)는 이 함수들을 거치지 않으므로 코치가 다시 보낸 값은 그대로 들어온다.
+
+/** 던지는 약속된 코드 — 화면은 errorText 가 「코치가 짠 루틴이라…」로 바꾼다. */
+export const COACH_LOCKED = 'COACH_LOCKED';
+
+/** 코치가 보낸 루틴이라 회원이 처방을 못 바꾸나. 끝난 코칭(coach_ended)·가져온 루틴·내 루틴은 false. */
+export function isCoachLocked(routine: { origin?: string | null } | null | undefined): boolean {
+  return !!routine && isCoachLockedOrigin(routine.origin);
+}
+
+/** id 로 — 없거나 지운 루틴은 잠그지 않는다(쓰기 쪽이 따로 실패한다). */
+export async function isCoachLockedId(routineId: string | null | undefined): Promise<boolean> {
+  if (!routineId) return false;
+  const r = await routines().find(routineId).catch(() => null);
+  return isCoachLocked(r);
+}
+
+async function assertRoutineEditable(routineId: string): Promise<void> {
+  if (await isCoachLockedId(routineId)) throw new Error(COACH_LOCKED);
+}
+
+/** 루틴 줄들 — 줄이 속한 루틴 중 하나라도 잠겼으면 막는다. */
+async function assertLinesEditable(routineExerciseIds: readonly string[]): Promise<void> {
+  const seen = new Set<string>();
+  for (const id of routineExerciseIds) {
+    const re = await routineExercises().find(id).catch(() => null);
+    if (!re || seen.has(re.routineId)) continue;
+    seen.add(re.routineId);
+    await assertRoutineEditable(re.routineId);
+  }
+}
+
 export function queryRoutineExercises(routineId: string): Query<RoutineExercise> {
   return routineExercises().query(Q.where('routine_id', routineId), Q.sortBy('sort_order', Q.asc));
 }
@@ -49,6 +85,7 @@ export async function createRoutine(input: {
       r.sortOrder = count;
       r.isArchived = false;
       r.userId = null;
+      clearOrigin(r); // 내가 만든 것(SPEC-050 P3a)
     });
   });
 }
@@ -57,6 +94,8 @@ export async function updateRoutine(
   id: string,
   patch: { name?: string; folder?: string | null; notes?: string | null },
 ): Promise<void> {
+  // 코치 루틴은 폴더만 회원 것 — 이름·메모는 막는다(SPEC-050 P3a)
+  if (patch.name !== undefined || patch.notes !== undefined) await assertRoutineEditable(id);
   await database.write(async () => {
     const r = await routines().find(id);
     await r.update((rec) => {
@@ -96,6 +135,7 @@ export async function addExerciseToRoutine(
   exerciseId: string,
   input: RoutineExerciseInput = {},
 ): Promise<RoutineExercise> {
+  await assertRoutineEditable(routineId); // SPEC-050 P3a
   return database.write(async () => {
     // [원본] const count = await routineExercises().query(Q.where('routine_id', routineId)).fetchCount();
     // — 지운 종목의 번호를 다시 매기지 않아, 하나 지운 뒤 넣으면 남은 종목과 순서값이 겹쳤다(qa code M-2)
@@ -130,6 +170,7 @@ async function nextSortOrder(routineId: string): Promise<number> {
  */
 export async function addExercisesToRoutine(routineId: string, exerciseIds: readonly string[]): Promise<RoutineExercise[]> {
   if (exerciseIds.length === 0) return [];
+  await assertRoutineEditable(routineId); // SPEC-050 P3a
   return database.write(async () => {
     const start = await nextSortOrder(routineId);
     const batch = exerciseIds.map((exerciseId, i) =>
@@ -153,6 +194,7 @@ export async function addExercisesToRoutine(routineId: string, exerciseIds: read
 }
 
 export async function updateRoutineExercise(id: string, patch: RoutineExerciseInput): Promise<void> {
+  await assertLinesEditable([id]); // SPEC-050 P3a
   await database.write(async () => {
     const re = await routineExercises().find(id);
     await re.update((rec) => {
@@ -174,6 +216,7 @@ export async function setRoutineExercisePrescription(
   id: string,
   prescription: import('../domain').PrescribedSet[] | null,
 ): Promise<void> {
+  await assertLinesEditable([id]); // SPEC-050 P3a
   await database.write(async () => {
     const re = await routineExercises().find(id);
     await re.update((rec) => {
@@ -189,6 +232,7 @@ export async function setRoutineExerciseSets(
   id: string,
   patch: import('../domain/routineSets').RoutineLineSets,
 ): Promise<void> {
+  await assertLinesEditable([id]); // SPEC-050 P3a
   await database.write(async () => {
     const re = await routineExercises().find(id);
     await re.update((rec) => {
@@ -230,6 +274,7 @@ export async function setRoutineExerciseVariant(id: string, dims: VariantDims): 
 }
 
 export async function removeRoutineExercise(id: string): Promise<void> {
+  await assertLinesEditable([id]); // SPEC-050 P3a
   await database.write(async () => {
     const re = await routineExercises().find(id);
     await re.markAsDeleted();
@@ -264,6 +309,8 @@ export async function importRoutine(
       r.sortOrder = count;
       r.isArchived = false;
       r.userId = null;
+      clearOrigin(r);
+      r.origin = 'import'; // 피드·크리에이터에서 가져옴 — 회색 「가져옴」(SPEC-050 P3a)
     });
     await database.batch(
       ...exercises.map((ex, i) =>
@@ -292,6 +339,7 @@ export async function importRoutine(
 // 구: 변형을 그대로 둬서 예컨대 덤벨 변형이 붙은 채 바벨 종목으로 바뀌고, 그 루틴으로 시작한 세션만
 // 엉뚱한 버킷을 조회해 이전기록·PR이 비어 보였다. 세션 종목 교체(swapWorkoutExercise)와 같은 규칙. @plm SRS-028
 export async function swapRoutineExercise(routineExerciseId: string, newExerciseId: string): Promise<void> {
+  await assertLinesEditable([routineExerciseId]); // SPEC-050 P3a
   const lastVariant = await getLatestVariantUsage(newExerciseId);
   await database.write(async () => {
     const re = await routineExercises().find(routineExerciseId);
@@ -312,6 +360,8 @@ export async function swapRoutineExercise(routineExerciseId: string, newExercise
 // 바꾼 줄 수를 돌려준다(0 이면 루틴에 그 종목이 없었다 — 이미 지웠거나 다른 루틴).
 export async function swapExerciseInRoutine(routineId: string, fromExerciseId: string, toExerciseId: string): Promise<number> {
   if (fromExerciseId === toExerciseId) return 0;
+  // 코치 루틴은 운동 중 「루틴에도」로 바꾸지 않는다 — 이번 운동만(SPEC-050 P3a)
+  if (await isCoachLockedId(routineId)) return 0;
   const rows = await routineExercises()
     .query(Q.where('routine_id', routineId), Q.where('exercise_id', fromExerciseId))
     .fetch();
@@ -321,6 +371,7 @@ export async function swapExerciseInRoutine(routineId: string, fromExerciseId: s
 
 // 순서 재배치: orderedIds 순서대로 sort_order 재기록.
 export async function reorderRoutineExercises(orderedIds: string[]): Promise<void> {
+  await assertLinesEditable(orderedIds.slice(0, 1)); // SPEC-050 P3a — 한 루틴의 줄들
   await database.write(async () => {
     const records = await Promise.all(orderedIds.map((id) => routineExercises().find(id)));
     await database.batch(
@@ -342,6 +393,7 @@ export async function reorderRoutines(orderedIds: string[]): Promise<void> {
 // 슈퍼셋 묶기/해제 (SRS-002).
 export async function groupAsSuperset(routineExerciseIds: string[]): Promise<string> {
   const group = randomId('ss_');
+  await assertLinesEditable(routineExerciseIds); // SPEC-050 P3a
   await database.write(async () => {
     const records = await Promise.all(routineExerciseIds.map((id) => routineExercises().find(id)));
     await database.batch(
@@ -352,6 +404,7 @@ export async function groupAsSuperset(routineExerciseIds: string[]): Promise<str
 }
 
 export async function ungroupSuperset(routineExerciseIds: string[]): Promise<void> {
+  await assertLinesEditable(routineExerciseIds); // SPEC-050 P3a
   await database.write(async () => {
     const records = await Promise.all(routineExerciseIds.map((id) => routineExercises().find(id)));
     await database.batch(
@@ -361,6 +414,7 @@ export async function ungroupSuperset(routineExerciseIds: string[]): Promise<voi
 }
 
 // 루틴 복제(변형 워크플로우) — 새 루틴 + 종목 전체 복사 (SRS-002).
+// 코치 루틴의 「내 루틴으로 복사」도 이 함수다(복제와 합침 · SPEC-050 P3a) — 복사본은 출처·코치 칸이 비어 내 것이 된다.
 export async function duplicateRoutine(id: string): Promise<Routine> {
   return database.write(async () => {
     const src = await routines().find(id);
@@ -375,6 +429,7 @@ export async function duplicateRoutine(id: string): Promise<Routine> {
       r.sortOrder = count;
       r.isArchived = false;
       r.userId = src.userId;
+      clearOrigin(r); // 복사본 = 내가 만든 것(코치·가져옴 표시 없음 · SPEC-050 P3a)
     });
     await database.batch(
       ...srcExercises.map((se) =>
@@ -405,4 +460,12 @@ export async function duplicateRoutine(id: string): Promise<Routine> {
     );
     return copy;
   });
+}
+
+/** 출처 칸 넷을 비운다 — 내가 만든 루틴(SPEC-050 P3a). 만드는 쪽(create·prepareCreate 콜백)에서 부른다. */
+export function clearOrigin(r: Routine): void {
+  r.origin = null;
+  r.coachId = null;
+  r.coachName = null;
+  r.coachFor = null;
 }

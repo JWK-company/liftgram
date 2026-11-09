@@ -10,7 +10,7 @@ import {
   sessionOrderLabels,
   type RoutineLineSummary,
 } from "@app/core/domain/routineSummary";
-import { type CreatorTip, dayNumber, type MuscleGroup, preWorkoutTip } from "@app/core";
+import { type CreatorTip, dayNumber, type MuscleGroup, preWorkoutTip, routineOriginBadge } from "@app/core";
 import { useEffect, useMemo, useState } from "react";
 import { useExerciseNames } from "@/lib/exerciseNames";
 import { useBackToClose } from "@/lib/useBackToClose";
@@ -20,6 +20,13 @@ import { SheetShell } from "../ui/Dialog";
 import { AppText } from "../ui/primitives";
 import { ListGroup, ListRow } from "../ui/rows";
 import { TipDetail } from "./CreatorTipSheet";
+import {
+  CoachRoutineBanner,
+  isFromCoach,
+  RoutineOriginChip,
+  type RoutineOriginFields,
+} from "./RoutineOrigin"; // 출처(SPEC-050 P3a)
+import { markCoachRoutineSeen } from "@/lib/coachRoutineSeen";
 
 type RoutineRepo = typeof import("@app/core/data/routineRepository");
 /** 시트 — 세트 수·횟수·처방·묶음까지 지켜본다 */
@@ -133,6 +140,85 @@ export function ExerciseLine({ repo, routineId }: { repo: RoutineRepo | null; ro
   );
 }
 
+/**
+ * 종목 한 줄 + 출처 칩(종목 줄 쪽 · REV-097) — 칩이 없으면 ExerciseLine 그대로.
+ * 칩은 앞에 고정(shrink-0), 종목 이름이 줄어든다(「외 N」은 ExerciseLine 이 지킨다).
+ */
+export function ExerciseLineWithOrigin({
+  repo,
+  routine,
+}: {
+  repo: RoutineRepo | null;
+  routine: RoutineOriginFields;
+}) {
+  if (!routineOriginBadge(routine)) return <ExerciseLine repo={repo} routineId={routine.id} />;
+  return (
+    <span className="mt-[2px] flex min-w-0 items-center gap-[6px]">
+      <RoutineOriginChip routine={routine} />
+      <span className="min-w-0 flex-1 [&>*]:mt-0!">
+        <ExerciseLine repo={repo} routineId={routine.id} />
+      </span>
+    </span>
+  );
+}
+
+/**
+ * 루틴 종목 목록(읽기 전용) — 미리보기 시트와 같은 줄(번호·이름·「3세트 · 8-12회」·슈퍼셋 묶음).
+ * 코치 루틴 「보기」 화면이 쓴다(SPEC-050 P3a). 받는 동안은 자리만.
+ */
+export function RoutineLinesList({
+  repo,
+  routineId,
+  onReady,
+}: {
+  repo: RoutineRepo | null;
+  routineId: string;
+  /** 다 읽었을 때 종목 수(시작 버튼 판단용) */
+  onReady?: (count: number) => void;
+}) {
+  const { sorted, ready, nameOf, kinds } = useRoutineLines(repo, routineId, { withKinds: true });
+  const order = useMemo(() => sessionOrderLabels(sorted.map((r) => r.supersetGroup ?? null)), [sorted]);
+  const count = sorted.length;
+  useEffect(() => {
+    if (ready) onReady?.(count);
+  }, [ready, count, onReady]);
+  if (!ready) return <div className="mb-[var(--spacing-lg)] min-h-[168px]" />;
+  if (count === 0)
+    return (
+      <AppText variant="body" color="textMuted" className="mb-[var(--spacing-lg)] block">
+        {t("routines.noExercises")}
+      </AppText>
+    );
+  return (
+    <ListGroup className="mb-[var(--spacing-lg)]" testId="coach-routine-lines">
+      {order.map(({ index, label: g }, i) => {
+        const r = sorted[index];
+        const s = routineExerciseSummary({
+          targetSets: r.targetSets,
+          targetRepsMin: r.targetRepsMin,
+          targetRepsMax: r.targetRepsMax,
+          prescription: r.prescription,
+          cardio: kinds.get(r.exerciseId) === "cardio",
+        });
+        return (
+          <ListRow
+            key={r.id}
+            testId="coach-routine-line"
+            leading={
+              <span className="w-5 shrink-0 text-center text-(--color-ink3) text-[length:var(--text-sm)] tabular-nums">
+                {String(i + 1)}
+              </span>
+            }
+            title={nameOf(r.exerciseId)}
+            subtitle={summaryText(s)}
+            value={g ? t("routines.previewSuperset", { group: g }) : undefined}
+          />
+        );
+      })}
+    </ListGroup>
+  );
+}
+
 function summaryText(s: RoutineLineSummary): string {
   if (s.cardio) return t("routines.previewCardio");
   // 횟수 표기는 다른 화면과 같은 repRangeLabel(「8-12」 · 「~5」 · 「8+」 · 스펙 리뷰 H2)
@@ -156,6 +242,8 @@ export function RoutinePreviewSheet({
   onClose,
   onStart,
   onEdit,
+  origin,
+  onCopy,
 }: {
   repo: RoutineRepo | null;
   routineId: string;
@@ -165,8 +253,17 @@ export function RoutinePreviewSheet({
   onClose: () => void;
   onStart: () => void;
   onEdit: () => void;
+  /** 출처(SPEC-050 P3a) — 코치 루틴이면 위에 띠, 「편집」 대신 「내 루틴으로 복사」 */
+  origin?: RoutineOriginFields;
+  /** 코치 루틴 「내 루틴으로 복사」 */
+  onCopy?: () => void;
 }) {
   const { sorted, ready, nameOf, kinds, muscles } = useRoutineLines(repo, routineId, { withKinds: true });
+  const fromCoach = !!origin && isFromCoach(origin);
+  // 새로 받은 코치 루틴 점은 처음 열면 사라진다(SPEC-050 P3a)
+  useEffect(() => {
+    if (fromCoach) markCoachRoutineSeen(routineId);
+  }, [fromCoach, routineId]);
   // 「시작 전」 팁(SPEC-047) — ready 와 같은 순간에 정해진다(부위를 같은 단계에서 읽는다). 같은 날·같은 루틴이면 같은 팁
   // 날짜는 시트를 연(목록이 준비된) 시점의 값으로 고정한다 — 시트를 연 채 자정을 넘겨도 바꾸지 않는다(의도)
   const tipKey = sorted.map((r) => r.exerciseId).join(",");
@@ -201,6 +298,13 @@ export function RoutinePreviewSheet({
   }
   return (
     <SheetShell title={name} onClose={onClose} hideOk testId="routine-preview">
+      {/* 출처(SPEC-050 P3a) — 코치 루틴은 청록 띠, 끝난 코칭·가져옴은 회색 칩 한 줄 */}
+      {origin && fromCoach ? <CoachRoutineBanner routine={origin} hint={false} /> : null}
+      {origin && !fromCoach ? (
+        <div className="mb-[var(--spacing-sm)] flex">
+          <RoutineOriginChip routine={origin} />
+        </div>
+      ) : null}
       {!ready ? (
         // 받는 동안 줄 세 개쯤 자리 — 목록이 들어올 때 시트가 덜 튄다(UX 4)
         <div className="mb-[var(--spacing-lg)] min-h-[168px]" />
@@ -256,12 +360,23 @@ export function RoutinePreviewSheet({
       ) : null}
       <div className="flex gap-[var(--spacing-sm)]">
         <div className="flex-1">
-          <Button
-            title={t("routines.edit")}
-            variant="secondary"
-            testId="routine-preview-edit"
-            onPress={onEdit}
-          />
+          {/* [원본] 늘 「편집」 — 코치 루틴은 회원이 못 고치므로 「내 루틴으로 복사」(SPEC-050 P3a) */}
+          {fromCoach && onCopy ? (
+            <Button
+              title={t("routines.copyToMine")}
+              variant="secondary"
+              testId="routine-preview-copy"
+              disabled={busy}
+              onPress={onCopy}
+            />
+          ) : (
+            <Button
+              title={t("routines.edit")}
+              variant="secondary"
+              testId="routine-preview-edit"
+              onPress={onEdit}
+            />
+          )}
         </div>
         <div className="flex-1">
           <Button

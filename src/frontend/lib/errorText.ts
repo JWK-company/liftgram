@@ -13,6 +13,7 @@ const LOCAL_CODES: Record<string, TransKey> = {
   NOTHING_TO_REPLAY: "replay.nothing",
   ACTIVE_EXISTS: "replay.activeExists",
   NOTHING_MATCHED: "replay.nothingMatched",
+  COACH_LOCKED: "routines.coachLockedError", // 코치 루틴 잠금(SPEC-050 P3a · routineRepository)
 };
 
 export function errorText(e: unknown, fallback: string = t("common.error")): string {

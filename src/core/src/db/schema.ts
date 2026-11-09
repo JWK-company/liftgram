@@ -10,7 +10,9 @@ import { appSchema, tableSchema } from '@nozbe/watermelondb';
 // [원본] export const SCHEMA_VERSION = 27;
 // [원본] export const SCHEMA_VERSION = 28; // v28: set_logs.check_state(SPEC-044)
 // ⚠ v29 도 같은 규칙 — 배포 뒤 SCHEMA_VERSION<29 번들을 내보내지 않는다(배포 스크립트가 낮추는 배포를 막는다).
-export const SCHEMA_VERSION = 29; // v29: bodyweight_logs.skeletal_muscle_kg · body_fat_pct(SPEC-049 인바디)
+// [원본] export const SCHEMA_VERSION = 29; // v29: bodyweight_logs.skeletal_muscle_kg · body_fat_pct(SPEC-049 인바디)
+// ⚠ v30 도 같은 규칙 — 배포 뒤 SCHEMA_VERSION<30 번들을 내보내지 않는다.
+export const SCHEMA_VERSION = 30; // v30: routines.origin · coach_id · coach_name · coach_for(SPEC-050 코칭 v2 P3a)
 
 export const mySchema = appSchema({
   version: SCHEMA_VERSION,
@@ -80,6 +82,12 @@ export const mySchema = appSchema({
         { name: 'is_archived', type: 'boolean' },
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
+        // v30(SPEC-050 P3a): 루틴 출처 — null=내가 만든 것 · 'coach'=코치가 보낸 것(회원은 처방을 못 바꾼다) ·
+        // 'coach_ended'=코칭이 끝나 내 것이 됨 · 'import'=피드·크리에이터·프로그램에서 가져옴
+        { name: 'origin', type: 'string', isOptional: true },
+        { name: 'coach_id', type: 'string', isOptional: true }, // 보낸 코치 사용자 id(origin coach·coach_ended)
+        { name: 'coach_name', type: 'string', isOptional: true }, // 보낸 코치 표시 이름(칩 「코치 ○○」)
+        { name: 'coach_for', type: 'string', isOptional: true }, // 코치 기기 초안 — 보낼 회원 id(P3b)
       ],
     }),
     // 루틴 내 종목 + 목표(세트/반복범위/휴식/슈퍼셋) (SRS-002)

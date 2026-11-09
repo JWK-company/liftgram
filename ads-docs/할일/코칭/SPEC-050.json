@@ -2096,7 +2096,7 @@
        {
         "content": [
          {
-          "text": "[ ] 로컬 스키마 v30 + schemaV30 테스트 + merge_v30_test",
+          "text": "[x] 로컬 스키마 v30 + schemaV30 테스트 + merge_v30_test",
           "type": "text"
          }
         ],
@@ -2110,7 +2110,7 @@
        {
         "content": [
          {
-          "text": "[ ] 출처 띠·칩·점 · 가져오기 경로 origin import · 공유 직렬화에서 출처 칸 빼기",
+          "text": "[x] 출처 띠·칩·점 · 가져오기 경로 origin import · 공유 직렬화에서 출처 칸 빼기",
           "type": "text"
          }
         ],
@@ -2124,7 +2124,7 @@
        {
         "content": [
          {
-          "text": "[ ] isCoachLocked 저장소 막음 · 편집기 읽기 보기 · ⋯·미리보기 「내 루틴으로 복사」",
+          "text": "[x] isCoachLocked 저장소 막음 · 편집기 읽기 보기 · ⋯·미리보기 「내 루틴으로 복사」",
           "type": "text"
          }
         ],
@@ -2191,6 +2191,20 @@
        }
       ],
       "type": "list_item"
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "[ ] 서버 sync 보호(REV-102 H-1): 저장된 행이 coach·coach_ended 이거나 id 가 coach- 로 시작하면 origin·coach_*·name·notes·코치 줄 처방은 저장값 유지, 회원 push 는 folder·sort_order·is_archived·삭제·변형만 · 출처 없는 행에 coach 계열 origin 을 올리면 버림 · 「보낸 루틴」은 coaching_routines 표에서 읽음 · Go 시험"
+         }
+        ]
+       }
+      ]
      },
      {
       "content": [
@@ -2478,7 +2492,7 @@
  "meta": {
   "grade": "Project",
   "phases": "6",
-  "phases_done": "3"
+  "phases_done": "4"
  },
  "relations": {
   "implements": [
@@ -2493,5 +2507,5 @@
  "tags": [],
  "title": "코칭 v2 — 연결·범위·회원 화면·루틴 보내기·코멘트",
  "type": "Spec",
- "updated": "2026-11-09T11:53:22Z"
+ "updated": "2026-11-09T12:53:12Z"
 }

@@ -27,6 +27,7 @@ import { AuthService, routes } from "@app/contracts";
 import { Code, ConnectError, createClient, type Client, type Interceptor } from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
 import type { LastLogin } from "./last-login";
+import { clearCoachRoutineSeen } from "./coachRoutineSeen";
 
 /** 세션이 있을 법하다는 **깃발**(값이 아니다). 쿠키를 읽을 수 없으니 화면은 이걸 본다. */
 const SESSION_FLAG = "liftgram.session";
@@ -133,6 +134,7 @@ export function clearTokens(): void {
   } catch {
     // 저장소를 못 쓰면 지울 것도 없다
   }
+  clearCoachRoutineSeen(); // 받은 코치 루틴 「봤음」 목록도 그 사람 것(SPEC-050 P3a · REV L-4)
   setFlag(false);
   cacheMe(null);
   void fetch("/api/session", { method: "DELETE", headers: GUARD }).catch(() => {});

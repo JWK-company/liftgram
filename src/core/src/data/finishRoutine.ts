@@ -27,6 +27,7 @@ import { restOverridesOf, rxScheme, type RestOverrides } from '../domain/restPla
 import { rememberedRestOverrides } from './workoutRepository'; // 시작 때 실린 휴식 기억(SPEC-051 리뷰)
 import { resolveLoadMode } from '../domain/volume';
 import { randomId } from '../utils/id';
+import { isCoachLockedOrigin } from '../domain/routineOrigin'; // 코치 루틴 잠금(SPEC-050 P3a)
 
 const workouts = () => database.get<Workout>('workouts');
 const workoutExercises = () => database.get<WorkoutExercise>('workout_exercises');
@@ -117,6 +118,8 @@ export async function getFinishPrompt(workoutId: string): Promise<FinishPrompt> 
   if (!blocks.some(performed)) return { kind: 'none', routineName: null, plan: null, blocks };
   const routine = await liveRoutineOf(workout);
   if (!routine) return { kind: 'quick', routineName: null, plan: null, blocks };
+  // 코치가 보낸 루틴은 회원이 바꾸지 않는다 — 「루틴에 반영」도 「루틴으로 저장」도 묻지 않는다(SPEC-050 P3a)
+  if (isCoachLockedOrigin(routine.origin)) return { kind: 'none', routineName: routine.name, plan: null, blocks };
   const res = await routineExercises().query(Q.where('routine_id', routine.id), Q.sortBy('sort_order', Q.asc)).fetch();
   const lines: RoutineLine[] = res.map((re) => ({
     id: re.id,
@@ -203,6 +206,9 @@ async function blockRecords(lines: NewLine[]): Promise<Map<string, WorkoutExerci
  */
 export async function applyRoutineChanges(plan: FinishPlan, selectedIds: string[]): Promise<number> {
   if (!plan.canApply) return 0;
+  // 묻는 사이 코치 루틴이 됐을 수 있다(동기) — 쓰기 직전에 다시 본다(SPEC-050 P3a)
+  const target = await routines().find(plan.routineId).catch(() => null);
+  if (target && isCoachLockedOrigin(target.origin)) return 0;
   const ap = planRoutineApply(plan, new Set(selectedIds));
   const cardioFrom = await blockRecords(ap.creates);
   const toGroup = groupIdMapper();
@@ -300,6 +306,11 @@ export async function saveWorkoutAsRoutine(
       rec.sortOrder = count;
       rec.isArchived = false;
       rec.userId = null;
+      // 운동에서 만든 루틴 = 내가 만든 것(SPEC-050 P3a)
+      rec.origin = null;
+      rec.coachId = null;
+      rec.coachName = null;
+      rec.coachFor = null;
     });
     await database.batch(r, ...lines.map((l) => prepareLine(r.id, l, toGroup(l.group), cardioFrom)));
     return r;

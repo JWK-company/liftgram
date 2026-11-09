@@ -18,9 +18,13 @@ import type { Model } from '@nozbe/watermelondb';
 import { database } from '../db/database';
 import { SCHEMA_VERSION } from '../db/schema';
 import { USER_TABLES } from './pending';
+import { isCoachLockedOrigin, ROUTINE_ORIGIN_FIELDS, stripRoutineOriginFields } from '../domain/routineOrigin';
 
 const TABLES = ['exercises', ...USER_TABLES];
 const SKIP_FIELDS = new Set(['$loki', 'meta', '_status', '_changed']);
+// 루틴 출처 칸(SPEC-050 P3a · REV-097) — 파일은 남에게 건네질 수 있다. 「코치 ○○」 표시가 파일을 타고 다른 계정으로 가지 않게
+// 내보낼 때 빼고, 가져올 때도 쓰지 않는다(옛 파일·손댄 파일). 같은 계정이면 다음 동기에 서버 값이 이긴다(created 행 = 원격 우선).
+const ORIGIN_FIELDS = new Set<string>(ROUTINE_ORIGIN_FIELDS);
 
 type Raw = Record<string, unknown> & { id: string };
 
@@ -47,7 +51,11 @@ export async function exportBackup(owner: string | null): Promise<BackupFile> {
   const tables: Record<string, Raw[]> = {};
   for (const table of TABLES) {
     const rows = await database.get(table).query().fetch();
-    tables[table] = rows.map((r) => ({ ...(r._raw as unknown as Raw) }));
+    // [원본] tables[table] = rows.map((r) => ({ ...(r._raw as unknown as Raw) }));
+    tables[table] = rows.map((r) => {
+      const raw = { ...(r._raw as unknown as Raw) };
+      return table === 'routines' ? stripRoutineOriginFields(raw) : raw;
+    });
   }
   return {
     format: 'liftgram-backup',
@@ -105,6 +113,12 @@ export async function importBackup(json: unknown): Promise<ImportReport> {
 
   await database.write(async () => {
     const batch: Model[] = [];
+    // 이 기기에서 코치가 보낸 루틴(origin coach) — 회원은 처방을 못 바꾼다(SPEC-050 P3a · REV M-1). 백업 파일(옛 사본·손댄 파일)이
+    // 그 루틴이나 그 줄을 덮거나 줄을 보태면 잠금을 돌아가게 된다 → 그 행들은 건너뛴다(skipped). 끝난 코칭(coach_ended)은 풀린 것이라 그대로 합친다.
+    const lockedRoutineIds = new Set<string>();
+    for (const r of await database.get('routines').query().fetch()) {
+      if (isCoachLockedOrigin((r._raw as unknown as Record<string, unknown>).origin)) lockedRoutineIds.add(r.id);
+    }
     for (const table of TABLES) {
       const rows = tables[table] ?? [];
       if (!rows.length) continue;
@@ -125,9 +139,22 @@ export async function importBackup(json: unknown): Promise<ImportReport> {
           continue;
         }
         const clean: Record<string, unknown> = {};
-        for (const [k, v] of Object.entries(raw)) if (!SKIP_FIELDS.has(k)) clean[k] = v;
+        for (const [k, v] of Object.entries(raw)) {
+          if (SKIP_FIELDS.has(k)) continue;
+          if (table === 'routines' && ORIGIN_FIELDS.has(k)) continue; // 출처 칸은 파일에서 받지 않는다(SPEC-050 P3a)
+          clean[k] = v;
+        }
 
         const local = existing.get(raw.id);
+        if (
+          (table === 'routines' && lockedRoutineIds.has(raw.id)) ||
+          (table === 'routine_exercises' &&
+            (lockedRoutineIds.has(String(raw.routine_id ?? '')) ||
+              lockedRoutineIds.has(String((local?._raw as unknown as Record<string, unknown> | undefined)?.routine_id ?? ''))))
+        ) {
+          report.skipped++; // 코치 루틴과 그 줄 — 덮지도 보태지도 않는다
+          continue;
+        }
         if (!local) {
           // 새 기록 — 서버로 올라갈 것으로 표시해 만든다.
           batch.push(collection.prepareCreateFromDirtyRaw({ ...clean, _status: 'created', _changed: '' }));

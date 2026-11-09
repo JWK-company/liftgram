@@ -472,5 +472,20 @@ export default schemaMigrations({
         }),
       ],
     },
+    // v30(SPEC-050 P3a): 루틴 출처(origin)·코치(coach_id·coach_name)·코치 초안 대상(coach_for). 옛 루틴은 null = 내가 만든 것.
+    {
+      toVersion: 30,
+      steps: [
+        addColumns({
+          table: 'routines',
+          columns: [
+            { name: 'origin', type: 'string', isOptional: true },
+            { name: 'coach_id', type: 'string', isOptional: true },
+            { name: 'coach_name', type: 'string', isOptional: true },
+            { name: 'coach_for', type: 'string', isOptional: true },
+          ],
+        }),
+      ],
+    },
   ],
 });

@@ -863,6 +863,8 @@ export default function ActiveWorkout() {
     if (!workout?.routineId || from === to) return;
     try {
       const rr = await import("@app/core/data/routineRepository");
+      // 코치가 보낸 루틴은 「루틴에도」를 묻지 않는다 — 이번 운동만 바뀐다(SPEC-050 P3a · 저장소도 0줄)
+      if (await rr.isCoachLockedId(workout.routineId)) return;
       const routine = (await rr.getRoutine(workout.routineId)) as unknown as { id: string; name: string };
       const rows = (await rr.queryRoutineExercises(routine.id).fetch()) as unknown as {
         exerciseId: string;

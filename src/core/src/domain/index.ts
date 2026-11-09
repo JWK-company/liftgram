@@ -29,3 +29,4 @@ export * from './effort'; // v26 힘든 정도(RIR) @plm SRS-073 SRS-074
 export * from './muscleLoad'; // 근육별 세트 집계(ADR-039) @plm SRS-075 SRS-076
 export * from './bodyweight'; // 체중 이력 계산·미러 판정(D-10) @plm SRS-077 SRS-078
 export * from './suspectSet'; // 튀는 기록 판정(SPEC-044 · SRS-109)
+export * from './routineOrigin'; // 루틴 출처·코치 잠금(SPEC-050 P3a)

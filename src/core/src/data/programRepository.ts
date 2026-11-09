@@ -63,6 +63,11 @@ export async function adoptProgram(folder: string, routinesInput: AdoptRoutineIn
         rec.sortOrder = baseCount + di;
         rec.isArchived = false;
         rec.userId = null;
+        // 프로그램에서 가져온 루틴 — 회색 「가져옴」(SPEC-050 P3a)
+        rec.origin = 'import';
+        rec.coachId = null;
+        rec.coachName = null;
+        rec.coachFor = null;
       });
       ops.push(routine);
       r.slots.forEach((slot, si) => {

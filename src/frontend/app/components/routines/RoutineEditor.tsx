@@ -61,6 +61,9 @@ import { PrescriptionRows } from "./PrescriptionRows";
 import { RxTypeHint } from "../CoachHints";
 import { trackUsage } from "@/lib/usage";
 import { runAfterOverlays } from "@/lib/useBackToClose"; // 창 칸 정리 뒤에(REV-077)
+import { markCoachRoutineSeen } from "@/lib/coachRoutineSeen"; // 새로 받은 코치 루틴 점(SPEC-050 P3a)
+import { RoutineLinesList } from "./RoutinePreviewSheet"; // 코치 루틴 읽기 보기(SPEC-050 P3a)
+import { CoachRoutineBanner } from "./RoutineOrigin";
 
 type RoutineRepo = typeof import("@app/core/data/routineRepository");
 
@@ -113,6 +116,8 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
   const [adding, setAdding] = useState(false);
   const { activeWorkoutId, setActive } = useSession();
   const [confirmRemove, setConfirmRemove] = useState<RoutineExerciseRow | null>(null);
+  // 코치가 보낸 루틴이면 읽기 보기(SPEC-050 P3a) — 회원은 이름·메모·종목·세트를 못 고친다(저장소도 막는다)
+  const [coachView, setCoachView] = useState<{ coachName: string | null } | null>(null);
 
   // 만들기가 두 번 겹치지 않게 하는 자물쇠(빠르게 두 번 누르거나 개발 모드의 이중 실행 대비).
   const creatingRef = useRef<Promise<string> | null>(null);
@@ -146,11 +151,14 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
           name: string;
           folder: string | null;
           notes: string | null;
+          origin: string | null;
+          coachName: string | null;
         };
         if (cancelled) return;
         setName(routine.name ?? "");
         setFolder(routine.folder ?? "");
         setNotes(routine.notes ?? "");
+        setCoachView(r.isCoachLocked(routine) ? { coachName: routine.coachName ?? null } : null);
       }
       setLoaded(true);
     })();
@@ -158,6 +166,47 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
       cancelled = true;
     };
   }, [paramId]);
+
+  // 잠금은 처음 한 번만 읽으면 화면을 연 채 동기로 출처가 바뀔 때(코치가 보냄 coach · 코칭 끝남 coach_ended) 옛 화면이 남는다
+  // → 루틴 모델을 지켜보며 다시 정한다(REV L-3). 잠긴 동안은 회원이 못 고치니 이름·메모도 모델 값을 따른다.
+  useEffect(() => {
+    if (!repo || !routineId || !loaded) return;
+    let sub: { unsubscribe(): void } | null = null;
+    let cancelled = false;
+    void repo
+      .getRoutine(routineId)
+      .then((model) => {
+        if (cancelled) return;
+        const m = model as unknown as {
+          name: string;
+          folder: string | null;
+          notes: string | null;
+          origin: string | null;
+          coachName: string | null;
+          observe(): { subscribe(o: { next(v: unknown): void; error(): void }): { unsubscribe(): void } };
+        };
+        sub = m.observe().subscribe({
+          next: () => {
+            if (!repo.isCoachLocked(m)) {
+              setCoachView(null);
+              return;
+            }
+            setName(m.name ?? "");
+            setNotes(m.notes ?? "");
+            setFolder(m.folder ?? ""); // 읽기 보기에서 고친 폴더도 — 풀려 편집기로 넘어갈 때 옛 값이 남지 않게
+            setCoachView((prev) =>
+              prev && prev.coachName === (m.coachName ?? null) ? prev : { coachName: m.coachName ?? null },
+            );
+          },
+          error: () => {}, // 지워진 루틴 — 지우기 흐름이 화면을 떠난다
+        });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+      sub?.unsubscribe();
+    };
+  }, [repo, routineId, loaded]);
 
   /** 메모리에만 있는 변경을 디스크로 — 완료를 누르면 곧바로 다른 화면으로 넘어가기 때문이다. */
   const flush = useCallback(async () => {
@@ -325,6 +374,21 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
     );
   }
 
+  // 코치 루틴 — 편집기 대신 읽기 보기(안내·「내 루틴으로 복사」·폴더·삭제 · SPEC-050 P3a)
+  if (coachView && routineId) {
+    return (
+      <CoachRoutineView
+        repo={repo}
+        routineId={routineId}
+        name={name}
+        notes={notes}
+        initialFolder={folder}
+        initialFolderOptions={folderOptions}
+        coachName={coachView.coachName}
+      />
+    );
+  }
+
   // 저장된 루틴이고 종목이 있고, 이미 진행 중인 운동이 없을 때만 바로 시작할 수 있다
   // (진행 중이면 홈의 「이어 하기」 가 먼저다 — 두 운동이 겹치지 않게).
   const canStart = !!routineId && exercises.length > 0 && !activeWorkoutId;
@@ -468,11 +532,13 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
                 repo={repo}
                 onSwap={() => setPicking({ mode: "swap", reId: re.id })}
                 onSwapTo={(exerciseId) => {
+                  // [원본] void (async () => { … })(); — 실패(코치 잠금 COACH_LOCKED 등)가 조용히 묻혔다
+                  // [개선] 실패는 토스트로(SPEC-050 P3a · REV L-3)
                   void (async () => {
                     await repo.swapRoutineExercise(re.id, exerciseId);
                     await flush();
                     setVersion((v) => v + 1);
-                  })();
+                  })().catch((e) => toast(errorText(e), "error"));
                 }}
                 trackWrite={trackWrite}
                 onRemove={() => setConfirmRemove(re)}
@@ -480,10 +546,15 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
                 onUnsuperset={() => {
                   const members = exercises.filter((x) => x.supersetGroup === re.supersetGroup);
                   const ids = members.length <= 2 ? members.map((m) => m.id) : [re.id];
-                  void repo.ungroupSuperset(ids).then(() => {
-                    scheduleFlush();
-                    setVersion((v) => v + 1);
-                  });
+                  // [원본] void repo.ungroupSuperset(ids).then(() => { … }); — 실패가 조용히 묻혔다
+                  // [개선] 실패는 토스트로(REV L-3)
+                  void repo
+                    .ungroupSuperset(ids)
+                    .then(() => {
+                      scheduleFlush();
+                      setVersion((v) => v + 1);
+                    })
+                    .catch((e) => toast(errorText(e), "error"));
                 }}
               />
             ))}
@@ -685,10 +756,15 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
                           ids.add(m.id);
                       }
                       setSupersetTarget(null);
-                      void repo.groupAsSuperset([...ids]).then(() => {
-                        scheduleFlush();
-                        setVersion((v) => v + 1);
-                      });
+                      // [원본] void repo.groupAsSuperset([...ids]).then(() => { … }); — 실패가 조용히 묻혔다
+                      // [개선] 실패는 토스트로(REV L-3)
+                      void repo
+                        .groupAsSuperset([...ids])
+                        .then(() => {
+                          scheduleFlush();
+                          setVersion((v) => v + 1);
+                        })
+                        .catch((e) => toast(errorText(e), "error"));
                     }}
                     className="flex w-full items-center justify-between border-(--color-line) border-b py-[var(--spacing-sm)] text-left"
                   >
@@ -766,6 +842,223 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
   );
 }
 
+/**
+ * 코치가 보낸 루틴 보기(SPEC-050 P3a · REV-097) — 회원 기기.
+ *   머리   청록 띠 「코치 ○○님이 짠 루틴이에요」 + 안내 · 이름 · 메모(읽기만)
+ *   폴더   회원 것 — 고칠 수 있다
+ *   종목   미리보기와 같은 읽기 목록
+ *   발     「내 루틴으로 복사」(복사본은 내 루틴 → 편집기로) · 「이 루틴으로 시작」 · 루틴 삭제(가능)
+ */
+function CoachRoutineView({
+  repo,
+  routineId,
+  name,
+  notes,
+  initialFolder,
+  initialFolderOptions,
+  coachName,
+}: {
+  repo: RoutineRepo;
+  routineId: string;
+  name: string;
+  notes: string;
+  initialFolder: string;
+  initialFolderOptions: string[];
+  coachName: string | null;
+}) {
+  const toast = useToast();
+  const { activeWorkoutId, setActive } = useSession();
+  const [folder, setFolder] = useState(initialFolder);
+  const [folderOptions, setFolderOptions] = useState(initialFolderOptions);
+  const [newFolderMode, setNewFolderMode] = useState(false);
+  const [count, setCount] = useState<number | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const onReady = useCallback((n: number) => setCount(n), []);
+
+  // 처음 열면 「새로 받음」 점이 사라진다
+  useEffect(() => {
+    markCoachRoutineSeen(routineId);
+  }, [routineId]);
+
+  const leave = useCallback(async (href: string, replace = false) => {
+    const { navigateAfterFlush } = await import("@/lib/localDb");
+    await navigateAfterFlush(href, replace ? { replace: true } : undefined);
+  }, []);
+
+  const saveFolder = (next: string) => {
+    const v = next.trim() || null;
+    void repo
+      .updateRoutine(routineId, { folder: v })
+      .then(() => scheduleFlush())
+      .catch((e) => toast(errorText(e), "error"));
+  };
+  const pickFolder = (next: string) => {
+    setFolder(next);
+    setNewFolderMode(false);
+    saveFolder(next);
+  };
+
+  const run = (fn: () => Promise<void>) => {
+    if (busy) return;
+    setBusy(true);
+    void fn()
+      .catch((e) => toast(errorText(e), "error"))
+      .finally(() => setBusy(false));
+  };
+
+  const canStart = (count ?? 0) > 0 && !activeWorkoutId;
+  const coachRoutine = { id: routineId, origin: "coach", coachName };
+
+  return (
+    <div className="flex flex-1 flex-col" data-testid="coach-routine-view">
+      <SubAppBar title={name.trim() || t("routines.editorTitle")} onBack={() => void leave("/")} />
+      <div className="flex-1 p-[var(--spacing-lg)]">
+        <CoachRoutineBanner routine={coachRoutine} />
+        <AppText variant="heading" className="block" data-testid="coach-routine-name">
+          {name}
+        </AppText>
+        {notes.trim() ? (
+          <AppText
+            variant="body"
+            color="textMuted"
+            className="mt-[var(--spacing-xs)] block whitespace-pre-wrap"
+            data-testid="coach-routine-notes"
+          >
+            {notes}
+          </AppText>
+        ) : null}
+
+        {/* 폴더 — 회원 것(편집기와 같은 칩) */}
+        <div className="mt-[var(--spacing-md)] mb-[var(--spacing-md)]">
+          <AppText variant="label" color="textMuted" className="mb-[4px] block">
+            {t("routines.folderLabel")}
+          </AppText>
+          <div className="flex flex-wrap gap-[4px]" data-testid="coach-routine-folders">
+            <FolderChip label={t("routines.folderNone")} active={!folder} onPress={() => pickFolder("")} />
+            {folderOptions.map((f) => (
+              <FolderChip
+                key={f}
+                label={f}
+                icon="folder-outline"
+                active={folder === f}
+                onPress={() => pickFolder(f)}
+              />
+            ))}
+            <FolderChip
+              label={t("routines.folderNew")}
+              icon="add"
+              active={newFolderMode}
+              onPress={() => {
+                setFolder("");
+                setNewFolderMode(true);
+              }}
+            />
+          </div>
+          {newFolderMode ? (
+            <div className="mt-[var(--spacing-sm)]">
+              <TextField
+                testId="routine-folder-new"
+                placeholder={t("routines.folderNewPlaceholder")}
+                value={folder}
+                onChange={(e) => setFolder(e.target.value)}
+                autoFocus
+                onBlur={() => {
+                  const v = folder.trim();
+                  saveFolder(v);
+                  if (v) {
+                    setFolderOptions((opts) =>
+                      opts.includes(v) ? opts : [...opts, v].sort((a, b) => a.localeCompare(b, "ko")),
+                    );
+                    setNewFolderMode(false);
+                  }
+                }}
+              />
+            </div>
+          ) : null}
+        </div>
+
+        <Divider />
+        <SectionHeader title={t("routines.exercisesSection")} />
+        <RoutineLinesList repo={repo} routineId={routineId} onReady={onReady} />
+
+        <div className="mt-[var(--spacing-xl)] flex justify-center border-(--color-line) border-t pt-[var(--spacing-lg)]">
+          <Button
+            title={t("routines.deleteRoutineTitle")}
+            icon="trash-outline"
+            variant="danger"
+            size="sm"
+            fullWidth={false}
+            testId="btn-delete-routine"
+            onPress={() => setConfirmDelete(true)}
+          />
+        </div>
+      </div>
+
+      {/* 하단 고정 — 편집기와 같은 자리. 「완료」 대신 「내 루틴으로 복사」(고치려면 복사본에서) */}
+      <div className="sticky bottom-[calc(56px+var(--shell-workout-bar,0px)+env(safe-area-inset-bottom))] z-20 flex gap-[var(--spacing-sm)] border-(--color-line) border-t bg-(--color-surface) px-[var(--spacing-lg)] py-[var(--spacing-md)] lg:bottom-[var(--shell-workout-bar,0px)]">
+        <div className={canStart ? "w-[46%]" : "flex-1"}>
+          <Button
+            title={t("routines.copyToMine")}
+            variant="secondary"
+            testId="btn-routine-copy-mine"
+            loading={busy}
+            onPress={() =>
+              run(async () => {
+                const copy = (await repo.duplicateRoutine(routineId)) as unknown as { id: string };
+                toast(t("routines.copiedToMine"));
+                // 복사본은 내 루틴 — 바로 고칠 수 있게 편집기로(뒤로 가면 홈 · 보기 화면을 바꿔치기)
+                await leave(`/routines/${copy.id}`, true);
+              })
+            }
+          />
+        </div>
+        {canStart ? (
+          <div className="flex-1">
+            <Button
+              title={t("routines.startThisRoutine")}
+              icon="play"
+              testId="btn-routine-start"
+              loading={busy}
+              onPress={() =>
+                run(async () => {
+                  const workout = await import("@app/core/data/workoutRepository");
+                  trackUsage("workout_start_routine");
+                  const w = (await workout.startWorkoutFromRoutine(routineId)) as unknown as {
+                    id: string;
+                    startedAt: number;
+                    name: string | null;
+                  };
+                  setActive({ id: w.id, startedAt: w.startedAt, name: w.name });
+                  await leave("/workout");
+                })
+              }
+            />
+          </div>
+        ) : null}
+      </div>
+
+      {confirmDelete ? (
+        <ConfirmDialog
+          testId="confirm-delete-routine"
+          title={t("routines.deleteRoutineTitle")}
+          message={t("routines.deleteRoutineMessage")}
+          confirmLabel={t("common.delete")}
+          destructive
+          onCancel={() => setConfirmDelete(false)}
+          onConfirm={() => {
+            setConfirmDelete(false);
+            run(async () => {
+              await repo.deleteRoutine(routineId);
+              await leave("/");
+            });
+          }}
+        />
+      ) : null}
+    </div>
+  );
+}
+
 function FolderChip({
   label,
   icon,
@@ -822,6 +1115,7 @@ function ExerciseEditRow({
   onUnsuperset: () => void;
   trackWrite: (p: Promise<unknown>) => void;
 }) {
+  const toast = useToast();
   const { weightUnit } = useUser();
   const [rest, setRest] = useState(re.restSeconds);
   const [weight, setWeight] = useState(() => (re.targetWeightKg ? fromKg(re.targetWeightKg, weightUnit) : 0));
@@ -914,7 +1208,12 @@ function ExerciseEditRow({
                 value={variant}
                 onChange={(dims) => {
                   setVariant(dims);
-                  void repo.setRoutineExerciseVariant(re.id, dims).then(scheduleFlush);
+                  // [원본] void repo.setRoutineExerciseVariant(re.id, dims).then(scheduleFlush);
+                  // [개선] 실패는 토스트로(REV L-3) — 아래 저장소 쓰기도 같다
+                  void repo
+                    .setRoutineExerciseVariant(re.id, dims)
+                    .then(scheduleFlush)
+                    .catch((e) => toast(errorText(e), "error"));
                 }}
                 onSwap={onSwapTo}
                 plateOneSide={plateOneSide}
@@ -924,7 +1223,8 @@ function ExerciseEditRow({
                   plate.setChoiceLocal(on);
                   void import("@app/core/data/exercisePrefs")
                     .then((m) => m.setPlateOneSideChoice(re.exerciseId, on))
-                    .then(scheduleFlush);
+                    .then(scheduleFlush)
+                    .catch((e) => toast(errorText(e), "error"));
                 }}
               />
             </div>
@@ -938,7 +1238,11 @@ function ExerciseEditRow({
                   step={15}
                   onChange={(v) => {
                     setRest(v);
-                    void repo.updateRoutineExercise(re.id, { restSeconds: v }).then(scheduleFlush);
+                    // [원본] void repo.updateRoutineExercise(re.id, { restSeconds: v }).then(scheduleFlush);
+                    void repo
+                      .updateRoutineExercise(re.id, { restSeconds: v })
+                      .then(scheduleFlush)
+                      .catch((e) => toast(errorText(e), "error"));
                   }}
                 />
               </Field>
@@ -957,7 +1261,8 @@ function ExerciseEditRow({
                         .updateRoutineExercise(re.id, {
                           targetWeightKg: v > 0 ? toKg(v, weightUnit) : null,
                         })
-                        .then(scheduleFlush);
+                        .then(scheduleFlush)
+                        .catch((e) => toast(errorText(e), "error"));
                     }}
                   />
                 </Field>
@@ -1057,6 +1362,7 @@ function CardioTargetFields({
   metrics: CardioMetric[];
   repo: RoutineRepo;
 }) {
+  const toast = useToast();
   const target = re.cardioTarget ?? {};
   const [vals, setVals] = useState<Record<string, string>>(() => ({
     duration: secToMinInput(target.durationSec ?? null),
@@ -1077,7 +1383,8 @@ function CardioTargetFields({
           speed: inputToSpeed(vals.speed),
         },
       })
-      .then(scheduleFlush);
+      .then(scheduleFlush)
+      .catch((e) => toast(errorText(e), "error")); // 실패는 토스트로(REV L-3)
   };
 
   const LABEL: Record<CardioMetric, string> = {

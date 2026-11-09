@@ -7,6 +7,9 @@
 //   · 360px 에서 초대 카드·GrantRow 넘침 없음 · 누르는 자리 44px · 빨강 채움은 상황별 하나
 //   · (P2) 회원 화면 /coaching/m/[id] — 띠·탭·기록 펼침·분석 기간·연결 전 기록 컷 안내·체중 카드는 bodyView 때만 ·
 //     코치 로컬 DB 행 수 그대로 · 홈 「담당 회원」 카드 · 대화방 배지 → 회원 화면 · 기록 꺼짐 · 해지 뒤 · 360px·44px·다크
+//   · (P3a) 서버의 코치 루틴(origin coach)이 동기로 오면 — 청록 띠·「코치 ○○」 칩·새로 받음 점(열면 사라짐) · 미리보기 「내 루틴으로 복사」 ·
+//     ⋯ 「보기」 화면 잠금(이름·메모·종목 못 고침 · 폴더는 고침) · 복사본은 표시 없이 고칠 수 있음 · 운동 뒤 「루틴에 반영」 안 물음 ·
+//     코칭 끝남(coach_ended)·가져옴(import)은 회색 칩·편집 가능 · 360px 넘침 없음
 //
 // 시작 값은 기본값과 다르게 둔다(범위 바꾸기는 꺼진 칸을 켠 뒤 다시 열어 본다) — 같은 값이면 저장이 안 돼도 통과한다.
 import { expect, test } from "@playwright/test";
@@ -23,6 +26,7 @@ import {
   준비,
   종목_추가,
   idb_행_수,
+  idb_행_고치기,
   로그인,
 } from "./helpers/opengym";
 
@@ -1067,5 +1071,232 @@ test.describe("P2 회원 화면", () => {
     // 연결이 없는 사람 — 「코칭이 끝났어요」
     await expect(page.getByTestId("member-ended")).toContainText("코칭이 끝났어요", { timeout: 20_000 });
     await page.unroute(`**${RPC}/ListGrants`);
+  });
+});
+
+// ── P3a 출처 표시·회원 잠금(SPEC-050 Phase 4) ────────────────────────────────────────────────────────────
+// 서버에 코치 루틴을 심는 길: 회원 기기에서 만든 루틴 행을 P3b SendRoutine 이 쓸 모양(origin coach·coach_id·coach_name)으로 고쳐
+// 올린다(서버는 jsonb 를 해석하지 않는다). 그 뒤 **새 기기**로 로그인해 동기로 받은 행을 본다 — 표시·잠금은 받은 칸만 보고 정해진다.
+test.describe("P3a 출처 표시·회원 잠금", () => {
+  async function 루틴_만들기(page: Page, 이름: string, 종목들: string[]): Promise<string> {
+    await page.goto("/");
+    await page.getByTestId("btn-new-routine").click();
+    await expect(page.getByTestId("routine-name")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("routine-name").fill(이름);
+    await page.getByTestId("routine-name").blur();
+    await page.getByTestId("routine-notes").fill("코치 메모 — 천천히 내리기");
+    await page.getByTestId("routine-notes").blur();
+    const rows = page.getByTestId("routine-exercises").locator("> div");
+    for (const [i, 종목] of 종목들.entries()) {
+      await page.getByTestId("btn-add-routine-exercise").click();
+      await page.getByTestId("picker-search").fill(종목);
+      await page.getByTestId("picker-list").locator("button").first().click();
+      await page.getByTestId("picker-confirm").click();
+      await expect(rows).toHaveCount(i + 1, { timeout: 10_000 });
+    }
+    await page.getByTestId("btn-routine-done").click();
+    await expect(page.getByTestId("routine-list")).toContainText(이름, { timeout: 10_000 });
+    const tid = await page
+      .getByTestId("routine-list")
+      .locator("[data-testid^=routine-]")
+      .filter({ hasText: 이름 })
+      .first()
+      .getAttribute("data-testid");
+    return (tid ?? "").replace("routine-", "");
+  }
+
+  /** 이 기기 행을 출처 칸으로 고쳐 다음 동기에 올라가게 한다(앱 밖 빈 문서에서) */
+  async function 출처_심기(page: Page, id: string, set: Record<string, unknown>) {
+    await 빈_문서(page);
+    const n = await idb_행_고치기(page, "routines", [
+      { id, set: { ...set, _status: "updated", _changed: Object.keys(set).join(",") }, shiftUpdatedAt: 1000 },
+    ]);
+    expect(n).toBe(1);
+  }
+
+  async function 넘침_없음(page: Page) {
+    const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    expect(over).toBeLessThanOrEqual(0);
+  }
+
+  test("코치 루틴 — 띠·칩·점 · 미리보기·⋯ 「내 루틴으로 복사」 · 보기 화면 잠금·폴더 · 복사본은 내 것 · 운동 뒤 반영 안 물음 · 끝남·가져옴 회색", async ({
+    page,
+    browser,
+  }) => {
+    test.setTimeout(300_000);
+    const tag = Date.now().toString(36);
+    const email = 새_메일("cv2-p3a");
+    const 이름 = `코치 상체 ${tag}`;
+    await 가입(page, email, `회원p3a${tag}`);
+    await 준비(page);
+    const id = await 루틴_만들기(page, 이름, ["바벨 벤치프레스"]);
+    await 동기(page);
+    await 출처_심기(page, id, { origin: "coach", coach_id: "u-coach-e2e", coach_name: "김코치" });
+    await page.goto("/");
+    await 동기(page); // 고친 행이 서버로 — 서버에 코치 루틴이 있다
+
+    // 새 기기 — 동기로 받은 코치 루틴
+    const [ctxB, pageB] = await 새_기기(browser);
+    try {
+      await 로그인(pageB, email);
+      await 준비(pageB);
+      await 동기(pageB);
+      await pageB.goto("/");
+      const row = pageB.getByTestId(`routine-${id}`);
+      await expect(row).toBeVisible({ timeout: 20_000 });
+      const chip = row.getByTestId("origin-chip");
+      await expect(chip).toHaveText(/코치 김코치/);
+      await expect(chip).toHaveAttribute("data-origin", "coach");
+      await expect(row.getByTestId("coach-new-dot")).toHaveCount(1);
+      // 왼쪽 청록 띠 — 줄 판(안쪽 그림자) · 칩 글자는 청록 잉크(#0B6B74)
+      const stripe = await row.evaluate((el) => getComputedStyle(el.parentElement as HTMLElement).boxShadow);
+      expect(stripe).toContain("inset");
+      expect(await chip.evaluate((el) => getComputedStyle(el).color)).toBe("rgb(11, 107, 116)");
+      // 다크 — 칩 글자·띠가 다크 청록 토큰(coaching-ink #7FD9DF · coaching #4CC3CC)으로 바뀐다(REV P3a)
+      await pageB.emulateMedia({ colorScheme: "dark" });
+      expect(await chip.evaluate((el) => getComputedStyle(el).color)).toBe("rgb(127, 217, 223)");
+      expect(
+        await row.evaluate((el) => getComputedStyle(el.parentElement as HTMLElement).boxShadow),
+      ).toContain("rgb(76, 195, 204)");
+      await pageB.emulateMedia({ colorScheme: "light" });
+
+      // 미리보기 — 띠 · 「편집」 대신 「내 루틴으로 복사」 · 열면 점이 사라진다
+      await row.getByTestId("open-routine-preview").click();
+      const preview = pageB.getByTestId("routine-preview");
+      await expect(preview.getByTestId("coach-routine-banner")).toContainText(
+        "코치 김코치님이 짠 루틴이에요",
+      );
+      await expect(preview.getByTestId("routine-preview-edit")).toHaveCount(0);
+      await expect(preview.getByTestId("routine-preview-copy")).toHaveText("내 루틴으로 복사");
+      await pageB.keyboard.press("Escape");
+      await expect(preview).toHaveCount(0);
+      await expect(row.getByTestId("coach-new-dot")).toHaveCount(0);
+
+      // ⋯ — 맨 위 「내 루틴으로 복사」 · 「편집」 → 「보기」 · 「복제」는 합쳐져 없다
+      await row.getByTestId("btn-routine-actions").click();
+      const sheet = pageB.getByTestId("routine-actions");
+      await expect(sheet).toBeVisible();
+      const labels = (await sheet.locator("ul button").allInnerTexts()).map((x) => x.trim());
+      expect(labels[0]).toBe("내 루틴으로 복사");
+      expect(labels).toContain("보기");
+      expect(labels).not.toContain("편집");
+      expect(labels).not.toContain("복제");
+      await sheet.getByText("보기", { exact: true }).click();
+
+      // 보기 화면 — 안내·읽기 목록 · 이름·메모·종목 칸 없음 · 폴더는 고친다
+      await expect(pageB).toHaveURL(new RegExp(`/routines/${id}$`), { timeout: 20_000 });
+      const view = pageB.getByTestId("coach-routine-view");
+      await expect(view).toBeVisible({ timeout: 20_000 });
+      await expect(view.getByTestId("coach-routine-banner")).toContainText("코치 김코치님이 짠 루틴이에요");
+      await expect(view.getByTestId("coach-routine-name")).toHaveText(이름);
+      await expect(view.getByTestId("coach-routine-notes")).toHaveText("코치 메모 — 천천히 내리기");
+      await expect(view.getByTestId("coach-routine-line")).toHaveCount(1);
+      await expect(view.getByTestId("coach-routine-line")).toContainText("3세트");
+      for (const t of [
+        "routine-name",
+        "routine-notes",
+        "btn-add-routine-exercise",
+        "set-table-hint",
+        "btn-routine-done",
+      ])
+        await expect(pageB.getByTestId(t)).toHaveCount(0);
+      await expect(view.getByTestId("btn-delete-routine")).toBeVisible();
+
+      // 360px — 보기 화면 넘침 없음
+      await pageB.setViewportSize({ width: 360, height: 780 });
+      await 넘침_없음(pageB);
+
+      // 「내 루틴으로 복사」 → 복사본 편집기(고칠 수 있다)
+      await view.getByTestId("btn-routine-copy-mine").click();
+      await expect(pageB.getByTestId("routine-name")).toHaveValue(`${이름} (복사본)`, { timeout: 20_000 });
+      await expect(pageB.getByTestId("coach-routine-view")).toHaveCount(0);
+      const copyId = pageB.url().split("/routines/")[1] ?? "";
+      expect(copyId).not.toBe(id);
+      await pageB.getByTestId("btn-routine-done").click();
+      await expect(pageB).toHaveURL(/\/$/, { timeout: 15_000 });
+
+      // 홈 — 복사본은 칩·띠 없음 · 코치 루틴은 그대로 · 360px 넘침 없음
+      const copyRow = pageB.getByTestId(`routine-${copyId}`);
+      await expect(copyRow).toBeVisible({ timeout: 20_000 });
+      await expect(copyRow.getByTestId("origin-chip")).toHaveCount(0);
+      expect(
+        await copyRow.evaluate((el) => getComputedStyle(el.parentElement as HTMLElement).boxShadow),
+      ).toBe("none");
+      await expect(row.getByTestId("origin-chip")).toHaveText(/코치 김코치/);
+      await 넘침_없음(pageB);
+      await pageB.setViewportSize({ width: 1280, height: 800 });
+
+      // 폴더는 회원 것 — 보기 화면에서 새 폴더로 옮긴다
+      await pageB.goto(`/routines/${id}`);
+      await expect(view).toBeVisible({ timeout: 20_000 });
+      await view.getByTestId("coach-routine-folders").getByText("새 폴더").click();
+      await pageB.getByTestId("routine-folder-new").fill("받은 루틴");
+      await pageB.getByTestId("routine-folder-new").blur();
+      await 내려쓰기_대기(pageB);
+      await pageB.goto("/");
+      const folder = pageB.getByTestId("folder-toggle").filter({ hasText: "받은 루틴" });
+      await expect(folder).toBeVisible({ timeout: 20_000 });
+      await folder.click();
+      const inFolder = pageB.getByTestId("folder-group").filter({ hasText: "받은 루틴" });
+      await expect(inFolder.getByTestId("origin-chip")).toHaveText(/코치 김코치/);
+
+      // 코치 루틴으로 운동 — 한 세트 더 해도 끝날 때 「루틴에 반영」을 묻지 않는다 · 루틴은 3세트 그대로
+      await pageB.getByTestId("btn-start-folder-routine").first().click();
+      await expect(pageB).toHaveURL(/\/workout/, { timeout: 20_000 });
+      await expect(pageB.getByTestId("set-list").first()).toBeVisible({ timeout: 20_000 });
+      await pageB.getByTestId("btn-add-set").first().click();
+      await expect(pageB.getByTestId("set-list").first().locator("> div")).toHaveCount(4);
+      for (let i = 0; i < 4; i++) await 세트_기록(pageB, 0, i, 40, 8);
+      await pageB.getByTestId("btn-complete").click();
+      await pageB.getByTestId("dialog-confirm").click();
+      await expect(pageB.getByTestId("summary-volume")).toBeVisible({ timeout: 15_000 });
+      await pageB.waitForTimeout(800);
+      await expect(pageB.getByTestId("finish-routine")).toHaveCount(0);
+      await expect(pageB.getByTestId("finish-name")).toHaveCount(0);
+      await pageB.getByTestId("btn-summary-close").click();
+      await expect(pageB).toHaveURL(/\/$/, { timeout: 15_000 });
+      await pageB.goto(`/routines/${id}`);
+      await expect(pageB.getByTestId("coach-routine-line")).toContainText("3세트", { timeout: 20_000 });
+
+      // 코칭 끝남(coach_ended) — 회색 「코칭 끝남」 · 다시 편집기·복제
+      await 출처_심기(pageB, id, { origin: "coach_ended" });
+      await pageB.goto("/");
+      await pageB.getByTestId("folder-toggle").filter({ hasText: "받은 루틴" }).click();
+      const ended = pageB
+        .getByTestId("folder-group")
+        .filter({ hasText: "받은 루틴" })
+        .getByTestId("origin-chip");
+      await expect(ended).toHaveText("코칭 끝남", { timeout: 20_000 });
+      await expect(ended).toHaveAttribute("data-origin", "coach_ended");
+      await pageB.goto(`/routines/${id}`);
+      await expect(pageB.getByTestId("routine-name")).toHaveValue(이름, { timeout: 20_000 });
+      await expect(pageB.getByTestId("coach-routine-view")).toHaveCount(0);
+    } finally {
+      await ctxB.close();
+    }
+  });
+
+  test("가져온 루틴(크리에이터) = 회색 「가져옴」 · 편집 그대로", async ({ page }) => {
+    test.setTimeout(120_000);
+    await 준비(page);
+    await page.goto("/");
+    await page.getByTestId("concept-topic-pro-shoulders").click();
+    const first = page
+      .getByTestId("creator-topic-sheet")
+      .locator('[data-testid^="creator-version-"]')
+      .first();
+    await first.click();
+    await expect(page.getByTestId("creator-save")).toBeEnabled({ timeout: 10_000 });
+    await page.getByTestId("creator-save").click();
+    const chip = page.getByTestId("routine-list").getByTestId("origin-chip");
+    await expect(chip).toHaveText("가져옴", { timeout: 20_000 });
+    await expect(chip).toHaveAttribute("data-origin", "import");
+    await page.getByTestId("routine-list").getByTestId("btn-routine-actions").first().click();
+    const labels = (await page.getByTestId("routine-actions").locator("ul button").allInnerTexts()).map((x) =>
+      x.trim(),
+    );
+    expect(labels).toContain("편집");
+    expect(labels).toContain("복제");
+    expect(labels).not.toContain("내 루틴으로 복사");
   });
 });

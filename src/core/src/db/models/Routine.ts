@@ -17,6 +17,11 @@ export default class Routine extends Model {
   @field('is_archived') declare isArchived: boolean;
   @readonly @date('created_at') declare createdAt: Date;
   @readonly @date('updated_at') declare updatedAt: Date;
+  // v30(SPEC-050 P3a) 출처 — null=내가 만든 것 · 'coach' · 'coach_ended' · 'import'(domain/routineOrigin.ts)
+  @field('origin') declare origin: string | null;
+  @field('coach_id') declare coachId: string | null;
+  @field('coach_name') declare coachName: string | null;
+  @field('coach_for') declare coachFor: string | null; // 코치 기기 초안 — 보낼 회원 id(P3b)
 
   @children('routine_exercises') declare routineExercises: Query<RoutineExercise>;
 }

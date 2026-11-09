@@ -237,5 +237,7 @@ test("폴더 안 루틴·오늘 카드가 있어도 홈의 빨강 채움은 하�
   await page.getByTestId("folder-toggle").first().click();
   await expect(page.getByTestId("btn-start-folder-routine").first()).toBeVisible({ timeout: 20_000 });
   await expect(page.getByTestId("btn-start-today")).toBeVisible();
+  // [개선] 판단 표식을 기다린 뒤 잰다(위 「측정 루틴」 시험과 같다 · REV P3a) — 판단 전 순간의 빨강에 걸리지 않게
+  await expect(page.getByTestId("home-ready")).toHaveCount(1, { timeout: 20_000 });
   expect(await filledBrandButtons(page)).toBe(1);
 });

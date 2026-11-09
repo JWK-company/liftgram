@@ -58,12 +58,24 @@ import { RoutineMuscleFocus, RoutineMuscleMini } from "./RoutineMuscleMini"; // 
 
 type RoutineRepo = typeof import("@app/core/data/routineRepository");
 import { trackUsage } from "@/lib/usage";
-import { ExerciseLine, RoutinePreviewSheet } from "./RoutinePreviewSheet"; // 루틴 한눈에(SPEC-045)
+// [원본] import { ExerciseLine, RoutinePreviewSheet } from "./RoutinePreviewSheet"; // 루틴 한눈에(SPEC-045)
+import { ExerciseLineWithOrigin, RoutinePreviewSheet } from "./RoutinePreviewSheet"; // 루틴 한눈에(SPEC-045) · 출처 칩(SPEC-050 P3a)
+import { isFromCoach, originStripeStyle, RoutineOriginChip } from "./RoutineOrigin"; // 루틴 출처(SPEC-050 P3a)
 import { HomeMembersCard } from "../coaching/HomeMembersCard"; // 홈 「담당 회원 N명」(SPEC-050 P2)
 type WorkoutRepo = typeof import("@app/core/data/workoutRepository");
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
 
-type Routine = { id: string; name: string; folder: string | null };
+// [원본] type Routine = { id: string; name: string; folder: string | null };
+// [개선] 출처 칸(로컬 스키마 v30 · SPEC-050 P3a) — 코치 루틴 띠·칩·잠금
+type Routine = {
+  id: string;
+  name: string;
+  folder: string | null;
+  origin: string | null;
+  coachName: string | null;
+};
+/** 목록이 따라가는 칸 — 동기로 코칭이 끝나(coach → coach_ended) 칩이 바뀌거나 이름이 바뀌어도 다시 그린다(SPEC-050 P3a) */
+const ROUTINE_LIST_COLUMNS = ["name", "folder", "sort_order", "origin", "coach_name"];
 type Reco = Awaited<ReturnType<AnalyticsRepo["getTodayRoutineRecommendation"]>>;
 
 /** 요일 칩·오늘 카드의 색 점 — 루틴 순서에 따라 고정 배정한다(app과 같은 팔레트). */
@@ -135,6 +147,7 @@ export default function RoutinesClient() {
   const { data: models, loaded: routinesLoaded } = useQueryDataStatus(
     () => (repos ? repos.routine.queryRoutines() : null),
     [repos],
+    ROUTINE_LIST_COLUMNS,
   );
   const routines: Routine[] = useMemo(() => models.map((m) => m as unknown as Routine), [models]);
 
@@ -276,6 +289,13 @@ export default function RoutinesClient() {
         setBusy(false);
       }
     })();
+
+  /** 「내 루틴으로 복사」 — 복제와 같은 함수(복사본은 출처 칸이 빈 내 루틴 · SPEC-050 P3a) */
+  const copyToMine = (id: string) =>
+    run(async () => {
+      await repos?.routine.duplicateRoutine(id);
+      toast(t("routines.copiedToMine"));
+    });
 
   /**
    * 새 운동을 시작하기 전에 **진행 중인 것이 있는지** 묻는다.
@@ -601,6 +621,7 @@ export default function RoutinesClient() {
             onToggle={() => setOpenFolders((m) => ({ ...m, [name]: !m[name] }))}
             onStart={(id) => guardActive(startFromRoutine(id))}
             onActions={setActionsFor}
+            onCopy={copyToMine}
             todayId={primaryRoutineId}
           />
         ))}
@@ -625,6 +646,7 @@ export default function RoutinesClient() {
                 today={r.id === primaryRoutineId}
                 onStart={() => guardActive(startFromRoutine(r.id))}
                 onActions={() => setActionsFor(r)}
+                onCopy={() => copyToMine(r.id)}
               />
             ))}
           </ListGroup>
@@ -751,8 +773,19 @@ export default function RoutinesClient() {
             title={actionsFor.name}
             onClose={() => setActionsFor(null)}
             options={[
+              // 코치 루틴(SPEC-050 P3a) — 맨 위 「내 루틴으로 복사」(복제와 합침) · 「편집」 → 「보기」
+              ...(isFromCoach(actionsFor)
+                ? [
+                    {
+                      label: t("routines.copyToMine"),
+                      testId: "btn-routine-copy-mine",
+                      onPress: () => copyToMine(actionsFor.id),
+                    },
+                  ]
+                : []),
               {
-                label: t("routines.edit"),
+                // [원본] label: t("routines.edit"),
+                label: isFromCoach(actionsFor) ? t("routines.view") : t("routines.edit"),
                 onPress: () => {
                   navigate(`/routines/${actionsFor.id}`);
                 },
@@ -765,10 +798,16 @@ export default function RoutinesClient() {
               ...(looseIndexOf(actionsFor.id) >= 0 && looseIndexOf(actionsFor.id) < loose.length - 1
                 ? [{ label: tw("web.routines.moveDown"), onPress: () => moveRoutine(actionsFor.id, 1) }]
                 : []),
-              {
-                label: t("routines.duplicate"),
-                onPress: () => run(async () => void (await repos?.routine.duplicateRoutine(actionsFor.id))),
-              },
+              // 코치 루틴은 위 「내 루틴으로 복사」가 복제다(합침)
+              ...(isFromCoach(actionsFor)
+                ? []
+                : [
+                    {
+                      label: t("routines.duplicate"),
+                      onPress: () =>
+                        run(async () => void (await repos?.routine.duplicateRoutine(actionsFor.id))),
+                    },
+                  ]),
               {
                 label: t("common.delete"),
                 destructive: true,
@@ -934,7 +973,10 @@ function TodayCard({
     // 배정된 루틴이 지워졌으면 카드를 아예 띄우지 않는다(빈 카드가 더 헷갈린다).
     if (!routine) return null;
     return (
-      <Card className="mb-[var(--spacing-sm)] border-(--color-brand)! bg-(--color-brand-muted)!">
+      <Card
+        className="mb-[var(--spacing-sm)] border-(--color-brand)! bg-(--color-brand-muted)!"
+        style={originStripeStyle(routine)}
+      >
         <div className="flex items-center" data-testid="today-card">
           <div className="mr-[var(--spacing-md)] min-w-0 flex-1">
             <AppText variant="label" color="primary">
@@ -945,6 +987,10 @@ function TodayCard({
               <AppText variant="heading" className="block truncate">
                 {routine.name}
               </AppText>
+            </span>
+            {/* 출처 칩(SPEC-050 P3a) */}
+            <span className="mt-[2px] flex empty:hidden">
+              <RoutineOriginChip routine={routine} />
             </span>
             <AppText variant="caption" color="textMuted" className="mt-[2px] block">
               {t("schedule.todayHint")}
@@ -1023,7 +1069,7 @@ function NextCard({
           ? t("routines.nextReasonRecent")
           : t("routines.nextReasonFirst");
   return (
-    <Card className="mb-[var(--spacing-sm)]">
+    <Card className="mb-[var(--spacing-sm)]" style={originStripeStyle(routine)}>
       <div className="flex items-center" data-testid="next-card">
         <div className="mr-[var(--spacing-md)] min-w-0 flex-1">
           <AppText variant="label" color="textMuted">
@@ -1032,6 +1078,10 @@ function NextCard({
           <AppText variant="heading" className="mt-[2px] block truncate">
             {routine.name}
           </AppText>
+          {/* 출처 칩(SPEC-050 P3a) */}
+          <span className="mt-[2px] flex empty:hidden">
+            <RoutineOriginChip routine={routine} />
+          </span>
           {reason ? (
             <AppText variant="caption" color="textMuted" className="mt-[2px] block" data-testid="next-reason">
               {reason}
@@ -1153,6 +1203,7 @@ function FolderGroup({
   onToggle,
   onStart,
   onActions,
+  onCopy,
   todayId = null,
 }: {
   name: string;
@@ -1163,12 +1214,14 @@ function FolderGroup({
   onToggle: () => void;
   onStart: (routineId: string) => void;
   onActions: (r: Routine) => void;
+  /** 코치 루틴 「내 루틴으로 복사」(SPEC-050 P3a) */
+  onCopy: (routineId: string) => void;
   /** 오늘 할 루틴 id — 그 줄에 「오늘」 칩. */
   todayId?: string | null;
 }) {
   const [preview, setPreview] = useState<Routine | null>(null); // 루틴 미리보기(SPEC-045)
   return (
-    <Card className="mb-[var(--spacing-md)]">
+    <Card className="mb-[var(--spacing-md)]" data-testid="folder-group">
       {preview ? (
         <RoutinePreviewSheet
           repo={repo}
@@ -1185,6 +1238,12 @@ function FolderGroup({
             const id = preview.id;
             setPreview(null);
             navigate(`/routines/${id}`);
+          }}
+          origin={preview}
+          onCopy={() => {
+            const id = preview.id;
+            setPreview(null);
+            onCopy(id);
           }}
         />
       ) : null}
@@ -1211,6 +1270,8 @@ function FolderGroup({
             <div
               key={r.id}
               className="mt-[var(--spacing-sm)] flex items-center border-(--color-line) border-t pt-[var(--spacing-sm)] pl-[var(--spacing-md)]"
+              style={originStripeStyle(r)} // 코치 루틴 왼쪽 청록 띠(SPEC-050 P3a)
+              data-origin={r.origin ?? undefined}
             >
               {/* [개선] 폴더 안 줄도 종목 한 줄 · 누르면 미리보기(SPEC-045) */}
               <button
@@ -1226,7 +1287,8 @@ function FolderGroup({
                   </AppText>
                   {r.id === todayId ? <TodayChip /> : null}
                 </span>
-                <ExerciseLine repo={repo} routineId={r.id} />
+                {/* [원본] <ExerciseLine repo={repo} routineId={r.id} /> — 종목 줄 쪽에 출처 칩(SPEC-050 P3a) */}
+                <ExerciseLineWithOrigin repo={repo} routine={r} />
                 {/* aria-label 은 안의 글(오늘 칩·종목 한 줄)을 덮어 화면 읽기에서 빠졌다 → 보이는 글 + 숨긴 안내(UX 1) */}
                 <span className="sr-only">{t("routines.previewHint")}</span>
               </button>
@@ -1262,6 +1324,7 @@ function RoutineRow({
   today = false,
   onStart,
   onActions,
+  onCopy,
 }: {
   routine: Routine;
   repo: RoutineRepo | null;
@@ -1270,10 +1333,17 @@ function RoutineRow({
   today?: boolean;
   onStart: () => void;
   onActions: () => void;
+  /** 코치 루틴 「내 루틴으로 복사」(SPEC-050 P3a) */
+  onCopy: () => void;
 }) {
   const [preview, setPreview] = useState(false);
   return (
-    <div className="px-[var(--spacing-lg)] py-[var(--spacing-md)]">
+    // 코치 루틴 왼쪽 청록 띠(SPEC-050 P3a) — 안쪽 그림자라 줄 자리가 그대로다
+    <div
+      className="px-[var(--spacing-lg)] py-[var(--spacing-md)]"
+      style={originStripeStyle(routine)}
+      data-origin={routine.origin ?? undefined}
+    >
       {preview ? (
         <RoutinePreviewSheet
           repo={repo}
@@ -1288,6 +1358,11 @@ function RoutineRow({
           onEdit={() => {
             setPreview(false);
             navigate(`/routines/${routine.id}`);
+          }}
+          origin={routine}
+          onCopy={() => {
+            setPreview(false);
+            onCopy();
           }}
         />
       ) : null}
@@ -1307,7 +1382,8 @@ function RoutineRow({
             </AppText>
             {today ? <TodayChip /> : null}
           </span>
-          <ExerciseLine repo={repo} routineId={routine.id} />
+          {/* [원본] <ExerciseLine repo={repo} routineId={routine.id} /> — 종목 줄 쪽에 출처 칩(SPEC-050 P3a) */}
+          <ExerciseLineWithOrigin repo={repo} routine={routine} />
           {/* aria-label 은 안의 글(오늘 칩·종목 한 줄)을 덮어 화면 읽기에서 빠졌다 → 보이는 글 + 숨긴 안내(UX 1) */}
           <span className="sr-only">{t("routines.previewHint")}</span>
         </button>
