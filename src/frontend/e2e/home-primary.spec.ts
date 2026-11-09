@@ -181,6 +181,21 @@ test("루틴이 있으면 오늘 할 루틴 「시작」이 주 행동, 빠른 �
   await 홈(page);
   await expect(page.getByTestId("next-card")).toContainText("주행동 루틴");
   expect(await filledBrand(page)).toEqual(["btn-start-next"]);
+  // 내 루틴 「▶ 시작」은 옅은 강조(연한 빨강 판 · 빨간 글자) — 빨강 채움 목록에는 들지 않는다(2026-11-09)
+  const tone = await page.getByTestId("btn-start-routine").first().evaluate((el) => {
+    const probe = (v: string) => {
+      const d = document.createElement("div");
+      d.style.color = `var(${v})`;
+      document.body.appendChild(d);
+      const c = getComputedStyle(d).color;
+      d.remove();
+      return c;
+    };
+    const cs = getComputedStyle(el);
+    return { bg: cs.backgroundColor, fg: cs.color, muted: probe("--color-brand-muted"), brand: probe("--color-brand") };
+  });
+  expect(tone.bg).toBe(tone.muted);
+  expect(tone.fg).toBe(tone.brand);
 });
 
 test("스케줄상 오늘 배정이면 오늘 카드 「시작」이 주 행동", async ({ page }) => {

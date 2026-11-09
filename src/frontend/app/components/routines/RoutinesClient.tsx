@@ -945,7 +945,8 @@ function TodayCard({
               title={t("routines.start")}
               icon="play"
               size="sm"
-              variant={primary ? "primary" : "secondary"}
+              // [원본] variant={primary ? "primary" : "secondary"} — 주 행동이 아니면 회색이라 아래 루틴 줄(옅은 강조)보다 약해 보였다(리뷰 2026-11-09)
+              variant={primary ? "primary" : "tonalOnTint"}
               fullWidth={false}
               disabled={busy}
               testId="btn-start-today"
@@ -1115,7 +1116,8 @@ function RecoCard({
             title={t("routines.start")}
             icon="play"
             size="sm"
-            variant={primary ? "primary" : "secondary"}
+            // [원본] variant={primary ? "primary" : "secondary"} — 주 행동이 아니면 회색이라 아래 루틴 줄(옅은 강조)보다 약해 보였다(리뷰 2026-11-09)
+            variant={primary ? "primary" : "tonalOnTint"}
             fullWidth={false}
             disabled={busy}
             testId="btn-start-reco"
@@ -1216,10 +1218,11 @@ function FolderGroup({
                 <span className="sr-only">{t("routines.previewHint")}</span>
               </button>
               {/* 화면 정리 P4 /qa M-1 — 폴더 밖 루틴 줄과 같은 회색 상자 @plm SRS-072 */}
+              {/* [개선 2026-11-09] 폴더 밖 줄과 같이 옅은 강조 · [원본] variant="secondary" */}
               <Button
                 title={t("routines.start")}
                 size="sm"
-                variant="secondary"
+                variant="tonal"
                 icon="play"
                 fullWidth={false}
                 disabled={busy}
@@ -1299,10 +1302,13 @@ function RoutineRow({
           {/* [원본] 루틴마다 빨강 채움 「시작」 — 위 「빠른 운동 시작」과 주 행동이 둘(셋, 넷…)이 됐다(화면 정리 P4)
           <Button title={t("routines.start")} size="sm" fullWidth={false} disabled={busy} testId="btn-start-routine" onPress={onStart} /> */}
           {/* [개선] 회색 상자 버튼 — 빨강 채움은 화면에 하나(빠른 운동 시작) @plm SRS-072 */}
+          {/* [개선 2026-11-09] 회색이라 「누르면 시작」이 눈에 덜 띄었다(사용자 의견) → 옅은 강조(연한 빨강 판·빨간 글자).
+              빨강 채움은 그대로 화면에 하나 — 오늘/다음 운동 카드 · 빠른 운동 · 새 루틴 중 상황별(pickHomePrimary)
+              [원본] variant="secondary" */}
           <Button
             title={t("routines.start")}
             size="sm"
-            variant="secondary"
+            variant="tonal"
             icon="play"
             fullWidth={false}
             disabled={busy}
@@ -1364,10 +1370,11 @@ function CatchUpCard({
           </AppText>
         </div>
         {/* 빨강 채움은 화면에 하나(주 행동은 pickHomePrimary 가 고른다) — 놓친 루틴은 보조 @plm SRS-072 */}
+        {/* [개선 2026-11-09] 내 루틴 「▶ 시작」과 같은 옅은 강조(빨강 채움 아님) · [원본] variant="secondary" */}
         <Button
           title={t("schedule.startThis")}
           size="sm"
-          variant="secondary"
+          variant="tonal"
           fullWidth={false}
           disabled={busy}
           onPress={onStart}

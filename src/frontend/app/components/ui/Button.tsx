@@ -9,7 +9,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { LogoSpinner } from "./LogoSpinner";
 import { Icon, type IconName } from "./Icon";
 
-type Variant = "primary" | "secondary" | "ghost" | "danger" | "quiet";
+type Variant = "primary" | "secondary" | "ghost" | "danger" | "quiet" | "tonal" | "tonalOnTint";
 type Size = "sm" | "md" | "lg";
 
 const HEIGHT: Record<Size, number> = { sm: 36, md: 48, lg: 54 };
@@ -28,6 +28,13 @@ function palette(variant: Variant): { bg: string; fg: string; border?: string } 
     // 조용한 부가 행동 — 상자·빨강 없이 회색 글자(화면 정리 공용 규칙: 빨강은 화면의 주 행동 하나) @plm SRS-072
     case "quiet":
       return { bg: "transparent", fg: "var(--color-ink2)" };
+    // 옅은 강조 — 연한 빨강 판 + 빨간 글자. 여러 개 놓여도 화면이 빨강으로 덮이지 않는 「눌러서 시작」(내 루틴 「▶ 시작」 · 2026-11-09)
+    // 빨강 채움(primary)은 여전히 화면에 하나다
+    case "tonal":
+      return { bg: "var(--color-brand-muted)", fg: "var(--color-brand)" };
+    // 옅은 강조를 연한 빨강 카드(오늘 할 운동·추천 카드) 위에 둘 때 — 판이 카드와 같은 색이라 사라지므로 카드 바탕 판
+    case "tonalOnTint":
+      return { bg: "var(--color-card)", fg: "var(--color-brand)" };
   }
 }
 
