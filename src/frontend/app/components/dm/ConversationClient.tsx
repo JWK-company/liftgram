@@ -372,7 +372,7 @@ export default function ConversationClient({ conversationId }: { conversationId:
 
       {/* [원본] 사진 38px 상자 · TextArea(48px · 아래 여백 · 크기 조절 손잡이) · 「전송」 글자 Button(sm 36px) —
           높이·모양이 제각각이었다(S-23 · 피드백 2026-11-09). 옮기기 전 판은 git a5084b3 의 이 파일 */}
-      {/* [개선] 메신저 입력줄 — 동그란 사진(44) · 둥근 입력칸(44에서 4줄까지 늘어남) · 동그란 전송(44, 쓸 글이 있으면 빨강). 아래 선에 맞춘다 */}
+      {/* [개선] 메신저 입력줄 — 동그란 사진(44) · 입력칸(모서리 radius-md · 44에서 4줄까지 늘어남) · 동그란 전송(44, 쓸 글이 있으면 빨강). 아래 선에 맞춘다 */}
       <div
         data-testid="conv-composer"
         className="sticky bottom-[calc(56px+var(--shell-workout-bar,0px)+env(safe-area-inset-bottom))] z-20 flex items-end gap-[var(--spacing-sm)] border-(--color-line) border-t bg-(--color-surface) px-[var(--spacing-md)] py-[var(--spacing-sm)] lg:bottom-[var(--shell-workout-bar,0px)]"

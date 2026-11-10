@@ -37,7 +37,8 @@ export function AdSlot({ placement, className = "" }: { placement: AdPlacement; 
       className={`mx-auto my-[var(--spacing-xl)] flex h-[100px] w-full max-w-[320px] flex-col items-center justify-center gap-[4px] border-(--color-line-strong) border-y border-dashed text-(--color-ink3) text-[length:var(--text-sm)] ${className}`}
     >
       {/* [원본] <span className="font-semibold">{t("ads.label")}</span> */}
-      <span className="rounded-[var(--radius-sm)] border border-(--color-ink3) px-[6px] py-[1px] font-semibold text-(--color-ink2) text-[11px]">
+      {/* 법적 표시라 작게 줄이지 않는다 — 11px → 본문 작은 글자(--text-sm · P5 리뷰 M-2) */}
+      <span className="rounded-[var(--radius-sm)] border border-(--color-ink3) px-[6px] py-[1px] font-semibold text-(--color-ink2) text-[length:var(--text-sm)]">
         {t("ads.label")}
       </span>
       <span>{t("ads.previewHint")}</span>

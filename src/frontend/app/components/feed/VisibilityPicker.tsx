@@ -33,7 +33,7 @@ export function VisibilityPicker({
             // [개선] SPEC-056 F6·F7 — 고른 칸은 바탕 채움 없이 빨강 테두리 + 굵은 글자 · 누르는 칸 경계는 --color-line-strong
             className={`flex min-h-[44px] flex-1 cursor-pointer items-center justify-center rounded-[var(--radius-md)] border px-[var(--spacing-xs)] text-[length:var(--text-sm)] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-(--color-brand) has-[:focus-visible]:outline-offset-2 has-[:disabled]:cursor-default has-[:disabled]:opacity-60 ${
               on
-                ? "border-(--color-brand) font-semibold text-(--color-ink)"
+                ? "border-(--color-brand) font-semibold text-(--color-ink) shadow-[inset_0_0_0_1px_var(--color-brand)]" /* 고른 칸은 테두리 2px(안쪽 그림자로 · 크기 안 바뀜) — 다크에서도 한눈에(P5 리뷰 M-4) */
                 : "border-(--color-line-strong) text-(--color-ink2)"
             }`}
           >

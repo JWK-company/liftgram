@@ -39,7 +39,9 @@ function palette(variant: Variant): { bg: string; fg: string; border?: string } 
       return { bg: "var(--color-card)", fg: "var(--color-brand)" };
     // 테두리 강조 — 카드 판 + 빨간 테두리·글자. 큰 보조 버튼이 회색 판이라 밋밋할 때(운동 홈 새 루틴·빠른 운동 · 2026-11-09)
     case "outline":
-      return { bg: "var(--color-card)", fg: "var(--color-brand)", border: "var(--color-brand)" };
+      // [원본] return { bg: "var(--color-card)", fg: "var(--color-brand)", border: "var(--color-brand)" };
+      // [개선] 바탕 투명 — 다크에서 카드 판(#2B2B2B)이 바탕(#161616) 위에 회색 판으로 떠 보였다(SPEC-056 P5 리뷰 M-1)
+      return { bg: "transparent", fg: "var(--color-brand)", border: "var(--color-brand)" };
   }
 }
 

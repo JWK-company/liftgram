@@ -508,7 +508,7 @@ function CoachingLine({
         data-testid="profile-coaching-state"
         // [원본] className="… rounded-[var(--radius-sm)] bg-(--color-surface-alt)" — 회색 채움 막대
         // [개선] SPEC-056 F4 — 회색 채움 대신 secondary 와 같은 테두리(--color-line-strong) 버튼
-        className="mt-[var(--spacing-sm)] flex min-h-12 items-center justify-center gap-[var(--spacing-xs)] rounded-[var(--radius-md)] border border-(--color-line-strong)"
+        className="mt-[var(--spacing-sm)] flex min-h-12 items-center justify-center gap-[var(--spacing-xs)] rounded-[var(--radius-sm)] border border-(--color-line-strong)"
       >
         {active ? (
           <CoachingActiveBadge testId="profile-coaching-active" />

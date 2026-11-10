@@ -350,7 +350,7 @@ export function WorkoutBox({
             </div>
           ) : null}
 
-          {/* 2칸 버튼 — 주 행동(바로 시작)만 채운다. 글자가 꺾이지 않게 한 줄(F1 · D7) */}
+          {/* 2칸 버튼 — 「바로 시작」은 글마다 되풀이라 테두리 강조(outline · SPEC-056 F4), 「가져오기」는 보조. 글자가 꺾이지 않게 한 줄(F1 · D7) */}
           <div className="mt-[var(--spacing-sm)] grid grid-cols-2 gap-[var(--spacing-sm)]">
             <Button
               testId="post-start-now"

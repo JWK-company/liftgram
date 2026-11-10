@@ -140,6 +140,12 @@ for (const scheme of ["light", "dark"] as const) {
       "/gear",
       "/history",
       "/routines/new",
+      // Phase 5 화면(P5 리뷰 M-3) — 로그인 전이면 안내 화면을 같은 규칙으로 본다
+      "/feed",
+      "/people",
+      "/messages",
+      "/notifications",
+      "/explore",
     ]) {
       await page.goto(route);
       await page.waitForTimeout(1500);

@@ -83,7 +83,7 @@ export default function ConversationsClient() {
             href="/messages/new"
             data-testid="dm-new"
             // [원본] rounded-[var(--radius-pill)] — 버튼 알약(SPEC-056 F2 금지) · [개선] 모서리 토큰 md
-            className="flex min-h-11 shrink-0 items-center gap-[2px] whitespace-nowrap rounded-[var(--radius-md)] border border-(--color-line-strong) px-[var(--spacing-md)] font-medium text-(--color-ink) text-[length:var(--text-sm)] active:bg-(--color-surface-alt)"
+            className="flex min-h-11 shrink-0 items-center gap-[2px] whitespace-nowrap rounded-[var(--radius-sm)] border border-(--color-line-strong) px-[var(--spacing-md)] font-medium text-(--color-ink) text-[length:var(--text-sm)] active:bg-(--color-surface-alt)"
           >
             <Icon name="add" size={18} color="var(--color-ink)" />
             {t("dm.newMessage")}

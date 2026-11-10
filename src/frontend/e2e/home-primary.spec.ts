@@ -230,7 +230,9 @@ test("루틴이 있으면 오늘 할 루틴 「시작」이 주 행동, 빠른 �
     expect(o.border, id).toBe(o.brand);
     expect(o.bw, id).toBe("1px");
     expect(o.fg, id).toBe(o.brand);
-    expect(o.bg, id).toBe(o.card); // 회색 판(surface-alt)으로 돌아가면 잡힌다(리뷰)
+    // [원본] expect(o.bg, id).toBe(o.card); // 회색 판(surface-alt)으로 돌아가면 잡힌다(리뷰)
+    // [개선] outline 바탕은 투명(SPEC-056 P5 리뷰 M-1 — 다크에서 카드 판이 떠 보였다) · 회색 판으로 돌아가면 여전히 잡힌다
+    expect(o.bg, id).toBe("rgba(0, 0, 0, 0)");
   }
 });
 
