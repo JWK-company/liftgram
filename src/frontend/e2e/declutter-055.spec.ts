@@ -108,7 +108,24 @@ test("운동 화면 머리 「취소」 — ⋯ 없음 · 44px · 「완료」�
   await expect(cancel).toHaveAttribute("aria-label", "운동 취소(삭제)");
   const cb = await cancel.boundingBox();
   const db = await page.getByTestId("btn-complete").boundingBox();
-  expect(cb?.height ?? 0).toBeGreaterThanOrEqual(44);
+  // [원본] expect(cb?.height ?? 0).toBeGreaterThanOrEqual(44);
+  // [개선] 보이는 크기·세로 가운데는 「완료」와 같다(사용자 지적 — 혼자 44px 라 줄이 안 맞았다) · 누르는 자리는 ::before 로 44px
+  expect(Math.abs((cb?.height ?? 0) - (db?.height ?? 0)), "「완료」와 같은 높이").toBeLessThanOrEqual(1);
+  expect(
+    Math.abs((cb?.y ?? 0) + (cb?.height ?? 0) / 2 - ((db?.y ?? 0) + (db?.height ?? 0) / 2)),
+    "「완료」와 같은 세로 가운데",
+  ).toBeLessThanOrEqual(1);
+  const hit = await cancel.evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const at = (y: number) => el.contains(document.elementFromPoint(cx, y));
+    return {
+      up: at(r.top - 3.5),
+      down: at(r.bottom + 3.5),
+      h: Math.abs(parseFloat(getComputedStyle(el, "::before").height) - 44) <= 0.5,
+    };
+  });
+  expect(hit, "누르는 자리 44px(테두리 안쪽에서 위아래 5px)").toEqual({ up: true, down: true, h: true });
   expect((cb?.x ?? 0) - ((db?.x ?? 0) + (db?.width ?? 0)), "「완료」와 간격").toBeGreaterThanOrEqual(8);
   // 회색 글자·테두리 — 빨강 채움이 아니다
   const style = await cancel.evaluate((el) => {

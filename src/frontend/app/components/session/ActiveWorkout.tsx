@@ -462,7 +462,10 @@ export default function ActiveWorkout() {
             data-testid="btn-discard"
             aria-label={t("session.discardWorkoutButton")}
             onClick={() => setConfirmDiscard(true)}
-            className="ml-[6px] h-[44px] shrink-0 rounded-[var(--radius-pill)] border border-(--color-line) px-[12px] font-semibold text-(--color-ink2) text-[length:var(--text-sm)] active:bg-(--color-surface-alt)"
+            // [원본] className="ml-[6px] h-[44px] shrink-0 rounded-[var(--radius-pill)] border border-(--color-line) px-[12px] font-semibold text-(--color-ink2) text-[length:var(--text-sm)] active:bg-(--color-surface-alt)"
+            // [개선] 보이는 크기는 「완료」(sm · 36px · 같은 좌우 여백)와 같게 — 44px 가 혼자 커서 줄이 안 맞았다(2026-11-10 사용자 지적).
+            //   누르는 자리는 ::before 로 위아래 5px(테두리 1px 안쪽 기준) 늘려 44px 그대로.
+            className="relative ml-[6px] h-[36px] shrink-0 rounded-[var(--radius-pill)] border border-(--color-line) px-[var(--spacing-md)] font-semibold text-(--color-ink2) text-[length:var(--text-sm)] before:absolute before:inset-x-0 before:-inset-y-[5px] before:content-[''] focus-visible:outline-2 focus-visible:outline-(--color-brand) focus-visible:outline-offset-2 active:bg-(--color-surface-alt)"
           >
             {t("session.discardHeaderButton")}
           </button>
