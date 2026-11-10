@@ -4,6 +4,9 @@
 import { expect, type Page, test } from "@playwright/test";
 import { 내려쓰기_대기 } from "./helpers/opengym";
 
+// 2026-11-10 앱에서 뗌(ADR-064 보류) — 다시 붙이면 아래 skip 한 줄을 지운다
+test.skip(true, "영상·글로 루틴 가져오기 — 앱에서 뗌(ADR-064)");
+
 const DESCRIBE = "**/video.v1.VideoService/DescribeVideo";
 const VID = "dQw4w9WgXcQ";
 /** 원문 표식 — 이 글자가 저장소·요청 본문 어디에도 남으면 안 된다(ADR-063) */

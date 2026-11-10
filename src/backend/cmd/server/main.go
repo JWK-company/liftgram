@@ -54,7 +54,7 @@ import (
 	"github.com/JWK-company/liftgram/src/backend/gen/story/v1/storyv1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/sync/v1/syncv1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/usage/v1/usagev1connect"
-	"github.com/JWK-company/liftgram/src/backend/gen/video/v1/videov1connect"
+	// [원본] "github.com/JWK-company/liftgram/src/backend/gen/video/v1/videov1connect" — SPEC-054 뗌(ADR-064)
 	"github.com/JWK-company/liftgram/src/backend/internal/admin"
 	"github.com/JWK-company/liftgram/src/backend/internal/auth"
 	"github.com/JWK-company/liftgram/src/backend/internal/coaching"
@@ -80,7 +80,7 @@ import (
 	"github.com/JWK-company/liftgram/src/backend/internal/story"
 	syncdomain "github.com/JWK-company/liftgram/src/backend/internal/sync"
 	"github.com/JWK-company/liftgram/src/backend/internal/usage"
-	"github.com/JWK-company/liftgram/src/backend/internal/video"
+	// [원본] "github.com/JWK-company/liftgram/src/backend/internal/video" — SPEC-054 뗌(ADR-064)
 )
 
 // 헬스체크 모드 — 컨테이너 이미지에 curl·wget을 넣지 않기 위해 **서버 자신이** 확인한다.
@@ -411,15 +411,17 @@ func main() {
 	usagePath, usageHTTP := usagev1connect.NewUsageServiceHandler(usage.NewHandler(usageSvc), opts, connect.WithReadMaxBytes(64*1024))
 	mount(mux, usagePath, usageHTTP)
 
-	// ── 영상 정보(SPEC-054) ── 로그인 필요 · 사용자당 분 6·하루 50 · 서버 하루 8,000 · 본문 4KB · 키 없으면 Unavailable.
-	var videoFetch video.Fetcher
-	if cfg.YouTubeAPIKey != "" {
-		videoFetch = video.NewClient(cfg.YouTubeAPIKey)
-	}
-	videoSvc := video.NewService(videoFetch, limiter, time.Now)
-	slog.Info("영상 정보", "youtube", videoSvc.Enabled())
-	videoPath, videoHTTP := videov1connect.NewVideoServiceHandler(video.NewHandler(videoSvc), opts, connect.WithReadMaxBytes(4*1024))
-	mount(mux, videoPath, videoHTTP)
+	// ── 영상 정보(SPEC-054) ── 2026-11-10 앱에서 뗌(ADR-064 보류) — 다시 붙이면 아래 [원본] 과 import 두 줄을 살린다.
+	// [원본] 로그인 필요 · 사용자당 분 6·하루 50 · 서버 하루 8,000 · 본문 4KB · 키 없으면 Unavailable.
+	// var videoFetch video.Fetcher
+	// if cfg.YouTubeAPIKey != "" {
+	// 	videoFetch = video.NewClient(cfg.YouTubeAPIKey)
+	// }
+	// videoSvc := video.NewService(videoFetch, limiter, time.Now)
+	// slog.Info("영상 정보", "youtube", videoSvc.Enabled())
+	// videoPath, videoHTTP := videov1connect.NewVideoServiceHandler(video.NewHandler(videoSvc), opts, connect.WithReadMaxBytes(4*1024))
+	// mount(mux, videoPath, videoHTTP)
+	// [개선] VideoService 를 마운트하지 않는다(ADR-064)
 
 	// ── 스토리 ──
 	// 24시간 뒤 안 보인다. 시계는 주입한다(테스트가 시간을 움직일 수 있게).

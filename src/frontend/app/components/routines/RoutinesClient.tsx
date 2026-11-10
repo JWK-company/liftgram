@@ -97,13 +97,14 @@ export default function RoutinesClient() {
   // activeLoaded — 진행 중인 운동을 읽기 전의 null 은 「없음」이 아니라 「모름」(화면 정리 M-2 /qa H-2) @plm SRS-072
   const { activeWorkoutId, setActive, activeLoaded } = useSession();
   const toast = useToast();
-  // 가져오기에서 여러 날을 저장하고 왔으면 한 번 알린다(SPEC-054 · 표식은 sessionStorage 한 칸 — 주소에 싣지 않는다)
-  useEffect(() => {
-    void import("@/lib/importDraft").then((m) => {
-      const n = m.takeImportToast();
-      if (n) toast(t("routineImport.saved", { count: n }));
-    });
-  }, [toast]);
+  // [원본] 가져오기에서 여러 날을 저장하고 왔으면 한 번 알린다(SPEC-054) — 2026-11-10 앱에서 뗌(ADR-064 보류)
+  // useEffect(() => {
+  //   void import("@/lib/importDraft").then((m) => {
+  //     const n = m.takeImportToast();
+  //     if (n) toast(t("routineImport.saved", { count: n }));
+  //   });
+  // }, [toast]);
+  // [개선] 알림 없음 — 가져오기 화면이 없다(ADR-064)
 
   const [repos, setRepos] = useState<{
     routine: RoutineRepo;
@@ -596,7 +597,7 @@ export default function RoutinesClient() {
           </div>
         </div>
 
-        {/* 영상·글로 가져오기(SPEC-054) — 판단 뒤에만 · 강조색 없는 글자 링크(빨강은 위 버튼 줄의 것) */}
+        {/* [원본] 영상·글로 가져오기(SPEC-054) 진입 링크 — 2026-11-10 앱에서 뗌(정확도·편의 미달 · ADR-064 보류). 다시 붙이면 이 블록을 살린다
         {homeReady ? (
           <div className="-mt-[var(--spacing-xs)] mb-[var(--spacing-md)]">
             <a
@@ -608,6 +609,8 @@ export default function RoutinesClient() {
             </a>
           </div>
         ) : null}
+        */}
+        {/* [개선] 진입 링크 없음(ADR-064) */}
 
         {/* ── 오늘의 안내 ── */}
         {primary?.kind === "routine" ? null : todayGuide()}

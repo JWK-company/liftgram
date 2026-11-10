@@ -47,8 +47,9 @@ export default function TermsPage() {
       {/* SPEC-054 — YouTube API 서비스 개발자 정책 III.A.1: 이용자가 YouTube 서비스 약관에 동의한다는 조항 */}
       <h2 id="youtube">3-1. YouTube 영상 가져오기</h2>
       <p data-testid="terms-youtube">
-        영상·글로 루틴 가져오기와 영상 보며 받아 적기는 YouTube API 서비스를 씁니다. 이 기능을 쓰면 이용자는
-        YouTube 서비스 약관(
+        (2026년 11월 10일부터 이 기능은 제공을 멈췄습니다. 다시 열 때 이 조항을 따릅니다.) 영상·글로 루틴
+        가져오기와 영상 보며 받아 적기는 YouTube API 서비스를 씁니다. 이 기능을 쓰면 이용자는 YouTube 서비스
+        약관(
         <a
           className="underline"
           href="https://www.youtube.com/t/terms"

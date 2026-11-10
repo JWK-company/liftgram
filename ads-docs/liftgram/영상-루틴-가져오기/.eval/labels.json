@@ -1,0 +1,20 @@
+{
+ "AvD08x6Fnn4": {"req":["Side Lateral Raise","Cable Lateral Raise","Cable Rear Delt Fly"]},
+ "m3UP53yzc0g": {"req":["Rear Delt Fly","Front Raise (Cable)","Front Raise","Side Lateral Raise"],"opt":["Plate Front Raise"]},
+ "d2r9nVh-yx4": {"req":["Barbell Behind the Neck Press","Cable Lateral Raise","Dumbbell Shoulder Press","Side Lateral Raise","Upright Row","Reverse Pec Deck"],"opt":["Overhead Press"]},
+ "vMLYQm2Q_q0": {"req":["Side Lateral Raise","Cable Rear Delt Fly"],"opt":["Overhead Press","Dumbbell Shoulder Press"]},
+ "PVKRn7ADeLQ": {"req":["Dumbbell Shoulder Press","Smith Behind the Neck Press","Side Lateral Raise","Rear Delt Fly"]},
+ "Hdwkvf-1RYM": {"req":["Shoulder Press Machine","Side Lateral Raise","Reverse Pec Deck"]},
+ "0qb5CBFBiOo": {"req":["Hack Squat","Deadlift","Seated Leg Curl"],"opt":["Barbell Squat","Split Squat","Lying Leg Curl"]},
+ "YHZSd5H6ppY": {"req":["Straight Arm Pulldown","Pull Up","Romanian Deadlift","Lat Pulldown","EZ-Bar Curl","Dumbbell Curl"]},
+ "sYUeOvZr1_8": {"req":["Barbell Bench Press"],"opt":["Incline Press","Incline Press (Dumbbell)","Dumbbell Fly","Pec Deck Fly","Chest Press Machine"]},
+ "fbpfEbVAUnY": {"req":["Dumbbell Pullover","Incline Press (Smith)","Dips"],"opt":["Cable Crossover","Pec Deck Fly","Low Cable Fly"]},
+ "Q4roxzMNNi8": {"req":["Barbell Bench Press","Incline Press (Dumbbell)","Pec Deck Fly","Assisted Dip"]},
+ "RvRWlBQadGI": {"req":["Cable Overhead Extension","Triceps Pushdown","Overhead Triceps Extension","Machine Curl","Dumbbell Curl","Concentration Curl"]},
+ "EPO1iJiRNZ4": {"req":["Concentration Curl","Incline Dumbbell Curl","EZ-Bar Reverse Curl"],"opt":["Dumbbell Curl","Barbell Curl","Hammer Curl"]},
+ "E-DCLPwZwUI": {"req":["Lat Pulldown","Smith Machine Bench Press","Leg Press","Lying Leg Curl","Dumbbell Shoulder Press"],"opt":["Seated Leg Curl"]},
+ "zLpMYFXT9jA": {"req":["Leg Extension","Leg Press","Lying Leg Curl","Barbell Squat"],"opt":["Seated Leg Curl"]},
+ "PV5GFGz6O-Q": {"req":["Close Grip Bench Press","Triceps Pushdown","Barbell Curl"],"opt":["EZ-Bar Skull Crusher","Skull Crusher","Overhead Triceps Extension"]},
+ "SjX5Hq59txg": {"req":["Barbell Bench Press","Dips","Overhead Triceps Extension","Lat Pulldown","Seated Cable Row","Barbell Curl","Hammer Curl","Barbell Squat","Deadlift","Standing Calf Raise","Seated Calf Raise"],"opt":["Dumbbell Bench Press","Pull Up","Dumbbell Row","Dumbbell Shoulder Press","Overhead Press"]},
+ "hIJhYHw7vSA": {"req":["Barbell Bench Press","Incline Press (Dumbbell)"],"partial":true}
+}
