@@ -471,7 +471,9 @@ export default function ActiveWorkout() {
           </button>
         </div>
 
-        <div className="flex-1 p-[var(--spacing-lg)]">
+        {/* [원본] <div className="flex-1 p-[var(--spacing-lg)]"> */}
+        {/* [개선] 평평한 기록지 시험판 — 본문은 흰 종이 한 장, 종목은 상자 대신 구분선 구역 */}
+        <div className="flex-1 bg-(--color-card) px-[var(--spacing-lg)] pb-[var(--spacing-lg)]">
           {/* 오늘 체중 — 맨 위 한 줄 · 안 써도 그만(SPEC-049 · S-4). workout-exercises 밖(첫 종목 칸을 집는 시험이 그대로) */}
           {now != null ? <WeighInRow now={now} /> : null}
           {exercises.length === 0 ? (
@@ -484,25 +486,35 @@ export default function ActiveWorkout() {
             <div data-testid="workout-exercises">
               {rows.map((row, i) =>
                 row.kind === "group" ? (
-                  <SupersetContainer
+                  // 종목 사이 띠는 묶음 바깥에도 같게(SPEC-056 REV-122)
+                  <div
                     key={row.group}
-                    onUnlink={() => unlink(row.members)}
-                    onMoveUp={i > 0 ? () => moveRow(i, -1) : undefined}
-                    onMoveDown={i < rows.length - 1 ? () => moveRow(i, 1) : undefined}
+                    className="-mx-[var(--spacing-lg)] px-[var(--spacing-lg)] [&+&]:border-(--color-surface-alt) [&+&]:border-t-8"
                   >
-                    {row.members.map((m, mi) => (
-                      <div key={m.id}>
-                        {mi > 0 ? <div className="my-[4px] h-px bg-(--color-line)" /> : null}
-                        {block(m, {
-                          insideSuperset: true,
-                          onRoundToggle: (setNumber, next, setId, kg, reps) =>
-                            roundToggle(row.members, setNumber, next, setId, kg, reps),
-                        })}
-                      </div>
-                    ))}
-                  </SupersetContainer>
+                    <SupersetContainer
+                      onUnlink={() => unlink(row.members)}
+                      onMoveUp={i > 0 ? () => moveRow(i, -1) : undefined}
+                      onMoveDown={i < rows.length - 1 ? () => moveRow(i, 1) : undefined}
+                    >
+                      {row.members.map((m, mi) => (
+                        <div key={m.id}>
+                          {mi > 0 ? <div className="my-[4px] h-px bg-(--color-line)" /> : null}
+                          {block(m, {
+                            insideSuperset: true,
+                            onRoundToggle: (setNumber, next, setId, kg, reps) =>
+                              roundToggle(row.members, setNumber, next, setId, kg, reps),
+                          })}
+                        </div>
+                      ))}
+                    </SupersetContainer>
+                  </div>
                 ) : (
-                  <div key={row.we.id}>
+                  // [원본] <div key={row.we.id}>
+                  // [개선] 종목 사이 = 폭 전체 8px 옅은 띠(세트 줄 1px 선과 두 단계 · SPEC-056 REV-122)
+                  <div
+                    key={row.we.id}
+                    className="-mx-[var(--spacing-lg)] px-[var(--spacing-lg)] [&+&]:border-(--color-surface-alt) [&+&]:border-t-8"
+                  >
                     {block(row.we, {
                       onMoveUp: i > 0 ? () => moveRow(i, -1) : undefined,
                       onMoveDown: i < rows.length - 1 ? () => moveRow(i, 1) : undefined,
@@ -513,11 +525,13 @@ export default function ActiveWorkout() {
             </div>
           )}
 
-          <div className="mt-[var(--spacing-sm)]">
+          {/* [원본] <div className="mt-[var(--spacing-sm)]"> · variant="secondary"(회색 막대) */}
+          {/* [개선] 평평한 기록지 시험판 — 보조 행동은 글자 버튼(채운 버튼은 머리 「완료」 하나) */}
+          <div className="mt-[var(--spacing-sm)] flex">
             <Button
               title={t("session.addExercise")}
               icon="add"
-              variant="secondary"
+              variant="quiet" // 보조 행동 — 회색 글자(SPEC-056 F4)
               disabled={busy || adding}
               testId="btn-add-exercise"
               onPress={() => setPicking({ mode: "add" })}
@@ -940,10 +954,13 @@ function SupersetContainer({
   return (
     // [원본] 빨간 테두리 + 빨간 머리띠 — 묶음은 「구역」 표시라 진한 회색 테두리 + 회색 caption(화면 정리 P1) @plm SRS-069
     // <div className="… border-[1.5px] border-(--color-brand) …"><div className="… bg-(--color-brand-muted) …">
-    <div className="mb-[var(--spacing-lg)] overflow-hidden rounded-[var(--radius-lg)] border-[1.5px] border-(--color-line-strong) bg-(--color-surface)">
+    // [원본] <div className="mb-[var(--spacing-lg)] overflow-hidden rounded-[var(--radius-lg)] border-[1.5px] border-(--color-line-strong) bg-(--color-surface)">
+    // [개선] 평평한 기록지(SPEC-056 F1) — 상자 대신 머리 줄 + 묶인 종목 왼쪽 3px 진한 회색 선
+    <div data-testid="superset-group" className="py-[var(--spacing-sm)]">
       {/* [원본] py-[var(--spacing-xs)] — compact 순서 버튼의 넓힌 누르는 자리(44px)가 overflow-hidden 에 위아래로 잘렸다(/qa code L-1) */}
       {/* 머리 줄 높이 44px(py-0) — 「해제」 누르는 자리를 음수 마진 없이 44px로(P1 코드 리뷰 정확성 7) · [원본] py-[8px] */}
-      <div className="flex min-h-[44px] items-center bg-(--color-surface-alt) px-[var(--spacing-md)]">
+      {/* [원본] <div className="flex min-h-[44px] items-center bg-(--color-surface-alt) px-[var(--spacing-md)]"> */}
+      <div className="flex min-h-[44px] items-center">
         {/* [원본] 20×20 위아래가 세로로 붙어 있었다 — 블록과 같은 이유(잘못 눌림 · /qa code M-5)로 좌우·누르는 자리 44px(피드백 #62) @plm SRS-084
         {onMoveUp || onMoveDown ? (
           <div className="mr-[6px] flex flex-col gap-[2px]">
@@ -974,7 +991,8 @@ function SupersetContainer({
           </AppText>
         </button>
       </div>
-      <div className="px-[var(--spacing-md)] py-[4px]">{children}</div>
+      {/* [원본] <div className="px-[var(--spacing-md)] py-[4px]">{children}</div> */}
+      <div className="border-(--color-line-strong) border-l-[3px] pl-[var(--spacing-md)]">{children}</div>
     </div>
   );
 }

@@ -158,7 +158,8 @@ html[data-app-boot] #app-boot-cover {
   height: 100dvh; /* 상태바 영역까지 포함한 화면 가운데 — 네이티브 스플래시의 중심과 같게 */
   /* [원본] background: var(--color-bg); — 앱에서 고른 테마(data-theme)를 따라, OS 테마를 따르는 네이티브 스플래시와
      바탕이 달라 내려가는 순간 번쩍였다(REV-004 웹 1). 덮개는 OS 기준 고정색 · 앱 테마로는 200ms 페이드로 넘어간다. */
-  background: #f7f7f7;
+  /* [원본] background: #f7f7f7; · [개선] SPEC-056 F3 바탕 흰색 */
+  background: #ffffff;
   /* CSS 안전망 — 하이드레이션이 실패해도(스크립트 오류) 8초 뒤 덮개가 스스로 사라진다(REV-003 N-1) */
   animation: app-boot-safety 0.2s linear 8s forwards;
 }

@@ -2,7 +2,7 @@
 /* 라이트가 기본이고, 기기 설정이 다크면 다크(사용자가 프로필에서 고르면 data-theme 이 이긴다). */
 :root {
   color-scheme: light;
-  --p-bg: #F7F7F7;
+  --p-bg: #FFFFFF;
   --p-card: #FFFFFF;
   --p-surface: #FFFFFF;
   --p-surface-alt: #F1F2F4;
@@ -125,9 +125,9 @@
   --spacing-lg: 16px;
   --spacing-xl: 24px;
   --spacing-xxl: 32px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
   --radius-pill: 999px;
   --text-xs: 12px;
   --text-sm: 14px;

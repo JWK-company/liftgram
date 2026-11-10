@@ -278,7 +278,8 @@ export function SpareRepsCell({
         }}
         // [원본] 겉보기 32 × 40 · ::before 위아래 2px 로 누르는 높이 44 · ✓ 와 8px(gap 4 + mr 4) — className={`relative mr-[4px] …`}
         // [개선] 줄 간격이 2px 가 되어 ✓ 와 8px = gap 2 + mr 6(표 머리 head-spare 도 mr 6 · REV H-1)
-        className={`relative mr-[6px] flex h-10 w-[32px] shrink-0 select-none items-center justify-center rounded-[var(--radius-sm)] bg-(--color-surface-alt) text-[length:var(--text-sm)] tabular-nums [-webkit-touch-callout:none] before:absolute before:inset-x-0 before:-inset-y-[2px] before:content-[''] focus-visible:outline-2 focus-visible:outline-(--color-brand) ${
+        // [원본] … rounded-[var(--radius-sm)] bg-(--color-surface-alt) … — 회색 판 · [개선] 입력칸과 같은 테두리 칸(SPEC-056 F5·F7)
+        className={`relative mr-[6px] flex h-10 w-[32px] shrink-0 select-none items-center justify-center rounded-[var(--radius-sm)] border border-(--color-line-strong) bg-(--color-card) text-[length:var(--text-sm)] tabular-nums [-webkit-touch-callout:none] before:absolute before:inset-x-0 before:-inset-y-[2px] before:content-[''] focus-visible:outline-2 focus-visible:outline-(--color-brand) ${
           shown == null ? "text-(--color-ink3)" : "font-semibold text-(--color-ink)"
         }`}
       >

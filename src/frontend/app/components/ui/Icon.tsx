@@ -26,6 +26,7 @@ import {
   IoChatbubbleOutline,
   IoChatbubblesOutline,
   IoCheckmark,
+  IoCheckmarkSharp,
   IoCheckmarkCircle,
   IoCheckmarkCircleOutline,
   IoChevronBack,
@@ -120,6 +121,7 @@ const GLYPHS = {
   "chatbubble-outline": IoChatbubbleOutline,
   "chatbubbles-outline": IoChatbubblesOutline,
   checkmark: IoCheckmark,
+  "checkmark-bold": IoCheckmarkSharp, // 완료 세트 ✓(SPEC-056 F6)
   "checkmark-circle": IoCheckmarkCircle,
   "checkmark-circle-outline": IoCheckmarkCircleOutline,
   "chevron-back": IoChevronBack,

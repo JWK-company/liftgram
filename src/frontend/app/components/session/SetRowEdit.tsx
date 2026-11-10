@@ -337,8 +337,11 @@ export function SetRowEdit({
     <div
       data-testid={`set-${set.id}`}
       // 마친 세트는 조용하게(SRS-054) — 붉은 판 대신 옅은 초록, 입력칸은 흐리게. 남은 세트가 눈에 띈다.
-      style={{ backgroundColor: isDone ? "var(--color-ok-soft)" : undefined }}
-      className="rounded-[var(--radius-sm)]"
+      // [원본] style={{ backgroundColor: isDone ? "var(--color-ok-soft)" : undefined }} · className="rounded-[var(--radius-sm)]"
+      // [개선] 평평한 기록지 시험판 — 줄을 채우지 않는다. 세트 사이는 가는 선, 완료는 ✓ 색과 글자 진하기로
+      className="border-(--color-line) border-t"
+      // 완료 = 왼쪽 3px 초록 강조선(색만으로 가르지 않게 굵은 ✓ 와 함께 · SPEC-056 F6 · REV-122)
+      style={isDone ? { boxShadow: "inset 3px 0 0 var(--color-ok)" } : undefined}
     >
       {/* [원본] <div className="flex items-center gap-[4px] py-[4px]"> */}
       {/* [개선] 칸 사이 2px — 이전 칸에 「102.5×12」 자리를 내려고(360px · REV H-1). ✓·⌄ 앞은 따로 여백을 둔다 */}
@@ -444,7 +447,7 @@ export function SetRowEdit({
           onMouseUp={keepSelectAllOnMouseUp}
           // [원본] className="h-10 min-w-0 flex-1 …" — 무게·횟수 같은 폭
           // [개선] 무게 3 : 횟수 2 — 「102.5」 는 넓고 「12」 는 좁다(여유 칸이 들어온 360px · REV-118 U3)
-          className="h-10 min-w-0 flex-[3] rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center font-semibold text-[length:var(--text-md)] text-(--color-ink) disabled:border-transparent disabled:bg-transparent disabled:text-(--color-ink2)"
+          className="h-10 min-w-0 flex-[3] rounded-[var(--radius-sm)] border border-(--color-line-strong) bg-(--color-card) text-center font-semibold text-[length:var(--text-md)] text-(--color-ink) disabled:border-transparent disabled:bg-transparent disabled:text-(--color-ink2)"
         />
         <input
           ref={repsRef}
@@ -464,7 +467,7 @@ export function SetRowEdit({
           onMouseUp={keepSelectAllOnMouseUp}
           // [원본] className="h-10 min-w-0 flex-1 …"
           // [개선] 무게 3 : 횟수 2 — 회 칸은 「12」·「100」 이면 충분하다(무게 칸과 짝 · REV-118 U3)
-          className="h-10 min-w-0 flex-[2] rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center font-semibold text-[length:var(--text-md)] text-(--color-ink) disabled:border-transparent disabled:bg-transparent disabled:text-(--color-ink2)"
+          className="h-10 min-w-0 flex-[2] rounded-[var(--radius-sm)] border border-(--color-line-strong) bg-(--color-card) text-center font-semibold text-[length:var(--text-md)] text-(--color-ink) disabled:border-transparent disabled:bg-transparent disabled:text-(--color-ink2)"
         />
 
         {/* 여유(SPEC-055 Phase 3) — 완료한 세트에서도 눌린다 · 워밍업은 같은 폭의 빈 자리 */}
@@ -512,14 +515,19 @@ export function SetRowEdit({
             onToggleDone(!isDone, ...currentValues());
           }}
           style={{
-            backgroundColor: isDone ? "var(--color-ok)" : "var(--color-surface-alt)",
-            borderColor: isDone ? "var(--color-ok)" : "var(--color-line)",
+            // [원본] backgroundColor: isDone ? "var(--color-ok)" : "var(--color-surface-alt)",
+            // [원본] borderColor: isDone ? "var(--color-ok)" : "var(--color-line)",
+            // [개선] 평평한 기록지 시험판 — 채운 초록 칸 대신 판 없는 ✓(완료=초록 굵은 ✓ · 남음=테두리만)
+            backgroundColor: "transparent",
+            borderColor: isDone ? "transparent" : "var(--color-line-strong)", // 누르는 것의 경계 3:1(F7)
           }}
           // [원본] className="flex h-10 w-[38px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] border"
           // [개선] 겉보기 32 × 40 · 누르는 자리는 ::before 로 44 × 44(좌우 6 · 위아래 2 — 여유 칸과 ⌄ 의 누르는 자리와 겹치지 않는다 · REV H-1)
           className="relative flex h-10 w-[32px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] border before:absolute before:-inset-x-[6px] before:-inset-y-[2px] before:content-['']"
         >
-          <Icon name="checkmark" size={16} color={isDone ? "var(--color-on-brand)" : "var(--color-ink3)"} />
+          {/* [원본] <Icon name="checkmark" size={16} color={isDone ? "var(--color-on-brand)" : "var(--color-ink3)"} /> */}
+          {/* 미완료 = 빈 칸(✓ 없음) · 완료 = 굵은 초록 ✓(SPEC-056 F6) */}
+          {isDone ? <Icon name="checkmark-bold" size={24} color="var(--color-ok)" /> : null}
         </button>
 
         <button

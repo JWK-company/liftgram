@@ -955,7 +955,11 @@ export function ExerciseBlock({
   return (
     <Card
       className={
-        insideSuperset ? "border-0! bg-transparent! p-0! py-[var(--spacing-sm)]!" : "mb-[var(--spacing-lg)]"
+        insideSuperset
+          ? "border-0! bg-transparent! p-0! py-[var(--spacing-sm)]!"
+          : // [원본] "mb-[var(--spacing-lg)]"
+            // [개선] 평평한 기록지(SPEC-056 F1) — 상자 없이. 종목 사이 구분은 ActiveWorkout 의 폭 전체 8px 띠가 맡는다(선 두 단계 · REV-122)
+            "border-0! bg-transparent! px-0! py-[var(--spacing-lg)]!"
       }
     >
       <div data-testid={`we-${we.id}`}>
@@ -988,7 +992,10 @@ export function ExerciseBlock({
           */}
           {/* P5: 종목 그림(정지) — 이름만으로 헷갈리는 종목을 한눈에(피드백 #8) @plm SRS-055 */}
           {hasPictogram(we.exerciseId) ? (
-            <span className="h-9 w-11 shrink-0 overflow-hidden rounded-[var(--radius-sm)] bg-(--color-surface-alt)">
+            <span
+              // [원본] className="h-9 w-11 … rounded-[var(--radius-sm)] bg-(--color-surface-alt)" — 회색 판 · [개선] 그림만(SPEC-056 F5)
+              className="h-9 w-11 shrink-0 overflow-hidden"
+            >
               <Pictogram exerciseId={we.exerciseId} className="h-full w-full" testId="we-picto" />
             </span>
           ) : null}
@@ -1433,11 +1440,13 @@ export function ExerciseBlock({
           />
         ) : null}
 
-        <div className="mt-[var(--spacing-sm)]">
+        {/* [원본] <div className="mt-[var(--spacing-sm)]"> · variant="secondary"(회색 막대) */}
+        {/* [개선] 세트 추가는 표 아래 회색 글자 버튼 — 종목마다 반복이라 빨강 아님(SPEC-056 F4 · REV-122) */}
+        <div className="mt-[var(--spacing-xs)] flex">
           <Button
             title={t("session.addSet")}
             icon="add"
-            variant="secondary"
+            variant="quiet"
             loading={busy}
             onPress={addSet}
             testId="btn-add-set"

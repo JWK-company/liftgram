@@ -463,7 +463,11 @@ export default function RoutinesClient() {
         {userLoading ? (
           <div aria-hidden className="mb-[var(--spacing-sm)] min-h-[50px]" data-testid="schedule-skeleton" />
         ) : weeklySchedule ? (
-          <Card className={`mb-[var(--spacing-sm)] ${block?.isDeload ? "border-(--color-pr)!" : ""}`}>
+          <Card
+            // [원본] className={`mb-[var(--spacing-sm)] ${block?.isDeload ? "border-(--color-pr)!" : ""}`}
+            // [개선] 평평한 구역 — 디로드는 테두리 색 대신 왼쪽 금색 강조선(SPEC-056 REV-122)
+            accent={block?.isDeload ? "var(--color-pr)" : undefined}
+          >
             {/* 첫 줄은 꺾이지 않게 — 좁거나 글자를 키우면 편집 단추가 오른쪽 위에 남고 나머지가 다음 줄로(REV S-96 3) */}
             <div className="flex flex-wrap items-center gap-x-[var(--spacing-sm)] gap-y-[2px] whitespace-nowrap">
               <AppText variant="label" color="primary">
@@ -997,10 +1001,9 @@ function TodayCard({
     // 배정된 루틴이 지워졌으면 카드를 아예 띄우지 않는다(빈 카드가 더 헷갈린다).
     if (!routine) return null;
     return (
-      <Card
-        className="mb-[var(--spacing-sm)] border-(--color-brand)! bg-(--color-brand-muted)!"
-        style={originStripeStyle(routine)}
-      >
+      // [원본] <Card className="mb-[var(--spacing-sm)] border-(--color-brand)! bg-(--color-brand-muted)!" style={originStripeStyle(routine)}>
+      // [개선] 분홍 판·빨강 테두리 대신 왼쪽 빨강 강조선(코치 루틴이면 그 띠 색 · SPEC-056 REV-122)
+      <Card accent={isFromCoach(routine) ? "var(--color-coaching)" : "var(--color-brand)"}>
         <div className="flex items-center" data-testid="today-card">
           <div className="mr-[var(--spacing-md)] min-w-0 flex-1">
             <AppText variant="label" color="primary">
@@ -1190,7 +1193,8 @@ function RecoCard({
   }
 
   return (
-    <Card className="mb-[var(--spacing-sm)] border-(--color-brand)! bg-(--color-brand-muted)!">
+    // [원본] <Card className="mb-[var(--spacing-sm)] border-(--color-brand)! bg-(--color-brand-muted)!">
+    <Card accent="var(--color-brand)">
       <div className="flex items-center" data-testid="reco-card">
         <div className="mr-[var(--spacing-md)] min-w-0 flex-1">
           <AppText variant="label" color="primary">

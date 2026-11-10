@@ -66,7 +66,8 @@ export const metadata: Metadata = {
 // 브라우저 상단 띠 색 — 라이트·다크 바탕(#F7F7F7 · #161616)과 같게. 토큰을 쓸 수 없는 자리라 값을 적는다.
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F7F7F7" },
+    // [원본] { media: "(prefers-color-scheme: light)", color: "#F7F7F7" },
+    { media: "(prefers-color-scheme: light)", color: "#FFFFFF" }, // SPEC-056 F3 바탕 한 장
     { media: "(prefers-color-scheme: dark)", color: "#161616" },
   ],
 };

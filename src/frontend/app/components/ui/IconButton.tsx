@@ -34,8 +34,12 @@ export function IconButton({
       aria-label={label}
       disabled={disabled}
       onClick={onPress}
-      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-pill)] ${
-        filled ? "bg-(--color-surface-alt)" : ""
+      // [원본] className={`flex h-10 w-10 shrink-0 … — 누르는 자리 40px
+      // [개선] 보이는 크기 40 · 누르는 자리 ::before 44(SPEC-056 F7)
+      className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-pill)] before:absolute before:-inset-[2px] before:content-[''] ${
+        /* [원본] filled ? "bg-(--color-surface-alt)" : "" — 회색 원 판 · [개선] 판 없이, 누를 때만 옅은 판(SPEC-056 F5) */ filled
+          ? "active:bg-(--color-surface-alt)"
+          : ""
       } ${disabled ? "opacity-40" : "active:opacity-70"} ${className}`}
     >
       <Icon name={icon} size={size} color={color} />

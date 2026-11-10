@@ -364,7 +364,9 @@ function ExpandFailedNote() {
 
 function GymCard({ gym, recommended }: { gym: RankedGym; recommended?: boolean }) {
   return (
+    // [개선] 추천 칸은 빨강 테두리가 뜻을 가지므로 상자 유지(SPEC-056 REV-122)
     <Card
+      boxed={recommended}
       data-testid={recommended ? "gym-recommended" : "gym-row"}
       className={`mb-[var(--spacing-sm)] flex items-center ${
         recommended ? "border border-(--color-brand) bg-(--color-brand-muted)" : ""

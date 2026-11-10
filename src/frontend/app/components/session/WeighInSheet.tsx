@@ -983,7 +983,13 @@ export function WeighInRow({ now }: { now: number }) {
       : t("bodyweight.cardNotYet");
   return (
     <>
-      <Card className="mb-[var(--spacing-lg)]" data-testid="weighin-card" data-done={today ? "1" : "0"}>
+      {/* [원본] <Card className="mb-[var(--spacing-lg)]" … */}
+      {/* [개선] 평평한 기록지 시험판 — 상자 대신 아래 구분선 */}
+      <Card
+        className="rounded-none! border-x-0! border-t-0! bg-transparent! px-0! py-[var(--spacing-md)]!"
+        data-testid="weighin-card"
+        data-done={today ? "1" : "0"}
+      >
         <button
           type="button"
           data-testid="weighin-card-toggle"

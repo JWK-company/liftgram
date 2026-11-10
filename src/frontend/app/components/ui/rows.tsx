@@ -44,7 +44,9 @@ export function ListGroup({
   return (
     <div
       data-testid={testId}
-      className={`overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t ${className}`}
+      // [원본] className={`overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t ${className}`}
+      // [개선] 평평한 기록지(SPEC-056 F1) — 판 없이 위·아래 가는 선과 줄 사이 선만
+      className={`overflow-hidden border-(--color-line) border-y [&>*+*]:border-(--color-line) [&>*+*]:border-t ${className}`}
     >
       {children}
     </div>
@@ -87,7 +89,9 @@ export function ListRow({
     <>
       {leading ??
         (icon ? (
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-(--color-surface-alt)">
+          // [원본] <span className="flex h-9 w-9 … rounded-[var(--radius-sm)] bg-(--color-surface-alt)"> — 회색 네모 판
+          // [개선] 아이콘만(SPEC-056 F5)
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center">
             <Icon name={icon} size={19} color={danger ? "var(--color-bad)" : "var(--color-ink2)"} />
           </span>
         ) : null)}

@@ -10,7 +10,9 @@
 //                라이트 글자로 쓰면 3.1:1 이라 AA 미달 — 글자에는 brand 를 쓴다.
 // 대비 값은 전부 계산값이다(WCAG 2.1 상대 휘도).
 export const colors = {
-  bg: '#F7F7F7', // color/background/canvas
+  // [원본] bg: '#F7F7F7', // color/background/canvas
+  // [개선] 바탕은 한 장(SPEC-056 F3) — 회색 바탕 위 흰 카드 구조를 걷는다. 구역은 가는 선으로 나눈다
+  bg: '#FFFFFF', // color/background/canvas
   surface: '#FFFFFF', // color/background/surface
   surfaceAlt: '#F1F2F4', // 입력칸·칩 판(ink 16.0:1)
   border: '#DBDBDB', // 장식 구분선(카드 테두리) — 컨트롤 경계로 쓰지 않는다
@@ -73,10 +75,12 @@ export const spacing = {
   xxl: 32,
 } as const;
 
+// [원본] sm 8 · md 12 · lg 16 · pill 999
+// [개선] 평평한 기록지 시험판(2026-11-10) — 둥근 정도를 세 단계로 낮춘다(입력칸·작은 버튼 4 · 카드 6 · 시트 8 · 칩만 알약)
 export const radius = {
-  sm: 8,
-  md: 12,
-  lg: 16,
+  sm: 4,
+  md: 6,
+  lg: 8,
   pill: 999,
 } as const;
 

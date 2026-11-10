@@ -197,7 +197,13 @@ function PickRow({ e, alias, onPress }: { e: Row; alias: string | null; onPress:
 }
 
 function PickerCard({ children }: { children: React.ReactNode }) {
-  return <Card className="border-(--color-brand)!">{children}</Card>;
+  // [원본] return <Card className="border-(--color-brand)!">{children}</Card>;
+  // [개선] 빨강 테두리가 뜻(지금 고르는 칸)을 가지므로 옛 상자 그대로(SPEC-056 boxed)
+  return (
+    <Card boxed className="border-(--color-brand)!">
+      {children}
+    </Card>
+  );
 }
 
 function BareShell({ children }: { children: React.ReactNode }) {

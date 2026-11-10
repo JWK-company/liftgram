@@ -19,8 +19,10 @@ function palette(variant: Variant): { bg: string; fg: string; border?: string } 
   switch (variant) {
     case "primary":
       return { bg: "var(--color-brand)", fg: "var(--color-on-brand)" };
+    // [원본] case "secondary": return { bg: "var(--color-surface-alt)", fg: "var(--color-ink)" }; — 회색 채움 막대
+    // [개선] 평평한 기록지(SPEC-056 F4) — 채움 없이 테두리만(컨트롤 경계 line-strong · 흰 바탕 4.67:1)
     case "secondary":
-      return { bg: "var(--color-surface-alt)", fg: "var(--color-ink)" };
+      return { bg: "transparent", fg: "var(--color-ink)", border: "var(--color-line-strong)" };
     case "ghost":
       return { bg: "transparent", fg: "var(--color-brand)" };
     case "danger":

@@ -1310,7 +1310,9 @@ function ExerciseEditRow({
   const grouped = !!re.supersetGroup;
 
   return (
-    <Card className={`mb-[var(--spacing-md)] ${grouped ? "border-(--color-brand)!" : ""}`}>
+    // [원본] <Card className={`mb-[var(--spacing-md)] ${grouped ? "border-(--color-brand)!" : ""}`}>
+    // [개선] 평평한 구역 — 슈퍼셋은 왼쪽 빨강 강조선(SPEC-056 REV-122)
+    <Card accent={grouped ? "var(--color-brand)" : undefined}>
       <div className="flex flex-col gap-[var(--spacing-md)]" data-testid={`re-${re.id}`}>
         {/* [원본] 이름 · 「1. 3세트 · 휴식 120초」 · 변형 칩 · (아래 줄) 휴식·무게 스테퍼 — 세로로만 쌓여 카드가 길고 오른쪽이 비었다.
             세트 수는 세트 표가, 휴식은 스테퍼가 이미 보여 요약 줄은 겹친 정보였다(S-14 · 2026-11-09)

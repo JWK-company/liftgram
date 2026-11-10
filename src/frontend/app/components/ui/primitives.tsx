@@ -76,20 +76,36 @@ export function Card({
   children,
   className = "",
   alt,
+  boxed,
+  accent,
+  style,
   ...rest
 }: {
   children: ReactNode;
   className?: string;
   alt?: boolean;
+  /** 떠 있는 곳(시트·확인창 안)이나 고르는 칸처럼 테두리가 뜻을 갖는 곳만 — 옛 상자(SPEC-056 F1) */
+  boxed?: boolean;
+  /** 평평한 구역의 왼쪽 강조선 색(오늘 할 운동·디로드·슈퍼셋 등 — 테두리 색을 바꾸던 자리 · SPEC-056 REV-122) */
+  accent?: string;
   // 나머지 속성(예: data-testid)은 그대로 흘려보낸다 — 안 그러면 카드에 표식을 달 수 없고,
   // 테스트가 "화면에는 보이는데 못 찾는" 상태가 된다(실제로 한 번 밟았다).
 } & Omit<React.HTMLAttributes<HTMLDivElement>, "className">) {
   return (
     <div
       {...rest}
-      className={`rounded-[var(--radius-md)] border border-(--color-line) p-[var(--spacing-lg)] ${
-        alt ? "bg-(--color-surface-alt)" : "bg-(--color-card)"
-      } ${className}`}
+      // [원본] className={`rounded-[var(--radius-md)] border border-(--color-line) p-[var(--spacing-lg)] ${alt ? "bg-(--color-surface-alt)" : "bg-(--color-card)"} ${className}`}
+      // [개선] 평평한 기록지(SPEC-056 F1) — 기본은 상자가 아니라 아래 가는 선으로 나뉜 구역(좌우 여백 없이 화면 여백에 맞춘다).
+      //   boxed = 옛 상자(테두리 + 둥근 6px) · alt = 옅은 판(테두리 없음) — 강조 띠에만
+      data-card={boxed ? "boxed" : alt ? "alt" : "flat"}
+      style={accent ? { boxShadow: `inset 3px 0 0 ${accent}`, ...style } : style}
+      className={`${
+        boxed
+          ? "rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) p-[var(--spacing-lg)]"
+          : alt
+            ? "rounded-[var(--radius-md)] bg-(--color-surface-alt) p-[var(--spacing-lg)]"
+            : "border-(--color-line) border-b bg-transparent py-[var(--spacing-lg)]"
+      } ${accent || String(style?.boxShadow ?? "").startsWith("inset 3px") ? "pl-[var(--spacing-md)]" : ""} ${className}`}
     >
       {children}
     </div>
@@ -160,7 +176,12 @@ export function StatTile({
   testId?: string;
 }) {
   return (
-    <Card className="flex-1 p-[var(--spacing-md)]!">
+    // [원본] <Card className="flex-1 p-[var(--spacing-md)]!">
+    // [개선] 상자 없이 라벨·값만 — 나란히 놓이면 왼쪽 세로선으로 나눈다(SPEC-056 설계 StatTile)
+    <div
+      data-card="tile"
+      className="min-w-0 flex-1 py-[var(--spacing-sm)] [&+&]:border-(--color-line) [&+&]:border-l [&+&]:pl-[var(--spacing-md)]"
+    >
       <AppText variant="label" color="textMuted">
         {label}
       </AppText>
@@ -176,7 +197,7 @@ export function StatTile({
           </AppText>
         </div>
       ) : null}
-    </Card>
+    </div>
   );
 }
 
@@ -202,8 +223,10 @@ export function EmptyState({
     >
       {icon ? (
         <div
-          style={{ backgroundColor: isError ? "var(--color-bad-soft)" : "var(--color-surface-alt)" }}
-          className="mb-[var(--spacing-lg)] flex h-16 w-16 items-center justify-center rounded-[var(--radius-pill)]"
+          // [원본] style={{ backgroundColor: isError ? "var(--color-bad-soft)" : "var(--color-surface-alt)" }} — 회색 원 판
+          // [개선] 아이콘만(SPEC-056 F5) — 오류 톤만 옅은 빨강 판을 남긴다
+          style={{ backgroundColor: isError ? "var(--color-bad-soft)" : undefined }}
+          className="mb-[var(--spacing-md)] flex h-16 w-16 items-center justify-center rounded-[var(--radius-pill)]"
         >
           <Icon name={icon} size={30} color={isError ? "var(--color-bad)" : "var(--color-ink3)"} />
         </div>
