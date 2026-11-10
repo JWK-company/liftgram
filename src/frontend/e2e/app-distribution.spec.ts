@@ -55,7 +55,9 @@ test("android.json 은 no-store · APK 는 형식·attachment·immutable · Rang
   // 없는 이름 — Next 404 HTML 이 APK 헤더를 달고 「.apk」로 저장되면 안 된다(Phase 1 qa 웹 M-1)
   const miss = await request.get("/downloads/liftgram-0.0.0-1-deadbeef.apk");
   expect(miss.status()).toBe(404);
-  expect(miss.headers()["content-type"]).toContain("text/plain");
+  // [원본] expect(miss.headers()["content-type"]).toContain("text/plain");
+  // [개선] #T17 — 자연어 HTML(attachment 없음이라 .apk 로 저장되지 않는다)
+  expect(miss.headers()["content-type"]).toContain("text/html");
   expect(miss.headers()["content-disposition"]).toBeUndefined();
   expect(miss.headers()["cache-control"]).toContain("no-store");
   expect((await request.get("/downloads/..%2Fsw.js")).status()).toBe(404);

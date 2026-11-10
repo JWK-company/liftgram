@@ -1323,9 +1323,16 @@ export const ko = {
   "verify.verified": "확인된 이메일",
   "verify.title": "이메일 확인",
   "verify.titleFailed": "이메일을 확인하지 못했어요",
-  "notFound.title": "없는 페이지예요",
-  "notFound.message": "주소가 바뀌었거나 지워진 화면이에요.",
+  // [원본] "notFound.title": "없는 페이지예요",
+  // [원본] "notFound.message": "주소가 바뀌었거나 지워진 화면이에요.",
+  // [개선] 화면 지도 #T17 — 「404·없는」보다 사과 + 이유 + 할 일(자연어)
+  "notFound.title": "죄송해요. 찾는 화면이 없어요",
+  "notFound.message": "주소가 바뀌었거나 지워진 화면이에요. 운동 홈에서 다시 찾아 주세요.",
   "notFound.home": "운동 홈으로",
+  "notFound.back": "뒤로 가기",
+  "notFound.exerciseTitle": "죄송해요. 이 종목을 찾을 수 없어요",
+  "notFound.exerciseMessage": "지워졌거나 다른 종목으로 합쳐졌을 수 있어요. 종목 목록에서 다시 찾아 주세요.",
+  "notFound.exercises": "종목 목록으로",
   "security.title": "로그인·보안",
   // @plm SRS-095  계정 삭제(스토어 필수)
   "accountDelete.title": "계정 삭제",

@@ -1323,9 +1323,16 @@ export const en: Record<TransKey, string> = {
   "verify.verified": "Verified email",
   "verify.title": "Email verification",
   "verify.titleFailed": "Couldn't verify your email",
-  "notFound.title": "Page not found",
-  "notFound.message": "This page has moved or no longer exists.",
+  // [원본] "notFound.title": "Page not found",
+  // [원본] "notFound.message": "This page has moved or no longer exists.",
+  // [개선] 화면 지도 #T17 — 사과 + 이유 + 할 일(자연어)
+  "notFound.title": "Sorry, we can't find that screen",
+  "notFound.message": "It may have moved or been removed. Try finding it from the workout home.",
   "notFound.home": "Go to workouts",
+  "notFound.back": "Go back",
+  "notFound.exerciseTitle": "Sorry, we can't find this exercise",
+  "notFound.exerciseMessage": "It may have been removed or merged into another exercise. Try the exercise list.",
+  "notFound.exercises": "Exercise list",
   "security.title": "Sign-in & security",
   // @plm SRS-095  Account deletion (required by the stores)
   "accountDelete.title": "Delete account",

@@ -109,7 +109,9 @@ test("/verify-email — 잘못된 링크면 제목이 「확인하지 못했어�
 test("없는 주소 — 404 상태 + 한국어 안내 + 운동 홈 버튼", async ({ page }) => {
   const res = await page.goto("/no-such-page-xyz");
   expect(res?.status()).toBe(404);
-  await expect(page.getByTestId("not-found")).toContainText("없는 페이지예요");
+  // [원본] await expect(page.getByTestId("not-found")).toContainText("없는 페이지예요");
+  // [개선] #T17 — 제목이 「죄송해요. 찾는 화면이 없어요」로 바뀜
+  await expect(page.getByTestId("not-found")).toContainText("죄송해요. 찾는 화면이 없어요");
   await page.getByTestId("not-found-home").click();
   await expect(page).toHaveURL(/\/$/);
 });

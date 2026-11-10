@@ -1,0 +1,319 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "REV-108 친절한 404 — 코드 리뷰(#T17)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "요약",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "독립 리뷰어 1명이 t17 패치(루트·종목 not-found 자연어 화면, /downloads 없는 파일 자연어 HTML, 모양이 틀린 종목 id 404)를 읽었다. 높음 등급 결함은 없었다. 상태 코드·헤더·M-1 재발 방지·not-found 경계(generateMetadata 의 notFound 도 종목 폴더 not-found 가 받음)·다크 색 값은 요구대로라는 판단이다. 7건 중 5건 채택, 2건 보류, 기각 0건.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "채택",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "#1 InvalidArgument 를 통째로 404 로 삼킴(중간)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — RPC 전에 proto 와 같은 규칙(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "^[A-Za-z0-9._-]{1,128}$",
+                    "type": "text"
+                  },
+                  {
+                    "text": ")으로 id 모양을 먼저 보고 null. InvalidArgument 자체는 원래대로 던진다(계약이 어긋난 장애를 404 로 숨기지 않게).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "#2 /downloads 안내만 Accept-Language 로 영어(낮음)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — 앱(lib/i18n.ts)이 ko 고정이라 이 화면도 ko 고정. 영어 문구는 앱이 언어 설정을 붙일 때 쓰도록 남겨 둠. e2e 는 「영어 브라우저여도 한국어」로 바꿈.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "#4 뒤로 가기 폴백이 다른 사이트로 나갈 수 있음(낮음)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — Navigation API 가 없으면 같은 사이트 referrer 일 때만 뒤로, 아니면 운동 홈.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "#5 낡은 주석(낮음)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — 루트 not-found 머리 주석을 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "[원본]",
+                    "type": "text"
+                  },
+                  {
+                    "text": "/",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "[개선]",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 으로 고침.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "#7 e2e 약점(낮음, 일부)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — HEAD 의 Content-Length·빈 본문 확인, 129자 id 시험 추가, path-fixes 는 「죄송해요. 찾는 화면이 없어요」 전체로 비교.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "보류",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "#3 /downloads 안내가 프로필 테마 선택을 모름(낮음)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — 서버 HTML 이라 기기 설정만 따른다. 한계를 server.mjs 주석에 적어 둠.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "#6 NotFoundView 제목이 heading 요소가 아님(낮음)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — EmptyState 공통 문제라 다른 빈 화면과 함께 고칠 일. NotFoundView 다크 색 e2e 도 같이 미룸.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "기각",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "없음",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "할일/친절한-404",
+  "id": "REV-108",
+  "meta": {
+    "adopted": "5",
+    "held": "2",
+    "mode": "code",
+    "rejected": "0"
+  },
+  "relations": {},
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "친절한 404 코드 리뷰(#T17)",
+  "type": "Review",
+  "updated": "2026-11-10T02:44:29Z"
+}

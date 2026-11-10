@@ -38,8 +38,15 @@ export const dynamic = "force-dynamic";
 
 type Api = Client<typeof ExerciseService>;
 
+/** 종목 id 모양 — proto/exercise/v1/exercise.proto 의 GetExerciseRequest.id 규칙과 같다(1~128자 · 영숫자 . _ -) */
+const EXERCISE_ID = /^[A-Za-z0-9._-]{1,128}$/;
+
 /** 없는 종목은 null이다. 그 밖의 실패는 삼키지 않는다 — 장애를 404로 위장하면 원인을 못 찾는다. */
 async function fetchExercise(api: Api, id: string) {
+  // [개선] #T17 — 모양이 틀린 id(한글·128자 넘음 등)는 서버 검증이 InvalidArgument 로 거절해 500 오류 화면이 됐다.
+  // 그건 「없는 종목」이다 — 부르기 전에 계약과 같은 규칙(proto exercise.proto GetExerciseRequest.id)으로 걸러 null.
+  // InvalidArgument 자체는 삼키지 않는다(계약이 어긋난 장애를 404로 숨기지 않게 · REV-108 #1).
+  if (!EXERCISE_ID.test(id)) return null;
   try {
     const res = await api.getExercise({ id });
     return res.exercise ?? null;

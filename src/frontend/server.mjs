@@ -150,8 +150,19 @@ const server = createServer((req, res) => {
         !name.includes("..") &&
         existsSync(new URL(`./public/downloads/${name}`, import.meta.url));
       if (!ok) {
-        res.writeHead(404, { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" });
-        res.end("not found");
+        // [원본] res.writeHead(404, { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" });
+        // [원본] res.end("not found");
+        // [개선] 화면 지도 #T17 — 브라우저로 연 사람에게 영어 「not found」 대신 자연어 HTML. 404·no-store 는 그대로,
+        // 형식은 text/html 이고 attachment 가 없어 「.apk」로 저장되지 않는다(M-1). Next 를 거치지 않으니 APK 헤더도 안 붙는다.
+        const body = downloadMissingHtml(req.headers["accept-language"]);
+        res.writeHead(404, {
+          "content-type": "text/html; charset=utf-8",
+          "cache-control": "no-store",
+          "x-content-type-options": "nosniff",
+          "content-security-policy": "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'",
+          "content-length": Buffer.byteLength(body),
+        });
+        res.end(req.method === "HEAD" ? undefined : body);
         return;
       }
     }
@@ -161,6 +172,50 @@ const server = createServer((req, res) => {
     if (!handled) handle(req, res);
   });
 });
+
+/**
+ * 화면 지도 #T17 — `/downloads/` 에 없는 파일을 브라우저로 연 사람에게 보여 줄 짧은 안내.
+ * Next 밖이라 사전(core i18n)을 못 쓴다 — 문구 두 벌을 여기 둔다(지금은 앱과 같이 ko).
+ * 테마는 기기 설정(prefers-color-scheme)만 따른다 — 서버 HTML 이라 프로필의 라이트/다크 선택은 모른다(REV-108 #3).
+ * 색은 theme.generated.css 의 bg·ink·ink3·brand·on-brand·line 과 같은 값(라이트/다크). 사용자 값은 하나도 넣지 않는다.
+ */
+function downloadMissingHtml(acceptLanguage) {
+  // 앱(lib/i18n.ts)이 지금 ko 고정이라 여기도 ko 를 낸다 — 앱이 언어 설정을 붙일 때 같이 연다(REV-108 #2).
+  // 영어 문구는 그때 쓸 수 있게 둔다. Accept-Language 로 고르면 앱은 한국어인데 이 화면만 영어가 된다.
+  void acceptLanguage;
+  const lang = "ko";
+  const tx =
+    lang === "en"
+      ? {
+          title: "Sorry, we can't find this install file",
+          message: "A newer version may have replaced it. Get the latest app from the app page.",
+          app: "Get the latest app",
+          home: "Go to Liftgram",
+        }
+      : {
+          title: "죄송해요. 이 설치 파일을 찾을 수 없어요",
+          message: "새 버전이 나와 파일이 바뀌었을 수 있어요. 앱 안내 화면에서 최신 앱을 받아 주세요.",
+          app: "최신 앱 받기",
+          home: "리프트그램 홈으로",
+        };
+  return `<!doctype html>
+<html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>${tx.title}</title>
+<style>
+:root{color-scheme:light dark;--bg:#F7F7F7;--ink:#141619;--ink3:#6A737B;--brand:#C8381C;--on:#FFFFFF;--line:#DBDBDB}
+@media (prefers-color-scheme:dark){:root{--bg:#161616;--ink:#F5F7F9;--ink3:#98A1AD;--brand:#FF7A57;--on:#161616;--line:#424242}}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--ink);
+font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;padding:24px 16px}
+main{max-width:420px;width:100%;text-align:center}h1{font-size:20px;line-height:1.4;margin:0 0 8px;word-break:keep-all}
+p{font-size:14px;line-height:1.6;color:var(--ink3);margin:0 0 24px;word-break:keep-all}
+.a{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+a{display:inline-flex;align-items:center;min-height:44px;padding:0 20px;border-radius:12px;font-weight:600;text-decoration:none;font-size:15px}
+.p{background:var(--brand);color:var(--on)}.s{border:1px solid var(--line);color:var(--ink)}
+</style></head>
+<body><main data-testid="download-missing"><h1>${tx.title}</h1><p>${tx.message}</p>
+<div class="a"><a class="p" href="/app" data-testid="download-missing-app">${tx.app}</a><a class="s" href="/" data-testid="download-missing-home">${tx.home}</a></div>
+</main></body></html>`;
+}
 
 // ── WebSocket 터널 ──────────────────────────────────────────────────────────
 const wss = new WebSocketServer({ noServer: true });
