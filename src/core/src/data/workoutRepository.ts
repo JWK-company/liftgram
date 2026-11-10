@@ -56,6 +56,9 @@ import {
   normalizeVariantDims,
   normalizeVariantDimsV34,
   dimsFromColumns,
+  variantShortLabel, // 잠금 카드 변형 글(id=1730)
+  IMPLEMENT_KEYS,
+  gripShortLabel,
   MACHINE_BRAND_VARIANT_KEYS,
   type VariantDims,
   type GripKey,
@@ -93,6 +96,7 @@ import {
   type LockExpect,
   type LockRowInput,
   type LockSnapshotBlock,
+  lockNameWithTags,
   type LockSnapshotSet,
   type LockWatermark,
 } from '../domain/lockScreen'; // 잠금 카드 적용기·스냅샷 재료(SPEC-017 Phase 3)
@@ -1161,7 +1165,8 @@ export async function refillLoadsAfter(setIds: string[]): Promise<string[]> {
  * 스냅샷 재료(§9) — 화면 행 순서(groupSessionRows) · 블록(loadSimBlocks + 이름·출처·사람 손·유산소) · 일시정지.
  * 화면이 안 떠 있어도 셸이 저장소에서 바로 만든다.
  */
-export async function loadLockSnapshotInput(workoutId: string): Promise<{
+// lang = 웹 화면 언어(lib/i18n) — 카드 안 글이 한 언어로(코드 리뷰 M-2)
+export async function loadLockSnapshotInput(workoutId: string, lang: 'ko' | 'en' = 'ko'): Promise<{
   title: string;
   startedAt: number;
   accumulatedPauseMs: number;
@@ -1182,17 +1187,38 @@ export async function loadLockSnapshotInput(workoutId: string): Promise<{
   // 종목별 유산소 지표 — 시간만 재는 종목은 거리 없이도 잠금 완료(REV-007 표시 H-2)
   const metricsOf = new Map(exs.map((e) => [e.id, cardioMetricsFor(e) as string[]]));
   const groupOf = new Map(wes.map((x) => [x.id, x.supersetGroup]));
+  // 카드의 변형 글(id=1730) — 블록 칸(브랜드·적재·부착물·그립)은 이름에, 세트 속성(원암·세트 그립)은 세트마다. 운동 화면과 같은 짧은 라벨.
+  const weById = new Map(wes.map((x) => [x.id, x]));
+  // 읽기만 — 사용자 행을 만들지 않는다(셸이 화면 없이도 부른다)
+  const { queryLocalUser } = await import('./userRepository');
+  const [me] = await queryLocalUser().fetch().catch(() => []);
+  // [원본] const lang = me?.preferredLanguage === 'en' ? 'en' : 'ko'; — 웹 화면은 ko 고정이라 카드만 영어가 섞였다
+  const customLabels = me?.machineVariantLabels ?? [];
+  const blockTag = (weId: string): string | null => {
+    const we = weById.get(weId);
+    if (!we) return null;
+    const d0 = dimsFromColumns(variantColumnsOf(we));
+    // 옛 데이터의 기구 값(바벨·덤벨…)은 칸이 아니다 — 「바벨 벤치프레스 · 바벨」로 겹치지 않게(코드 리뷰 L)
+    const d = { ...d0, equipment: d0.equipment && (IMPLEMENT_KEYS as string[]).includes(d0.equipment) ? null : d0.equipment };
+    const has = d.equipment || d.load || d.attach || d.grip;
+    return has ? variantShortLabel({ ...d, arm: null }, lang, customLabels) : null;
+  };
   const blocks: LockSnapshotBlock[] = sim.map((b) => {
     const isCardio = cardio.has(b.exerciseId);
     const grp = groupOf.get(b.weId);
+    const bt = isCardio ? null : blockTag(b.weId);
     return {
       ...b,
       groupWeIds: grp ? wes.filter((x) => x.supersetGroup === grp).map((x) => x.id) : undefined,
-      exerciseName: names.get(b.exerciseId) ?? '',
+      // [원본] exerciseName: names.get(b.exerciseId) ?? '',
+      exerciseName: lockNameWithTags(names.get(b.exerciseId) ?? '', [bt]),
       sets: b.sets.map((s) => {
         const r = recById.get(s.id);
         return {
           ...s,
+          tags: isCardio
+            ? []
+            : [r?.arm === 'uni' ? (lang === 'ko' ? '원암' : '1-arm') : null /* 세트 칩과 같은 짧은 글(session.armUni) */, gripShortLabel((r?.grip as GripKey | null) ?? null, lang)],
           userEdited: r?.userEdited ?? null,
           valueSource: r?.valueSource ?? null,
           cardio: isCardio ? { distance: r?.distanceM ?? null, seconds: r?.durationSec ?? null, metrics: metricsOf.get(b.exerciseId) } : null,

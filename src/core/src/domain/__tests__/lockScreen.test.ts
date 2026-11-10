@@ -7,6 +7,7 @@ import {
   alreadyApplied,
   buildLockSnapshot,
   lockElapsedSec,
+  lockNameWithTags,
   buildLockSteps,
   canForgetAcked,
   clampCompletedAt,
@@ -529,4 +530,35 @@ test('운동 시간 — 정지를 빼고 앱과 같게 반올림', () => {
   assert.equal(lockElapsedSec({ startedAt: 1_000, accumulatedPauseMs: 0, pausedAt: 31_000 }, true, 99_000), 30);
   assert.equal(lockElapsedSec({ startedAt: 1_000, accumulatedPauseMs: 0, pausedAt: null }, false, 2_500), 2);
   assert.equal(lockElapsedSec({ startedAt: 0, accumulatedPauseMs: 0, pausedAt: null }, false, 1_000), null);
+});
+
+test('카드 이름에 변형 글(id=1730) — 블록 칸은 이름에, 세트 속성(원암·그립)은 세트마다 · 빈 태그·중복은 뺀다', () => {
+  assert.equal(lockNameWithTags('케이블 로우', ['로프']), '케이블 로우 · 로프');
+  assert.equal(lockNameWithTags('컬', ['', null, undefined]), '컬');
+  assert.equal(lockNameWithTags('컬 · 언더', ['언더', '원암']), '컬 · 언더 · 원암');
+  // 붙이는 글 합계 상한(14자) — 넘으면 「…」 하나로 끝낸다
+  assert.equal(lockNameWithTags('랫풀다운 · 해머 · 랫바 · 와이드', ['원암', '아주아주긴세트그립이름']), '랫풀다운 · 해머 · 랫바 · 와이드 · 원암 · …');
+  const A: LockSnapshotBlock = {
+    ...simBlock('A', [{ kg: 10, reps: 10 }, { kg: 10, reps: 10 }], null),
+    exerciseName: '덤벨 컬 · 해머',
+    restSec: 60,
+  };
+  A.sets[0].tags = ['원암(원레그)'];
+  A.sets[1].tags = [];
+  const snap = buildLockSnapshot({
+    sessionId: 'W',
+    title: 'x',
+    rows: [single({ weId: 'A', sets: A.sets })],
+    blocks: [A],
+    rest: { endsAt: null, totalSec: null, setAt: 0, by: 'web' },
+    appliedThroughSeq: 0,
+    storeId: 'S',
+    dbEpoch: 'E',
+    paused: false,
+    sound: { enabled: true, preset: 'bell', volume: 2 },
+    now: 1,
+    restAfter: () => 60,
+  });
+  assert.equal(snap.steps[0].members[0].exerciseName, '덤벨 컬 · 해머 · 원암(원레그)');
+  assert.equal(snap.steps[1].members[0].exerciseName, '덤벨 컬 · 해머');
 });

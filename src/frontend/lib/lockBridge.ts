@@ -332,7 +332,8 @@ async function snapshotOnce(): Promise<void> {
   }
   // 아직 epoch·저장소를 모른다(리셋 직후·첫 drain 전) — 내지 않는다. drain 이 끝나면 곧바로 스냅샷이 뒤따른다(여기서 drain 을 깨우면 실패 때 고리가 된다)
   if (!epoch || !storeId) return;
-  const inp = await repo.loadLockSnapshotInput(active.id);
+  const { lang: uiLang } = await import("./i18n");
+  const inp = await repo.loadLockSnapshotInput(active.id, uiLang === "en" ? "en" : "ko");
   if (!inp) return;
   const { buildLockSnapshot } = await import("@app/core/domain/lockScreen");
   // [원본] const { restSecondsForSetType } = await import("@app/core/domain/prescription");
