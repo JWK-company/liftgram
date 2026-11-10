@@ -319,6 +319,7 @@ rate limit도 backend에서 건다 — frontend가 `x-forwarded-for`로 클라�
 | `AUTH_RATE_LIMIT` | 선택 | `10` | 가입·로그인·메일 요청의 IP당 분당 허용(0=끔 · e2e). IP는 web 가장자리가 정한 값만 쓴다 |
 | `TRUST_CF_CONNECTING_IP` | 선택 | `0` | `1`이면 Cloudflare가 붙인 CF-Connecting-IP를 클라이언트 주소로 믿는다 — **포트가 터널에만 열려 있을 때만**(운영). 꺼져 있으면 그 헤더는 버린다 |
 | `KAKAO_LOCAL_REST_KEY` | 선택 | 비어 있음 | 주변 헬스장 검색용 카카오 REST 키. 카카오맵을 켠 앱의 키를 쓴다(운영은 로그인 앱 키를 함께 씀) — 로그인 앱과 나누면 한도·제재가 로그인에 번지지 않게 한다. 비면 앱이 Overpass로 찾는다 |
+| `YOUTUBE_API_KEY` | 선택 | 비어 있음 | 영상 루틴 가져오기(SPEC-054)의 YouTube Data API v3 키 — 서버만 쓴다(앱 번들 금지). GCP 에서 API 범위를 YouTube Data API v3, 호출 IP 를 서버로 제한해 둔다. 비면 링크 해석만 꺼지고 글 붙여넣기는 된다 |
 | `FEED_RECOMMEND_SINCE` | 선택 | `2026-11-05T00:00:00+09:00` | 이 시각 이후의 글만 추천 탭에 나온다. 옛 글을 소급해 내보내지 않으려는 값이다 |
 | `USAGE_SINCE` | 선택 | `2026-11-05T00:00:00+09:00` | 이 시각부터 운동·루틴 기록을 운영자 통계에 넣고 이용 기록을 받는다. 방침 시행일과 맞춘다 |
 | `STATS_CACHE_SEC` | 선택 | `300` | 운영자 통계 캐시(초). 0 이면 묶지 않는다(시험용) |

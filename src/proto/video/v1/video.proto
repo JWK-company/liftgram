@@ -1,0 +1,38 @@
+// 영상 정보 계약(SPEC-054 Phase 2 · SRS-116 · ADR-063) — 유튜브 링크로 루틴을 가져올 때 설명란·길이·임베드 가능 여부를 읽는다.
+//
+// 공식 YouTube Data API videos.list(part=snippet,contentDetails,status) 만 부른다 — 호출당 할당량 1단위.
+// 자막(captions)·음성은 읽지 않는다(ADR-063: 서버 수집 금지 유지). 키는 서버에만 있고 앱 번들에 넣지 않는다.
+//
+// 설명란은 응답으로만 보내고 서버·DB·로그에 남기지 않는다(메모리 캐시 24시간뿐 — YouTube API 정책의 30일 상한 안).
+// 앱도 제목·채널·설명란을 저장하지 않는다(화면에만) — 루틴에는 영상 링크만 남긴다(스펙 리뷰 B4).
+//
+// 로그인한 사용자만 부를 수 있다(할당량 보호 · 사용자당 분당 6회 · 하루 50회 · 서버 전체 하루 8,000회).
+syntax = "proto3";
+
+package video.v1;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/JWK-company/liftgram/src/backend/gen/video/v1;videov1";
+
+message DescribeVideoRequest {
+  // 유튜브 영상 id(11자). 링크 해석은 앱(core videoImport/link)이 한다.
+  string video_id = 1 [(buf.validate.field).string.pattern = "^[A-Za-z0-9_-]{11}$"];
+}
+
+message DescribeVideoResponse {
+  string video_id = 1;
+  // 200자에서 자른다.
+  string title = 2;
+  string channel = 3;
+  // 5,000자에서 자른다. 앱이 규칙으로 해석한다 — 저장하지 않는다.
+  string description = 4;
+  // 영상 길이(초). 라이브·길이 0 이면 0 — 앱이 시각 근거를 쓰지 않는다.
+  int32 duration_sec = 5;
+  // 앱 안 임베드 재생이 되나 — status.embeddable · 지역 제한(KR 차단) · 연령 제한을 반영한다.
+  bool embeddable = 6;
+}
+
+service VideoService {
+  rpc DescribeVideo(DescribeVideoRequest) returns (DescribeVideoResponse);
+}

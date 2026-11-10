@@ -56,6 +56,7 @@ export default function ExercisePickerScreen({
   onDone,
   onClose,
   catalogOnly = false,
+  initialQuery,
 }: {
   mode: "multi" | "single";
   title: string;
@@ -64,10 +65,13 @@ export default function ExercisePickerScreen({
   onClose: () => void;
   /** 카탈로그 종목만(직접 만든 종목 빼기) — 코치 초안은 회원 기기에 없는 종목을 보낼 수 없다(SPEC-050 P3b). */
   catalogOnly?: boolean;
+  /** 검색어를 채워 연다 — 영상 가져오기의 「못 찾음」 줄(SPEC-054). 전체 선택 상태로 포커스해 바로 고쳐 쓰게 한다. */
+  initialQuery?: string;
 }) {
   const [root, setRoot] = useState<HTMLElement | null>(null);
   const [repo, setRepo] = useState<Repo | null>(null);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery ?? "");
+  const searchRef = useRef<HTMLInputElement>(null);
   // 검색어는 싣지 않는다. 글자마다 세지 않게 1분에 한 번.
   useEffect(() => {
     if (query.trim()) trackUsage("exercise_search", { throttleMs: 60_000 });
@@ -147,8 +151,13 @@ export default function ExercisePickerScreen({
     openerRef.current = document.activeElement as HTMLElement | null;
   }
   useEffect(() => {
-    if (root) dialogRef.current?.focus();
-  }, [root]);
+    if (!root) return;
+    // 검색어를 채워 열었으면 검색칸에(전체 선택 — 한 번에 지우고 새로 쓸 수 있게) · 아니면 덮개에
+    if (initialQuery && searchRef.current) {
+      searchRef.current.focus();
+      searchRef.current.select();
+    } else dialogRef.current?.focus();
+  }, [root, initialQuery]);
   useEffect(() => {
     const opener = openerRef.current;
     return () => opener?.focus?.();
@@ -293,6 +302,7 @@ export default function ExercisePickerScreen({
           <div className="flex flex-col gap-[var(--spacing-sm)]">
             <TextField
               testId="picker-search"
+              ref={searchRef}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t("exercises.searchPlaceholder")}
@@ -384,6 +394,20 @@ export default function ExercisePickerScreen({
                 icon="search-outline"
                 title={repo ? t("exercises.emptyTitle") : "종목을 불러오는 중입니다"}
                 message={repo ? t("exercises.emptyMessage") : "잠시만 기다려 주세요"}
+                action={
+                  repo && searching ? (
+                    <Button
+                      title={t("routineImport.clearQuery")}
+                      variant="secondary"
+                      fullWidth={false}
+                      testId="picker-clear-query"
+                      onPress={() => {
+                        setQuery("");
+                        searchRef.current?.focus();
+                      }}
+                    />
+                  ) : undefined
+                }
               />
             ) : (
               <ul

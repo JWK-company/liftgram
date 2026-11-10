@@ -118,6 +118,7 @@ $SSH "
   done
   # 이용 기록 횟수 제한은 실제 IP 로 센다 — 꺼져 있으면 터널 뒤 전원이 한 키로 묶인다(SPEC-032).
   grep -q \"^TRUST_CF_CONNECTING_IP=1\" \$f || { echo \"  !! .env 에 TRUST_CF_CONNECTING_IP=1 이 없다\"; exit 1; }
+  grep -q \"^YOUTUBE_API_KEY=.\" \$f || echo '  ?? .env 에 YOUTUBE_API_KEY 가 없다 — 영상 링크 가져오기만 꺼진다(SPEC-054)'
   echo '  .env 필수 키 OK'"
 
 # 앱에서 운영 화면을 뺀 뒤에는 운영 웹이 유일한 입구다(SPEC-033). 운영 웹 로그인을 실제로 확인한 서버에만 내보낸다.

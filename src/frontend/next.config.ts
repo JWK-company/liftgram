@@ -49,6 +49,8 @@ const config: NextConfig = {
 
   // 모든 응답에 붙는 최소 보안 헤더.
   // 프로젝트에 맞춰 CSP·HSTS를 여기서 더하면 된다 — HSTS는 HTTPS로 서비스할 때만 켠다.
+  // CSP 를 넣으면 영상 받아 적기(SPEC-054 Phase 4)에 frame-src https://www.youtube-nocookie.com ·
+  // script-src https://www.youtube.com https://s.ytimg.com(IFrame API) 가 필요하다.
   async headers() {
     return [
       {

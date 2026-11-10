@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "개인정보처리방침 · Liftgram
 
 export default function PrivacyPage() {
   return (
-    <LegalPage title="개인정보처리방침" effective="2026년 11월 5일">
+    <LegalPage title="개인정보처리방침" effective="2026년 11월 10일">
       <p>
         Liftgram(이하 “서비스”)은 운동 기록과 운동 소셜 기능을 제공하며, 이용자의 개인정보를 아래와 같이
         처리합니다.
@@ -14,6 +14,11 @@ export default function PrivacyPage() {
       <p>
         2026년 11월 5일 공지한 개정판입니다. 주변 헬스장 찾기의 위치 처리, 피드 추천, 사진 자동 검사, 사용자
         의견, 이용 통계에 관한 내용이 추가되었습니다.
+      </p>
+      {/* SPEC-054 — 영상 루틴 가져오기(YouTube API 서비스 이용 고지 · YouTube API 서비스 약관이 요구) */}
+      <p>
+        2026년 11월 10일: 영상·글로 루틴 가져오기에 쓰는 YouTube API 서비스·YouTube 플레이어 안내가
+        추가되었습니다(4항).
       </p>
 
       <h2>1. 수집하는 정보</h2>
@@ -94,6 +99,35 @@ export default function PrivacyPage() {
           OpenStreetMap Overpass 운영 서버(독일 등 국외): 카카오 검색이 안 되거나 국외에 있을 때 현재 위치
           좌표를 브라우저에서 직접 전달해 장소 검색
         </li>
+        <li data-testid="privacy-youtube" id="youtube">
+          YouTube API 서비스(Google, 국외): 영상·글로 루틴 가져오기에서 유튜브 링크를 넣으면 서버가 영상 id 만
+          YouTube Data API 로 보내 영상 제목·채널·설명란·길이·재생 가능 여부를 받습니다. 이용자의 개인정보는
+          보내지 않습니다. 받은 정보는 화면 표시와 기기 안에서 루틴 초안을 해석하는 데에만 쓰고, 같은 영상을
+          다시 부를 때를 위해 서버 메모리에 최대 24시간 임시로 두었다가 지웁니다(데이터베이스에는 저장하지
+          않음). 오류를 살피려고 서버 기록에 영상 id 가 남을 수 있습니다. 붙여 넣은 글은 기기 화면에서만 읽고
+          원문을 어디에도 보내거나 저장하지 않으며, 이용자가 확인해 저장한 종목·세트·횟수와 영상 주소(루틴
+          메모)만 내 루틴으로 저장됩니다(로그인하면 다른 기록처럼 서버에 백업). 영상을 보며 받아 적기를 열면
+          기기의 브라우저가 www.youtube.com·youtube-nocookie.com 에서 YouTube 플레이어와 스크립트를 직접
+          불러오며, 이때 Google 이 기기 정보·IP 주소·쿠키를 직접 처리할 수 있습니다. YouTube 서비스 약관(
+          <a
+            className="underline"
+            href="https://www.youtube.com/t/terms"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            youtube.com/t/terms
+          </a>
+          )과 Google 개인정보처리방침(
+          <a
+            className="underline"
+            href="https://policies.google.com/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            policies.google.com/privacy
+          </a>
+          )이 함께 적용됩니다.
+        </li>
       </ul>
       <p>서비스의 데이터는 운영자가 관리하는 대한민국 소재 서버에 저장됩니다.</p>
 
@@ -119,8 +153,8 @@ export default function PrivacyPage() {
         </a>
       </p>
       <p>
-        이 방침이 바뀌면 시행 7일 전에 서비스 안에서 알립니다. 다만 2026년 11월 5일 개정은 정식 출시 전
-        변경이어서 공지한 날부터 바로 시행합니다.
+        이 방침이 바뀌면 시행 7일 전에 서비스 안에서 알립니다. 다만 2026년 11월 5일·11월 10일 개정은 정식 출시
+        전 변경이어서 공지한 날부터 바로 시행합니다.
       </p>
     </LegalPage>
   );

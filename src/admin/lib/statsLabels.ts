@@ -7,6 +7,7 @@ export const EVENT_LABELS: Record<string, string> = {
   routine_create: "루틴 만들기",
   routine_edit: "루틴 고치기",
   routine_import: "루틴 가져오기",
+  routine_import_draft: "영상·글 초안 만들기",
   exercise_search: "종목 검색",
   exercise_finder: "종목 찾기",
   rest_timer: "휴식 타이머",

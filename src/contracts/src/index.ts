@@ -26,6 +26,7 @@ export * from "../gen/meta/v1/meta_pb";
 export * from "../gen/ops/v1/ops_pb"; // @plm SRS-088
 export * from "../gen/admin/v1/admin_pb";
 export * from "../gen/usage/v1/usage_pb";
+export * from "../gen/video/v1/video_pb";
 
 /**
  * 브라우저가 보는 경로.

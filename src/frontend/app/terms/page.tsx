@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "이용약관 · Liftgram" };
 
 export default function TermsPage() {
   return (
-    <LegalPage title="이용약관" effective="2026년 11월 5일">
+    <LegalPage title="이용약관" effective="2026년 11월 10일">
       <h2>1. 서비스</h2>
       <p>
         Liftgram은 근력 운동 기록, 기록 분석, 운동 소셜 기능(피드·댓글·DM·스토리)을 제공하는 웹 서비스입니다.
@@ -43,6 +43,23 @@ export default function TermsPage() {
           있습니다.
         </li>
       </ul>
+
+      {/* SPEC-054 — YouTube API 서비스 개발자 정책 III.A.1: 이용자가 YouTube 서비스 약관에 동의한다는 조항 */}
+      <h2 id="youtube">3-1. YouTube 영상 가져오기</h2>
+      <p data-testid="terms-youtube">
+        영상·글로 루틴 가져오기와 영상 보며 받아 적기는 YouTube API 서비스를 씁니다. 이 기능을 쓰면 이용자는
+        YouTube 서비스 약관(
+        <a
+          className="underline"
+          href="https://www.youtube.com/t/terms"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          youtube.com/t/terms
+        </a>
+        )에 동의하는 것으로 봅니다. 가져온 루틴은 이용자가 확인해 저장한 내 기록이며, 영상의 권리는 영상
+        제작자와 YouTube 에 있습니다.
+      </p>
 
       <h2>4. 건강 관련 고지</h2>
       <p>

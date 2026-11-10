@@ -39,7 +39,7 @@ var KST = time.FixedZone("KST", 9*60*60)
 // 허용 이벤트. 소셜 행동(글·좋아요…)은 도메인 표로 세므로 여기 없다.
 var allowedEvents = map[string]bool{
 	"app_open": true, "workout_start": true, "workout_start_routine": true, "workout_finish": true,
-	"routine_create": true, "routine_edit": true, "routine_import": true,
+	"routine_create": true, "routine_edit": true, "routine_import": true, "routine_import_draft": true, // 초안 만들기(SPEC-054 · REV-116 P19)
 	"exercise_search": true, "exercise_finder": true, "rest_timer": true,
 	"feed_tab_following": true, "feed_tab_recommended": true, "gym_search": true,
 	"data_import": true, "data_export": true, "feedback_send": true, "ad_click": true,

@@ -19,6 +19,8 @@ export function TextField({
   hint?: string;
   className?: string;
   testId?: string;
+  /** React 19 — ref 는 보통 prop 이라 그대로 input 에 간다(선택 창 검색칸 포커스 · SPEC-054) */
+  ref?: React.Ref<HTMLInputElement>;
 } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "className">) {
   return (
     <div className={`mb-[var(--spacing-md)] ${className}`}>

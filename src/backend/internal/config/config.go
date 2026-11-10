@@ -98,6 +98,8 @@ type Config struct {
 	KakaoLocalRestKey string
 	// KakaoLocalSince — 이 시각 전에는 키가 있어도 카카오를 부르지 않는다(SPEC-031).
 	KakaoLocalSince string
+	// YouTubeAPIKey — 영상 루틴 가져오기의 Data API 키(SPEC-054). 비면 링크 해석만 꺼지고 글 붙여넣기는 된다.
+	YouTubeAPIKey string
 	// ImageScanURL — 사진 자동 검사 주소. 비면 검사하지 않는다(SPEC-031).
 	ImageScanURL       string
 	ImageScanThreshold string
@@ -182,6 +184,7 @@ func Load() (*Config, error) {
 		AuthRateLimit:           envInt("AUTH_RATE_LIMIT", 10),
 		KakaoLocalRestKey:       os.Getenv("KAKAO_LOCAL_REST_KEY"),
 		KakaoLocalSince:         envStr("KAKAO_LOCAL_SINCE", "2026-11-05T00:00:00+09:00"),
+		YouTubeAPIKey:           os.Getenv("YOUTUBE_API_KEY"),
 		ImageScanURL:            os.Getenv("IMAGE_SCAN_URL"),
 		ImageScanThreshold:      envStr("IMAGE_SCAN_THRESHOLD", "0.9"),
 		ImageScanSince:          envStr("IMAGE_SCAN_SINCE", "2026-11-05T00:00:00+09:00"),
