@@ -29,12 +29,16 @@ import {
   최근_기록_상세,
   힘든정도_설정,
   v25로_되돌리기,
+  번들_스키마,
+  더_높은_스키마,
 } from "./helpers/opengym";
 
 // 이 번들의 로컬 스키마 버전(core/src/db/schema.ts SCHEMA_VERSION) — v27 부터 상수 하나로(SPEC-017 Phase 2)
 // [원본] const BUNDLE_SCHEMA = "27"; — v28(SPEC-044 · set_logs.check_state)에서 올리지 않아 v0.80.0 부터 실패했다
-const BUNDLE_SCHEMA = "28";
-const HIGHER_SCHEMA = String(Number(BUNDLE_SCHEMA) + 1);
+// [원본] const BUNDLE_SCHEMA = "28"; — v29·v30 에서 또 올리지 않아 실패했다
+// [개선] core 소스의 SCHEMA_VERSION 을 읽는다(helpers/opengym 번들_스키마) — 이관(v25→지금)·다운그레이드 가드(지금+1) 의도는 그대로
+const BUNDLE_SCHEMA = 번들_스키마;
+const HIGHER_SCHEMA = 더_높은_스키마;
 
 type Page = import("@playwright/test").Page;
 type Locator = import("@playwright/test").Locator;

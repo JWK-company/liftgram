@@ -10,6 +10,7 @@
 //   · (P3a) 서버의 코치 루틴(origin coach)이 동기로 오면 — 청록 띠·「코치 ○○」 칩·새로 받음 점(열면 사라짐) · 미리보기 「내 루틴으로 복사」 ·
 //     ⋯ 「보기」 화면 잠금(이름·메모·종목 못 고침 · 폴더는 고침) · 복사본은 표시 없이 고칠 수 있음 · 운동 뒤 「루틴에 반영」 안 물음 ·
 //     코칭 끝남(coach_ended)·가져옴(import)은 회색 칩·편집 가능 · 360px 넘침 없음
+//   · (P4) 코치 코멘트 → 회원 알림 → 회원 운동 상세 청록 말풍선·숨기기 · 코치 루틴 운동은 처방 대 실제 · 담당 회원 점검 숫자
 //
 // 시작 값은 기본값과 다르게 둔다(범위 바꾸기는 꺼진 칸을 켠 뒤 다시 열어 본다) — 같은 값이면 저장이 안 돼도 통과한다.
 import { expect, test } from "@playwright/test";
@@ -25,6 +26,7 @@ import {
   세트_기록,
   준비,
   종목_추가,
+  최근_기록_상세,
   idb_행_수,
   idb_행_고치기,
   로그인,
@@ -1733,6 +1735,314 @@ test.describe("P3b 초안·보내기", () => {
       expect(await 초안_남음(pageT, draftId, "/")).toBe(0);
     } finally {
       await ctxT.close();
+    }
+  });
+});
+
+// ── P4 코멘트·점검(SPEC-050 Phase 6) ─────────────────────────────────────
+test.describe("P4 코멘트·점검", () => {
+  async function 코치_루틴_id(page: Page, 이름: string): Promise<string> {
+    await page.goto("/");
+    await expect(page.getByTestId("routine-list")).toBeVisible({ timeout: 20_000 });
+    let id = "";
+    await expect
+      .poll(
+        async () => {
+          const tids = await page
+            .getByTestId("routine-list")
+            .locator("[data-testid^=routine-coach-]")
+            .filter({ hasText: 이름 })
+            .evaluateAll((els) => els.map((e) => e.getAttribute("data-testid") ?? ""));
+          id = (tids[0] ?? "").replace("routine-", "");
+          return id;
+        },
+        { timeout: 20_000 },
+      )
+      .not.toBe("");
+    return id;
+  }
+
+  test("코치 루틴 운동 → 처방 대 실제 · 코멘트 → 회원 알림 → 상세 말풍선·숨기기 · 점검 숫자·쉬는 중 · 300자 · 360px · 해지 뒤 회원은 그대로", async ({
+    page,
+    browser,
+  }) => {
+    test.setTimeout(480_000);
+    const tag = Date.now().toString(36);
+    const 코치 = `최코치${tag}`;
+    const 회원 = `회원p4${tag}`;
+    const 이름 = `코멘트 루틴 ${tag}`;
+    await 가입(page, 새_메일("cv2-p4-m"), 회원);
+    await 준비(page);
+    const memberId = await 내_id(page);
+
+    const [ctxT, pageT] = await 새_기기(browser);
+    try {
+      await 가입(pageT, 새_메일("cv2-p4-t"), 코치);
+      await 코치되기(pageT);
+      await 준비(pageT);
+      await 코드로_연결(pageT, page, 코치);
+
+      // ── 점검 — 연결 직후(운동 없음) ──
+      await pageT.goto("/coaching");
+      const mrow = pageT
+        .getByTestId("coaching-members")
+        .getByTestId("coaching-grant")
+        .filter({ hasText: 회원 });
+      await expect(mrow.getByTestId("coaching-digest")).toHaveAttribute("data-week", "0", {
+        timeout: 20_000,
+      });
+      await expect(mrow.getByTestId("coaching-digest-text")).toHaveText("이번 주 0회 · 연결 뒤 운동 없음");
+      await expect(mrow.getByTestId("coaching-digest-rest")).toHaveCount(0);
+
+      // ── 코치가 루틴을 보낸다 → 회원이 그 루틴으로 운동(세 세트 중 하나만) ──
+      await 초안_짜기(pageT, memberId, 이름, ["바벨 스쿼트"]);
+      await 초안_보내기(pageT, memberId);
+      await 동기(page);
+      const rid = await 코치_루틴_id(page, 이름);
+      await page.getByTestId(`routine-${rid}`).getByTestId("btn-start-routine").click();
+      await expect(page).toHaveURL(/\/workout/, { timeout: 20_000 });
+      await expect(page.getByTestId("set-list").first()).toBeVisible({ timeout: 20_000 });
+      const 계획세트 = await page.getByTestId("set-list").first().locator("> div").count();
+      expect(계획세트).toBeGreaterThanOrEqual(2);
+      await 세트_기록(page, 0, 0, 80, 5);
+      await 마치기(page);
+      await 동기(page);
+
+      // ── 점검 — 이번 주 1회 · 마지막 오늘 · 코치 루틴 1회 ──
+      await pageT.goto("/coaching");
+      await expect(mrow.getByTestId("coaching-digest")).toHaveAttribute("data-week", "1", {
+        timeout: 20_000,
+      });
+      await expect(mrow.getByTestId("coaching-digest-text")).toHaveText(
+        "이번 주 1회 · 마지막 오늘 · 코치 루틴 1회",
+      );
+
+      // 마지막 운동이 4일 전이면 「4일째 쉬는 중」(서버 응답을 바꿔 흉내 — 숫자 판단은 기기 날짜로)
+      await pageT.route(`**${RPC}/ListMemberDigest`, async (r) => {
+        const res = await r.fetch();
+        const body = (await res.json()) as { members?: { lastWorkoutAt?: string }[] };
+        for (const m of body.members ?? []) m.lastWorkoutAt = String(Date.now() - 4 * 86_400_000);
+        await r.fulfill({ response: res, json: body });
+      });
+      await pageT.goto("/coaching");
+      await expect(mrow.getByTestId("coaching-digest-rest")).toHaveText("4일째 쉬는 중", { timeout: 20_000 });
+      await pageT.unroute(`**${RPC}/ListMemberDigest`);
+      // 홈 카드 힌트도(60초 메모리라 새로 연 문서에서)
+      await pageT.route(`**${RPC}/ListMemberDigest`, async (r) => {
+        const res = await r.fetch();
+        const body = (await res.json()) as { members?: { lastWorkoutAt?: string }[] };
+        for (const m of body.members ?? []) m.lastWorkoutAt = String(Date.now() - 5 * 86_400_000);
+        await r.fulfill({ response: res, json: body });
+      });
+      await pageT.goto("/");
+      await expect(pageT.getByTestId("home-members-hint")).toHaveText("1명이 3일 이상 쉬는 중이에요", {
+        timeout: 20_000,
+      });
+      await pageT.unroute(`**${RPC}/ListMemberDigest`);
+
+      // ── 회원 화면 기록 — 코치 루틴 표시 · 펼치면 처방 대 실제 ──
+      await pageT.setViewportSize({ width: 360, height: 780 });
+      await pageT.goto(`/coaching/m/${memberId}`);
+      const row = pageT.getByTestId("member-workout").first();
+      await expect(row).toBeVisible({ timeout: 20_000 });
+      await expect(row.getByTestId("member-workout-coach")).toHaveText("코치 루틴");
+      const workoutId = (await row.getAttribute("data-id")) ?? "";
+      expect(workoutId).not.toBe("");
+      await row.getByTestId("member-workout-toggle").click();
+      const pva = row.getByTestId("plan-actual");
+      await expect(pva).toBeVisible({ timeout: 20_000 });
+      await expect(pva.getByTestId("plan-actual-row")).toHaveCount(계획세트);
+      await expect(pva.getByTestId("plan-actual-summary")).toContainText(`계획 ${계획세트}세트 중 1세트`);
+      await expect(pva.getByTestId("plan-actual-actual").first()).toHaveText("80kg × 5");
+      await expect(pva.getByTestId("plan-actual-row").nth(1)).toHaveAttribute("data-status", "missed");
+      await expect(pva.getByTestId("plan-actual-status").nth(1)).toHaveText("안 함");
+      await 넘침_없음(pageT);
+
+      // ── 코멘트 — 300자 넘으면 못 보냄 · 남기면 말풍선 · 줄에 「코멘트 1」 ──
+      const box = row.getByTestId("coach-comments");
+      await expect(box).toBeVisible({ timeout: 20_000 });
+      await box.getByTestId("coach-comment-input").fill("가".repeat(301));
+      await expect(box.getByTestId("coach-comment-send")).toBeDisabled();
+      await expect(box.getByTestId("coach-comment-length")).toHaveText("301/300");
+      await box.getByTestId("coach-comment-input").fill("스쿼트 깊이 좋아요. 다음엔 세 세트 다 해 봐요");
+      const added = pageT.waitForResponse(`**${RPC}/AddCoachComment`);
+      await box.getByTestId("coach-comment-send").click();
+      expect((await added).ok()).toBe(true);
+      await expect(box.getByTestId("coach-comment")).toHaveCount(1);
+      await expect(box.getByTestId("coach-comment-body")).toHaveText(
+        "스쿼트 깊이 좋아요. 다음엔 세 세트 다 해 봐요",
+      );
+      await expect(box.getByTestId("coach-comment-input")).toHaveValue("");
+      await expect(row.getByTestId("member-workout-meta")).toContainText("코멘트 1");
+      await 크기_44(box.getByTestId("coach-comment-send"));
+      await 크기_44(box.getByTestId("coach-comment-hide"));
+      await 넘침_없음(pageT);
+      expect(await 빨강_채움(pageT)).toBeLessThanOrEqual(1);
+      // 다시 열어도 서버에서 읽는다(메모리만 — 새 문서)
+      await pageT.reload();
+      await expect(
+        pageT.getByTestId("member-workout").first().getByTestId("member-workout-meta"),
+      ).toContainText("코멘트 1", { timeout: 20_000 });
+      await pageT.setViewportSize({ width: 1280, height: 800 });
+
+      // ── 회원 — 알림 → 내 운동 상세 · 청록 말풍선 ──
+      await page.goto("/notifications");
+      const notif = page
+        .getByTestId("notif-row")
+        .filter({ hasText: `${코치} 코치님이 운동에 코멘트를 남겼어요` });
+      await expect(notif).toHaveCount(1, { timeout: 20_000 });
+      await notif.click();
+      await expect(page).toHaveURL(new RegExp(`/history/${workoutId}\\?comments=1$`), { timeout: 20_000 });
+      const mine = page.getByTestId("member-coach-comments");
+      await expect(mine).toBeVisible({ timeout: 20_000 });
+      await expect(mine.getByTestId("coach-comment-body")).toHaveText(
+        "스쿼트 깊이 좋아요. 다음엔 세 세트 다 해 봐요",
+      );
+      await expect(mine.getByTestId("coach-comment-from")).toContainText(`${코치} 코치`);
+      expect(
+        await mine.getByTestId("coach-comment").evaluate((el) => getComputedStyle(el).backgroundColor),
+      ).toBe("rgb(227, 244, 245)"); // --color-coaching-soft(라이트)
+      await page.setViewportSize({ width: 360, height: 780 });
+      await 넘침_없음(page);
+      await page.setViewportSize({ width: 1280, height: 800 });
+
+      // ── 해지 뒤에도 회원은 본다 · 코치는 회원 화면이 끝남 ──
+      await 해지(page, 코치);
+      await page.goto(`/history/${workoutId}`);
+      await expect(page.getByTestId("member-coach-comments").getByTestId("coach-comment")).toHaveCount(1, {
+        timeout: 20_000,
+      });
+
+      // ── 회원이 숨긴다 → 확인창 → 사라짐 · 새로 열어도 없음 ──
+      await page.getByTestId("member-coach-comments").getByTestId("coach-comment-hide").click();
+      const hidden = page.waitForResponse(`**${RPC}/HideCoachComment`);
+      await page.getByTestId("coach-comment-hide-confirm").getByTestId("dialog-confirm").click();
+      expect((await hidden).ok()).toBe(true);
+      await expect(page.getByTestId("member-coach-comments")).toHaveCount(0);
+      // [원본] reload 뒤에 waitForResponse — 응답이 먼저 오면 놓쳐 catch 로 그냥 지나갔다(리뷰) · [개선] 새로고침 전에 건다
+      const relisted = page.waitForResponse(`**${RPC}/ListCoachComments`);
+      await page.reload();
+      await expect(page.getByTestId("detail-name")).toBeVisible({ timeout: 20_000 });
+      expect((await relisted).ok()).toBe(true);
+      await expect(page.getByTestId("member-coach-comments")).toHaveCount(0);
+
+      // 코치 — 해지 뒤 회원 화면은 「코칭이 끝났어요」
+      await pageT.goto(`/coaching/m/${memberId}`);
+      await expect(pageT.getByTestId("member-ended")).toBeVisible({ timeout: 20_000 });
+    } finally {
+      await ctxT.close();
+    }
+  });
+
+  test("코치가 숨기기 · 기록 보기를 끄면 코멘트 쓰기가 막히고 「기록 보기를 꺼 두었어요」", async ({
+    page,
+    browser,
+  }) => {
+    test.setTimeout(360_000);
+    const tag = Date.now().toString(36);
+    const 코치 = `윤코치${tag}`;
+    const 회원 = `회원p4b${tag}`;
+    await 가입(page, 새_메일("cv2-p4b-m"), 회원);
+    await 준비(page);
+    const memberId = await 내_id(page);
+    const [ctxT, pageT] = await 새_기기(browser);
+    try {
+      await 가입(pageT, 새_메일("cv2-p4b-t"), 코치);
+      await 코치되기(pageT);
+      await 준비(pageT);
+      await 코드로_연결(pageT, page, 코치);
+      await 운동_하나(page, "바벨 벤치프레스", 60, 8);
+      await 동기(page);
+
+      // 코치 — 빠른 운동(처방 없음)은 처방 대 실제가 없다 · 코멘트 남기고 코치가 숨긴다
+      await pageT.goto(`/coaching/m/${memberId}`);
+      const row = pageT.getByTestId("member-workout").first();
+      await expect(row).toBeVisible({ timeout: 20_000 });
+      await expect(row.getByTestId("member-workout-coach")).toHaveCount(0);
+      await row.getByTestId("member-workout-toggle").click();
+      await expect(row.getByTestId("member-set")).toHaveText(["1. 60kg × 8"]);
+      await expect(row.getByTestId("plan-actual")).toHaveCount(0);
+      const box = row.getByTestId("coach-comments");
+      await box.getByTestId("coach-comment-input").fill("벤치 좋아요");
+      await box.getByTestId("coach-comment-send").click();
+      await expect(box.getByTestId("coach-comment")).toHaveCount(1, { timeout: 20_000 });
+      await box.getByTestId("coach-comment-hide").click();
+      const hidden = pageT.waitForResponse(`**${RPC}/HideCoachComment`);
+      await pageT.getByTestId("coach-comment-hide-confirm").getByTestId("dialog-confirm").click();
+      expect((await hidden).ok()).toBe(true);
+      await expect(box.getByTestId("coach-comment")).toHaveCount(0);
+
+      // 회원 상세에도 없다(숨긴 코멘트는 누구에게도 안 나간다)
+      await 최근_기록_상세(page);
+      await expect(page.getByTestId("detail-name")).toBeVisible({ timeout: 20_000 });
+      await page.waitForTimeout(1_500);
+      await expect(page.getByTestId("member-coach-comments")).toHaveCount(0);
+
+      // 화면을 연 채 회원이 기록 보기를 끈다 → 코멘트를 남기면 「회원이 기록 보기를 꺼 두었어요」
+      await pageT.goto(`/coaching/m/${memberId}`);
+      const row2 = pageT.getByTestId("member-workout").first();
+      await row2.getByTestId("member-workout-toggle").click({ timeout: 20_000 });
+      await row2.getByTestId("coach-comment-input").fill("늦은 코멘트");
+      await 범위_뒤집기(page, 코치, "logView");
+      await row2.getByTestId("coach-comment-send").click();
+      await expect(pageT.getByTestId("member-log-off")).toHaveText("회원이 기록 보기를 꺼 두었어요", {
+        timeout: 20_000,
+      });
+    } finally {
+      await ctxT.close();
+    }
+  });
+
+  test("코칭을 안 하는 사용자가 오프라인으로 운동 상세를 열면 코멘트 요청 0 · 코멘트 칸 깜빡임 0", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    await 가입(page, 새_메일("cv2-p4c"), `혼자p4${Date.now().toString(36)}`);
+    await 준비(page);
+    await 운동_하나(page, "바벨 벤치프레스", 60, 8);
+    // 온라인에서 한 번 열어 둔다(오프라인 셸 캐시에 상세 문서가 생기게 — 이때의 코멘트 요청은 세지 않는다)
+    await 최근_기록_상세(page);
+    const url = page.url();
+    // 화면 안 이동은 RSC 만 받아 셸 캐시에 문서가 없다 — 한 번 새 문서로 열어 SW 가 담게 한다
+    // (이 문서의 온라인 코멘트 요청이 끝난 뒤에 세기 시작한다 — 늦게 나간 요청을 오프라인 몫으로 세지 않게)
+    const onlineListed = page.waitForResponse(`**${RPC}/ListCoachComments`);
+    await page.goto(url);
+    await expect(page.getByTestId("detail-set").first()).toBeVisible({ timeout: 20_000 });
+    await onlineListed;
+    // 오프라인으로 **새 문서**를 연다 — 모듈 메모리 캐시가 없으니 묻지 않는 것은 오프라인 판정 덕이다.
+    // 코멘트 칸이 한 번이라도 생기면 센다(첫 칠하기부터 · addInitScript)
+    let asked = 0;
+    page.on("request", (r) => {
+      if (r.url().includes("/ListCoachComments")) asked++;
+    });
+    await page.addInitScript(() => {
+      const w = window as unknown as { __commentsSeen?: number };
+      w.__commentsSeen = 0;
+      const watch = () =>
+        new MutationObserver(() => {
+          if (document.querySelector('[data-testid="member-coach-comments"]'))
+            w.__commentsSeen = (w.__commentsSeen ?? 0) + 1;
+        }).observe(document.documentElement, { childList: true, subtree: true });
+      if (document.documentElement) watch();
+      else document.addEventListener("DOMContentLoaded", watch);
+    });
+    // setOffline 만으로는 SW 가 내준 새 문서의 navigator.onLine 이 true 로 남는다(크로미움 흉내 한계 · 실측) —
+    // 실제 기기처럼 오프라인 문서는 onLine=false 로 보이게 한다(네트워크 차단은 setOffline 이 그대로 한다)
+    await page.addInitScript(() => {
+      Object.defineProperty(Navigator.prototype, "onLine", { configurable: true, get: () => false });
+    });
+    await page.context().setOffline(true);
+    try {
+      await page.goto(url);
+      await expect(page.getByTestId("detail-set").first()).toBeVisible({ timeout: 20_000 });
+      await page.waitForTimeout(2_000);
+      expect(asked).toBe(0);
+      expect(
+        await page.evaluate(() => (window as unknown as { __commentsSeen?: number }).__commentsSeen),
+      ).toBe(0);
+      await expect(page.getByTestId("member-coach-comments")).toHaveCount(0);
+    } finally {
+      await page.context().setOffline(false);
     }
   });
 });

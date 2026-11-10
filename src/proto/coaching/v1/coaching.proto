@@ -361,6 +361,8 @@ message ListSentSummariesResponse {
 // 길이 ≤ 400일 · start < end · end ≤ now+1일. 컬렉션·칸은 **서버 상수 허용 목록**만이다
 // (notes·note·image_url·prescription·prev_* 없음 · user_profiles·import_* 는 영원히 없다 ·
 // bodyweight_logs 는 body_view 를 열었을 때만 정해진 칸으로 — SPEC-050).
+// 예외 하나(SPEC-050 P4 처방 대 실제): 코치가 보낸 루틴(routine_id 가 coach-…)으로 한 운동의 블록에만
+// prescription·target_sets·target_reps_min·target_reps_max·target_weight_kg 를 더 싣는다(코치가 보낸 값의 복사본).
 message GetMemberRecordsRequest {
   string member_id = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
   int64 period_start = 2 [(buf.validate.field).int64.gt = 0];
@@ -450,6 +452,73 @@ message ListSentRoutinesResponse {
   repeated SentRoutine routines = 1;
 }
 
+// ── 코치 코멘트·담당 회원 점검(SPEC-050 P4) ─────────────────────────────────
+// 코멘트 = 코치가 회원 운동 하나에 남기는 말(300자). 그 회원의 완료 운동 · visibleFrom 뒤 · logView 일 때만 쓴다.
+// 읽기 — 코치는 지금 활성 ∧ logView ∧ 차단 아님일 때 자기 코멘트만 · 회원은 언제나(차단한 코치 것은 빠진다).
+// 숨기기 — 코치(자기 것)·회원(자기 운동의 것). 숨긴 코멘트는 누구에게도 나가지 않는다.
+
+message CoachComment {
+  string id = 1;
+  string workout_id = 2;
+  string member_id = 3;
+  string trainer_id = 4;
+  // 코치 표시 이름(지금 이름).
+  string trainer_name = 5;
+  string body = 6;
+  int64 created_at = 7;
+  // 보는 사람이 숨길 수 있나(코치는 자기 것 · 회원은 자기 운동의 것).
+  bool can_hide = 8;
+}
+
+message AddCoachCommentRequest {
+  string member_id = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  string workout_id = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 300자(룬) 상한은 서버 몫(한국어 문구). 여기서는 바이트로 넉넉히.
+  string body = 3 [(buf.validate.field).string.max_bytes = 4000];
+}
+message AddCoachCommentResponse {
+  CoachComment comment = 1;
+}
+
+// 코치: member_id 필수 · workout_id 를 비우면 이 회원에게 남긴 내 코멘트 전부(최근 500).
+// 회원: member_id 를 비우거나 나 · workout_id 필수(내 운동의 코멘트 전부).
+message ListCoachCommentsRequest {
+  string member_id = 1 [(buf.validate.field).string.max_len = 64];
+  string workout_id = 2 [(buf.validate.field).string.max_len = 64];
+}
+message ListCoachCommentsResponse {
+  repeated CoachComment comments = 1;
+}
+
+message HideCoachCommentRequest {
+  string id = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+}
+message HideCoachCommentResponse {}
+
+// 담당 회원 한 명의 이번 주 점검 — 사실 숫자만(판단은 코치가 한다). 모두 visibleFrom 뒤만 센다.
+message MemberDigest {
+  string member_id = 1;
+  // logView 가 꺼져 있으면 false — 숫자는 모두 0(서버가 세지 않는다).
+  bool log_view = 2;
+  // week_start 뒤에 시작한 완료 운동 수.
+  int32 week_workouts = 3;
+  // 마지막 완료 운동의 시작 시각(epoch ms). 없으면 0 — 「N일째 쉬는 중」은 화면이 이 값과 기기 날짜로 센다.
+  int64 last_workout_at = 4;
+  // 그중 이 코치가 보낸 루틴으로 한 운동 수.
+  int32 week_coach_routine_workouts = 5;
+}
+
+message ListMemberDigestRequest {
+  // 「이번 주」 시작(epoch ms · 보는 기기의 월요일 0시). 지금−8일보다 이르거나 지금보다 늦으면 지금−7일로 본다.
+  int64 week_start = 1;
+}
+message ListMemberDigestResponse {
+  // 지금 활성인 담당 회원마다 하나(차단 사이는 뺀다).
+  repeated MemberDigest members = 1;
+  // 담당 회원이 200명을 넘어 잘렸으면 true — 화면은 점검에 없는 회원을 원래 순서 뒤에 그대로 둔다.
+  bool truncated = 2;
+}
+
 service CoachingService {
   // 코칭 의향을 밝힌 사람을 찾는다. 차단한(또는 나를 차단한) 사람은 보이지 않는다.
   rpc SearchTrainers(SearchTrainersRequest) returns (SearchTrainersResponse) {}
@@ -490,4 +559,11 @@ service CoachingService {
   rpc SendRoutine(SendRoutineRequest) returns (SendRoutineResponse) {}
   // 이 회원에게 보낸 루틴(끝난 것 포함 · 코치 본인 것만).
   rpc ListSentRoutines(ListSentRoutinesRequest) returns (ListSentRoutinesResponse) {}
+
+  // ── 코멘트·점검(SPEC-050 P4 · 스펙의 AddComment·ListComments·HideComment — 피드 댓글 계약과 이름이 겹쳐 Coach 를 붙였다) ── 코멘트는 코치당 회원당 하루 20개. 남기면 회원에게 알림(coaching_comment · ref_id = 운동 id).
+  rpc AddCoachComment(AddCoachCommentRequest) returns (AddCoachCommentResponse) {}
+  rpc ListCoachComments(ListCoachCommentsRequest) returns (ListCoachCommentsResponse) {}
+  rpc HideCoachComment(HideCoachCommentRequest) returns (HideCoachCommentResponse) {}
+  // 코치(viewer)의 활성 담당 회원마다 이번 주 운동 수·마지막 운동·코치 루틴 운동 수.
+  rpc ListMemberDigest(ListMemberDigestRequest) returns (ListMemberDigestResponse) {}
 }

@@ -2242,7 +2242,7 @@
        {
         "content": [
          {
-          "text": "[ ] 코멘트 3종·알림·화면 · 처방 대 실제 · ListMemberDigest·목록",
+          "text": "[x] 코멘트 3종·알림·화면 · 처방 대 실제 · ListMemberDigest·목록",
           "type": "text"
          }
         ],
@@ -2492,7 +2492,7 @@
  "meta": {
   "grade": "Project",
   "phases": "6",
-  "phases_done": "5"
+  "phases_done": "6"
  },
  "relations": {
   "implements": [
@@ -2507,5 +2507,5 @@
  "tags": [],
  "title": "코칭 v2 — 연결·범위·회원 화면·루틴 보내기·코멘트",
  "type": "Spec",
- "updated": "2026-11-09T13:38:29Z"
+ "updated": "2026-11-09T14:49:56Z"
 }

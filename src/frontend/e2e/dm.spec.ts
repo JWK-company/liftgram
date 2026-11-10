@@ -244,6 +244,9 @@ test("팔로우·좋아요·댓글이 알림으로 쌓이고, 열면 배지가 �
   await page.getByTestId("feed-caption").fill("알림 실험용 글");
   await page.getByTestId("feed-post").click();
   await expect(page.getByTestId("feed-list")).toContainText("알림 실험용 글", { timeout: 20_000 });
+  // 첫 전환도 두 번째와 같이 — 가입 때 생긴 기록이 서버에 올라간 뒤에 계정을 바꾼다(대기열에 남으면 「다른 계정의 기록」 창)
+  await page.goto("/exercises");
+  await expect(page.getByTestId("sync-state")).toHaveText("최신", { timeout: 20_000 });
 
   // 다른 사람이 팔로우·좋아요·댓글을 남긴다.
   await context.clearCookies();

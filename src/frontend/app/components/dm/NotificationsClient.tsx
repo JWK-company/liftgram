@@ -53,7 +53,7 @@ function target(n: Notification): string {
   if (n.kind === NotificationKind.FOLLOW) return routes.userProfile(n.actor?.id ?? "");
   if (n.kind === NotificationKind.COACHING_SUMMARY) return "/messages"; // 실제 이동은 openSummary(그 회원과의 대화) @plm SRS-080
   // 코칭 v2(SPEC-050) — post_id 가 비어 있어 아래 글 화면 길로 떨어지지 않게 먼저 고른다
-  //   요청·수락·해지 → /coaching · 루틴 → 운동 홈(받은 루틴) · 코멘트 → 지금은 /coaching(P4 에서 ref_id = 운동 id → /history/[ref_id])
+  //   요청·수락·해지 → /coaching · 루틴 → 운동 홈(받은 루틴) · 코멘트 → /history/[ref_id](ref_id 가 없으면 /coaching · P4)
   const coaching = coachingTarget(n);
   if (coaching) return coaching;
   // [원본] return n.postId ? routes.postComments(n.postId) : "/feed";
@@ -75,7 +75,8 @@ export function coachingTarget(n: Pick<Notification, "kind" | "refId">): string 
     case NotificationKind.COACHING_ROUTINE_UPDATE:
       return "/";
     case NotificationKind.COACHING_COMMENT:
-      return "/coaching";
+      // [원본] return "/coaching"; — P4 에서 ref_id = 운동 id → 그 운동 상세의 코치 코멘트(?comments=1 이면 그 자리로)
+      return n.refId ? `/history/${encodeURIComponent(n.refId)}?comments=1` : "/coaching";
     default:
       return null;
   }
@@ -85,7 +86,12 @@ function isRoutineNotif(n: Pick<Notification, "kind">): boolean {
   return n.kind === NotificationKind.COACHING_ROUTINE || n.kind === NotificationKind.COACHING_ROUTINE_UPDATE;
 }
 
-/** 코치 루틴 알림 — 동기(최대 5초 · 실패해도 간다 · 다음 동기가 채운다) 뒤 홈으로. */
+/** 동기 뒤에 여는 알림 — 코치 루틴(받은 루틴이 홈에 있게) · 코치 코멘트(그 운동이 이 기기에 있게 · 리뷰 중간-1). */
+function syncsFirst(n: Pick<Notification, "kind" | "refId">): boolean {
+  return isRoutineNotif(n) || (n.kind === NotificationKind.COACHING_COMMENT && !!n.refId);
+}
+
+/** 코치 루틴·코멘트 알림 — 동기(최대 5초 · 실패해도 간다 · 다음 동기가 채운다) 뒤 갈 곳으로(루틴 → 홈 · 코멘트 → 그 운동). */
 async function openRoutineNotif(n: Notification): Promise<void> {
   try {
     const { syncNow } = await import("@/lib/syncTransport");
@@ -208,7 +214,8 @@ export default function NotificationsClient() {
                                 e.preventDefault();
                                 void openSummary(n);
                               }
-                            : isRoutineNotif(n)
+                            : // [원본] isRoutineNotif(n) — 코멘트 알림도 동기 뒤에(리뷰 중간-1)
+                              syncsFirst(n)
                               ? (e) => {
                                   e.preventDefault();
                                   if (opening) return; // 여는 중 — 겹쳐 누름 무시

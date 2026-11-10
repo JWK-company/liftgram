@@ -23,12 +23,14 @@
 //   옛 판(줄마다 루틴·리포트·해지 버튼 · 상태 글자를 누르면 이력)은 git 3b561a2 의 이 파일.
 // ─────────────────────────────────────────────────────────────────────────────
 import { errorText } from "@/lib/errorText";
-import type { Grant, Peer, Routine, RoutineExercise } from "@app/contracts";
+import type { Grant, MemberDigest, Peer, Routine, RoutineExercise } from "@app/contracts";
 import { GrantStatus, Side } from "@app/contracts";
 import type { WeightUnit } from "@app/core";
 import { Code, ConnectError } from "@connectrpc/connect";
-import { useCallback, useEffect, useId, useState } from "react";
-import { t, type TransKey } from "@/lib/i18n";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { orderByRest, REST_ALERT_DAYS, restDays, weekStartMs } from "@app/core/domain/coachDigest"; // 담당 회원 점검(P4)
+import { lang, t, type TransKey } from "@/lib/i18n";
+import { useDayKey } from "@/lib/useDayKey";
 import { coachingClient } from "@/lib/coachingClient";
 import { scopeOf, type ScopeValue } from "@/lib/coaching";
 import { useAuth } from "../AuthProvider";
@@ -105,6 +107,46 @@ export default function CoachingClient() {
     // 신원이 정해지기 전에 부르면 서버가 401로 되받는다 — 확정된 뒤에 읽는다.
     if (!authLoading) void load();
   }, [authLoading, load]);
+
+  // 담당 회원 점검(SPEC-050 P4) — 활성 회원이 있을 때만 묻는다. null = 읽는 중(줄 순서가 바뀌므로 다 읽은 뒤에 그린다)
+  //   실패하면 빈 표 — 줄은 원래 순서로, 점검 줄 없이. 메모리만(회원 데이터는 기기에 남기지 않는다).
+  const [digest, setDigest] = useState<Map<string, MemberDigest> | null>(null);
+  // 점검이 3초 넘게 걸리면 원래 순서로 먼저 그린다(리뷰 중간-2). 한 번 그린 뒤에는 점검이 와도 줄을 다시 줄 세우지 않는다
+  // (줄이 뛰지 않게) — 점검 줄만 채운다. 이 화면을 다시 열면 다시 기다린다.
+  const [digestLate, setDigestLate] = useState(false);
+  const digestGen = useRef(0);
+  // [원본] activeMemberKey 를 grants 와 함께 deps 에 — grants 가 새로 올 때마다(같은 회원이어도) 다시 물었다
+  // [개선] deps = 활성 회원 열쇠(null = 관계 읽는 중) + 날짜 열쇠(자정을 넘기면 「이번 주」를 다시 센다 · 리뷰 낮음)
+  const activeMemberKey =
+    grants === null
+      ? null
+      : grants
+          .filter((g) => g.roleOfMe === Side.TRAINER && g.status === GrantStatus.ACTIVE)
+          .map((g) => g.peer?.id ?? "")
+          .join(",");
+  const dayKey = useDayKey();
+  // biome-ignore lint/correctness/useExhaustiveDependencies: dayKey — 날이 바뀌면 이번 주 시작이 달라져 다시 묻는다
+  useEffect(() => {
+    if (activeMemberKey === null) return;
+    const gen = ++digestGen.current;
+    if (!activeMemberKey) {
+      setDigest(new Map());
+      return;
+    }
+    const late = setTimeout(() => {
+      if (gen === digestGen.current) setDigestLate(true);
+    }, 3000);
+    coachingClient()
+      .listMemberDigest({ weekStart: BigInt(weekStartMs()) })
+      .then((r) => {
+        if (gen === digestGen.current) setDigest(new Map(r.members.map((m) => [m.memberId, m])));
+      })
+      .catch(() => {
+        if (gen === digestGen.current) setDigest(new Map());
+      })
+      .finally(() => clearTimeout(late));
+    return () => clearTimeout(late);
+  }, [activeMemberKey, dayKey]);
 
   async function act(fn: () => Promise<unknown>) {
     if (busy) return;
@@ -238,7 +280,17 @@ export default function CoachingClient() {
   // 해지된 관계는 목록에서 내린다 — 다시 요청하면 되살아난다.
   const live = (grants ?? []).filter((g) => g.status !== GrantStatus.REVOKED);
   const asMember = live.filter((g) => g.roleOfMe === Side.MEMBER);
-  const asTrainer = live.filter((g) => g.roleOfMe === Side.TRAINER);
+  // [원본] const asTrainer = live.filter((g) => g.roleOfMe === Side.TRAINER);
+  // [개선] 3일 이상 쉰 회원이 위로(오래 쉰 순 · 나머지는 원래 순서 — SPEC-050 P4)
+  const digestLike = new Map(
+    [...(digest ?? new Map<string, MemberDigest>()).values()].map((d) => [
+      d.memberId,
+      { memberId: d.memberId, logView: d.logView, lastWorkoutAt: Number(d.lastWorkoutAt) },
+    ]),
+  );
+  const trainerRows = live.filter((g) => g.roleOfMe === Side.TRAINER);
+  // 점검보다 먼저 그렸으면(3초 넘음) 원래 순서 그대로
+  const asTrainer = digestLate ? trainerRows : orderByRest(trainerRows, (g) => g.peer?.id ?? "", digestLike);
   const alreadyLinked = new Set(live.map((g) => g.peer?.id).filter(Boolean));
 
   /** ⋯ 시트 선택지 — 역할·상태마다 다르다. 서버가 막을 일은 아예 넣지 않는다. */
@@ -289,6 +341,9 @@ export default function CoachingClient() {
   }
 
   const loadingGrants = grants === null;
+  const loadingMembers =
+    loadingGrants ||
+    (asTrainer.some((g) => g.status === GrantStatus.ACTIVE) && digest === null && !digestLate);
 
   return (
     <Shell>
@@ -357,7 +412,8 @@ export default function CoachingClient() {
         ) : null}
 
         <SectionHeader title={t("coaching.myMembers")} />
-        {loadingGrants ? (
+        {/* [원본] {loadingGrants ? ( — 점검을 다 읽은 뒤 그린다(순서가 바뀌어 줄이 뛰지 않게) */}
+        {loadingMembers ? (
           <GrantsLoading />
         ) : asTrainer.length === 0 ? (
           <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-md)] block">
@@ -366,7 +422,14 @@ export default function CoachingClient() {
         ) : (
           <div data-testid="coaching-members">
             {asTrainer.map((g) => (
-              <GrantRow key={g.id} grant={g} busy={busy} onAccept={() => accept(g)} options={menuFor(g)} />
+              <GrantRow
+                key={g.id}
+                grant={g}
+                busy={busy}
+                onAccept={() => accept(g)}
+                options={menuFor(g)}
+                digest={g.status === GrantStatus.ACTIVE ? digest?.get(g.peer?.id ?? "") : undefined}
+              />
             ))}
           </div>
         )}
@@ -572,11 +635,14 @@ function GrantRow({
   busy,
   onAccept,
   options,
+  digest,
 }: {
   grant: Grant;
   busy: boolean;
   onAccept: () => void;
   options: SheetOption[];
+  /** 담당 회원 점검(SPEC-050 P4) — 코치 쪽 활성 회원만 */
+  digest?: MemberDigest;
 }) {
   const canAccept = grant.status === GrantStatus.PENDING && grant.requestedBy !== grant.roleOfMe;
   const active = grant.status === GrantStatus.ACTIVE;
@@ -616,6 +682,7 @@ function GrantRow({
           >
             {t(STATUS_KEY[grant.status])}
           </AppText>
+          {digest ? <DigestLine d={digest} /> : null}
           {note ? (
             <AppText
               variant="caption"
@@ -648,6 +715,64 @@ function GrantRow({
         sheetTestId="coaching-grant-sheet"
       />
     </Card>
+  );
+}
+
+/** 담당 회원 줄의 점검 — 이번 주 N회 · 마지막 운동 · 코치 루틴 N회 · 3일 이상이면 「N일째 쉬는 중」(사실만 · ADR-028). */
+function DigestLine({ d }: { d: MemberDigest }) {
+  if (!d.logView)
+    return (
+      <AppText variant="caption" color="textMuted" className="block truncate" data-testid="coaching-digest">
+        {t("coaching.digest.logOff")}
+      </AppText>
+    );
+  const last = Number(d.lastWorkoutAt);
+  const rest = restDays(last);
+  const lastText =
+    rest === null
+      ? t("coaching.digest.none")
+      : t("coaching.digest.last", {
+          date:
+            rest === 0
+              ? t("coaching.digest.today")
+              : rest === 1
+                ? t("coaching.digest.yesterday")
+                : new Date(last).toLocaleDateString(lang === "en" ? "en-US" : "ko-KR", {
+                    month: "short",
+                    day: "numeric",
+                  }),
+        });
+  const bits = [
+    // [원본] t("coaching.digest.week", { count: d.weekWorkouts }) — 단수 짝(리뷰 중간-3)
+    d.weekWorkouts === 1
+      ? t("coaching.digest.weekOne")
+      : t("coaching.digest.week", { count: d.weekWorkouts }),
+    lastText,
+    d.weekCoachRoutineWorkouts > 0
+      ? t("coaching.digest.coachRoutine", { count: d.weekCoachRoutineWorkouts })
+      : null,
+  ].filter(Boolean);
+  return (
+    <div className="min-w-0" data-testid="coaching-digest" data-week={d.weekWorkouts} data-rest={rest ?? ""}>
+      <AppText
+        variant="caption"
+        color="textMuted"
+        className="block truncate"
+        data-testid="coaching-digest-text"
+      >
+        {bits.join(" · ")}
+      </AppText>
+      {rest !== null && rest >= REST_ALERT_DAYS ? (
+        <AppText
+          variant="caption"
+          className="block truncate font-semibold"
+          style={{ color: "var(--color-coaching-ink)" }}
+          data-testid="coaching-digest-rest"
+        >
+          {t("coaching.digest.rest", { count: rest })}
+        </AppText>
+      ) : null}
+    </div>
   );
 }
 

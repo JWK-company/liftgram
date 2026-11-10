@@ -19,11 +19,12 @@
 // ── 깜빡임 없음 ─────────────────────────────────────────────────────────────
 //   연결을 다 읽기 전에는 판단하지 않는다(loading) — 「코칭이 끝났어요」·「기록 보기를 꺼 두었어요」가 잠깐 비치지 않게.
 import { errorText } from "@/lib/errorText";
-import type { Grant, Peer } from "@app/contracts";
+import type { CoachComment, Grant, Peer } from "@app/contracts";
 import { GrantStatus, Side } from "@app/contracts";
 import type { WeightUnit } from "@app/core";
 import { type BodyweightLogLike, sortBodyweightLogs } from "@app/core/domain/bodyweight";
 import type { SummaryPreset } from "@app/core/domain/periodSummary";
+import { type ActualSetLike, type PlanVsActual, planVsActual } from "@app/core/domain/planVsActual"; // 처방 대 실제(P4)
 import { displayWeight, formatWeight } from "@app/core/domain/units";
 import { Code, ConnectError } from "@connectrpc/connect";
 import { type KeyboardEvent, useCallback, useEffect, useId, useRef, useState } from "react";
@@ -35,6 +36,8 @@ import { useWeightUnit } from "../feed/useWeightUnit";
 import { MemberReportBody } from "../summary/MemberReportDialog";
 import { MemberRoutinesBody } from "./CoachingClient";
 import { SentRoutinesSection } from "./SentRoutines"; // 보낸 루틴(SPEC-050 P3b)
+import { CoachCommentBox } from "./CoachComments"; // 코치 코멘트(SPEC-050 P4)
+import { PlanActualTable } from "./PlanActual"; // 처방 대 실제(SPEC-050 P4)
 import { Button } from "../ui/Button";
 import { Icon } from "../ui/Icon";
 import { LogoSpinner } from "../ui/LogoSpinner";
@@ -431,13 +434,19 @@ interface SetView {
   id: string;
   label: string;
 }
+/** 처방 대 실제의 실제 한 줄 — 표가 같은 글자(setLabel)를 보인다 */
+type ActualView = ActualSetLike & { label: string };
 interface ExerciseView {
   id: string;
   name: string;
   sets: SetView[];
+  // 코치가 보낸 루틴으로 한 운동이고 블록에 처방(또는 목표)이 있으면 — 처방 대 실제(SPEC-050 P4)
+  plan: PlanVsActual | null;
 }
 interface WorkoutView {
   id: string;
+  /** 코치가 보낸 루틴으로 한 운동(routine_id 가 coach-…) */
+  coach: boolean;
   startedAt: number;
   durationSec: number | null;
   volumeKg: number;
@@ -527,15 +536,38 @@ async function toWorkouts(
         (a, c) => (num(a.set_number) ?? 0) - (num(c.set_number) ?? 0),
       );
       setCount += ss.length;
+      // [원본] exercises.push({ id, name, sets }) — P4 에서 처방 대 실제(plan)를 더한다
+      const coach = (str(w.routine_id) ?? "").startsWith("coach-");
+      // [원본] done: true(모든 세트를 끝낸 것으로) — [개선] 서버 done·is_warmup·set_type 그대로(묶음별 짝 · done === true 만 · 리뷰)
+      const actual: ActualView[] = ss.map((s) => ({
+        weightKg: num(s.weight_kg),
+        reps: num(s.reps),
+        setNumber: num(s.set_number),
+        done: s.done === true,
+        isWarmup: s.is_warmup === true,
+        setType: str(s.set_type),
+        label: setLabel(s, unit),
+      }));
       exercises.push({
         id: bid ?? exId,
         name: names.get(exId) ?? t("coaching.member.unknownExercise"),
         sets: ss.map((s, i) => ({ id: str(s.id) ?? `${bid}-${i}`, label: setLabel(s, unit) })),
+        plan: coach
+          ? planVsActual({
+              prescription: b.prescription,
+              targetSets: num(b.target_sets),
+              targetRepsMin: num(b.target_reps_min),
+              targetRepsMax: num(b.target_reps_max),
+              targetWeightKg: num(b.target_weight_kg),
+              sets: actual,
+            })
+          : null,
       });
     }
     const completedAt = num(w.completed_at);
     out.push({
       id,
+      coach: (str(w.routine_id) ?? "").startsWith("coach-"),
       startedAt,
       durationSec:
         num(w.duration_seconds) ?? (completedAt ? Math.max(0, (completedAt - startedAt) / 1000) : null),
@@ -573,6 +605,9 @@ function RecordsTab({
   const [attempt, setAttempt] = useState(0);
   // 요청 세대 — 첫 읽기·다시 시도·언마운트마다 올린다. 늦게 온 「더 보기」 응답은 세대가 다르면 버린다(코드 리뷰 L-4)
   const genRef = useRef(0);
+  // 코치 코멘트(SPEC-050 P4) — 이 회원에게 남긴 내 코멘트를 한 번에 읽어 운동마다 묶는다(메모리만). null = 읽는 중
+  const [comments, setComments] = useState<Map<string, CoachComment[]> | null>(null);
+  const [commentsError, setCommentsError] = useState(false);
 
   const fetchWindow = useCallback(
     async (fromMs: number, toMs: number) => {
@@ -618,11 +653,51 @@ function RecordsTab({
       .catch((e) => {
         if (!cancelled) fail(e);
       });
+    // 코멘트 — 기록과 따로 읽는다. 실패해도 기록은 보인다(막힘·끝남 판단은 기록 응답이 한다 — 두 번 다시 읽지 않게)
+    setComments(null);
+    setCommentsError(false);
+    coachingClient()
+      .listCoachComments({ memberId })
+      .then((r) => {
+        if (!cancelled) setComments(groupComments(r.comments));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setComments(new Map());
+        setCommentsError(true);
+      });
     return () => {
       cancelled = true;
       if (genRef.current === gen) genRef.current++;
     };
-  }, [fetchWindow, fail, attempt]);
+  }, [fetchWindow, fail, attempt, memberId]);
+
+  const onAdded = useCallback((c: CoachComment) => {
+    setComments((m) => {
+      const next = new Map(m ?? []);
+      next.set(c.workoutId, [...(next.get(c.workoutId) ?? []), c]);
+      return next;
+    });
+  }, []);
+  const onHidden = useCallback((id: string) => {
+    setComments((m) => {
+      const next = new Map<string, CoachComment[]>();
+      for (const [k, v] of m ?? [])
+        next.set(
+          k,
+          v.filter((c) => c.id !== id),
+        );
+      return next;
+    });
+  }, []);
+  const onDenied = useCallback(
+    (e: unknown) => {
+      if (ConnectError.from(e).code !== Code.PermissionDenied) return false;
+      onEnded();
+      return true;
+    },
+    [onEnded],
+  );
 
   async function more() {
     // [원본] if (!pages || busy || cutAt !== null) return;
@@ -694,6 +769,13 @@ function RecordsTab({
               key={w.id}
               w={w}
               unit={unit}
+              memberId={memberId}
+              comments={comments?.get(w.id) ?? EMPTY_COMMENTS}
+              commentsReady={comments !== null}
+              commentsError={commentsError}
+              onAdded={onAdded}
+              onHidden={onHidden}
+              onDenied={onDenied}
               open={open.has(w.id)}
               onToggle={() =>
                 setOpen((s) => {
@@ -766,6 +848,20 @@ function RecordsTab({
   );
 }
 
+const EMPTY_COMMENTS: CoachComment[] = [];
+
+/** 코멘트를 운동마다 묶는다 — 운동 안에서는 오래된 것부터(대화 순서). */
+function groupComments(rows: readonly CoachComment[]): Map<string, CoachComment[]> {
+  const m = new Map<string, CoachComment[]>();
+  for (const c of rows) {
+    const arr = m.get(c.workoutId) ?? [];
+    arr.push(c);
+    m.set(c.workoutId, arr);
+  }
+  for (const arr of m.values()) arr.sort((a, b) => Number(a.createdAt) - Number(b.createdAt));
+  return m;
+}
+
 /** 마지막 두 구간이 모두 비었나 — 「더 이전 기록이 없어요」로 멈춘다(L-3) */
 function noMore(pages: readonly Page[]): boolean {
   const n = pages.length;
@@ -775,11 +871,25 @@ function noMore(pages: readonly Page[]): boolean {
 function WorkoutRow({
   w,
   unit,
+  memberId,
+  comments,
+  commentsReady,
+  commentsError,
+  onAdded,
+  onHidden,
+  onDenied,
   open,
   onToggle,
 }: {
   w: WorkoutView;
   unit: WeightUnit;
+  memberId: string;
+  comments: readonly CoachComment[];
+  commentsReady: boolean;
+  commentsError: boolean;
+  onAdded: (c: CoachComment) => void;
+  onHidden: (id: string) => void;
+  onDenied: (e: unknown) => boolean;
   open: boolean;
   onToggle: () => void;
 }) {
@@ -796,6 +906,13 @@ function WorkoutRow({
     // [원본] t("coaching.member.sets", { count: w.setCount }) — en 「1 sets」(코드 리뷰 L-6)
     w.setCount === 1 ? t("coaching.member.setsOne") : t("coaching.member.sets", { count: w.setCount }),
     w.volumeKg > 0 ? formatWeight(w.volumeKg, unit) : null,
+    // [개선] 코멘트가 있으면 줄에서도 보인다(SPEC-050 P4)
+    // [원본] comments.length > 0 ? t("coaching.comment.count", …) — 영어 「1 comments」(리뷰 중간-3)
+    comments.length === 1
+      ? t("coaching.comment.countOne")
+      : comments.length > 0
+        ? t("coaching.comment.count", { count: comments.length })
+        : null,
   ].filter(Boolean);
   return (
     <div
@@ -811,9 +928,23 @@ function WorkoutRow({
         className="flex min-h-11 w-full min-w-0 items-center gap-[var(--spacing-sm)] px-[var(--spacing-md)] py-[var(--spacing-sm)] text-left"
       >
         <div className="min-w-0 flex-1">
-          <AppText variant="body" className="block truncate font-medium!" data-testid="member-workout-title">
-            {title}
-          </AppText>
+          <div className="flex min-w-0 items-center gap-[var(--spacing-xs)]">
+            <AppText
+              variant="body"
+              className="min-w-0 truncate font-medium!"
+              data-testid="member-workout-title"
+            >
+              {title}
+            </AppText>
+            {w.coach ? (
+              <span
+                data-testid="member-workout-coach"
+                className="inline-flex shrink-0 items-center rounded-[var(--radius-pill)] bg-(--color-coaching-soft) px-[var(--spacing-sm)] py-[1px] font-semibold text-(--color-coaching-ink) text-[length:var(--text-xs)]"
+              >
+                {t("coaching.plan.coachRoutine")}
+              </span>
+            ) : null}
+          </div>
           <AppText
             variant="caption"
             color="textMuted"
@@ -835,15 +966,46 @@ function WorkoutRow({
               <AppText variant="caption" className="block truncate font-semibold">
                 {e.name}
               </AppText>
-              <div className="flex flex-wrap gap-x-[var(--spacing-sm)] gap-y-[2px]">
-                {e.sets.map((s, i) => (
-                  <AppText key={s.id} variant="caption" color="textMuted" data-testid="member-set">
-                    {`${i + 1}. ${s.label}`}
-                  </AppText>
-                ))}
-              </div>
+              {/* [개선] 코치 루틴 운동은 처방 대 실제 표(SPEC-050 P4) · 그 밖은 세트 줄 그대로 */}
+              {e.plan ? (
+                <PlanActualTable
+                  pva={e.plan}
+                  unit={unit}
+                  actualLabel={(r) => (r.actual as ActualView | null)?.label ?? "—"}
+                />
+              ) : (
+                <div className="flex flex-wrap gap-x-[var(--spacing-sm)] gap-y-[2px]">
+                  {e.sets.map((s, i) => (
+                    <AppText key={s.id} variant="caption" color="textMuted" data-testid="member-set">
+                      {`${i + 1}. ${s.label}`}
+                    </AppText>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
+          {commentsReady ? (
+            <>
+              {commentsError ? (
+                <AppText
+                  variant="caption"
+                  color="textMuted"
+                  className="mt-[var(--spacing-xs)] block"
+                  data-testid="coach-comments-error"
+                >
+                  {t("coaching.comment.loadFailed")}
+                </AppText>
+              ) : null}
+              <CoachCommentBox
+                memberId={memberId}
+                workoutId={w.id}
+                comments={comments}
+                onAdded={onAdded}
+                onHidden={onHidden}
+                onDenied={onDenied}
+              />
+            </>
+          ) : null}
         </div>
       ) : null}
     </div>

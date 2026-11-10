@@ -161,6 +161,8 @@ type Repo interface {
 	SummaryRepo
 	// 코치 루틴 보내기(coaching_routines · SPEC-050 P3b) — routines.go.
 	RoutineRepo
+	// 코치 코멘트·담당 회원 점검(coaching_comments · SPEC-050 P4) — comments.go.
+	CommentRepo
 }
 
 type Service struct {

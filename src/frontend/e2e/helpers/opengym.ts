@@ -14,6 +14,26 @@ type BrowserContext = import("@playwright/test").BrowserContext;
 
 export const 비밀번호 = "hunter22!";
 
+/**
+ * 이 번들의 로컬 스키마 버전(core/src/db/schema.ts SCHEMA_VERSION · 글자) — 스키마를 올릴 때마다 시험을 고치지 않게 소스에서 읽는다.
+ * (core 를 import 하면 워터멜론이 시험 프로세스에 실린다 — 숫자 한 줄만 읽는다.)
+ * [원본] 못 읽으면 빈 글자 — 「시험이 바로 깨진다」고 적었지만 빈 글자로 localStorage 를 쓰면 엉뚱한 곳에서 늦게 깨졌다(리뷰)
+ * [개선] 못 읽으면 파일을 불러오는 순간 throw 한다(원인이 바로 보이게).
+ * 줄 맨 앞(`^export const`)만 본다 — `// [원본] export const SCHEMA_VERSION = 26` 같은 주석 줄은 `//` 로 시작해 잡히지 않는다.
+ */
+function 소스_스키마(): string {
+  const path = join(dirname(fileURLToPath(import.meta.url)), "../../../core/src/db/schema.ts");
+  const v = /^export const SCHEMA_VERSION = (\d+)/m.exec(readFileSync(path, "utf8"))?.[1];
+  if (!v)
+    throw new Error(
+      `SCHEMA_VERSION 을 ${path} 에서 찾지 못했다 — 선언 꼴이 바뀌었으면 helpers/opengym.ts 정규식을 고칠 것`,
+    );
+  return v;
+}
+export const 번들_스키마: string = 소스_스키마();
+/** 이 번들보다 하나 높은 스키마 — 「더 높은 스키마를 본 기기」 흉내(다운그레이드 가드) */
+export const 더_높은_스키마: string = String(Number(번들_스키마) + 1);
+
 export function 새_메일(tag: string): string {
   return `e2e-og-${tag}-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`;
 }

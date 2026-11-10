@@ -114,6 +114,18 @@ const (
 	// CoachingServiceListSentRoutinesProcedure is the fully-qualified name of the CoachingService's
 	// ListSentRoutines RPC.
 	CoachingServiceListSentRoutinesProcedure = "/coaching.v1.CoachingService/ListSentRoutines"
+	// CoachingServiceAddCoachCommentProcedure is the fully-qualified name of the CoachingService's
+	// AddCoachComment RPC.
+	CoachingServiceAddCoachCommentProcedure = "/coaching.v1.CoachingService/AddCoachComment"
+	// CoachingServiceListCoachCommentsProcedure is the fully-qualified name of the CoachingService's
+	// ListCoachComments RPC.
+	CoachingServiceListCoachCommentsProcedure = "/coaching.v1.CoachingService/ListCoachComments"
+	// CoachingServiceHideCoachCommentProcedure is the fully-qualified name of the CoachingService's
+	// HideCoachComment RPC.
+	CoachingServiceHideCoachCommentProcedure = "/coaching.v1.CoachingService/HideCoachComment"
+	// CoachingServiceListMemberDigestProcedure is the fully-qualified name of the CoachingService's
+	// ListMemberDigest RPC.
+	CoachingServiceListMemberDigestProcedure = "/coaching.v1.CoachingService/ListMemberDigest"
 )
 
 // CoachingServiceClient is a client for the coaching.v1.CoachingService service.
@@ -153,6 +165,12 @@ type CoachingServiceClient interface {
 	SendRoutine(context.Context, *connect.Request[v1.SendRoutineRequest]) (*connect.Response[v1.SendRoutineResponse], error)
 	// 이 회원에게 보낸 루틴(끝난 것 포함 · 코치 본인 것만).
 	ListSentRoutines(context.Context, *connect.Request[v1.ListSentRoutinesRequest]) (*connect.Response[v1.ListSentRoutinesResponse], error)
+	// ── 코멘트·점검(SPEC-050 P4 · 스펙의 AddComment·ListComments·HideComment — 피드 댓글 계약과 이름이 겹쳐 Coach 를 붙였다) ── 코멘트는 코치당 회원당 하루 20개. 남기면 회원에게 알림(coaching_comment · ref_id = 운동 id).
+	AddCoachComment(context.Context, *connect.Request[v1.AddCoachCommentRequest]) (*connect.Response[v1.AddCoachCommentResponse], error)
+	ListCoachComments(context.Context, *connect.Request[v1.ListCoachCommentsRequest]) (*connect.Response[v1.ListCoachCommentsResponse], error)
+	HideCoachComment(context.Context, *connect.Request[v1.HideCoachCommentRequest]) (*connect.Response[v1.HideCoachCommentResponse], error)
+	// 코치(viewer)의 활성 담당 회원마다 이번 주 운동 수·마지막 운동·코치 루틴 운동 수.
+	ListMemberDigest(context.Context, *connect.Request[v1.ListMemberDigestRequest]) (*connect.Response[v1.ListMemberDigestResponse], error)
 }
 
 // NewCoachingServiceClient constructs a client for the coaching.v1.CoachingService service. By
@@ -286,6 +304,30 @@ func NewCoachingServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(coachingServiceMethods.ByName("ListSentRoutines")),
 			connect.WithClientOptions(opts...),
 		),
+		addCoachComment: connect.NewClient[v1.AddCoachCommentRequest, v1.AddCoachCommentResponse](
+			httpClient,
+			baseURL+CoachingServiceAddCoachCommentProcedure,
+			connect.WithSchema(coachingServiceMethods.ByName("AddCoachComment")),
+			connect.WithClientOptions(opts...),
+		),
+		listCoachComments: connect.NewClient[v1.ListCoachCommentsRequest, v1.ListCoachCommentsResponse](
+			httpClient,
+			baseURL+CoachingServiceListCoachCommentsProcedure,
+			connect.WithSchema(coachingServiceMethods.ByName("ListCoachComments")),
+			connect.WithClientOptions(opts...),
+		),
+		hideCoachComment: connect.NewClient[v1.HideCoachCommentRequest, v1.HideCoachCommentResponse](
+			httpClient,
+			baseURL+CoachingServiceHideCoachCommentProcedure,
+			connect.WithSchema(coachingServiceMethods.ByName("HideCoachComment")),
+			connect.WithClientOptions(opts...),
+		),
+		listMemberDigest: connect.NewClient[v1.ListMemberDigestRequest, v1.ListMemberDigestResponse](
+			httpClient,
+			baseURL+CoachingServiceListMemberDigestProcedure,
+			connect.WithSchema(coachingServiceMethods.ByName("ListMemberDigest")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -311,6 +353,10 @@ type coachingServiceClient struct {
 	getMemberRecords      *connect.Client[v1.GetMemberRecordsRequest, v1.GetMemberRecordsResponse]
 	sendRoutine           *connect.Client[v1.SendRoutineRequest, v1.SendRoutineResponse]
 	listSentRoutines      *connect.Client[v1.ListSentRoutinesRequest, v1.ListSentRoutinesResponse]
+	addCoachComment       *connect.Client[v1.AddCoachCommentRequest, v1.AddCoachCommentResponse]
+	listCoachComments     *connect.Client[v1.ListCoachCommentsRequest, v1.ListCoachCommentsResponse]
+	hideCoachComment      *connect.Client[v1.HideCoachCommentRequest, v1.HideCoachCommentResponse]
+	listMemberDigest      *connect.Client[v1.ListMemberDigestRequest, v1.ListMemberDigestResponse]
 }
 
 // SearchTrainers calls coaching.v1.CoachingService.SearchTrainers.
@@ -413,6 +459,26 @@ func (c *coachingServiceClient) ListSentRoutines(ctx context.Context, req *conne
 	return c.listSentRoutines.CallUnary(ctx, req)
 }
 
+// AddCoachComment calls coaching.v1.CoachingService.AddCoachComment.
+func (c *coachingServiceClient) AddCoachComment(ctx context.Context, req *connect.Request[v1.AddCoachCommentRequest]) (*connect.Response[v1.AddCoachCommentResponse], error) {
+	return c.addCoachComment.CallUnary(ctx, req)
+}
+
+// ListCoachComments calls coaching.v1.CoachingService.ListCoachComments.
+func (c *coachingServiceClient) ListCoachComments(ctx context.Context, req *connect.Request[v1.ListCoachCommentsRequest]) (*connect.Response[v1.ListCoachCommentsResponse], error) {
+	return c.listCoachComments.CallUnary(ctx, req)
+}
+
+// HideCoachComment calls coaching.v1.CoachingService.HideCoachComment.
+func (c *coachingServiceClient) HideCoachComment(ctx context.Context, req *connect.Request[v1.HideCoachCommentRequest]) (*connect.Response[v1.HideCoachCommentResponse], error) {
+	return c.hideCoachComment.CallUnary(ctx, req)
+}
+
+// ListMemberDigest calls coaching.v1.CoachingService.ListMemberDigest.
+func (c *coachingServiceClient) ListMemberDigest(ctx context.Context, req *connect.Request[v1.ListMemberDigestRequest]) (*connect.Response[v1.ListMemberDigestResponse], error) {
+	return c.listMemberDigest.CallUnary(ctx, req)
+}
+
 // CoachingServiceHandler is an implementation of the coaching.v1.CoachingService service.
 type CoachingServiceHandler interface {
 	// 코칭 의향을 밝힌 사람을 찾는다. 차단한(또는 나를 차단한) 사람은 보이지 않는다.
@@ -450,6 +516,12 @@ type CoachingServiceHandler interface {
 	SendRoutine(context.Context, *connect.Request[v1.SendRoutineRequest]) (*connect.Response[v1.SendRoutineResponse], error)
 	// 이 회원에게 보낸 루틴(끝난 것 포함 · 코치 본인 것만).
 	ListSentRoutines(context.Context, *connect.Request[v1.ListSentRoutinesRequest]) (*connect.Response[v1.ListSentRoutinesResponse], error)
+	// ── 코멘트·점검(SPEC-050 P4 · 스펙의 AddComment·ListComments·HideComment — 피드 댓글 계약과 이름이 겹쳐 Coach 를 붙였다) ── 코멘트는 코치당 회원당 하루 20개. 남기면 회원에게 알림(coaching_comment · ref_id = 운동 id).
+	AddCoachComment(context.Context, *connect.Request[v1.AddCoachCommentRequest]) (*connect.Response[v1.AddCoachCommentResponse], error)
+	ListCoachComments(context.Context, *connect.Request[v1.ListCoachCommentsRequest]) (*connect.Response[v1.ListCoachCommentsResponse], error)
+	HideCoachComment(context.Context, *connect.Request[v1.HideCoachCommentRequest]) (*connect.Response[v1.HideCoachCommentResponse], error)
+	// 코치(viewer)의 활성 담당 회원마다 이번 주 운동 수·마지막 운동·코치 루틴 운동 수.
+	ListMemberDigest(context.Context, *connect.Request[v1.ListMemberDigestRequest]) (*connect.Response[v1.ListMemberDigestResponse], error)
 }
 
 // NewCoachingServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -579,6 +651,30 @@ func NewCoachingServiceHandler(svc CoachingServiceHandler, opts ...connect.Handl
 		connect.WithSchema(coachingServiceMethods.ByName("ListSentRoutines")),
 		connect.WithHandlerOptions(opts...),
 	)
+	coachingServiceAddCoachCommentHandler := connect.NewUnaryHandler(
+		CoachingServiceAddCoachCommentProcedure,
+		svc.AddCoachComment,
+		connect.WithSchema(coachingServiceMethods.ByName("AddCoachComment")),
+		connect.WithHandlerOptions(opts...),
+	)
+	coachingServiceListCoachCommentsHandler := connect.NewUnaryHandler(
+		CoachingServiceListCoachCommentsProcedure,
+		svc.ListCoachComments,
+		connect.WithSchema(coachingServiceMethods.ByName("ListCoachComments")),
+		connect.WithHandlerOptions(opts...),
+	)
+	coachingServiceHideCoachCommentHandler := connect.NewUnaryHandler(
+		CoachingServiceHideCoachCommentProcedure,
+		svc.HideCoachComment,
+		connect.WithSchema(coachingServiceMethods.ByName("HideCoachComment")),
+		connect.WithHandlerOptions(opts...),
+	)
+	coachingServiceListMemberDigestHandler := connect.NewUnaryHandler(
+		CoachingServiceListMemberDigestProcedure,
+		svc.ListMemberDigest,
+		connect.WithSchema(coachingServiceMethods.ByName("ListMemberDigest")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/coaching.v1.CoachingService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case CoachingServiceSearchTrainersProcedure:
@@ -621,6 +717,14 @@ func NewCoachingServiceHandler(svc CoachingServiceHandler, opts ...connect.Handl
 			coachingServiceSendRoutineHandler.ServeHTTP(w, r)
 		case CoachingServiceListSentRoutinesProcedure:
 			coachingServiceListSentRoutinesHandler.ServeHTTP(w, r)
+		case CoachingServiceAddCoachCommentProcedure:
+			coachingServiceAddCoachCommentHandler.ServeHTTP(w, r)
+		case CoachingServiceListCoachCommentsProcedure:
+			coachingServiceListCoachCommentsHandler.ServeHTTP(w, r)
+		case CoachingServiceHideCoachCommentProcedure:
+			coachingServiceHideCoachCommentHandler.ServeHTTP(w, r)
+		case CoachingServiceListMemberDigestProcedure:
+			coachingServiceListMemberDigestHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -708,4 +812,20 @@ func (UnimplementedCoachingServiceHandler) SendRoutine(context.Context, *connect
 
 func (UnimplementedCoachingServiceHandler) ListSentRoutines(context.Context, *connect.Request[v1.ListSentRoutinesRequest]) (*connect.Response[v1.ListSentRoutinesResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("coaching.v1.CoachingService.ListSentRoutines is not implemented"))
+}
+
+func (UnimplementedCoachingServiceHandler) AddCoachComment(context.Context, *connect.Request[v1.AddCoachCommentRequest]) (*connect.Response[v1.AddCoachCommentResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("coaching.v1.CoachingService.AddCoachComment is not implemented"))
+}
+
+func (UnimplementedCoachingServiceHandler) ListCoachComments(context.Context, *connect.Request[v1.ListCoachCommentsRequest]) (*connect.Response[v1.ListCoachCommentsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("coaching.v1.CoachingService.ListCoachComments is not implemented"))
+}
+
+func (UnimplementedCoachingServiceHandler) HideCoachComment(context.Context, *connect.Request[v1.HideCoachCommentRequest]) (*connect.Response[v1.HideCoachCommentResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("coaching.v1.CoachingService.HideCoachComment is not implemented"))
+}
+
+func (UnimplementedCoachingServiceHandler) ListMemberDigest(context.Context, *connect.Request[v1.ListMemberDigestRequest]) (*connect.Response[v1.ListMemberDigestResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("coaching.v1.CoachingService.ListMemberDigest is not implemented"))
 }

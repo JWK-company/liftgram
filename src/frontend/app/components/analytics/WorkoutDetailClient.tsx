@@ -34,6 +34,7 @@ import { ValueChip } from "../ui/ValueChip";
 // [원본] import { Icon } from "../ui/Icon"; — 연필을 ✎ 칩으로 바꿔 쓰지 않는다(SPEC-046)
 import ExercisePickerScreen from "../ExercisePickerScreen";
 import { SuspectPanel, type SuspectInfo } from "../session/SuspectSetSheet"; // 튀는 기록 확인(SPEC-044)
+import { MemberWorkoutComments } from "../coaching/CoachComments"; // 코치 코멘트(SPEC-050 P4)
 
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
 type Detail = Awaited<ReturnType<AnalyticsRepo["getWorkoutDetail"]>>;
@@ -182,11 +183,15 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
             </span>
           </div>
         ) : !detail ? (
-          <EmptyState
-            icon="alert-circle-outline"
-            title={t("analytics.sessionNotFoundTitle")}
-            message={t("analytics.sessionNotFoundMessage")}
-          />
+          <>
+            <EmptyState
+              icon="alert-circle-outline"
+              title={t("analytics.sessionNotFoundTitle")}
+              message={t("analytics.sessionNotFoundMessage")}
+            />
+            {/* 코멘트 알림으로 왔는데 이 기기에 그 운동이 없으면(아직 동기 전·다른 기기 기록) 코멘트만이라도 — 리뷰 중간-1 */}
+            <MemberWorkoutComments workoutId={workoutId} reloadTick={reloadTick} />
+          </>
         ) : (
           <>
             <AppText variant="title" data-testid="detail-name" className="block">
@@ -314,6 +319,10 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
                 {t("wellness.oneRepMaxCaption")}
               </AppText>
             ) : null}
+
+            {/* 코치 코멘트(SPEC-050 P4) — 서버에만 있다 · 다 읽기 전·없으면 아무것도 그리지 않는다 */}
+            {/* [원본] <MemberWorkoutComments workoutId={detail.workout.id} /> — 다시 읽기(reloadTick)에 코멘트 캐시도 버린다 */}
+            <MemberWorkoutComments workoutId={detail.workout.id} reloadTick={reloadTick} />
 
             {/* 운동 총평 — 나만 본다 · 나중에 써도 된다(#52 A) @plm SRS-064 */}
             <WorkoutNoteField

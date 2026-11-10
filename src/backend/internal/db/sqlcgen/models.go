@@ -74,8 +74,8 @@ type CoachingAudit struct {
 
 type CoachingComment struct {
 	ID        string
-	GrantID   string
-	TrainerID string
+	GrantID   *string
+	TrainerID *string
 	MemberID  string
 	WorkoutID string
 	Body      string

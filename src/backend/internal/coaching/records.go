@@ -92,6 +92,11 @@ var memberRecordFields = map[string][]string{
 	},
 }
 
+// coachBlockFields — 보는 코치가 보낸 루틴(coaching_routines.member_routine_id)으로 한 운동의 블록에만 더 싣는 칸(SPEC-050 P4 처방 대 실제).
+// 이 처방·목표는 코치가 보낸 것이 운동 블록에 복사된 값이다(회원이 만든 루틴의 처방은 여전히 나가지 않는다).
+// memberRecordFields 와 따로 둔다 — 일반 허용 목록에는 prescription 이 없다(테스트가 고정한다).
+var coachBlockFields = []string{"prescription", "target_sets", "target_reps_min", "target_reps_max", "target_weight_kg"}
+
 // bodyRecordCollection·bodyRecordFields — 체중·인바디(SPEC-050). **bodyView 를 연 관계에서만** 읽고,
 // 칸은 이 다섯뿐이다(note·source·created_at 같은 칸은 나가지 않는다 — 테스트가 고정한다).
 // memberRecordCollections 와 따로 둔다: bodyView 없이는 읽는 길 자체가 없다.
@@ -140,7 +145,13 @@ func (s *Service) GetMemberRecords(ctx context.Context, viewerID, memberID strin
 	if err != nil {
 		return MemberRecords{}, err
 	}
-	out, err := selectMemberRecords(recs, servedStart, end)
+	// [원본] out, err := selectMemberRecords(recs, servedStart, end) — 처방 칸을 routine_id 접두어(coach-)로 골랐다(위조·다른 코치 루틴도 통과)
+	// [개선] 이 코치가 보낸 루틴의 회원 쪽 id 집합으로(점검 week_coach_workouts 와 같은 기준 · 리뷰)
+	coachRoutines, err := s.repo.ListCoachMemberRoutineIDs(ctx, viewerID, memberID)
+	if err != nil {
+		return MemberRecords{}, err
+	}
+	out, err := selectMemberRecords(recs, servedStart, end, coachRoutines)
 	if err != nil {
 		return MemberRecords{}, err
 	}
@@ -229,10 +240,13 @@ func recordIDs(recs []MemberRecord) []string {
 }
 
 // selectMemberRecords는 [from, to)에 시작한 **완료된** 운동과 그 자식만 골라 허용 칸으로 줄인다.
-func selectMemberRecords(recs []MemberRecord, from, to time.Time) (MemberRecords, error) {
+// coachRoutines = 보는 코치가 보낸 루틴의 회원 쪽 id — 그 루틴으로 한 운동의 블록에만 처방·목표 칸을 더 싣는다(nil 이면 없음).
+func selectMemberRecords(recs []MemberRecord, from, to time.Time, coachRoutines map[string]bool) (MemberRecords, error) {
 	type row struct {
 		id  string
 		obj map[string]json.RawMessage
+		// 이 행에만 더 싣는 칸(코치 루틴 운동의 블록 — coachBlockFields · SPEC-050 P4)
+		extra []string
 	}
 	cols := map[string][]row{}
 	for _, rec := range recs {
@@ -252,6 +266,7 @@ func selectMemberRecords(recs []MemberRecord, from, to time.Time) (MemberRecords
 	// ① 기간 안에 시작한 완료 운동.
 	var workouts []row
 	workoutIDs := map[string]bool{}
+	coachWorkouts := map[string]bool{} // 코치가 보낸 루틴으로 한 운동(P4)
 	for _, w := range cols["workouts"] {
 		if rawStr(w.obj, "state") != "completed" {
 			continue
@@ -266,6 +281,10 @@ func selectMemberRecords(recs []MemberRecord, from, to time.Time) (MemberRecords
 		}
 		workouts = append(workouts, w)
 		workoutIDs[id] = true
+		// [원본] if strings.HasPrefix(rawStr(w.obj, "routine_id"), coachIDPrefix) {
+		if rid := rawStr(w.obj, "routine_id"); rid != "" && coachRoutines[rid] {
+			coachWorkouts[id] = true
+		}
 	}
 
 	// ② 그 운동의 블록 · 쓰인 종목.
@@ -279,6 +298,11 @@ func selectMemberRecords(recs []MemberRecord, from, to time.Time) (MemberRecords
 		id := rawStr(we.obj, "id")
 		if id == "" {
 			continue
+		}
+		// [원본] blocks = append(blocks, we)
+		// [개선] 코치 루틴 운동의 블록이면 처방·목표 칸을 더 싣는다(처방 대 실제 · SPEC-050 P4)
+		if coachWorkouts[rawStr(we.obj, "workout_id")] {
+			we.extra = coachBlockFields
 		}
 		blocks = append(blocks, we)
 		blockIDs[id] = true
@@ -315,8 +339,13 @@ func selectMemberRecords(recs []MemberRecord, from, to time.Time) (MemberRecords
 		list := make([]string, 0, len(rows))
 		for _, r := range rows {
 			// 허용 칸 구조만 다시 만든다 — 원본 map 을 그대로 내보내지 않는다(projection 이 저절로 지켜진다).
-			kept := make(map[string]json.RawMessage, len(fields))
+			kept := make(map[string]json.RawMessage, len(fields)+len(r.extra))
 			for _, f := range fields {
+				if v, ok := r.obj[f]; ok {
+					kept[f] = v
+				}
+			}
+			for _, f := range r.extra {
 				if v, ok := r.obj[f]; ok {
 					kept[f] = v
 				}

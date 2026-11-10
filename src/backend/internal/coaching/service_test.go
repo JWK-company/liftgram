@@ -53,6 +53,8 @@ type fakeRepo struct {
 
 	// 코치 루틴(SPEC-050 P3b) — routines_test.go 가 쓴다.
 	rt fakeRoutines
+	// 코멘트·점검(SPEC-050 P4) — comments_test.go 가 쓴다.
+	cm fakeComments
 }
 
 func newRepo() *fakeRepo {

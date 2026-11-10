@@ -436,3 +436,112 @@ SELECT EXISTS (
   WHERE grant_id = @grant_id::text AND action = 'routine_update'
     AND detail->>'coachingRoutineId' = @coaching_routine_id::text AND created_at >= @since::timestamptz
 )::boolean;
+
+-- ── 코치 코멘트(SPEC-050 P4 · coaching_comments 는 0033) ─────────────────────────────
+-- 코치가 회원 운동 하나에 남기는 말. 숨기면 hidden_at — 숨긴 코멘트는 누구에게도 나가지 않는다.
+
+-- name: InsertCoachingComment :one
+INSERT INTO coaching_comments (id, grant_id, trainer_id, member_id, workout_id, body)
+VALUES (@id::text, @grant_id::text, @trainer_id::text, @member_id::text, @workout_id::text, @body::text)
+RETURNING id, created_at;
+
+-- 하루 상한 — 이 코치가 이 회원에게 since 뒤에 남긴 수(숨긴 것도 센다 · 지웠다 다시 쓰기로 상한을 넘지 않게).
+-- name: CountCommentsByPairSince :one
+SELECT count(*) FROM coaching_comments
+WHERE trainer_id = @trainer_id::text AND member_id = @member_id::text AND created_at >= @since::timestamptz;
+
+-- 운동 하나의 코멘트(숨긴 것 빼고 · 오래된 것부터). trainer_id 가 비면 모든 코치 — 회원이 볼 때.
+-- 회원 쪽은 차단한(된) 코치의 코멘트를 빼고 보인다(차단 사이에는 서로 보이지 않는다).
+-- [원본] JOIN users u ON u.id = c.trainer_id · c.trainer_id 그대로
+-- [개선] 0035 — 코치가 탈퇴하면 trainer_id 가 NULL(코멘트는 회원 것으로 남는다) → LEFT JOIN · 빈 글자(화면 「탈퇴한 코치」)
+-- name: ListCommentsForWorkout :many
+SELECT c.id, COALESCE(c.trainer_id, '')::text AS trainer_id, c.member_id, c.workout_id, c.body, c.created_at,
+       COALESCE(u.display_name, '')::text AS trainer_name
+FROM coaching_comments c
+LEFT JOIN users u ON u.id = c.trainer_id
+WHERE c.member_id = @member_id::text AND c.workout_id = @workout_id::text AND c.hidden_at IS NULL
+  AND (@trainer_id::text = '' OR c.trainer_id = @trainer_id::text)
+  AND NOT EXISTS (
+    SELECT 1 FROM blocks b
+    WHERE (b.blocker_id = c.member_id AND b.blocked_id = c.trainer_id)
+       OR (b.blocker_id = c.trainer_id AND b.blocked_id = c.member_id)
+  )
+ORDER BY c.created_at, c.id
+LIMIT 200;
+
+-- 이 코치가 이 회원에게 남긴 코멘트(숨긴 것 빼고 · 최근 것부터) — 회원 화면 기록 탭이 운동마다 묶는다.
+-- name: ListCommentsByPair :many
+SELECT c.id, COALESCE(c.trainer_id, '')::text AS trainer_id, c.member_id, c.workout_id, c.body, c.created_at,
+       COALESCE(u.display_name, '')::text AS trainer_name
+FROM coaching_comments c
+JOIN users u ON u.id = c.trainer_id
+WHERE c.trainer_id = @trainer_id::text AND c.member_id = @member_id::text AND c.hidden_at IS NULL
+ORDER BY c.created_at DESC, c.id
+LIMIT 500;
+
+-- 0035 — 코치가 탈퇴했으면 trainer_id·grant_id 가 빈 글자(NULL).
+-- name: GetCoachingComment :one
+SELECT id, COALESCE(grant_id, '')::text AS grant_id, COALESCE(trainer_id, '')::text AS trainer_id,
+       member_id, workout_id, body, created_at, hidden_at
+FROM coaching_comments WHERE id = @id::text;
+
+-- 숨기기 — 아직 숨기지 않은 것만(0행이면 이미 숨김).
+-- name: HideCoachingComment :execrows
+UPDATE coaching_comments SET hidden_at = now() WHERE id = @id::text AND hidden_at IS NULL;
+
+-- ── 담당 회원 점검(ListMemberDigest · SPEC-050 P4) ──────────────────────────────────
+-- [원본] MemberWorkoutDigest — 회원마다 한 번(ListGrants → Blocked → 숫자 · N+1)
+-- [개선] 한 질의 — 이 코치의 활성 관계 + 차단 사이 빼기(NOT EXISTS blocks) + LATERAL 숫자(리뷰 · N+1 없앰).
+-- 회원 한 명의 완료 운동 숫자 — 모두 visible_from 뒤만 센다(Go visibleFrom 과 같은 기준):
+--   pastRecords 켬 → 0 · consent_at 없음 → now_ms(지금부터만) · 그 밖 → consent_at(ms, 내림)
+--   week_workouts           week_start 뒤에 시작한 운동 수
+--   last_started_at         마지막 운동 시작 시각(없으면 0)
+--   week_coach_workouts     그중 이 코치가 보낸 루틴(coaching_routines.member_routine_id)으로 한 운동 수
+-- logView 가 꺼진 관계는 세지 않는다(LATERAL 안 WHERE 가 0행 → 0). 잘림 판정용으로 row_limit 은 200 + 1 을 준다.
+-- CASE 는 평가 순서를 보장한다(글자 started_at 에서 캐스트 오류가 나지 않게 — ListMemberWorkoutsStartedIn 과 같은 꼴).
+-- name: ListMemberDigestRows :many
+SELECT g.member_id, g.scope,
+       COALESCE(d.week_workouts, 0)::int AS week_workouts,
+       COALESCE(d.last_started_at, 0)::bigint AS last_started_at,
+       COALESCE(d.week_coach_workouts, 0)::int AS week_coach_workouts
+FROM coaching_grants g
+LEFT JOIN LATERAL (
+  SELECT
+    count(*) FILTER (WHERE w.started >= @week_start_ms::bigint) AS week_workouts,
+    max(w.started) AS last_started_at,
+    count(*) FILTER (WHERE w.started >= @week_start_ms::bigint AND w.routine_id IN (
+       SELECT cr.member_routine_id FROM coaching_routines cr
+       WHERE cr.trainer_id = g.trainer_id AND cr.member_id = g.member_id
+    )) AS week_coach_workouts
+  FROM (
+    SELECT CASE WHEN jsonb_typeof(sr.payload->'started_at') = 'number'
+                THEN (sr.payload->'started_at')::numeric::bigint END AS started,
+           sr.payload->>'routine_id' AS routine_id
+    FROM sync_records sr
+    WHERE g.scope->'logView' = 'true'::jsonb
+      AND sr.user_id = g.member_id
+      AND sr.collection = 'workouts'
+      AND sr.deleted = false
+      AND sr.payload->'state' = '"completed"'::jsonb
+      AND CASE WHEN jsonb_typeof(sr.payload->'started_at') = 'number'
+               THEN (sr.payload->'started_at')::numeric >= (CASE
+                        WHEN g.scope->'pastRecords' = 'true'::jsonb THEN 0
+                        WHEN g.consent_at IS NULL THEN @now_ms::bigint
+                        ELSE floor(extract(epoch FROM g.consent_at) * 1000)::bigint END)
+                    AND (sr.payload->'started_at')::numeric < @to_ms::bigint
+               ELSE false END
+  ) w
+) d ON true
+WHERE g.trainer_id = @trainer_id::text AND g.status = 'active'
+  AND NOT EXISTS (
+    SELECT 1 FROM blocks b
+    WHERE (b.blocker_id = g.trainer_id AND b.blocked_id = g.member_id)
+       OR (b.blocker_id = g.member_id AND b.blocked_id = g.trainer_id)
+  )
+ORDER BY g.consent_at DESC NULLS LAST, g.id
+LIMIT @row_limit::int;
+
+-- 처방 대 실제 — 이 코치가 이 회원에게 보낸 루틴의 회원 쪽 id(끝난 것 포함 · 점검 week_coach_workouts 와 같은 기준).
+-- name: ListCoachMemberRoutineIDs :many
+SELECT member_routine_id FROM coaching_routines
+WHERE trainer_id = @trainer_id::text AND member_id = @member_id::text;
