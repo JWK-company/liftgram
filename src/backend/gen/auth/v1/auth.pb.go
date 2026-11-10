@@ -163,6 +163,7 @@ type User struct {
 	Role            Role                   `protobuf:"varint,5,opt,name=role,proto3,enum=auth.v1.Role" json:"role,omitempty"`
 	ExperienceLevel ExperienceLevel        `protobuf:"varint,6,opt,name=experience_level,json=experienceLevel,proto3,enum=auth.v1.ExperienceLevel" json:"experience_level,omitempty"`
 	// 코칭 의향 — **자격 보증이 아니다**(화면이 항상 그 고지를 함께 띄운다).
+	// [개선] SPEC-052 — 뜻만 「코치 찾기에 나를 보여 주기」(코치 여부가 아니다 · 그건 is_coach).
 	TrainerIntent bool                   `protobuf:"varint,7,opt,name=trainer_intent,json=trainerIntent,proto3" json:"trainer_intent,omitempty"`
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	// 이메일 소유가 확인됐는가(SRS-052). 확인 전에도 기록은 쓰지만, 화면이 안내를 띄운다.
@@ -170,8 +171,11 @@ type User struct {
 	// 비밀번호로 로그인할 수 있는가 — 소셜로만 가입한 계정은 false(비밀번호 "설정"이 가능하다).
 	HasPassword bool `protobuf:"varint,10,opt,name=has_password,json=hasPassword,proto3" json:"has_password,omitempty"`
 	// 코치 소개(80자)·태그(정해진 6개 중 3개까지) — SPEC-050. 코치 여부는 trainer_intent.
-	CoachBio      string   `protobuf:"bytes,11,opt,name=coach_bio,json=coachBio,proto3" json:"coach_bio,omitempty"`
-	CoachTags     []string `protobuf:"bytes,12,rep,name=coach_tags,json=coachTags,proto3" json:"coach_tags,omitempty"`
+	CoachBio  string   `protobuf:"bytes,11,opt,name=coach_bio,json=coachBio,proto3" json:"coach_bio,omitempty"`
+	CoachTags []string `protobuf:"bytes,12,rep,name=coach_tags,json=coachTags,proto3" json:"coach_tags,omitempty"`
+	// 코치로서 활성 연결이 있는가(SPEC-052) — 서버가 계산하는 파생값(스스로 켜는 값이 아니다).
+	// 홈 「담당 회원」 카드·점검 요청이 이 값으로 묻는다(코칭 안 하는 사용자에게는 묻지 않는다).
+	IsCoach       bool `protobuf:"varint,13,opt,name=is_coach,json=isCoach,proto3" json:"is_coach,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -288,6 +292,13 @@ func (x *User) GetCoachTags() []string {
 		return x.CoachTags
 	}
 	return nil
+}
+
+func (x *User) GetIsCoach() bool {
+	if x != nil {
+		return x.IsCoach
+	}
+	return false
 }
 
 // 세션 한 벌. 클라이언트는 access를 메모리에, refresh를 오래 가는 저장소에 둔다.
@@ -2140,7 +2151,7 @@ var File_auth_v1_auth_proto protoreflect.FileDescriptor
 
 const file_auth_v1_auth_proto_rawDesc = "" +
 	"\n" +
-	"\x12auth/v1/auth.proto\x12\aauth.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xbe\x03\n" +
+	"\x12auth/v1/auth.proto\x12\aauth.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xd9\x03\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12!\n" +
@@ -2157,7 +2168,8 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	" \x01(\bR\vhasPassword\x12\x1b\n" +
 	"\tcoach_bio\x18\v \x01(\tR\bcoachBio\x12\x1d\n" +
 	"\n" +
-	"coach_tags\x18\f \x03(\tR\tcoachTags\"o\n" +
+	"coach_tags\x18\f \x03(\tR\tcoachTags\x12\x19\n" +
+	"\bis_coach\x18\r \x01(\bR\aisCoach\"o\n" +
 	"\x06Tokens\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12#\n" +
 	"\rrefresh_token\x18\x02 \x01(\tR\frefreshToken\x12\x1d\n" +

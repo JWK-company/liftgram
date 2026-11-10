@@ -11,6 +11,8 @@
 // 코칭 v2(SPEC-050 P1b): 상대가 코치(trainer_intent)면 이름 옆 「코치」 배지 · 소개 · 태그.
 // 버튼 줄 아래 한 줄 — 「코칭 요청」(상대가 코치 · 범위 시트) / 「코칭 초대」(내가 코치 · 상대는 코치 아님) /
 // 이미 연결돼 있으면 「코칭 중」. 판단은 관계 목록(ListGrants)을 다 읽은 뒤에만 그린다(깜빡임 금지).
+// [개선] SPEC-052 — 「트레이너」 역할이 없다. 배지는 파생값(isCoach — 활성 연결의 코치) · 소개·태그는 노출을 켠 사람만
+//   (trainerIntent) · 연결이 없으면 누구에게나 두 버튼 「코치로 요청」·「내 회원으로 초대」(내게 코치가 있으면 요청 자리에 안내).
 // ─────────────────────────────────────────────────────────────────────────────
 import { navigate } from "@/lib/nav";
 import type { WeightUnit } from "@app/core";
@@ -248,7 +250,8 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                   <AppText variant="heading" data-testid="profile-name" className="block min-w-0 truncate">
                     {name}
                   </AppText>
-                  {profile.trainerIntent ? <CoachBadge testId="profile-coach-badge" /> : null}
+                  {/* [원본] {profile.trainerIntent ? <CoachBadge testId="profile-coach-badge" /> : null} */}
+                  {profile.isCoach ? <CoachBadge testId="profile-coach-badge" /> : null}
                 </div>
                 <div className="mt-[var(--spacing-sm)] flex gap-[var(--spacing-xl)]">
                   <Stat value={profile.postCount} label={t("profile.postsLabel")} />
@@ -323,8 +326,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
               <CoachingLine
                 grant={grant}
                 hasCoach={hasCoach}
-                peerIsCoach={profile.trainerIntent}
-                meIsCoach={!!user.trainerIntent}
+                // [원본] peerIsCoach={profile.trainerIntent} meIsCoach={!!user.trainerIntent} — 의향으로 둘 중 하나만
                 busy={coachBusy}
                 onRequest={() => {
                   setCoachError(null);
@@ -367,8 +369,11 @@ export default function UserProfileClient({ userId }: { userId: string }) {
             <CoachCard
               name={name}
               avatarUrl={profile.author?.avatarUrl}
-              bio={profile.coachBio}
-              tags={profile.coachTags}
+              // [원본] bio={profile.coachBio} tags={profile.coachTags}
+              // [개선] SPEC-052 — 소개·태그는 노출을 켠 사람만(보이는 곳 규칙 하나) · 배지는 파생값
+              bio={profile.trainerIntent ? profile.coachBio : undefined}
+              tags={profile.trainerIntent ? profile.coachTags : undefined}
+              coach={profile.isCoach}
               testId="scope-coach-card"
             />
           }
@@ -381,7 +386,8 @@ export default function UserProfileClient({ userId }: { userId: string }) {
       {confirmInvite && profile ? (
         <ConfirmDialog
           testId="profile-invite-confirm"
-          title={t("coaching.profile.inviteTitle")}
+          // [원본] title={t("coaching.profile.inviteTitle")} — 「코칭 초대를 보낼까요?」(역할이 안 보였다 · REV-105 U4)
+          title={t("coaching.profile.inviteTitle", { name })}
           message={t("coaching.profile.inviteMessage", { name })}
           confirmLabel={t("coaching.profile.invite")}
           onCancel={() => setConfirmInvite(false)}
@@ -399,32 +405,108 @@ export default function UserProfileClient({ userId }: { userId: string }) {
  * 버튼 줄 아래 코칭 한 줄 — 보조 버튼(빨강 채움 아님). 관계를 읽는 동안은 자리만(44px) 잡아 두고 그리지 않는다.
  *   연결돼 있음 → 「코칭 중」 · 대기 → 「코칭 수락 대기」 · 상대가 코치 → 「코칭 요청」 · 내가 코치 → 「코칭 초대」
  */
+// [원본] 상대·나의 의향(trainer_intent)으로 「코칭 요청」/「코칭 초대」 중 하나만 — SPEC-052 에서 둘 다로 바뀌었다.
+// function CoachingLine({
+//   grant,
+//   hasCoach,
+//   peerIsCoach,
+//   meIsCoach,
+//   busy,
+//   onRequest,
+//   onInvite,
+// }: {
+//   grant: Grant | null | undefined;
+//   hasCoach: boolean;
+//   peerIsCoach: boolean;
+//   meIsCoach: boolean;
+//   busy: boolean;
+//   onRequest: () => void;
+//   onInvite: () => void;
+// }) {
+//   if (!peerIsCoach && !meIsCoach) return null;
+//   if (grant === undefined) return <div className="mt-[var(--spacing-sm)] h-11" aria-hidden />;
+//   if (grant) {
+//     const active = grant.status === GrantStatus.ACTIVE;
+//     return (
+//       <a
+//         href="/coaching"
+//         data-testid="profile-coaching-state"
+//         className="mt-[var(--spacing-sm)] flex min-h-11 items-center justify-center gap-[var(--spacing-xs)] rounded-[var(--radius-sm)] bg-(--color-surface-alt)"
+//       >
+//         {active ? (
+//           <CoachingActiveBadge testId="profile-coaching-active" />
+//         ) : (
+//           <AppText variant="caption" color="textMuted" className="font-semibold">
+//             {t("coaching.profile.pending")}
+//           </AppText>
+//         )}
+//       </a>
+//     );
+//   }
+//   if (peerIsCoach && hasCoach) {
+//     // 이미 코치가 있으면 요청을 막는다 — 버튼 대신 안내 한 줄(누르면 코칭 화면)
+//     return (
+//       <a
+//         href="/coaching"
+//         data-testid="profile-coaching-has-coach"
+//         className="mt-[var(--spacing-sm)] flex min-h-11 items-center justify-center rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[var(--spacing-md)] py-[var(--spacing-xs)] text-center"
+//       >
+//         <AppText variant="caption" color="textMuted">
+//           {t("coaching.profile.hasCoach")}
+//         </AppText>
+//       </a>
+//     );
+//   }
+//   return (
+//     <div className="mt-[var(--spacing-sm)]">
+//       {peerIsCoach ? (
+//         <Button
+//           title={t("coaching.profile.request")}
+//           icon="people-outline"
+//           variant="secondary"
+//           disabled={busy}
+//           onPress={onRequest}
+//           testId="profile-coaching-request"
+//         />
+//       ) : (
+//         <Button
+//           title={t("coaching.profile.invite")}
+//           icon="people-outline"
+//           variant="secondary"
+//           loading={busy}
+//           onPress={onInvite}
+//           testId="profile-coaching-invite"
+//         />
+//       )}
+//     </div>
+//   );
+// }
+
+// [개선] SPEC-052 — 연결이 없으면 누구에게나 두 버튼(보조 · 같은 너비 · 아이콘 없음 — 360px·en 에서 한 줄 44px).
+//   「코치로 요청」(나는 회원 · 범위 시트) · 「내 회원으로 초대」(나는 코치 · 확인창).
+//   내게 이미 활성 코치가 있으면 요청 자리에 안내(누르면 코칭 화면)를 두고 초대는 남긴다(회원 한 명당 코치 한 명).
 function CoachingLine({
   grant,
   hasCoach,
-  peerIsCoach,
-  meIsCoach,
   busy,
   onRequest,
   onInvite,
 }: {
   grant: Grant | null | undefined;
   hasCoach: boolean;
-  peerIsCoach: boolean;
-  meIsCoach: boolean;
   busy: boolean;
   onRequest: () => void;
   onInvite: () => void;
 }) {
-  if (!peerIsCoach && !meIsCoach) return null;
-  if (grant === undefined) return <div className="mt-[var(--spacing-sm)] h-11" aria-hidden />;
+  // [원본] h-11 — 버튼(48px)보다 4px 낮아 다 읽으면 밀렸다(REV-106 U8) · [개선] h-12 · 상태 줄도 같은 높이
+  if (grant === undefined) return <div className="mt-[var(--spacing-sm)] h-12" aria-hidden />;
   if (grant) {
     const active = grant.status === GrantStatus.ACTIVE;
     return (
       <a
         href="/coaching"
         data-testid="profile-coaching-state"
-        className="mt-[var(--spacing-sm)] flex min-h-11 items-center justify-center gap-[var(--spacing-xs)] rounded-[var(--radius-sm)] bg-(--color-surface-alt)"
+        className="mt-[var(--spacing-sm)] flex min-h-12 items-center justify-center gap-[var(--spacing-xs)] rounded-[var(--radius-sm)] bg-(--color-surface-alt)"
       >
         {active ? (
           <CoachingActiveBadge testId="profile-coaching-active" />
@@ -436,41 +518,47 @@ function CoachingLine({
       </a>
     );
   }
-  if (peerIsCoach && hasCoach) {
-    // 이미 코치가 있으면 요청을 막는다 — 버튼 대신 안내 한 줄(누르면 코칭 화면)
-    return (
-      <a
-        href="/coaching"
-        data-testid="profile-coaching-has-coach"
-        className="mt-[var(--spacing-sm)] flex min-h-11 items-center justify-center rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[var(--spacing-md)] py-[var(--spacing-xs)] text-center"
-      >
-        <AppText variant="caption" color="textMuted">
-          {t("coaching.profile.hasCoach")}
-        </AppText>
-      </a>
-    );
-  }
   return (
-    <div className="mt-[var(--spacing-sm)]">
-      {peerIsCoach ? (
-        <Button
-          title={t("coaching.profile.request")}
-          icon="people-outline"
-          variant="secondary"
-          disabled={busy}
-          onPress={onRequest}
-          testId="profile-coaching-request"
-        />
-      ) : (
-        <Button
-          title={t("coaching.profile.invite")}
-          icon="people-outline"
-          variant="secondary"
-          loading={busy}
-          onPress={onInvite}
-          testId="profile-coaching-invite"
-        />
-      )}
+    <div className="mt-[var(--spacing-sm)]" data-testid="profile-coaching-line">
+      <div className="flex w-full gap-[var(--spacing-sm)]">
+        {hasCoach ? null : (
+          <div className="min-w-0 flex-1">
+            <Button
+              title={t("coaching.profile.request")}
+              variant="secondary"
+              disabled={busy}
+              onPress={onRequest}
+              testId="profile-coaching-request"
+              className="px-[var(--spacing-sm)]!"
+              truncate
+            />
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <Button
+            title={t("coaching.profile.invite")}
+            variant="secondary"
+            loading={busy}
+            onPress={onInvite}
+            testId="profile-coaching-invite"
+            // 360px 한 줄(REV-106 U1) — 좌우 여백을 줄이고 넘치면 … (글자는 그대로 읽힌다)
+            className="px-[var(--spacing-sm)]!"
+            truncate
+          />
+        </div>
+      </div>
+      {hasCoach ? (
+        // 이미 코치가 있으면 요청을 막는다 — 버튼 대신 안내 한 줄(누르면 코칭 화면)
+        <a
+          href="/coaching"
+          data-testid="profile-coaching-has-coach"
+          className="mt-[var(--spacing-xs)] flex min-h-11 items-center justify-center rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[var(--spacing-md)] py-[var(--spacing-xs)] text-center"
+        >
+          <AppText variant="caption" color="textMuted">
+            {t("coaching.profile.hasCoach")}
+          </AppText>
+        </a>
+      ) : null}
     </div>
   );
 }

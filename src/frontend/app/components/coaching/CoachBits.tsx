@@ -55,12 +55,15 @@ export function CoachCard({
   avatarUrl,
   bio,
   tags,
+  coach = false,
   testId = "coach-card",
 }: {
   name: string;
   avatarUrl?: string;
   bio?: string;
   tags?: readonly string[];
+  /** 「코치」 배지 — 활성 연결의 코치일 때만(SPEC-052 · 서버 파생값 isCoach). [원본] 늘 붙였다. */
+  coach?: boolean;
   testId?: string;
 }) {
   return (
@@ -74,7 +77,8 @@ export function CoachCard({
           <AppText variant="body" className="min-w-0 truncate font-semibold!" data-testid="coach-card-name">
             {name || t("discover.unnamed")}
           </AppText>
-          <CoachBadge testId="coach-card-badge" />
+          {/* [원본] <CoachBadge testId="coach-card-badge" /> */}
+          {coach ? <CoachBadge testId="coach-card-badge" /> : null}
         </div>
         {bio ? (
           <AppText

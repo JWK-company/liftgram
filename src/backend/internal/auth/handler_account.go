@@ -161,7 +161,7 @@ func (h *Handler) ExchangeLoginCode(ctx context.Context, req *connect.Request[au
 		return nil, err
 	}
 	return connect.NewResponse(&authv1.ExchangeLoginCodeResponse{
-		Tokens: toProtoTokens(tokens), User: toProtoUser(u), Created: created,
+		Tokens: toProtoTokens(tokens), User: toProtoUser(h.svc.WithCoach(ctx, u)), Created: created,
 	}), nil
 }
 

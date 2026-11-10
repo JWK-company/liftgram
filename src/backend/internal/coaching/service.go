@@ -63,10 +63,13 @@ type Peer struct {
 	DisplayName     string
 	AvatarURL       string
 	ExperienceLevel string
-	TrainerIntent   bool
+	// [개선] SPEC-052 — 뜻만 「코치 찾기 노출」(코치 여부가 아니다).
+	TrainerIntent bool
 	// 코치 소개·태그(SPEC-050). 태그는 nil 대신 빈 슬라이스.
 	CoachBio  string
 	CoachTags []string
+	// 「코치」 배지(SPEC-052) — 활성 연결에서 코치인 회원이 한 명 이상(서버 파생값).
+	IsCoach bool
 }
 
 type Grant struct {
@@ -102,7 +105,8 @@ type MemberRecord struct {
 
 type Repo interface {
 	SearchTrainers(ctx context.Context, viewerID, query string) ([]Peer, error)
-	// TrainerEligible은 그 사람이 코칭 의향을 밝혔는지 본다. 없으면 NotFound.
+	// [원본] TrainerEligible은 그 사람이 코칭 의향을 밝혔는지 본다. 없으면 NotFound.
+	// [개선] SPEC-052 — 코치 역할이 없어졌다. 계정이 있으면 true, 없으면 NotFound(서비스는 값이 아니라 있음만 본다).
 	TrainerEligible(ctx context.Context, trainerID string) (bool, error)
 	UserExists(ctx context.Context, userID string) (bool, error)
 	Blocked(ctx context.Context, a, b string) (bool, error)
@@ -324,7 +328,8 @@ func (s *Service) AcceptWith(ctx context.Context, viewerID, grantID string, scop
 	if side == g.RequestedBy {
 		return Grant{}, errs.New(errs.Forbidden, "requester cannot accept")
 	}
-	// 수락 시점에 다시 확인한다 — 요청한 뒤 트레이너가 의향을 내렸을 수 있다.
+	// [원본] 수락 시점에 다시 확인한다 — 요청한 뒤 트레이너가 의향을 내렸을 수 있다.
+	// [개선] SPEC-052 — 의향은 없다. 요청한 뒤 코치 계정이 사라졌는지만 다시 본다.
 	if err := s.assertTrainerEligible(ctx, g.TrainerID); err != nil {
 		return Grant{}, err
 	}
@@ -583,17 +588,23 @@ func (s *Service) SetMemberPrescription(
 
 // ── 도우미 ───────────────────────────────────────────────────────────────────
 
+// [원본] 코칭 의향(trainer_intent)을 밝히지 않은 사람에게는 걸 수 없었다.
+//
+//	ok, err := s.repo.TrainerEligible(ctx, trainerID)
+//	…
+//	if !ok {
+//		return errs.New(errs.Validation, "trainer has not enabled coaching")
+//	}
+//
+// [개선] SPEC-052 — 「트레이너」 역할이 없다. 누구나 코치가 될 수 있고, 코치는 연결이 맺어질 때만 생긴다.
+// 여기서는 그 계정이 있는지만 본다(없으면 NotFound). 값(ok)은 보지 않는다 — 노출 스위치(trainer_intent)는
+// 코치 찾기 검색에만 쓰인다. 남는 규칙(자기 자신·차단·회원 한 명당 코치 한 명·중복 요청)은 부른 쪽이 지킨다.
 func (s *Service) assertTrainerEligible(ctx context.Context, trainerID string) error {
-	ok, err := s.repo.TrainerEligible(ctx, trainerID)
-	if err != nil {
+	if _, err := s.repo.TrainerEligible(ctx, trainerID); err != nil {
 		if isNotFound(err) {
 			return errs.New(errs.NotFound, "trainer not found")
 		}
 		return err
-	}
-	if !ok {
-		// 코칭 의향을 밝히지 않은 사람에게는 걸 수 없다. **자격 심사가 아니라 의사 확인**이다.
-		return errs.New(errs.Validation, "trainer has not enabled coaching")
 	}
 	return nil
 }

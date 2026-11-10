@@ -73,6 +73,8 @@ type User struct {
 	// 코치 소개(80룬)·태그(CoachTagValues 중 3개까지) — SPEC-050 · 0033. 태그는 nil 대신 빈 슬라이스.
 	CoachBio  string
 	CoachTags []string
+	// 코치로서 활성 연결이 있는가(SPEC-052) — 저장하지 않는 파생값. 내보내기 직전에 WithCoach 가 채운다.
+	IsCoach bool
 }
 
 // RefreshToken은 살아 있는 세션 하나다.
@@ -209,6 +211,8 @@ type Service struct {
 	now         func() time.Time
 	// 정식 계정 기능(account.go) — WithAccount로 끼운다. nil 이면 메일 없는 옛 동작
 	acct *Account
+	// 「코치로서 활성 연결이 있는가」(SPEC-052) — 조립 지점이 끼운다. nil 이면 늘 false.
+	coachCheck func(ctx context.Context, userID string) (bool, error)
 }
 
 func NewService(repo Repo, signer Signer) *Service {
@@ -571,6 +575,26 @@ func (s *Service) UpdateProfile(ctx context.Context, userID string, p ProfilePat
 // WithAvatarCheck — 프로필 사진 주소를 저장 전에 확인한다. 돌려주는 bool 은 자동 검사에 걸렸는지다.
 func (s *Service) WithAvatarCheck(check func(ctx context.Context, url, ownerID string) (bool, error)) {
 	s.avatarCheck = check
+}
+
+// WithCoachCheck — 「코치로서 활성 연결이 있는가」를 묻는 길을 끼운다(SPEC-052 · 코칭 연결 표를 읽는다).
+func (s *Service) WithCoachCheck(check func(ctx context.Context, userID string) (bool, error)) {
+	s.coachCheck = check
+}
+
+// WithCoach 는 내보낼 사용자에 파생값 IsCoach 를 채운다(SPEC-052).
+// 묻다가 실패하면 로그만 남기고 false — 로그인·갱신을 막을 이유가 아니다(홈 카드가 한 번 안 보일 뿐).
+func (s *Service) WithCoach(ctx context.Context, u User) User {
+	if s.coachCheck == nil || u.ID == "" {
+		return u
+	}
+	ok, err := s.coachCheck(ctx, u.ID)
+	if err != nil {
+		slog.Warn("[auth] 코치 여부 확인 실패", "err", err)
+		return u
+	}
+	u.IsCoach = ok
+	return u
 }
 
 // VerifyAccess는 access 토큰에서 사용자 id를 꺼낸다. 미들웨어가 부른다.

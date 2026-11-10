@@ -1,8 +1,11 @@
 -- @plm SRS-048  코칭
 
 -- 코칭 의향을 밝힌 사람 찾기. **차단한/차단당한 사람과 나 자신은 빼고**.
+-- [개선] SPEC-052 — trainer_intent 는 「코치 찾기 노출」 · is_coach(활성 연결의 코치)는 배지용 파생값.
+-- [원본] SELECT id, display_name, avatar_url, experience_level, trainer_intent, coach_bio, coach_tags
 -- name: SearchTrainers :many
-SELECT id, display_name, avatar_url, experience_level, trainer_intent, coach_bio, coach_tags
+SELECT id, display_name, avatar_url, experience_level, trainer_intent, coach_bio, coach_tags,
+       EXISTS (SELECT 1 FROM coaching_grants cg WHERE cg.trainer_id = u.id AND cg.status = 'active')::boolean AS is_coach
 FROM users u
 WHERE u.trainer_intent = true
   AND u.id <> @viewer_id::text
@@ -36,7 +39,10 @@ SELECT
   m.experience_level AS member_level,
   m.trainer_intent   AS member_intent_flag,
   m.coach_bio        AS member_bio,
-  m.coach_tags       AS member_tags
+  m.coach_tags       AS member_tags,
+  -- 「코치」 배지 파생값(SPEC-052) — 그 사람이 활성 연결의 코치인가(이 관계와 무관하게)
+  EXISTS (SELECT 1 FROM coaching_grants tg WHERE tg.trainer_id = g.trainer_id AND tg.status = 'active')::boolean AS trainer_is_coach,
+  EXISTS (SELECT 1 FROM coaching_grants mg WHERE mg.trainer_id = g.member_id AND mg.status = 'active')::boolean AS member_is_coach
 FROM coaching_grants g
 JOIN users t ON t.id = g.trainer_id
 JOIN users m ON m.id = g.member_id
@@ -286,9 +292,17 @@ WHERE coaching_grants.status <> 'active'
 RETURNING *;
 
 -- 코치 한 사람의 공개 카드(초대 코드 화면).
+-- [원본] SELECT id, display_name, avatar_url, experience_level, trainer_intent, coach_bio, coach_tags FROM users WHERE id = $1;
+-- [개선] SPEC-052 — 배지 파생값 is_coach 를 함께.
 -- name: GetCoachPeer :one
-SELECT id, display_name, avatar_url, experience_level, trainer_intent, coach_bio, coach_tags
-FROM users WHERE id = $1;
+SELECT u.id, u.display_name, u.avatar_url, u.experience_level, u.trainer_intent, u.coach_bio, u.coach_tags,
+       EXISTS (SELECT 1 FROM coaching_grants cg WHERE cg.trainer_id = u.id AND cg.status = 'active')::boolean AS is_coach
+FROM users u WHERE u.id = $1;
+
+-- 코치로서 활성 연결이 있는가(SPEC-052) — 「코치」 배지·홈 담당 회원 카드의 파생값.
+-- coaching_grants_trainer_idx (trainer_id, status) 를 탄다.
+-- name: IsActiveCoach :one
+SELECT EXISTS (SELECT 1 FROM coaching_grants WHERE trainer_id = @user_id::text AND status = 'active')::boolean;
 
 -- ── 초대 코드 ──
 -- 코치마다 살아 있는 코드는 하나 — 새로 만들기 전에 옛것을 회수한다(같은 트랜잭션).

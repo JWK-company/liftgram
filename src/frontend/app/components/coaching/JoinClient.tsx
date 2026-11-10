@@ -157,7 +157,14 @@ export default function JoinClient({ code: codeParam }: { code: string }) {
     const p = lookup.trainer;
     body = (
       <div className="flex flex-col gap-[var(--spacing-md)]" data-testid="join-ready">
-        <CoachCard name={p.displayName} avatarUrl={p.avatarUrl} bio={p.coachBio} tags={p.coachTags} />
+        {/* [원본] 배지를 늘 붙였다 · [개선] SPEC-052 — 활성 연결의 코치일 때만(isCoach) */}
+        <CoachCard
+          name={p.displayName}
+          avatarUrl={p.avatarUrl}
+          bio={p.coachBio}
+          tags={p.coachTags}
+          coach={p.isCoach}
+        />
         <AppText variant="caption" color="textMuted" className="block text-center" data-testid="join-code">
           {formatInviteCode(code)}
         </AppText>
@@ -186,6 +193,7 @@ export default function JoinClient({ code: codeParam }: { code: string }) {
               avatarUrl={lookup.trainer.avatarUrl}
               bio={lookup.trainer.coachBio}
               tags={lookup.trainer.coachTags}
+              coach={lookup.trainer.isCoach}
               testId="scope-coach-card"
             />
           }

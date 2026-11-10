@@ -199,16 +199,22 @@ test("코치가 코드를 만들고 회원이 코드로 연결한다 — 범위 
     // 회원 — 소문자·하이픈으로 넣어도 서버가 정리한다
     await 가입(page, 새_메일("cv2-m"), 회원);
     await page.goto("/coaching");
-    // 회원(코치 아님)에게는 초대 카드가 없다
+    // [원본] 회원(코치 아님)에게는 초대 카드가 없다 — toHaveCount(0)
+    // [개선] SPEC-052 — 누구나 만든다. 코치가 아니면 「코드 만들기」는 보조 버튼(빨강 채움 아님)
     await expect(page.getByTestId("coaching-code-input")).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByTestId("invite-card")).toHaveCount(0);
+    await expect(page.getByTestId("invite-create")).toBeVisible({ timeout: 20_000 });
+    expect(
+      await page.getByTestId("invite-create").evaluate((el) => getComputedStyle(el).backgroundColor),
+    ).not.toBe("rgb(200, 56, 28)");
     await page
       .getByTestId("coaching-code-input")
       .fill(`${code.slice(0, 4).toLowerCase()}-${code.slice(4).toLowerCase()}`);
     await page.getByTestId("coaching-code-check").click();
     const card = page.getByTestId("scope-coach-card");
     await expect(card).toContainText(코치, { timeout: 20_000 });
-    await expect(card.getByTestId("coach-card-badge")).toHaveText("코치");
+    // [원본] await expect(card.getByTestId("coach-card-badge")).toHaveText("코치");
+    // [개선] SPEC-052 — 아직 회원이 없는 코치라 배지 없음(배지는 연결에서 생긴다) · 소개는 노출을 켰으니 보인다
+    await expect(card.getByTestId("coach-card-badge")).toHaveCount(0);
     await expect(card.getByTestId("coach-card-bio")).toHaveText("초보 근력 5년 · 주 3회 루틴");
     await expect(card.getByTestId("coach-card-tags")).toContainText("근력");
     await expect(card.getByTestId("coach-card-tags")).toContainText("입문");
@@ -404,17 +410,40 @@ test("프로필 — 코치 배지·소개·태그 · 코칭 요청·초대 · �
     await pageT.keyboard.press("Escape");
     const 코치id = await 내_id(pageT);
 
-    // 회원 — 코치 프로필: 배지·소개·태그 · 「코칭 요청」(보조 버튼) → 범위 시트 → 대기
+    // 회원 — 코치 프로필: 소개·태그 · 「코치로 요청」(보조 버튼) → 범위 시트 → 대기
+    // [원본] 배지 toHaveText("코치") — [개선] SPEC-052: 아직 회원이 없어 배지 없음(아래 연결 뒤에 생긴다)
     await 가입(page, 새_메일("cv2-pm"), 회원);
     await page.goto(`/u/${코치id}`);
-    await expect(page.getByTestId("profile-coach-badge")).toHaveText("코치", { timeout: 20_000 });
-    await expect(page.getByTestId("profile-coach-bio")).toHaveText("재활·입문 전문");
+    await expect(page.getByTestId("profile-coach-bio")).toHaveText("재활·입문 전문", { timeout: 20_000 });
+    await expect(page.getByTestId("profile-coach-badge")).toHaveCount(0);
     await expect(page.getByTestId("profile-coach-tags")).toContainText("재활");
     await expect(page.getByTestId("profile-coach-tags")).toContainText("근력");
     const reqBtn = page.getByTestId("profile-coaching-request");
     await expect(reqBtn).toBeVisible();
     expect(await reqBtn.evaluate((el) => getComputedStyle(el).backgroundColor)).not.toBe("rgb(200, 56, 28)");
-    await expect(page.getByTestId("profile-coaching-invite")).toHaveCount(0); // 나는 코치가 아니다
+    // [원본] await expect(page.getByTestId("profile-coaching-invite")).toHaveCount(0); // 나는 코치가 아니다
+    // [개선] SPEC-052 — 누구나 두 방향 다(「코치로 요청」·「내 회원으로 초대」 한 줄 · 같은 높이)
+    await expect(reqBtn).toHaveText("코치로 요청");
+    await expect(page.getByTestId("profile-coaching-invite")).toHaveText("내 회원으로 초대");
+    // 360px — 한 줄 · 같은 높이 · 44px 이상 · 글자가 잘리지 않는다(… 없이 다 보인다 · REV-106 U1·U2)
+    await page.setViewportSize({ width: 360, height: 780 });
+    for (const id of ["profile-coaching-request", "profile-coaching-invite"]) {
+      const full = await page.getByTestId(id).evaluate((el) => {
+        const span = el.querySelector("span") ?? el;
+        return span.scrollWidth <= span.clientWidth + 1;
+      });
+      expect(full, `${id} 글자가 잘렸다`).toBe(true);
+    }
+    {
+      const a = await reqBtn.boundingBox();
+      const b = await page.getByTestId("profile-coaching-invite").boundingBox();
+      expect(a && b && Math.abs(a.y - b.y) < 1 && Math.abs(a.height - b.height) < 1 && a.height >= 44).toBe(
+        true,
+      );
+      expect(a && b && b.x + b.width <= 360).toBe(true);
+    }
+    await 넘침_없음(page);
+    await page.setViewportSize({ width: 1280, height: 720 });
     await reqBtn.click();
     expect(await 범위(page)).toEqual(기본범위);
     await page.getByTestId("scope-confirm").click();
@@ -449,6 +478,8 @@ test("프로필 — 코치 배지·소개·태그 · 코칭 요청·초대 · �
     await expect(crow).toContainText("코칭 중", { timeout: 20_000 });
     await pageI.goto(`/u/${코치id}`);
     await expect(pageI.getByTestId("profile-coaching-active")).toHaveText("코칭 중", { timeout: 20_000 });
+    // SPEC-052 — 이제 활성 회원이 생겼다 → 「코치」 배지(파생값)
+    await expect(pageI.getByTestId("profile-coach-badge")).toHaveText("코치");
 
     // 로그인 전 초대 링크 → 로그인 화면 → 가입 뒤 같은 화면으로 이어서 연결
     const code = await 코드_만들기(pageT);
@@ -609,32 +640,15 @@ test("사람 화면 코치 배지 · 360px join·긴 이름 코치 프로필 넘
     await 가입(page, 새_메일("cv2-bm"), `회원b${tag}`);
     await page.setViewportSize({ width: 360, height: 780 });
 
-    // 사람 화면 — 찾아서 팔로우 → 팔로잉 탭 줄에 코치 배지
+    // 사람 화면 — 찾아서 팔로우(아직 회원이 없는 코치라 배지 없음 · SPEC-052 — 배지는 연결에서 생긴다)
+    // [원본] 찾은 줄·팔로잉 줄·프로필에 바로 배지 — 연결 뒤(아래)로 옮겼다
     await page.goto("/people");
     await page.getByTestId("people-query").fill(코치);
     const 찾은줄 = page.getByTestId("people-row").filter({ hasText: 코치 });
-    await expect(찾은줄.getByTestId("people-coach-badge")).toHaveText("코치", { timeout: 20_000 });
+    await expect(찾은줄.getByTestId("people-follow")).toBeVisible({ timeout: 20_000 });
+    await expect(찾은줄.getByTestId("people-coach-badge")).toHaveCount(0);
     await 찾은줄.getByTestId("people-follow").click();
     await expect(찾은줄.getByTestId("people-follow")).toHaveCount(0, { timeout: 20_000 });
-    await page.getByTestId("people-query").fill("");
-    await expect(page.getByTestId("people-tab-following")).toHaveAttribute("aria-selected", "true");
-    const 줄 = page.getByTestId("people-row").filter({ hasText: 코치 });
-    await expect(줄.getByTestId("people-coach-badge")).toBeVisible({ timeout: 20_000 });
-    await 넘침_없음(page);
-    {
-      const b = await 줄.getByTestId("people-coach-badge").boundingBox();
-      expect(b && b.x >= 0 && b.x + b.width <= 360).toBe(true);
-    }
-
-    // 긴 이름 + 코치 배지 프로필 줄
-    await page.goto(`/u/${코치id}`);
-    const badge = page.getByTestId("profile-coach-badge");
-    await expect(badge).toBeVisible({ timeout: 20_000 });
-    await 넘침_없음(page);
-    {
-      const b = await badge.boundingBox();
-      expect(b && b.x >= 0 && b.x + b.width <= 360).toBe(true);
-    }
 
     // join 화면 360px — 시트가 저절로 한 번 열린다 · 닫으면 다시 저절로 안 열린다
     await page.goto(`/coaching/join?code=${code.toLowerCase().slice(0, 4)}-${code.toLowerCase().slice(4)}`);
@@ -654,10 +668,34 @@ test("사람 화면 코치 배지 · 360px join·긴 이름 코치 프로필 넘
     await expect(page).toHaveURL(/\/coaching$/, { timeout: 20_000 });
     await expect(page.getByTestId("coaching-coaches")).toContainText("코칭 중", { timeout: 20_000 });
 
-    // 이미 코치가 있다 — 둘째 코치 프로필에서는 「코칭 요청」 대신 안내(시트를 열지 않는다)
+    // 연결 뒤 — 이제 코치다(활성 회원 1명): 팔로잉 탭 줄·긴 이름 프로필 줄에 배지 · 360px 넘침 없음
+    await page.goto("/people");
+    await expect(page.getByTestId("people-tab-following")).toHaveAttribute("aria-selected", "true", {
+      timeout: 20_000,
+    });
+    const 줄 = page.getByTestId("people-row").filter({ hasText: 코치 });
+    await expect(줄.getByTestId("people-coach-badge")).toHaveText("코치", { timeout: 20_000 });
+    await 넘침_없음(page);
+    {
+      const b = await 줄.getByTestId("people-coach-badge").boundingBox();
+      expect(b && b.x >= 0 && b.x + b.width <= 360).toBe(true);
+    }
+    await page.goto(`/u/${코치id}`);
+    const badge = page.getByTestId("profile-coach-badge");
+    await expect(badge).toBeVisible({ timeout: 20_000 });
+    await 넘침_없음(page);
+    {
+      const b = await badge.boundingBox();
+      expect(b && b.x >= 0 && b.x + b.width <= 360).toBe(true);
+    }
+
+    // 이미 코치가 있다 — 둘째 코치 프로필에서는 「코치로 요청」 대신 안내(시트를 열지 않는다) · 「내 회원으로 초대」는 남는다
     await page.goto(`/u/${둘째id}`);
     await expect(page.getByTestId("profile-coaching-has-coach")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("profile-coaching-request")).toHaveCount(0);
+    await expect(page.getByTestId("profile-coaching-invite")).toBeVisible();
+    // 둘째는 코치 찾기 노출만 켰고 회원이 없다 — 배지 없음
+    await expect(page.getByTestId("profile-coach-badge")).toHaveCount(0);
     await 넘침_없음(page);
     // 지금 코치 프로필은 「코칭 중」
     await page.goto(`/u/${코치id}`);
@@ -665,9 +703,16 @@ test("사람 화면 코치 배지 · 360px join·긴 이름 코치 프로필 넘
     // 연결 목록 읽기 실패면 코칭 줄을 그리지 않는다
     await page.route(`**${RPC}/ListGrants`, (r) => r.fulfill({ status: 503, body: "" }));
     await page.goto(`/u/${둘째id}`);
-    await expect(page.getByTestId("profile-coach-badge")).toBeVisible({ timeout: 20_000 });
+    // [원본] 둘째의 배지가 보일 때까지 — SPEC-052: 둘째는 배지가 없어 이름으로 기다린다
+    await expect(page.getByTestId("profile-name")).toBeVisible({ timeout: 20_000 });
     await page.waitForTimeout(1500);
-    for (const id of ["profile-coaching-request", "profile-coaching-has-coach", "profile-coaching-state"])
+    // [원본] 셋(요청·안내·상태) — [개선] 초대 버튼도 그리지 않는다
+    for (const id of [
+      "profile-coaching-request",
+      "profile-coaching-invite",
+      "profile-coaching-has-coach",
+      "profile-coaching-state",
+    ])
       await expect(page.getByTestId(id)).toHaveCount(0);
     await page.unroute(`**${RPC}/ListGrants`);
   } finally {

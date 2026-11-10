@@ -49,6 +49,11 @@ func (h *Handler) SearchTrainers(ctx context.Context, req *connect.Request[coach
 }
 
 func (h *Handler) RequestCoaching(ctx context.Context, req *connect.Request[coachingv1.RequestCoachingRequest]) (*connect.Response[coachingv1.RequestCoachingResponse], error) {
+	// SPEC-052(REV-105 S1) — 코치 역할이 없어져 누구에게나 요청·초대 버튼이 생긴다. 초대 코드와 같은 분당 상한
+	// (사용자·IP 각 10)을 건다 — 요청마다 상대에게 알림이 가서 스팸 길이 된다. 실패 횟수는 세지 않는다(코드 맞히기가 아니다).
+	if err := h.invite.allowRequest(viewer(ctx), req.Header()); err != nil {
+		return nil, err
+	}
 	// [원본] g, err := h.svc.Request(ctx, viewer(ctx), req.Msg.GetTrainerId(), req.Msg.GetMemberId())
 	g, err := h.svc.RequestCoaching(ctx, viewer(ctx), RequestInput{
 		TrainerID: req.Msg.GetTrainerId(), MemberID: req.Msg.GetMemberId(),
@@ -164,7 +169,7 @@ func peerPB(p Peer) *coachingv1.Peer {
 	return &coachingv1.Peer{
 		Id: p.ID, DisplayName: p.DisplayName, AvatarUrl: p.AvatarURL,
 		ExperienceLevel: p.ExperienceLevel, TrainerIntent: p.TrainerIntent,
-		CoachBio: p.CoachBio, CoachTags: p.CoachTags,
+		CoachBio: p.CoachBio, CoachTags: p.CoachTags, IsCoach: p.IsCoach,
 	}
 }
 

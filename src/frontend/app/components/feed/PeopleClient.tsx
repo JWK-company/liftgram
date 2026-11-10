@@ -217,7 +217,8 @@ export default function PeopleClient() {
                         {u.author?.displayName || t("discover.unnamed")}
                       </AppText>
                       {/* 코치 배지(SPEC-050) — 이름 옆, 이름이 길면 이름이 줄어든다 */}
-                      {u.trainerIntent ? <CoachBadge testId="people-coach-badge" /> : null}
+                      {/* [원본] {u.trainerIntent ? <CoachBadge … /> : null} — SPEC-052: 배지는 파생값(활성 연결의 코치) */}
+                      {u.isCoach ? <CoachBadge testId="people-coach-badge" /> : null}
                     </a>
                     {/* 팔로우하지 않은 사람만 「팔로우」(팔로워 탭에서는 맞팔) — 팔로잉 해제는 프로필에서 */}
                     {u.following ? null : (

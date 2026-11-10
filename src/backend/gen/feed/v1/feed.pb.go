@@ -883,9 +883,12 @@ type SocialProfile struct {
 	// 내가 차단했는가(상대가 나를 차단한 경우는 애초에 조회가 막힌다).
 	IsBlocked bool `protobuf:"varint,7,opt,name=is_blocked,json=isBlocked,proto3" json:"is_blocked,omitempty"`
 	// 코치 카드(SPEC-050) — 코치 여부(trainer_intent)·소개·태그.
+	// [개선] SPEC-052 — trainer_intent 는 「코치 찾기 노출」(켜면 소개·태그를 보인다) · 배지는 is_coach.
 	TrainerIntent bool     `protobuf:"varint,8,opt,name=trainer_intent,json=trainerIntent,proto3" json:"trainer_intent,omitempty"`
 	CoachBio      string   `protobuf:"bytes,9,opt,name=coach_bio,json=coachBio,proto3" json:"coach_bio,omitempty"`
 	CoachTags     []string `protobuf:"bytes,10,rep,name=coach_tags,json=coachTags,proto3" json:"coach_tags,omitempty"`
+	// 「코치」 배지(SPEC-052) — 활성 연결에서 코치인 회원이 한 명 이상(파생값).
+	IsCoach       bool `protobuf:"varint,11,opt,name=is_coach,json=isCoach,proto3" json:"is_coach,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -988,6 +991,13 @@ func (x *SocialProfile) GetCoachTags() []string {
 		return x.CoachTags
 	}
 	return nil
+}
+
+func (x *SocialProfile) GetIsCoach() bool {
+	if x != nil {
+		return x.IsCoach
+	}
+	return false
 }
 
 type HashtagCount struct {
@@ -2334,7 +2344,10 @@ type UserResult struct {
 	Author    *Author                `protobuf:"bytes,1,opt,name=author,proto3" json:"author,omitempty"`
 	Following bool                   `protobuf:"varint,2,opt,name=following,proto3" json:"following,omitempty"`
 	// 코칭 의향(코치 배지 — SPEC-050). 사람 찾기·팔로워·팔로잉만 채운다(추천은 비움).
+	// [개선] SPEC-052 — 뜻만 「코치 찾기 노출」 · 새 화면은 배지에 is_coach 를 쓴다.
 	TrainerIntent bool `protobuf:"varint,3,opt,name=trainer_intent,json=trainerIntent,proto3" json:"trainer_intent,omitempty"`
+	// 「코치」 배지(SPEC-052) — 활성 연결에서 코치인 회원이 한 명 이상(파생값). 채우는 곳은 trainer_intent 와 같다.
+	IsCoach       bool `protobuf:"varint,4,opt,name=is_coach,json=isCoach,proto3" json:"is_coach,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2386,6 +2399,13 @@ func (x *UserResult) GetFollowing() bool {
 func (x *UserResult) GetTrainerIntent() bool {
 	if x != nil {
 		return x.TrainerIntent
+	}
+	return false
+}
+
+func (x *UserResult) GetIsCoach() bool {
+	if x != nil {
+		return x.IsCoach
 	}
 	return false
 }
@@ -4398,7 +4418,7 @@ const file_feed_v1_feed_proto_rawDesc = "" +
 	"like_count\x18\a \x01(\x05R\tlikeCount\x12\x1e\n" +
 	"\vliked_by_me\x18\b \x01(\bR\tlikedByMe\x12\x1f\n" +
 	"\vreply_count\x18\t \x01(\x05R\n" +
-	"replyCount\"\xe5\x02\n" +
+	"replyCount\"\x80\x03\n" +
 	"\rSocialProfile\x12'\n" +
 	"\x06author\x18\x01 \x01(\v2\x0f.feed.v1.AuthorR\x06author\x12\x1d\n" +
 	"\n" +
@@ -4413,7 +4433,8 @@ const file_feed_v1_feed_proto_rawDesc = "" +
 	"\tcoach_bio\x18\t \x01(\tR\bcoachBio\x12\x1d\n" +
 	"\n" +
 	"coach_tags\x18\n" +
-	" \x03(\tR\tcoachTags\"6\n" +
+	" \x03(\tR\tcoachTags\x12\x19\n" +
+	"\bis_coach\x18\v \x01(\bR\aisCoach\"6\n" +
 	"\fHashtagCount\x12\x10\n" +
 	"\x03tag\x18\x01 \x01(\tR\x03tag\x12\x14\n" +
 	"\x05count\x18\x02 \x01(\x05R\x05count\"S\n" +
@@ -4497,12 +4518,13 @@ const file_feed_v1_feed_proto_rawDesc = "" +
 	"\tfollowing\x18\x01 \x01(\bR\tfollowing\"V\n" +
 	"\x12SearchUsersRequest\x12\x1f\n" +
 	"\x05query\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18PR\x05query\x12\x1f\n" +
-	"\x05limit\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x182(\x00R\x05limit\"z\n" +
+	"\x05limit\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x182(\x00R\x05limit\"\x95\x01\n" +
 	"\n" +
 	"UserResult\x12'\n" +
 	"\x06author\x18\x01 \x01(\v2\x0f.feed.v1.AuthorR\x06author\x12\x1c\n" +
 	"\tfollowing\x18\x02 \x01(\bR\tfollowing\x12%\n" +
-	"\x0etrainer_intent\x18\x03 \x01(\bR\rtrainerIntent\"@\n" +
+	"\x0etrainer_intent\x18\x03 \x01(\bR\rtrainerIntent\x12\x19\n" +
+	"\bis_coach\x18\x04 \x01(\bR\aisCoach\"@\n" +
 	"\x13SearchUsersResponse\x12)\n" +
 	"\x05users\x18\x01 \x03(\v2\x13.feed.v1.UserResultR\x05users\"\x90\x01\n" +
 	"\x11UpdatePostRequest\x12\"\n" +

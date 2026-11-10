@@ -1,5 +1,7 @@
 "use client";
-// 코치의 「초대 코드」 카드(SPEC-050 P1b) — 코치(trainer_intent)에게만 보인다.
+// 「초대 코드」 카드(SPEC-050 P1b)
+// [원본] 코치(trainer_intent)에게만 보인다.
+// [개선] SPEC-052 — 누구나 만든다(코치는 연결에서 생긴다). 코치가 아니면 「코드 만들기」는 보조 버튼(primary=false).
 //
 //   없으면      「코드 만들기」(이 화면의 주 버튼)
 //   있으면      코드 4-4 크게 · 「링크 복사」 · 「공유」(navigator.share 있을 때) · 「새로 만들기」(확인 — 옛 코드는 못 씀) · 만료일
@@ -17,7 +19,8 @@ import { ConfirmDialog } from "../ui/Dialog";
 import { LogoSpinner } from "../ui/LogoSpinner";
 import { AppText, Card } from "../ui/primitives";
 
-export function InviteCard() {
+// [원본] export function InviteCard() {
+export function InviteCard({ primary = true }: { primary?: boolean } = {}) {
   const toast = useToast();
   // undefined = 아직 읽는 중 · null = 코드 없음(정상 응답) — 「코드 만들기」는 이때만
   const [invite, setInvite] = useState<Invite | null | undefined>(undefined);
@@ -110,12 +113,14 @@ export function InviteCard() {
         </div>
       ) : invite === null ? (
         <>
+          {/* [원본] {t("coaching.invite.empty")} {t("coaching.invite.hint")} — 만들기 전부터 「이 코드를 받은 사람이…」 */}
           <AppText variant="caption" color="textMuted" className="mt-[var(--spacing-xs)] block">
-            {t("coaching.invite.empty")} {t("coaching.invite.hint")}
+            {t("coaching.invite.empty")}
           </AppText>
           <div className="mt-[var(--spacing-md)]">
             <Button
               title={t("coaching.invite.create")}
+              variant={primary ? "primary" : "secondary"}
               loading={busy}
               onPress={() => void create()}
               testId="invite-create"

@@ -77,14 +77,22 @@ export const en: Record<TransKey, string> = {
   "coaching.loginRequiredTitle": "Login required",
   "coaching.loginRequiredMessage": "Coaching connections are account-based. Please sign in from your profile.",
   "coaching.myCoaches": "My coaches",
-  "coaching.myCoachesEmpty": "No coach connected yet. Find a trainer below and send a request.",
+  // [원본] "coaching.myCoachesEmpty": "No coach connected yet. Find a trainer below and send a request.",
+  // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
+  "coaching.myCoachesEmpty": "No coach connected yet. Enter a code you received, or find a coach below and send a request.",
   "coaching.myMembers": "My clients",
-  "coaching.myMembersEmpty": "No clients yet. Turn on coaching intent in your profile to appear in search.",
-  "coaching.findTrainer": "Find a trainer",
+  // [원본] "coaching.myMembersEmpty": "No clients yet. Turn on coaching intent in your profile to appear in search.",
+  // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
+  "coaching.myMembersEmpty": "No clients yet. Send your invite code, or tap “Invite as client” on someone’s profile.",
+  // [원본] "coaching.findTrainer": "Find a trainer",
+  // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
+  "coaching.findTrainer": "Find a coach",
   "coaching.searchPlaceholder": "Search by display name",
   "coaching.searchButton": "Search",
   "coaching.searchEmpty": "No results.",
-  "coaching.requestButton": "Request",
+  // [원본] "coaching.requestButton": "Request",
+  // [개선] SPEC-052 — 코치 역할 없음 · 방향이 보이는 이름(REV-105 U4)
+  "coaching.requestButton": "Ask to coach me",
   "coaching.requested": "Requested",
   "coaching.acceptButton": "Accept",
   "coaching.revokeButton": "Revoke",
@@ -706,7 +714,9 @@ export const en: Record<TransKey, string> = {
   "routines.discardWorkoutMessage": "Throw away the in-progress workout? This can't be undone.",
   "routines.discardWorkoutButton": "Discard",
   "routines.setsLabel": "Sets",
-  "experience.title": "Experience & coaching",
+  // [원본] "experience.title": "Experience & coaching",
+  // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
+  "experience.title": "Experience & coach search visibility",
   "experience.levelLabel": "Training experience",
   "experience.level.beginner": "Beginner (1-2 yrs)",
   "experience.level.intermediate": "Intermediate (3-6 yrs)",
@@ -714,12 +724,23 @@ export const en: Record<TransKey, string> = {
   "experience.levelHint.beginner": "Start with logging and routines",
   "experience.levelHint.intermediate": "Break plateaus, use variant logging",
   "experience.levelHint.advanced": "Share knowledge, mentor others",
-  "experience.intentLabel": "Coaching intent",
-  "experience.intentYes": "I want to find clients",
-  "experience.trainerDisclaimer": "Coaching intent is not a credential guarantee. Shown with verification badges and reviews.",
+  // [원본] "experience.intentLabel": "Coaching intent",
+  // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
+  "experience.intentLabel": "Coach search visibility",
+  // [원본] "experience.intentYes": "I want to find clients",
+  // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
+  "experience.intentYes": "Show me in coach search",
+  "experience.intentShort": "Shown in coach search", // SPEC-052
+  "experience.intentHint": "When on, your name, intro and tags appear in coach search. You can still connect with clients by invite code while it’s off.", // SPEC-052
+  "experience.summaryEmpty": "Tell us your training experience", // SPEC-052
+  // [원본] "experience.trainerDisclaimer": "Coaching intent is not a credential guarantee. Shown with verification badges and reviews.",
+  // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
+  "experience.trainerDisclaimer": "The “Coach” label means this person is connected with a client through coaching — it is not a credential guarantee.",
   "onboarding.expTitle": "Tell us your experience",
-  "onboarding.expSubtitle": "Optional — used for a tailored experience and coaching connections. Change anytime in your profile.",
-  "onboarding.trainerIntentOption": "I want to find clients (trainer/coach)",
+  // [원본] "onboarding.expSubtitle": "Optional — used for a tailored experience and coaching connections. Change anytime in your profile.",
+  // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
+  "onboarding.expSubtitle": "Optional — used for a tailored experience. Change anytime in your profile.",
+  // [원본] "onboarding.trainerIntentOption": "I want to find clients (trainer/coach)",
   "onboarding.expDone": "Done",
   "onboarding.skip": "Skip",
   "schedule.startThis": "Start this routine",
@@ -1962,7 +1983,9 @@ export const en: Record<TransKey, string> = {
   "coaching.tag.beginner": "Beginners",
   "coaching.tag.powerlifting": "Powerlifting",
   "coaching.scope.title": "What to share",
-  "coaching.scope.requestTitle": "Request coaching",
+  // [원본] "coaching.scope.requestTitle": "Request coaching",
+  // [개선] SPEC-052 — 코치 역할 없음 · 방향이 보이는 이름(REV-105 U4)
+  "coaching.scope.requestTitle": "Ask to coach me",
   "coaching.scope.acceptTitle": "Accept coaching",
   "coaching.scope.changeTitle": "Change scope",
   "coaching.scope.hint": "You can change this or disconnect anytime.",
@@ -1981,7 +2004,9 @@ export const en: Record<TransKey, string> = {
   "coaching.scope.joinConfirm": "Connect",
   "coaching.scope.changeConfirm": "Save",
   "coaching.requestSent": "Request sent",
-  "coaching.inviteSent": "Coaching invite sent",
+  // [원본] "coaching.inviteSent": "Coaching invite sent",
+  // [개선] SPEC-052 — 코치 역할 없음 · 방향이 보이는 이름(REV-105 U4)
+  "coaching.inviteSent": "Client invite sent",
   "coaching.connected": "Connected with your coach",
   "coaching.scopeSaved": "Scope updated",
   "coaching.requestNote": "\"{note}\"",
@@ -1997,8 +2022,12 @@ export const en: Record<TransKey, string> = {
   "coaching.revokeMessageTrainer": "You will no longer see this member's records.",
   "coaching.revokeConfirm": "Disconnect",
   "coaching.invite.title": "Invite code",
-  "coaching.invite.hint": "Members connect right away with this code or link.",
-  "coaching.invite.empty": "No invite code yet.",
+  // [원본] "coaching.invite.hint": "Members connect right away with this code or link.",
+  // [개선] SPEC-052 — 코치 역할 없음 · 방향이 보이는 이름(REV-105 U4)
+  "coaching.invite.hint": "Whoever gets this code connects as your client right away.",
+  // [원본] "coaching.invite.empty": "No invite code yet.",
+  // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
+  "coaching.invite.empty": "No invite code yet. To coach someone, create a code and send it.",
   "coaching.invite.create": "Create code",
   "coaching.invite.copy": "Copy link",
   "coaching.invite.copied": "Link copied",
@@ -2018,16 +2047,24 @@ export const en: Record<TransKey, string> = {
   "coaching.join.loginTitle": "Sign in to connect",
   "coaching.join.loginMessage": "Coaching needs an account. You will come back here after signing in.",
   "coaching.join.toCoaching": "Go to coaching",
-  "coaching.profile.request": "Request coaching",
-  "coaching.profile.invite": "Invite to coaching",
+  // [원본] "coaching.profile.request": "Request coaching",
+  // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
+  "coaching.profile.request": "Ask to coach me",
+  // [원본] "coaching.profile.invite": "Invite to coaching",
+  // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
+  "coaching.profile.invite": "Invite as client",
   "coaching.profile.pending": "Coaching pending",
   "coaching.profile.bioLabel": "Coach bio",
   "coaching.profile.bioPlaceholder": "e.g. Certified trainer · 5 years coaching beginners",
   "coaching.profile.tagsLabel": "Specialties (up to 3)",
   "coaching.profile.saveFailed": "Could not save your coach profile",
   "coaching.profile.hasCoach": "You already have a coach. Disconnect on the Coaching screen before sending a new request.",
-  "coaching.profile.inviteTitle": "Send a coaching invite?",
-  "coaching.profile.inviteMessage": "You will be connected once {name} accepts. {name} chooses what to share.",
+  // [원본] "coaching.profile.inviteTitle": "Send a coaching invite?",
+  // [개선] SPEC-052 — 코치 역할 없음 · 방향이 보이는 이름(REV-105 U4)
+  "coaching.profile.inviteTitle": "Invite {name} as your client?",
+  // [원본] "coaching.profile.inviteMessage": "You will be connected once {name} accepts. {name} chooses what to share.",
+  // [개선] SPEC-052 — 코치 역할 없음 · 방향이 보이는 이름(REV-105 U4)
+  "coaching.profile.inviteMessage": "Once {name} accepts, you become their coach. {name} chooses what to share.",
   // Client screen (SPEC-050 P2) · home "clients" card
   "coaching.member.title": "Client records",
   "coaching.member.band": "{name}'s records · Coaching",

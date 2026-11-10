@@ -200,6 +200,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       refreshMe: async () => {
         if (!hasSession()) return;
         const res = await authClient().me({});
+        // [원본] setUser(res.user ?? null);
+        // [개선] SPEC-052 — 홈·코칭 화면이 계정을 다시 받는 일이 잦아졌다. 응답을 기다리는 사이 로그아웃했으면
+        //   늦게 온 답으로 사용자를 되살리지 않는다(로그아웃했는데 계정 화면이 그대로인 경합).
+        if (!hasSession()) return;
         setUser(res.user ?? null);
       },
       logOut: async () => {

@@ -158,9 +158,12 @@ type Profile struct {
 
 // CoachCard는 프로필에 붙는 코치 정보다(SPEC-050).
 type CoachCard struct {
+	// [개선] SPEC-052 — 뜻만 「코치 찾기 노출」(켜면 소개·태그를 보인다).
 	TrainerIntent bool
 	Bio           string
 	Tags          []string
+	// 「코치」 배지(SPEC-052) — 활성 연결에서 코치인 회원이 한 명 이상(파생값).
+	IsCoach bool
 }
 
 type HashtagCount struct {
@@ -197,8 +200,10 @@ type PostEdit struct {
 type UserResult struct {
 	Author    Author
 	Following bool
-	// 코치 배지(trainer_intent) — SPEC-050
-	Coach bool
+	// [원본] 코치 배지(trainer_intent) — SPEC-050
+	// [개선] SPEC-052 — Coach 는 「코치 찾기 노출」(trainer_intent) 그대로 · 배지는 IsCoach(활성 연결의 코치).
+	Coach   bool
+	IsCoach bool
 }
 
 // Repo는 이 도메인이 저장소에 바라는 전부다.

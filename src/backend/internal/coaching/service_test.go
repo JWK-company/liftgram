@@ -380,13 +380,26 @@ func TestRequest_자기_자신은_못_가르친다(t *testing.T) {
 	}
 }
 
-func TestRequest_코칭_의향이_없으면_걸_수_없다(t *testing.T) {
+// [원본] TestRequest_코칭_의향이_없으면_걸_수_없다 — 의향을 켜지 않은 사람에게는 Validation 으로 막았다.
+// [개선] SPEC-052 — 코치 역할이 없다. 노출을 끈 사람에게도 걸리고(양쪽 방향), 없는 계정만 NotFound.
+func TestRequest_노출을_끈_사람에게도_걸_수_있다(t *testing.T) {
 	repo := newRepo()
-	repo.eligible["t1"] = false // 계정은 있지만 코칭을 켜지 않았다
+	repo.eligible["t1"] = false // 계정은 있지만 코치 찾기 노출을 켜지 않았다
 	repo.users["m1"] = true
-	_, err := newSvc(repo).Request(context.Background(), "m1", "t1", "")
-	if codeOf(t, err) != errs.Validation {
-		t.Fatalf("의향 없는 사람에게는 못 건다: %v", err)
+	g, err := newSvc(repo).Request(context.Background(), "m1", "t1", "")
+	if err != nil || g.Status != StatusPending || g.TrainerID != "t1" || g.MemberID != "m1" {
+		t.Fatalf("회원 쪽 요청이 걸려야 한다: %+v %v", g, err)
+	}
+	// 코치 쪽 요청(내가 코치 · 상대를 회원으로) — 나도 노출을 켜지 않았다.
+	repo.eligible["m2"] = false
+	repo.users["x2"] = true
+	g, err = newSvc(repo).Request(context.Background(), "m2", "", "x2")
+	if err != nil || g.TrainerID != "m2" || g.MemberID != "x2" {
+		t.Fatalf("코치 쪽 요청도 걸려야 한다: %+v %v", g, err)
+	}
+	// 없는 계정은 NotFound.
+	if _, err := newSvc(repo).Request(context.Background(), "m1", "ghost", ""); codeOf(t, err) != errs.NotFound {
+		t.Fatalf("없는 계정: %v", err)
 	}
 }
 

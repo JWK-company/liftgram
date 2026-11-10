@@ -386,8 +386,9 @@ func (q *Queries) GetActiveCoachingRoutine(ctx context.Context, arg GetActiveCoa
 }
 
 const getCoachPeer = `-- name: GetCoachPeer :one
-SELECT id, display_name, avatar_url, experience_level, trainer_intent, coach_bio, coach_tags
-FROM users WHERE id = $1
+SELECT u.id, u.display_name, u.avatar_url, u.experience_level, u.trainer_intent, u.coach_bio, u.coach_tags,
+       EXISTS (SELECT 1 FROM coaching_grants cg WHERE cg.trainer_id = u.id AND cg.status = 'active')::boolean AS is_coach
+FROM users u WHERE u.id = $1
 `
 
 type GetCoachPeerRow struct {
@@ -398,9 +399,12 @@ type GetCoachPeerRow struct {
 	TrainerIntent   bool
 	CoachBio        string
 	CoachTags       []string
+	IsCoach         bool
 }
 
 // 코치 한 사람의 공개 카드(초대 코드 화면).
+// [원본] SELECT id, display_name, avatar_url, experience_level, trainer_intent, coach_bio, coach_tags FROM users WHERE id = $1;
+// [개선] SPEC-052 — 배지 파생값 is_coach 를 함께.
 func (q *Queries) GetCoachPeer(ctx context.Context, id string) (GetCoachPeerRow, error) {
 	row := q.db.QueryRow(ctx, getCoachPeer, id)
 	var i GetCoachPeerRow
@@ -412,6 +416,7 @@ func (q *Queries) GetCoachPeer(ctx context.Context, id string) (GetCoachPeerRow,
 		&i.TrainerIntent,
 		&i.CoachBio,
 		&i.CoachTags,
+		&i.IsCoach,
 	)
 	return i, err
 }
@@ -871,6 +876,19 @@ func (q *Queries) InsertProgressSummary(ctx context.Context, arg InsertProgressS
 	return i, err
 }
 
+const isActiveCoach = `-- name: IsActiveCoach :one
+SELECT EXISTS (SELECT 1 FROM coaching_grants WHERE trainer_id = $1::text AND status = 'active')::boolean
+`
+
+// 코치로서 활성 연결이 있는가(SPEC-052) — 「코치」 배지·홈 담당 회원 카드의 파생값.
+// coaching_grants_trainer_idx (trainer_id, status) 를 탄다.
+func (q *Queries) IsActiveCoach(ctx context.Context, userID string) (bool, error) {
+	row := q.db.QueryRow(ctx, isActiveCoach, userID)
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const listAudit = `-- name: ListAudit :many
 SELECT id, actor_id, action, created_at
 FROM coaching_audits
@@ -1143,7 +1161,10 @@ SELECT
   m.experience_level AS member_level,
   m.trainer_intent   AS member_intent_flag,
   m.coach_bio        AS member_bio,
-  m.coach_tags       AS member_tags
+  m.coach_tags       AS member_tags,
+  -- 「코치」 배지 파생값(SPEC-052) — 그 사람이 활성 연결의 코치인가(이 관계와 무관하게)
+  EXISTS (SELECT 1 FROM coaching_grants tg WHERE tg.trainer_id = g.trainer_id AND tg.status = 'active')::boolean AS trainer_is_coach,
+  EXISTS (SELECT 1 FROM coaching_grants mg WHERE mg.trainer_id = g.member_id AND mg.status = 'active')::boolean AS member_is_coach
 FROM coaching_grants g
 JOIN users t ON t.id = g.trainer_id
 JOIN users m ON m.id = g.member_id
@@ -1175,6 +1196,8 @@ type ListGrantsForUserRow struct {
 	MemberIntentFlag  bool
 	MemberBio         string
 	MemberTags        []string
+	TrainerIsCoach    bool
+	MemberIsCoach     bool
 }
 
 // 내가 낀 모든 관계. 최근 것부터 — 방금 요청한 것이 위에 있어야 한다.
@@ -1211,6 +1234,8 @@ func (q *Queries) ListGrantsForUser(ctx context.Context, viewerID string) ([]Lis
 			&i.MemberIntentFlag,
 			&i.MemberBio,
 			&i.MemberTags,
+			&i.TrainerIsCoach,
+			&i.MemberIsCoach,
 		); err != nil {
 			return nil, err
 		}
@@ -2057,7 +2082,8 @@ func (q *Queries) RevokeTrainerInvites(ctx context.Context, trainerID string) er
 
 const searchTrainers = `-- name: SearchTrainers :many
 
-SELECT id, display_name, avatar_url, experience_level, trainer_intent, coach_bio, coach_tags
+SELECT id, display_name, avatar_url, experience_level, trainer_intent, coach_bio, coach_tags,
+       EXISTS (SELECT 1 FROM coaching_grants cg WHERE cg.trainer_id = u.id AND cg.status = 'active')::boolean AS is_coach
 FROM users u
 WHERE u.trainer_intent = true
   AND u.id <> $1::text
@@ -2084,10 +2110,13 @@ type SearchTrainersRow struct {
 	TrainerIntent   bool
 	CoachBio        string
 	CoachTags       []string
+	IsCoach         bool
 }
 
 // @plm SRS-048  코칭
 // 코칭 의향을 밝힌 사람 찾기. **차단한/차단당한 사람과 나 자신은 빼고**.
+// [개선] SPEC-052 — trainer_intent 는 「코치 찾기 노출」 · is_coach(활성 연결의 코치)는 배지용 파생값.
+// [원본] SELECT id, display_name, avatar_url, experience_level, trainer_intent, coach_bio, coach_tags
 func (q *Queries) SearchTrainers(ctx context.Context, arg SearchTrainersParams) ([]SearchTrainersRow, error) {
 	rows, err := q.db.Query(ctx, searchTrainers, arg.ViewerID, arg.Query)
 	if err != nil {
@@ -2105,6 +2134,7 @@ func (q *Queries) SearchTrainers(ctx context.Context, arg SearchTrainersParams) 
 			&i.TrainerIntent,
 			&i.CoachBio,
 			&i.CoachTags,
+			&i.IsCoach,
 		); err != nil {
 			return nil, err
 		}

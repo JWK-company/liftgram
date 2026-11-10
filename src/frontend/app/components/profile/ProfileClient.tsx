@@ -252,6 +252,10 @@ export default function ProfileClient() {
     dark: t("profile.themeDark"),
   };
   const displayName = account?.displayName || account?.email || "나";
+  // 「코치 찾기에 나를 보여 주기」(SPEC-052 · 열 이름은 trainer_intent 그대로) — 이제 남에게 보이는 설정이라
+  // 로그인했으면 **서버 계정 값**을 보인다(「꺼져 보이는데 검색에 나옴」이 없게 · REV-105 U3). 비로그인이면 로컬 값.
+  // [원본] 칩·요약 줄 모두 로컬 trainerIntent === true
+  const shownInSearch = account ? account.trainerIntent : trainerIntent === true;
 
   return (
     <div className="flex flex-1 flex-col">
@@ -268,9 +272,10 @@ export default function ProfileClient() {
                 {account ? displayName : t("profile.title")}
               </span>
               <span className="truncate text-(--color-ink2) text-[length:var(--text-sm)]">
-                {[levelLabel, trainerIntent === true ? t("experience.intentYes") : null]
+                {/* [원본] [levelLabel, trainerIntent === true ? t("experience.intentYes") : null] … || "경력·코칭 의향을 알려 주세요" */}
+                {[levelLabel, shownInSearch ? t("experience.intentShort") : null]
                   .filter(Boolean)
-                  .join(" · ") || "경력·코칭 의향을 알려 주세요"}
+                  .join(" · ") || t("experience.summaryEmpty")}
               </span>
             </span>
             <button
@@ -610,23 +615,45 @@ export default function ProfileClient() {
             </AppText>
           </div>
           <div className="mt-[var(--spacing-xs)] flex flex-wrap gap-[var(--spacing-xs)]">
+            {/* [원본] active={trainerIntent === true} · next = trainerIntent === true ? null : true */}
             <Chip
               testId="trainer-intent"
               label={t("experience.intentYes")}
-              active={trainerIntent === true}
+              active={shownInSearch}
               onPress={() => {
-                const next = trainerIntent === true ? null : true;
-                // 서버는 boolean만 안다 — 해제(null)는 false로 옮긴다.
-                saveShared({ trainerIntent: next }, { trainerIntent: next === true });
+                const next = shownInSearch ? null : true;
+                // [원본] saveShared({ trainerIntent: next }, { trainerIntent: next === true }); — 서버 저장이 실패해도
+                //   기기 값은 이미 바뀌어 로그아웃하면 반대 값이 보였다(REV-106 U4)
+                // [개선] 로그인했으면 서버를 먼저 · 성공한 뒤에만 기기 값(비로그인은 기기 값만)
+                if (!account) {
+                  saveShared({ trainerIntent: next }, {});
+                  return;
+                }
+                patch(async () => {
+                  await updateAccountProfile({ trainerIntent: next === true, setTrainerIntent: true });
+                  const userRepo = await import("@app/core/data/userRepository");
+                  await userRepo.updateUserSettings(userId, { trainerIntent: next });
+                });
               }}
             />
           </div>
+          {/* [원본] 켰을 때만 자격 고지
           {trainerIntent === true ? (
             <AppText variant="caption" color="textFaint" className="mt-[var(--spacing-xs)] block">
               {t("experience.trainerDisclaimer")}
             </AppText>
           ) : null}
-          {/* 의향을 켜면 코치 소개(80자)·태그(6개 중 3개) — 서버 프로필에만 저장(SPEC-050) */}
+              [개선] SPEC-052 — 늘 무엇이 보이는지 한 줄(켜도 꺼도 초대 코드로 연결 가능) */}
+          <AppText
+            variant="caption"
+            color="textFaint"
+            className="mt-[var(--spacing-xs)] block"
+            data-testid="trainer-intent-hint"
+          >
+            {t("experience.intentHint")}
+          </AppText>
+          {/* 의향을 켜면 코치 소개(80자)·태그(6개 중 3개) — 서버 프로필에만 저장(SPEC-050)
+              SPEC-052: 의향 = 코치 찾기 노출. 소개·태그는 켰을 때만 보이고 편집된다(사용자 결정 2) */}
           {/* 기준은 서버 계정 값 — 로컬만 켜지고 서버 저장이 실패하면 칸을 보이지 않는다(코드 리뷰 지적 7) */}
           {account?.trainerIntent ? <CoachProfileFields /> : null}
         </SheetShell>

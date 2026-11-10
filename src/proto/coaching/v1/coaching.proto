@@ -33,10 +33,13 @@ message Peer {
   string avatar_url = 3;
   // 스스로 밝힌 운동 경력. **자격 보증이 아니다**(화면이 그 고지를 함께 띄운다).
   string experience_level = 4;
+  // [원본] 코칭 의향 · [개선] SPEC-052 — 뜻만 「코치 찾기 노출」(코치 여부가 아니다 · 배지는 is_coach).
   bool trainer_intent = 5;
   // 코치 소개(80자)·태그(hypertrophy·strength·diet·rehab·beginner·powerlifting 중 3개까지) — SPEC-050.
   string coach_bio = 6;
   repeated string coach_tags = 7;
+  // 「코치」 배지(SPEC-052) — 활성 연결에서 코치(trainer)인 회원이 한 명 이상. 서버가 계산하는 파생값.
+  bool is_coach = 8;
 }
 
 // 회원이 여는 범위(SPEC-050). 키는 이 넷뿐 — 서버는 이 넷만 저장하고, 옛 행에 없는 키는 false 로 읽는다.

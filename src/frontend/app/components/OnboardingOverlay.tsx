@@ -3,7 +3,8 @@
 //
 // ─────────────────────────────────────────────────────────────────────────────
 // 처음 여는 사람에게 **한 번만** 뭘 할 수 있는지 알려 준다. 두 장이다:
-//   ① 이 앱이 뭔지  ② 운동 경력·코칭 의향(선택)
+//   ① 이 앱이 뭔지  ② 운동 경력(선택)
+//   ([원본] ② 운동 경력·코칭 의향 — SPEC-052 에서 「트레이너·코치」 질문을 없앴다. 코치는 연결에서 생긴다.)
 //
 // ── 아무것도 막지 않는다 ────────────────────────────────────────────────────
 // 둘째 장은 전부 건너뛸 수 있고, 답하지 않아도 어떤 기능도 잠기지 않는다.
@@ -13,7 +14,8 @@
 // 로컬 저장소(localStorage)에 표시만 남긴다. 서버에 두면 로그인 전에는 알 수 없고,
 // 로컬 DB에 두면 계정을 바꿀 때 지워져 다시 뜬다 — 둘 다 "처음 한 번"이 아니게 된다.
 //
-// ── 경력·의향은 서버에도 적는다 ─────────────────────────────────────────────
+// ── 경력은 서버에도 적는다 ──────────────────────────────────────────────────
+// ([원본] 경력·의향 — 이제 의향(코치 찾기 노출)은 프로필에서만 켠다. 여기서는 보내지 않아 이미 켠 값이 그대로 남는다.)
 // 남이 보는 값이라서다(코칭 상대 찾기). 로컬에만 적으면 본인만 켠 줄 안다.
 // ─────────────────────────────────────────────────────────────────────────────
 import { ExperienceLevel as ExperienceLevelPB } from "@app/contracts";
@@ -45,7 +47,7 @@ export function OnboardingOverlay() {
   const [visible, setVisible] = useState(false);
   const [step, setStep] = useState<0 | 1>(0);
   const [level, setLevel] = useState<ExperienceLevel | null>(null);
-  const [intent, setIntent] = useState(false);
+  // [원본] const [intent, setIntent] = useState(false); — 트레이너 질문(SPEC-052 에서 뺐다)
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -66,16 +68,16 @@ export function OnboardingOverlay() {
    * 그 전환이 JS 컨텍스트를 갈아치우므로 진행 중이던 저장은 그대로 사라진다.
    */
   async function saveAndFinish() {
-    if (level != null || intent) {
+    // [원본] if (level != null || intent) {
+    if (level != null) {
       setSaving(true);
       await (async () => {
         try {
           const userRepo = await import("@app/core/data/userRepository");
           const local = await userRepo.getOrCreateLocalUser();
-          await userRepo.updateUserSettings(local.id, {
-            experienceLevel: level,
-            trainerIntent: intent ? true : null,
-          });
+          // [원본] { experienceLevel: level, trainerIntent: intent ? true : null }
+          // [개선] trainerIntent 키를 아예 뺀다 — 이미 켠 노출 값을 지우지 않게(SPEC-052)
+          await userRepo.updateUserSettings(local.id, { experienceLevel: level });
           // 안내를 닫자마자 다른 화면으로 가는 사람이 대부분이다. 화면 전환은 JS 컨텍스트를
           // 갈아치우므로, 여기서 내려쓰지 않으면 방금 답한 것이 그대로 사라진다.
           const { flushLocalDb } = await import("@/lib/localDb");
@@ -87,8 +89,7 @@ export function OnboardingOverlay() {
               .updateProfile({
                 experienceLevel: EXPERIENCE_PB[level ?? ""] ?? ExperienceLevelPB.UNSPECIFIED,
                 setExperienceLevel: true,
-                trainerIntent: intent,
-                setTrainerIntent: true,
+                // [원본] trainerIntent: intent, setTrainerIntent: true — 의향은 보내지 않는다(SPEC-052)
               })
               .catch(() => {});
           }
@@ -167,13 +168,14 @@ export function OnboardingOverlay() {
                   hint={t(`experience.levelHint.${lv}` as TransKey)}
                 />
               ))}
+              {/* [원본] 「나는 회원을 구하고 싶어요 (트레이너·코치)」 칸(onboarding-intent) — SPEC-052 에서 뺐다
               <Option
                 active={intent}
                 testId="onboarding-intent"
                 onPress={() => setIntent((v) => !v)}
                 title={t("onboarding.trainerIntentOption")}
                 hint={t("experience.trainerDisclaimer")}
-              />
+              /> */}
             </div>
 
             <div className="mt-[var(--spacing-lg)]">

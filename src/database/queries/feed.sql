@@ -161,7 +161,9 @@ SELECT EXISTS (SELECT 1 FROM follows WHERE follower_id = $1 AND followee_id = $2
 -- LIKE 대신 position()을 쓴다: 사용자가 친 '%'가 와일드카드로 해석되면 전부 일치가 된다.
 -- name: SearchUsers :many
 SELECT u.id, u.display_name, u.avatar_url, u.trainer_intent,
-       EXISTS (SELECT 1 FROM follows f WHERE f.follower_id = @viewer_id::text AND f.followee_id = u.id) ::boolean AS following
+       EXISTS (SELECT 1 FROM follows f WHERE f.follower_id = @viewer_id::text AND f.followee_id = u.id) ::boolean AS following,
+       -- 「코치」 배지 파생값(SPEC-052)
+       EXISTS (SELECT 1 FROM coaching_grants cg WHERE cg.trainer_id = u.id AND cg.status = 'active')::boolean AS is_coach
 FROM users u
 WHERE u.id <> @viewer_id::text
   AND (
@@ -344,7 +346,9 @@ SELECT
 
 -- name: ListFollowers :many
 SELECT u.id, u.display_name, u.avatar_url, u.trainer_intent,
-       EXISTS (SELECT 1 FROM follows f2 WHERE f2.follower_id = @viewer_id::text AND f2.followee_id = u.id)::boolean AS following
+       EXISTS (SELECT 1 FROM follows f2 WHERE f2.follower_id = @viewer_id::text AND f2.followee_id = u.id)::boolean AS following,
+       -- 「코치」 배지 파생값(SPEC-052)
+       EXISTS (SELECT 1 FROM coaching_grants cg WHERE cg.trainer_id = u.id AND cg.status = 'active')::boolean AS is_coach
 FROM follows f
 JOIN users u ON u.id = f.follower_id
 WHERE f.followee_id = @user_id::text
@@ -358,7 +362,9 @@ LIMIT @lim;
 
 -- name: ListFollowing :many
 SELECT u.id, u.display_name, u.avatar_url, u.trainer_intent,
-       EXISTS (SELECT 1 FROM follows f2 WHERE f2.follower_id = @viewer_id::text AND f2.followee_id = u.id)::boolean AS following
+       EXISTS (SELECT 1 FROM follows f2 WHERE f2.follower_id = @viewer_id::text AND f2.followee_id = u.id)::boolean AS following,
+       -- 「코치」 배지 파생값(SPEC-052)
+       EXISTS (SELECT 1 FROM coaching_grants cg WHERE cg.trainer_id = u.id AND cg.status = 'active')::boolean AS is_coach
 FROM follows f
 JOIN users u ON u.id = f.followee_id
 WHERE f.follower_id = @user_id::text

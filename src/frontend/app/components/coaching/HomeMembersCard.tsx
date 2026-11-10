@@ -6,6 +6,9 @@
 //   (프로필 User.trainer_intent — 코드 리뷰 L-2). 저장소(localStorage 등)에는 쓰지 않는다.
 // [개선] SPEC-050 P4 — 회원이 있으면 점검(ListMemberDigest)도 같이 읽어 「N명이 3일 이상 쉬는 중이에요」를 힌트 자리에(같은 60초 메모리).
 //   점검이 실패하면 옛 힌트 그대로. 점검을 다 읽은 뒤에 카드를 그린다(힌트 글자가 바뀌며 깜빡이지 않게).
+// [개선] SPEC-052 — 「트레이너」 역할이 없다. 묻는 조건은 계정의 파생값 isCoach(코치로서 활성 연결이 있는가 · 서버 계산).
+//   다른 기기에서 회원이 연결되면 이 값이 바뀌므로, 코치가 아닌 사용자는 홈을 열 때·앱이 다시 보일 때 계정만 다시 받는다
+//   (Me 한 번 · 30초에 한 번 · 온라인일 때). 연결 목록·점검은 여전히 코치일 때만 묻는다.
 // 실패·0명·읽는 중에는 **아무것도 그리지 않는다** —
 // 홈 맨 아래에 두어 나중에 나타나도 위 줄이 밀리지 않는다(레이아웃 들썩임 없음).
 import { GrantStatus, Side } from "@app/contracts";
@@ -23,16 +26,37 @@ const TTL_MS = 60_000;
 // [원본] let memo: { userId: string; at: number; count: number } | null = null;
 // [개선] day — 센 날(기기 날짜). 자정을 넘기면 「3일 이상 쉬는 중」을 다시 센다(리뷰 낮음)
 let memo: { userId: string; at: number; count: number; resting: number; day: string } | null = null;
+/** 코치가 아닌 사용자의 계정 다시 받기(SPEC-052) — 마지막으로 받은(또는 앱이 막 받은) 시각 · 메모리만 */
+const ME_TTL_MS = 30_000;
+let meCheck: { userId: string; at: number } | null = null;
 
 export function HomeMembersCard() {
-  const { user, loading } = useAuth();
+  // [원본] const { user, loading } = useAuth();
+  const { user, loading, refreshMe } = useAuth();
   const userId = user?.id;
-  const coach = !!user?.trainerIntent;
+  // [원본] const coach = !!user?.trainerIntent;
+  const coach = !!user?.isCoach;
   const dayKey = useDayKey();
   const fresh = () =>
     memo && memo.userId === userId && memo.day === dayKey && Date.now() - memo.at < TTL_MS ? memo : null;
   const [count, setCount] = useState(() => fresh()?.count ?? 0);
   const [resting, setResting] = useState(() => fresh()?.resting ?? 0);
+
+  // 코치가 아니면 — 다른 기기에서 회원이 연결됐을 수 있다. 앱이 막 받은 계정은 새것으로 친다(첫 홈에서 Me 를 또 묻지 않게).
+  useEffect(() => {
+    if (loading || !userId || coach) return;
+    if (!meCheck || meCheck.userId !== userId) meCheck = { userId, at: Date.now() };
+    const check = () => {
+      if (document.visibilityState !== "visible") return;
+      if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+      if (meCheck && meCheck.userId === userId && Date.now() - meCheck.at < ME_TTL_MS) return;
+      meCheck = { userId, at: Date.now() };
+      void refreshMe().catch(() => {});
+    };
+    check();
+    document.addEventListener("visibilitychange", check);
+    return () => document.removeEventListener("visibilitychange", check);
+  }, [loading, userId, coach, refreshMe]);
 
   useEffect(() => {
     if (loading || !userId || !coach) {

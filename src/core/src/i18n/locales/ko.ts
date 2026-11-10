@@ -75,14 +75,22 @@ export const ko = {
   "coaching.loginRequiredTitle": "로그인이 필요해요",
   "coaching.loginRequiredMessage": "코칭 연결은 계정 기반이에요. 프로필에서 로그인 후 이용해 주세요.",
   "coaching.myCoaches": "내 코치",
-  "coaching.myCoachesEmpty": "아직 연결된 코치가 없어요. 아래에서 트레이너를 찾아 요청해 보세요.",
+  // [원본] "coaching.myCoachesEmpty": "아직 연결된 코치가 없어요. 아래에서 트레이너를 찾아 요청해 보세요.",
+  // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
+  "coaching.myCoachesEmpty": "아직 연결된 코치가 없어요. 받은 코드를 넣거나 아래에서 코치를 찾아 요청해 보세요.",
   "coaching.myMembers": "담당 회원",
-  "coaching.myMembersEmpty": "아직 담당 회원이 없어요. 프로필에서 코칭 의향을 켜면 검색에 노출돼요.",
-  "coaching.findTrainer": "트레이너 찾기",
+  // [원본] "coaching.myMembersEmpty": "아직 담당 회원이 없어요. 프로필에서 코칭 의향을 켜면 검색에 노출돼요.",
+  // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
+  "coaching.myMembersEmpty": "아직 담당 회원이 없어요. 초대 코드를 보내거나 사람 프로필에서 「내 회원으로 초대」를 눌러 보세요.",
+  // [원본] "coaching.findTrainer": "트레이너 찾기",
+  // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
+  "coaching.findTrainer": "코치 찾기",
   "coaching.searchPlaceholder": "표시 이름으로 검색",
   "coaching.searchButton": "검색",
   "coaching.searchEmpty": "검색 결과가 없어요.",
-  "coaching.requestButton": "코칭 요청",
+  // [원본] "coaching.requestButton": "코칭 요청",
+  // [개선] SPEC-052 — 코치 역할 없음 · 방향이 보이는 이름(REV-105 U4)
+  "coaching.requestButton": "코치로 요청",
   "coaching.requested": "요청됨",
   "coaching.acceptButton": "수락",
   "coaching.revokeButton": "해지",
@@ -706,7 +714,9 @@ export const ko = {
   "routines.discardWorkoutMessage": "하던 운동 기록을 버릴까요? 되돌릴 수 없어요.",
   "routines.discardWorkoutButton": "그만두기", // [원본] 폐기
   "routines.setsLabel": "세트",
-  "experience.title": "운동 경력·코칭 의향",
+  // [원본] "experience.title": "운동 경력·코칭 의향",
+  // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
+  "experience.title": "운동 경력·코치 찾기 노출",
   "experience.levelLabel": "운동 경력",
   "experience.level.beginner": "초보 (1-2년)",
   "experience.level.intermediate": "중급 (3-6년)",
@@ -714,12 +724,23 @@ export const ko = {
   "experience.levelHint.beginner": "기록과 루틴부터 차근차근",
   "experience.levelHint.intermediate": "정체기 돌파·변형 기록 활용",
   "experience.levelHint.advanced": "지식 공유·멘토링 후보",
-  "experience.intentLabel": "코칭 의향",
-  "experience.intentYes": "나는 회원을 구하고 싶어요",
-  "experience.trainerDisclaimer": "코칭 의향 표시는 자격 보증이 아니에요. 검증 배지·후기와 함께 표시됩니다.",
+  // [원본] "experience.intentLabel": "코칭 의향",
+  // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
+  "experience.intentLabel": "코치 찾기 노출",
+  // [원본] "experience.intentYes": "나는 회원을 구하고 싶어요",
+  // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
+  "experience.intentYes": "코치 찾기에 나를 보여 주기",
+  "experience.intentShort": "코치 찾기에 보임", // SPEC-052
+  "experience.intentHint": "켜면 코치 찾기 검색에 이름·소개·태그가 보여요. 꺼 두어도 초대 코드로 회원과 연결할 수 있어요.", // SPEC-052
+  "experience.summaryEmpty": "운동 경력을 알려 주세요", // SPEC-052
+  // [원본] "experience.trainerDisclaimer": "코칭 의향 표시는 자격 보증이 아니에요. 검증 배지·후기와 함께 표시됩니다.",
+  // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
+  "experience.trainerDisclaimer": "「코치」 표시는 회원과 코칭으로 연결돼 있다는 뜻이에요 — 자격 보증이 아니에요.",
   "onboarding.expTitle": "운동 경력을 알려주세요",
-  "onboarding.expSubtitle": "선택 사항이에요 — 맞춤 경험과 코칭 연결에 사용돼요. 나중에 프로필에서 바꿀 수 있어요.",
-  "onboarding.trainerIntentOption": "나는 회원을 구하고 싶어요 (트레이너·코치)",
+  // [원본] "onboarding.expSubtitle": "선택 사항이에요 — 맞춤 경험과 코칭 연결에 사용돼요. 나중에 프로필에서 바꿀 수 있어요.",
+  // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
+  "onboarding.expSubtitle": "선택 사항이에요 — 맞춤 경험에 사용돼요. 나중에 프로필에서 바꿀 수 있어요.",
+  // [원본] "onboarding.trainerIntentOption": "나는 회원을 구하고 싶어요 (트레이너·코치)",
   "onboarding.expDone": "완료",
   "onboarding.skip": "건너뛰기",
   "schedule.startThis": "이 루틴 시작",
@@ -1975,7 +1996,9 @@ export const ko = {
   "coaching.tag.beginner": "입문",
   "coaching.tag.powerlifting": "파워리프팅",
   "coaching.scope.title": "무엇을 보여 줄까요",
-  "coaching.scope.requestTitle": "코칭 요청",
+  // [원본] "coaching.scope.requestTitle": "코칭 요청",
+  // [개선] SPEC-052 — 코치 역할 없음 · 방향이 보이는 이름(REV-105 U4)
+  "coaching.scope.requestTitle": "코치로 요청",
   "coaching.scope.acceptTitle": "코칭 수락",
   "coaching.scope.changeTitle": "범위 바꾸기",
   "coaching.scope.hint": "언제든 바꾸거나 연결을 끊을 수 있어요.",
@@ -1994,7 +2017,9 @@ export const ko = {
   "coaching.scope.joinConfirm": "연결하기",
   "coaching.scope.changeConfirm": "저장",
   "coaching.requestSent": "요청을 보냈어요",
-  "coaching.inviteSent": "코칭 초대를 보냈어요",
+  // [원본] "coaching.inviteSent": "코칭 초대를 보냈어요",
+  // [개선] SPEC-052 — 코치 역할 없음 · 방향이 보이는 이름(REV-105 U4)
+  "coaching.inviteSent": "회원 초대를 보냈어요",
   "coaching.connected": "코치와 연결됐어요",
   "coaching.scopeSaved": "범위를 바꿨어요",
   "coaching.requestNote": "「{note}」",
@@ -2010,8 +2035,12 @@ export const ko = {
   "coaching.revokeMessageTrainer": "회원 기록을 더는 볼 수 없어요.",
   "coaching.revokeConfirm": "연결 끊기",
   "coaching.invite.title": "초대 코드",
-  "coaching.invite.hint": "회원이 이 코드나 링크로 바로 연결해요.",
-  "coaching.invite.empty": "아직 초대 코드가 없어요.",
+  // [원본] "coaching.invite.hint": "회원이 이 코드나 링크로 바로 연결해요.",
+  // [개선] SPEC-052 — 코치 역할 없음 · 방향이 보이는 이름(REV-105 U4)
+  "coaching.invite.hint": "이 코드를 받은 사람이 내 회원으로 바로 연결돼요.",
+  // [원본] "coaching.invite.empty": "아직 초대 코드가 없어요.",
+  // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
+  "coaching.invite.empty": "아직 초대 코드가 없어요. 회원을 코칭하려면 코드를 만들어 보내세요.",
   "coaching.invite.create": "코드 만들기",
   "coaching.invite.copy": "링크 복사",
   "coaching.invite.copied": "링크를 복사했어요",
@@ -2031,16 +2060,24 @@ export const ko = {
   "coaching.join.loginTitle": "로그인하고 연결해요",
   "coaching.join.loginMessage": "코칭 연결은 계정이 있어야 해요. 로그인하면 이 화면으로 돌아와요.",
   "coaching.join.toCoaching": "코칭 화면으로",
-  "coaching.profile.request": "코칭 요청",
-  "coaching.profile.invite": "코칭 초대",
+  // [원본] "coaching.profile.request": "코칭 요청",
+  // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
+  "coaching.profile.request": "코치로 요청",
+  // [원본] "coaching.profile.invite": "코칭 초대",
+  // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
+  "coaching.profile.invite": "내 회원으로 초대",
   "coaching.profile.pending": "코칭 수락 대기",
   "coaching.profile.bioLabel": "코치 소개",
   "coaching.profile.bioPlaceholder": "예: 생활체육지도사 · 초보 근력 운동 5년",
   "coaching.profile.tagsLabel": "잘하는 분야(3개까지)",
   "coaching.profile.saveFailed": "코치 소개를 저장하지 못했어요",
   "coaching.profile.hasCoach": "이미 함께하는 코치가 있어요. 코칭 화면에서 연결을 끊은 뒤 요청할 수 있어요.",
-  "coaching.profile.inviteTitle": "코칭 초대를 보낼까요?",
-  "coaching.profile.inviteMessage": "{name}님이 수락하면 연결돼요. 보여 줄 범위는 {name}님이 골라요.",
+  // [원본] "coaching.profile.inviteTitle": "코칭 초대를 보낼까요?",
+  // [개선] SPEC-052 — 코치 역할 없음 · 방향이 보이는 이름(REV-105 U4)
+  "coaching.profile.inviteTitle": "{name}님을 내 회원으로 초대할까요?",
+  // [원본] "coaching.profile.inviteMessage": "{name}님이 수락하면 연결돼요. 보여 줄 범위는 {name}님이 골라요.",
+  // [개선] SPEC-052 — 코치 역할 없음 · 방향이 보이는 이름(REV-105 U4)
+  "coaching.profile.inviteMessage": "수락하면 내가 {name}님의 코치가 돼요. 보여 줄 범위는 {name}님이 골라요.",
   // 회원 화면(SPEC-050 P2 · /coaching/m/[memberId]) · 홈 「담당 회원」 카드
   "coaching.member.title": "회원 기록",
   "coaching.member.band": "{name}님 기록 · 코칭 중",

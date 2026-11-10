@@ -68,7 +68,9 @@ type ScopeTask =
   | { mode: "change"; grant: Grant };
 
 export default function CoachingClient() {
-  const { user, loading: authLoading } = useAuth();
+  // [원본] const { user, loading: authLoading } = useAuth();
+  // [개선] SPEC-052 — 연결을 읽은 뒤 계정 사본의 isCoach 를 맞추려고 refreshMe 도
+  const { user, loading: authLoading, refreshMe } = useAuth();
   const unit = useWeightUnit() as WeightUnit;
   const toast = useToast();
 
@@ -93,20 +95,35 @@ export default function CoachingClient() {
   const [codeBusy, setCodeBusy] = useState(false);
   const [codeError, setCodeError] = useState<string | null>(null);
 
+  // [원본] deps [user, toast] — refreshMe 가 새 user 객체를 넣을 때마다 다시 읽었다(SPEC-052 리뷰 U1)
+  // [개선] 신원(id)이 바뀔 때만 다시 읽는다
+  const userId = user?.id;
   const load = useCallback(async () => {
-    if (!user) return;
+    if (!userId) return;
     try {
       setGrants((await coachingClient().listGrants({})).grants);
     } catch {
       setGrants((prev) => prev ?? []);
       toast(t("common.error"), "error");
     }
-  }, [user, toast]);
+  }, [userId, toast]);
 
   useEffect(() => {
     // 신원이 정해지기 전에 부르면 서버가 401로 되받는다 — 확정된 뒤에 읽는다.
     if (!authLoading) void load();
   }, [authLoading, load]);
+
+  // 「코치」는 연결에서 생긴다(SPEC-052) — 연결 목록이 말하는 것(코치로서 활성 연결이 있는가)과 계정 사본(isCoach)이
+  // 다르면 계정을 한 번 다시 받는다(다른 기기에서 회원이 막 연결됐을 때 홈 「담당 회원」 카드가 따라오게).
+  // 화면을 열 때마다 **한 번만** — 서버 확인이 실패해 계속 어긋나도 고리가 돌지 않게(리뷰 U1).
+  const meSynced = useRef(false);
+  const coachNow = grants?.some((g) => g.roleOfMe === Side.TRAINER && g.status === GrantStatus.ACTIVE);
+  useEffect(() => {
+    if (coachNow === undefined || !user || meSynced.current) return;
+    if (coachNow === !!user.isCoach) return;
+    meSynced.current = true;
+    void refreshMe().catch(() => {});
+  }, [coachNow, user, refreshMe]);
 
   // 담당 회원 점검(SPEC-050 P4) — 활성 회원이 있을 때만 묻는다. null = 읽는 중(줄 순서가 바뀌므로 다 읽은 뒤에 그린다)
   //   실패하면 빈 표 — 줄은 원래 순서로, 점검 줄 없이. 메모리만(회원 데이터는 기기에 남기지 않는다).
@@ -153,6 +170,8 @@ export default function CoachingClient() {
     setBusy(true);
     try {
       await fn();
+      // 내가 수락·해지했으면 코치 여부가 바뀌었을 수 있다 — 계정 맞추기를 한 번 더 허락한다(SPEC-052 · REV-106 U6)
+      meSynced.current = false;
       await load();
     } catch (e) {
       toast(errorText(e), "error");
@@ -353,8 +372,9 @@ export default function CoachingClient() {
           {t("experience.trainerDisclaimer")}
         </AppText>
 
-        {/* 코치(코칭 의향을 켠 사람)만 — 회원이 코드·링크로 바로 연결한다(SPEC-050) */}
-        {user.trainerIntent ? <InviteCard /> : null}
+        {/* [원본] 코치(코칭 의향을 켠 사람)만 — 회원이 코드·링크로 바로 연결한다(SPEC-050)
+            {user.trainerIntent ? <InviteCard /> : null}
+            [개선] SPEC-052 — 누구나 만든다. 자리는 「담당 회원」 목록 아래(회원을 받는 일 · 목록을 밀지 않게) */}
 
         <SectionHeader title={t("coaching.myCoaches")} />
         {loadingGrants ? (
@@ -433,6 +453,8 @@ export default function CoachingClient() {
             ))}
           </div>
         )}
+        {/* 초대 코드 — 누구나(SPEC-052). 코치가 아니면 「코드 만들기」는 보조 버튼(이 화면의 빨강을 차지하지 않게 · 리뷰 U6) */}
+        <InviteCard primary={!!user.isCoach} />
 
         <SectionHeader title={t("coaching.findTrainer")} />
         <div className="mb-[var(--spacing-sm)] flex items-start gap-[var(--spacing-sm)]">
@@ -467,9 +489,13 @@ export default function CoachingClient() {
               <Card key={p.id} className="mb-[var(--spacing-sm)] flex items-center gap-[var(--spacing-sm)]">
                 <Avatar name={p.displayName} url={p.avatarUrl} size={36} />
                 <div className="min-w-0 flex-1">
-                  <AppText variant="body" className="block truncate font-medium!">
-                    {p.displayName || t("discover.unnamed")}
-                  </AppText>
+                  {/* [원본] 이름만 · [개선] SPEC-052 — 활성 연결의 코치면 「코치」 배지(파생값) */}
+                  <div className="flex min-w-0 items-center gap-[var(--spacing-xs)]">
+                    <AppText variant="body" className="block min-w-0 truncate font-medium!">
+                      {p.displayName || t("discover.unnamed")}
+                    </AppText>
+                    {p.isCoach ? <CoachBadge testId="coaching-result-coach-badge" /> : null}
+                  </div>
                   {p.experienceLevel ? (
                     <AppText variant="caption" color="textMuted">
                       {t(`experience.level.${p.experienceLevel}` as TransKey)}
@@ -566,6 +592,7 @@ function TaskHeader({ task }: { task: ScopeTask }) {
       avatarUrl={peer.avatarUrl}
       bio={peer.coachBio}
       tags={peer.coachTags}
+      coach={peer.isCoach}
       testId="scope-coach-card"
     />
   );
@@ -648,7 +675,9 @@ function GrantRow({
   const active = grant.status === GrantStatus.ACTIVE;
   const name = grant.peer?.displayName || "?";
   // 상대가 코치(내 코치 칸)면 이름 옆에 「코치」 배지
-  const peerIsCoach = grant.roleOfMe === Side.MEMBER && !!grant.peer?.trainerIntent;
+  // [원본] const peerIsCoach = grant.roleOfMe === Side.MEMBER && !!grant.peer?.trainerIntent;
+  // [개선] SPEC-052 — 배지는 파생값(그 사람이 활성 연결의 코치인가 · 서버 계산)
+  const peerIsCoach = grant.roleOfMe === Side.MEMBER && !!grant.peer?.isCoach;
   const note = canAccept ? grant.requestNote.trim() : "";
   const memberHref =
     active && grant.roleOfMe === Side.TRAINER && grant.peer?.id

@@ -367,10 +367,13 @@ type Peer struct {
 	AvatarUrl   string                 `protobuf:"bytes,3,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
 	// 스스로 밝힌 운동 경력. **자격 보증이 아니다**(화면이 그 고지를 함께 띄운다).
 	ExperienceLevel string `protobuf:"bytes,4,opt,name=experience_level,json=experienceLevel,proto3" json:"experience_level,omitempty"`
-	TrainerIntent   bool   `protobuf:"varint,5,opt,name=trainer_intent,json=trainerIntent,proto3" json:"trainer_intent,omitempty"`
+	// [원본] 코칭 의향 · [개선] SPEC-052 — 뜻만 「코치 찾기 노출」(코치 여부가 아니다 · 배지는 is_coach).
+	TrainerIntent bool `protobuf:"varint,5,opt,name=trainer_intent,json=trainerIntent,proto3" json:"trainer_intent,omitempty"`
 	// 코치 소개(80자)·태그(hypertrophy·strength·diet·rehab·beginner·powerlifting 중 3개까지) — SPEC-050.
-	CoachBio      string   `protobuf:"bytes,6,opt,name=coach_bio,json=coachBio,proto3" json:"coach_bio,omitempty"`
-	CoachTags     []string `protobuf:"bytes,7,rep,name=coach_tags,json=coachTags,proto3" json:"coach_tags,omitempty"`
+	CoachBio  string   `protobuf:"bytes,6,opt,name=coach_bio,json=coachBio,proto3" json:"coach_bio,omitempty"`
+	CoachTags []string `protobuf:"bytes,7,rep,name=coach_tags,json=coachTags,proto3" json:"coach_tags,omitempty"`
+	// 「코치」 배지(SPEC-052) — 활성 연결에서 코치(trainer)인 회원이 한 명 이상. 서버가 계산하는 파생값.
+	IsCoach       bool `protobuf:"varint,8,opt,name=is_coach,json=isCoach,proto3" json:"is_coach,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -452,6 +455,13 @@ func (x *Peer) GetCoachTags() []string {
 		return x.CoachTags
 	}
 	return nil
+}
+
+func (x *Peer) GetIsCoach() bool {
+	if x != nil {
+		return x.IsCoach
+	}
+	return false
 }
 
 // 회원이 여는 범위(SPEC-050). 키는 이 넷뿐 — 서버는 이 넷만 저장하고, 옛 행에 없는 키는 false 로 읽는다.
@@ -4225,7 +4235,7 @@ var File_coaching_v1_coaching_proto protoreflect.FileDescriptor
 
 const file_coaching_v1_coaching_proto_rawDesc = "" +
 	"\n" +
-	"\x1acoaching/v1/coaching.proto\x12\vcoaching.v1\x1a\x1bbuf/validate/validate.proto\"\xe6\x01\n" +
+	"\x1acoaching/v1/coaching.proto\x12\vcoaching.v1\x1a\x1bbuf/validate/validate.proto\"\x81\x02\n" +
 	"\x04Peer\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12\x1d\n" +
@@ -4235,7 +4245,8 @@ const file_coaching_v1_coaching_proto_rawDesc = "" +
 	"\x0etrainer_intent\x18\x05 \x01(\bR\rtrainerIntent\x12\x1b\n" +
 	"\tcoach_bio\x18\x06 \x01(\tR\bcoachBio\x12\x1d\n" +
 	"\n" +
-	"coach_tags\x18\a \x03(\tR\tcoachTags\"\x8d\x01\n" +
+	"coach_tags\x18\a \x03(\tR\tcoachTags\x12\x19\n" +
+	"\bis_coach\x18\b \x01(\bR\aisCoach\"\x8d\x01\n" +
 	"\rCoachingScope\x12\x19\n" +
 	"\blog_view\x18\x01 \x01(\bR\alogView\x12!\n" +
 	"\froutine_edit\x18\x02 \x01(\bR\vroutineEdit\x12\x1b\n" +

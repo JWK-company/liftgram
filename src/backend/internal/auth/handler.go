@@ -50,7 +50,7 @@ func (h *Handler) SignUp(ctx context.Context, req *connect.Request[authv1.SignUp
 		return nil, err
 	}
 	h.svc.RecordAgeConfirm(ctx, u.ID, "email")
-	return connect.NewResponse(&authv1.SignUpResponse{Tokens: toProtoTokens(tokens), User: toProtoUser(u)}), nil
+	return connect.NewResponse(&authv1.SignUpResponse{Tokens: toProtoTokens(tokens), User: toProtoUser(h.svc.WithCoach(ctx, u))}), nil
 }
 
 func (h *Handler) LogIn(ctx context.Context, req *connect.Request[authv1.LogInRequest]) (*connect.Response[authv1.LogInResponse], error) {
@@ -62,7 +62,7 @@ func (h *Handler) LogIn(ctx context.Context, req *connect.Request[authv1.LogInRe
 	if err != nil {
 		return nil, err
 	}
-	return connect.NewResponse(&authv1.LogInResponse{Tokens: toProtoTokens(tokens), User: toProtoUser(u)}), nil
+	return connect.NewResponse(&authv1.LogInResponse{Tokens: toProtoTokens(tokens), User: toProtoUser(h.svc.WithCoach(ctx, u))}), nil
 }
 
 func (h *Handler) Refresh(ctx context.Context, req *connect.Request[authv1.RefreshRequest]) (*connect.Response[authv1.RefreshResponse], error) {
@@ -70,7 +70,7 @@ func (h *Handler) Refresh(ctx context.Context, req *connect.Request[authv1.Refre
 	if err != nil {
 		return nil, err
 	}
-	return connect.NewResponse(&authv1.RefreshResponse{Tokens: toProtoTokens(tokens), User: toProtoUser(u)}), nil
+	return connect.NewResponse(&authv1.RefreshResponse{Tokens: toProtoTokens(tokens), User: toProtoUser(h.svc.WithCoach(ctx, u))}), nil
 }
 
 func (h *Handler) LogOut(ctx context.Context, req *connect.Request[authv1.LogOutRequest]) (*connect.Response[authv1.LogOutResponse], error) {
@@ -89,7 +89,7 @@ func (h *Handler) Me(ctx context.Context, _ *connect.Request[authv1.MeRequest]) 
 	if err != nil {
 		return nil, err
 	}
-	return connect.NewResponse(&authv1.MeResponse{User: toProtoUser(u)}), nil
+	return connect.NewResponse(&authv1.MeResponse{User: toProtoUser(h.svc.WithCoach(ctx, u))}), nil
 }
 
 func (h *Handler) UpdateProfile(ctx context.Context, req *connect.Request[authv1.UpdateProfileRequest]) (*connect.Response[authv1.UpdateProfileResponse], error) {
@@ -114,7 +114,7 @@ func (h *Handler) UpdateProfile(ctx context.Context, req *connect.Request[authv1
 	if err != nil {
 		return nil, err
 	}
-	return connect.NewResponse(&authv1.UpdateProfileResponse{User: toProtoUser(u)}), nil
+	return connect.NewResponse(&authv1.UpdateProfileResponse{User: toProtoUser(h.svc.WithCoach(ctx, u))}), nil
 }
 
 // ── 변환 ─────────────────────────────────────────────────────────────────────
@@ -127,6 +127,8 @@ func toProtoTokens(t Tokens) *authv1.Tokens {
 	}
 }
 
+// [원본] 응답마다 toProtoUser(u) — [개선] SPEC-052: toProtoUser(h.svc.WithCoach(ctx, u)) 로 파생값 is_coach 를 채운다
+// (가입·로그인·갱신·Me·프로필 수정 · handler_account.go 의 로그인 코드 교환 — 여섯 곳).
 func toProtoUser(u User) *authv1.User {
 	return &authv1.User{
 		Id:              u.ID,
@@ -142,6 +144,8 @@ func toProtoUser(u User) *authv1.User {
 		HasPassword: u.PasswordHash != "",
 		CoachBio:    u.CoachBio,
 		CoachTags:   u.CoachTags,
+		// SPEC-052 — 파생값(부른 쪽이 WithCoach 로 채운다)
+		IsCoach: u.IsCoach,
 	}
 }
 

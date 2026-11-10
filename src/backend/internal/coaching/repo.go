@@ -49,24 +49,35 @@ func (r *pgRepo) SearchTrainers(ctx context.Context, viewerID, query string) ([]
 	}
 	out := make([]Peer, 0, len(rows))
 	for _, u := range rows {
-		out = append(out, Peer{
+		out = append(out, visibleCard(Peer{
 			ID: u.ID, DisplayName: text(u.DisplayName), AvatarURL: text(u.AvatarUrl),
 			ExperienceLevel: text(u.ExperienceLevel), TrainerIntent: u.TrainerIntent,
-			CoachBio: u.CoachBio, CoachTags: tags(u.CoachTags),
-		})
+			CoachBio: u.CoachBio, CoachTags: tags(u.CoachTags), IsCoach: u.IsCoach,
+		}))
 	}
 	return out, nil
 }
 
+// visibleCard — 코치 소개·태그가 보이는 곳 규칙 하나(SPEC-052 · REV-105 U7b): 노출(trainer_intent)을 켠 사람만.
+// 노출을 끄면 코드 카드·범위 시트 머리·연결 줄·검색 어디서도 소개·태그를 보내지 않는다(저장된 값은 그대로 — 다시 켜면 보인다).
+func visibleCard(p Peer) Peer {
+	if !p.TrainerIntent {
+		p.CoachBio = ""
+		p.CoachTags = []string{}
+	}
+	return p
+}
+
 func (r *pgRepo) TrainerEligible(ctx context.Context, trainerID string) (bool, error) {
-	u, err := r.q.GetUserByID(ctx, trainerID)
-	if err != nil {
+	// [원본] u, err := r.q.GetUserByID(ctx, trainerID) … return u.TrainerIntent, nil
+	// [개선] SPEC-052 — 코치 역할이 없다. 계정이 있으면 true(없으면 NotFound).
+	if _, err := r.q.GetUserByID(ctx, trainerID); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return false, errs.New(errs.NotFound, "trainer not found")
 		}
 		return false, err
 	}
-	return u.TrainerIntent, nil
+	return true, nil
 }
 
 func (r *pgRepo) UserExists(ctx context.Context, userID string) (bool, error) {
@@ -131,18 +142,18 @@ func (r *pgRepo) ListGrants(ctx context.Context, viewerID string) ([]Grant, erro
 		}
 		if row.TrainerID == viewerID {
 			g.RoleOfMe = SideTrainer
-			g.Peer = Peer{
+			g.Peer = visibleCard(Peer{
 				ID: row.MemberID, DisplayName: text(row.MemberName), AvatarURL: text(row.MemberAvatar),
 				ExperienceLevel: text(row.MemberLevel), TrainerIntent: row.MemberIntentFlag,
-				CoachBio: row.MemberBio, CoachTags: tags(row.MemberTags),
-			}
+				CoachBio: row.MemberBio, CoachTags: tags(row.MemberTags), IsCoach: row.MemberIsCoach,
+			})
 		} else {
 			g.RoleOfMe = SideMember
-			g.Peer = Peer{
+			g.Peer = visibleCard(Peer{
 				ID: row.TrainerID, DisplayName: text(row.TrainerName), AvatarURL: text(row.TrainerAvatar),
 				ExperienceLevel: text(row.TrainerLevel), TrainerIntent: row.TrainerIntentFlag,
-				CoachBio: row.TrainerBio, CoachTags: tags(row.TrainerTags),
-			}
+				CoachBio: row.TrainerBio, CoachTags: tags(row.TrainerTags), IsCoach: row.TrainerIsCoach,
+			})
 		}
 		out = append(out, g)
 	}
@@ -266,11 +277,11 @@ func (r *pgRepo) GetPeer(ctx context.Context, userID string) (Peer, error) {
 		}
 		return Peer{}, err
 	}
-	return Peer{
+	return visibleCard(Peer{
 		ID: u.ID, DisplayName: text(u.DisplayName), AvatarURL: text(u.AvatarUrl),
 		ExperienceLevel: text(u.ExperienceLevel), TrainerIntent: u.TrainerIntent,
-		CoachBio: u.CoachBio, CoachTags: tags(u.CoachTags),
-	}, nil
+		CoachBio: u.CoachBio, CoachTags: tags(u.CoachTags), IsCoach: u.IsCoach,
+	}), nil
 }
 
 // ── 초대 코드 ──

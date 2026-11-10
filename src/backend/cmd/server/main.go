@@ -59,6 +59,7 @@ import (
 	"github.com/JWK-company/liftgram/src/backend/internal/coaching"
 	"github.com/JWK-company/liftgram/src/backend/internal/config"
 	"github.com/JWK-company/liftgram/src/backend/internal/db"
+	"github.com/JWK-company/liftgram/src/backend/internal/db/sqlcgen"
 	"github.com/JWK-company/liftgram/src/backend/internal/dm"
 	"github.com/JWK-company/liftgram/src/backend/internal/exercise"
 	"github.com/JWK-company/liftgram/src/backend/internal/feed"
@@ -319,6 +320,8 @@ func main() {
 
 	// 프로필 사진도 내가 올린 사진만, 자동 검사에 걸리지 않은 것만 쓴다(SPEC-031).
 	authSvc.WithAvatarCheck(ownership.CheckOwned)
+	// 내 계정의 「코치로서 활성 연결이 있는가」(SPEC-052) — 홈 담당 회원 카드가 이 값으로 묻는다.
+	authSvc.WithCoachCheck(sqlcgen.New(pool).IsActiveCoach)
 
 	// ── 피드 ──
 	feedSvc := feed.NewService(feed.NewRepo(pool), ownership, notifyAdapter{notificationSvc}, uuid.NewString)

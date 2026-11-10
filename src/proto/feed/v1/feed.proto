@@ -151,9 +151,12 @@ message SocialProfile {
   // 내가 차단했는가(상대가 나를 차단한 경우는 애초에 조회가 막힌다).
   bool is_blocked = 7;
   // 코치 카드(SPEC-050) — 코치 여부(trainer_intent)·소개·태그.
+  // [개선] SPEC-052 — trainer_intent 는 「코치 찾기 노출」(켜면 소개·태그를 보인다) · 배지는 is_coach.
   bool trainer_intent = 8;
   string coach_bio = 9;
   repeated string coach_tags = 10;
+  // 「코치」 배지(SPEC-052) — 활성 연결에서 코치인 회원이 한 명 이상(파생값).
+  bool is_coach = 11;
 }
 
 message HashtagCount {
@@ -291,7 +294,10 @@ message UserResult {
   Author author = 1;
   bool following = 2;
   // 코칭 의향(코치 배지 — SPEC-050). 사람 찾기·팔로워·팔로잉만 채운다(추천은 비움).
+  // [개선] SPEC-052 — 뜻만 「코치 찾기 노출」 · 새 화면은 배지에 is_coach 를 쓴다.
   bool trainer_intent = 3;
+  // 「코치」 배지(SPEC-052) — 활성 연결에서 코치인 회원이 한 명 이상(파생값). 채우는 곳은 trainer_intent 와 같다.
+  bool is_coach = 4;
 }
 
 message SearchUsersResponse {

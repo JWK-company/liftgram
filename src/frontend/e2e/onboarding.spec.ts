@@ -5,7 +5,7 @@
 //   · 두 장으로 넘어간다
 //   · **아무것도 답하지 않아도 끝난다**(건너뛰기)
 //   · 한 번 닫으면 다시 뜨지 않는다
-//   · 답한 경력·의향은 프로필에 남는다
+//   · 답한 경력은 프로필에 남는다([원본] 경력·의향 — SPEC-052 에서 트레이너 질문을 없앴다)
 import { expect, test } from "@playwright/test";
 
 type Page = import("@playwright/test").Page;
@@ -37,14 +37,15 @@ test("처음 열면 안내가 뜨고, 건너뛰어도 아무것도 막히지 않
   await expect(page.getByTestId("onboarding")).toHaveCount(0);
 });
 
-test("답한 경력·의향은 프로필에 남는다", async ({ page }) => {
+// [원본] test("답한 경력·의향은 프로필에 남는다") — onboarding-intent 를 눌러 켰다
+// [개선] SPEC-052 — 트레이너·코치 질문이 없다. 경력만 남고, 코치 찾기 노출은 꺼진 그대로.
+test("답한 경력은 프로필에 남는다 · 트레이너 질문은 없다", async ({ page }) => {
   test.setTimeout(120_000);
   await 처음처럼(page);
 
   await page.getByTestId("onboarding-next").click();
   await page.getByTestId("onboarding-level-intermediate").click();
-  await page.getByTestId("onboarding-intent").click();
-  await expect(page.getByTestId("onboarding-intent")).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("onboarding-intent")).toHaveCount(0);
   await page.getByTestId("onboarding-done").click();
   await expect(page.getByTestId("onboarding")).toHaveCount(0);
 
@@ -53,5 +54,6 @@ test("답한 경력·의향은 프로필에 남는다", async ({ page }) => {
   await expect(page.getByTestId("level-intermediate")).toHaveAttribute("aria-pressed", "true", {
     timeout: 20_000,
   });
-  await expect(page.getByTestId("trainer-intent")).toHaveAttribute("aria-pressed", "true");
+  // [원본] toHaveAttribute("aria-pressed", "true")
+  await expect(page.getByTestId("trainer-intent")).toHaveAttribute("aria-pressed", "false");
 });

@@ -3,6 +3,7 @@
 // 8자 base32(40비트)라 무작정 맞히기는 어렵지만, 로그인한 한 사람·한 IP 가 계속 두드리는 길은 닫는다:
 //
 //	· 분당 10번(사용자 · IP 각각) — 초대 코드 RPC(CreateInvite·GetInvite·AcceptInvite) 전부
+//	  + 코칭 요청(RequestCoaching · SPEC-052 — 누구에게나 버튼이 생겨 알림 스팸 길이 넓어졌다)
 //	· 하루 실패 50번(사용자 · IP 각각) — 없는 코드(NotFound)·내 코드(Validation)를 50번 넘게 틀리면 그날은 막는다
 //
 // 넘으면 ResourceExhausted 「잠시 뒤 다시 해 주세요」. 인스턴스 하나짜리 운영이라 메모리면 충분하다(auth 제한과 같은 판단).
@@ -64,6 +65,16 @@ func guardKeys(userID string, hd http.Header) []string {
 
 // allow — 하루 실패 상한을 먼저 보고(세지 않는다), 분당 횟수를 센다.
 func (g *inviteGuard) allow(userID string, hd http.Header) error {
+	return g.allowIn("coaching-invite|", userID, hd)
+}
+
+// allowRequest — 코칭 요청(SPEC-052)의 분당 상한. 초대 코드와 통을 따로 쓴다(요청을 많이 보낸 사람이 받은 코드로
+// 연결하지 못하는 일이 없게 · REV-106 S5). 하루 실패 상한은 같이 본다(코드 맞히기를 하던 사람은 요청도 쉰다).
+func (g *inviteGuard) allowRequest(userID string, hd http.Header) error {
+	return g.allowIn("coaching-request|", userID, hd)
+}
+
+func (g *inviteGuard) allowIn(prefix, userID string, hd http.Header) error {
 	if g == nil {
 		return nil
 	}
@@ -74,7 +85,8 @@ func (g *inviteGuard) allow(userID string, hd http.Header) error {
 		}
 	}
 	for _, k := range keys {
-		if !g.perMinute.Allow("coaching-invite|" + k) {
+		// [원본] if !g.perMinute.Allow("coaching-invite|" + k) {
+		if !g.perMinute.Allow(prefix + k) {
 			return errs.New(errs.ResourceExhausted, msgTryLater)
 		}
 	}

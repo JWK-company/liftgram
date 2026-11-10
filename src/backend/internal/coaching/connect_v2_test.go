@@ -379,10 +379,14 @@ func TestInvite_만들기_옛코드_회수_충돌이면_다시_뽑기(t *testing
 		strings.Contains(string(repo.auditDetails[i]), "ABCD2345") {
 		t.Fatalf("invite_create 감사: %v %s", repo.auditGrants, repo.auditDetails)
 	}
-	// 의향 없는 사람은 못 만든다.
+	// [원본] 의향 없는 사람은 못 만든다 — repo.eligible["x"] = false → 거절
+	// [개선] SPEC-052 — 노출 스위치를 끈 사람도 만든다 · 없는 계정만 NotFound.
 	repo.eligible["x"] = false
-	if _, err := svc.CreateInvite(ctx, "x"); err == nil {
-		t.Fatal("코칭 의향이 없으면 거절")
+	if _, err := svc.CreateInvite(ctx, "x"); err != nil {
+		t.Fatalf("노출을 끈 사람도 초대 코드를 만든다: %v", err)
+	}
+	if _, err := svc.CreateInvite(ctx, "ghost"); codeOf(t, err) != errs.NotFound {
+		t.Fatalf("없는 계정은 NotFound: %v", err)
 	}
 }
 
@@ -409,10 +413,15 @@ func TestInvite_조회는_정리한_코드로_코치_카드(t *testing.T) {
 	if codeOf(t, err) != errs.Validation || domainMsg(t, err) != msgOwnInvite {
 		t.Fatalf("내 코드: %v", err)
 	}
-	// 코치가 의향을 내리면 코드는 죽은 것과 같다.
+	// [원본] 코치가 의향을 내리면 코드는 죽은 것과 같다(→ NotFound).
+	// [개선] SPEC-052 — 노출을 꺼도 코드는 산다 · 코치 계정이 사라지면 그때 「없는 코드」.
 	repo.eligible["t1"] = false
+	if _, _, err := svc.GetInvite(ctx, "m1", "ABCD2345"); err != nil {
+		t.Fatalf("노출 끔 → 코드는 그대로 쓸 수 있다: %v", err)
+	}
+	delete(repo.eligible, "t1")
 	if _, _, err := svc.GetInvite(ctx, "m1", "ABCD2345"); domainMsg(t, err) != msgInviteNotFound {
-		t.Fatalf("의향 끔 → NotFound: %v", err)
+		t.Fatalf("코치 계정 없음 → NotFound: %v", err)
 	}
 	repo.eligible["t1"] = true
 	repo.blocked = true

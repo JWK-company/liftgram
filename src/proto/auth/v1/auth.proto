@@ -53,6 +53,7 @@ message User {
   Role role = 5;
   ExperienceLevel experience_level = 6;
   // 코칭 의향 — **자격 보증이 아니다**(화면이 항상 그 고지를 함께 띄운다).
+  // [개선] SPEC-052 — 뜻만 「코치 찾기에 나를 보여 주기」(코치 여부가 아니다 · 그건 is_coach).
   bool trainer_intent = 7;
   google.protobuf.Timestamp created_at = 8;
   // 이메일 소유가 확인됐는가(SRS-052). 확인 전에도 기록은 쓰지만, 화면이 안내를 띄운다.
@@ -62,6 +63,9 @@ message User {
   // 코치 소개(80자)·태그(정해진 6개 중 3개까지) — SPEC-050. 코치 여부는 trainer_intent.
   string coach_bio = 11;
   repeated string coach_tags = 12;
+  // 코치로서 활성 연결이 있는가(SPEC-052) — 서버가 계산하는 파생값(스스로 켜는 값이 아니다).
+  // 홈 「담당 회원」 카드·점검 요청이 이 값으로 묻는다(코칭 안 하는 사용자에게는 묻지 않는다).
+  bool is_coach = 13;
 }
 
 // 세션 한 벌. 클라이언트는 access를 메모리에, refresh를 오래 가는 저장소에 둔다.

@@ -1147,7 +1147,9 @@ func (q *Queries) ListFeed(ctx context.Context, arg ListFeedParams) ([]ListFeedR
 
 const listFollowers = `-- name: ListFollowers :many
 SELECT u.id, u.display_name, u.avatar_url, u.trainer_intent,
-       EXISTS (SELECT 1 FROM follows f2 WHERE f2.follower_id = $1::text AND f2.followee_id = u.id)::boolean AS following
+       EXISTS (SELECT 1 FROM follows f2 WHERE f2.follower_id = $1::text AND f2.followee_id = u.id)::boolean AS following,
+       -- 「코치」 배지 파생값(SPEC-052)
+       EXISTS (SELECT 1 FROM coaching_grants cg WHERE cg.trainer_id = u.id AND cg.status = 'active')::boolean AS is_coach
 FROM follows f
 JOIN users u ON u.id = f.follower_id
 WHERE f.followee_id = $2::text
@@ -1172,6 +1174,7 @@ type ListFollowersRow struct {
 	AvatarUrl     *string
 	TrainerIntent bool
 	Following     bool
+	IsCoach       bool
 }
 
 func (q *Queries) ListFollowers(ctx context.Context, arg ListFollowersParams) ([]ListFollowersRow, error) {
@@ -1189,6 +1192,7 @@ func (q *Queries) ListFollowers(ctx context.Context, arg ListFollowersParams) ([
 			&i.AvatarUrl,
 			&i.TrainerIntent,
 			&i.Following,
+			&i.IsCoach,
 		); err != nil {
 			return nil, err
 		}
@@ -1202,7 +1206,9 @@ func (q *Queries) ListFollowers(ctx context.Context, arg ListFollowersParams) ([
 
 const listFollowing = `-- name: ListFollowing :many
 SELECT u.id, u.display_name, u.avatar_url, u.trainer_intent,
-       EXISTS (SELECT 1 FROM follows f2 WHERE f2.follower_id = $1::text AND f2.followee_id = u.id)::boolean AS following
+       EXISTS (SELECT 1 FROM follows f2 WHERE f2.follower_id = $1::text AND f2.followee_id = u.id)::boolean AS following,
+       -- 「코치」 배지 파생값(SPEC-052)
+       EXISTS (SELECT 1 FROM coaching_grants cg WHERE cg.trainer_id = u.id AND cg.status = 'active')::boolean AS is_coach
 FROM follows f
 JOIN users u ON u.id = f.followee_id
 WHERE f.follower_id = $2::text
@@ -1227,6 +1233,7 @@ type ListFollowingRow struct {
 	AvatarUrl     *string
 	TrainerIntent bool
 	Following     bool
+	IsCoach       bool
 }
 
 func (q *Queries) ListFollowing(ctx context.Context, arg ListFollowingParams) ([]ListFollowingRow, error) {
@@ -1244,6 +1251,7 @@ func (q *Queries) ListFollowing(ctx context.Context, arg ListFollowingParams) ([
 			&i.AvatarUrl,
 			&i.TrainerIntent,
 			&i.Following,
+			&i.IsCoach,
 		); err != nil {
 			return nil, err
 		}
@@ -1914,7 +1922,9 @@ func (q *Queries) SearchPosts(ctx context.Context, arg SearchPostsParams) ([]Sea
 
 const searchUsers = `-- name: SearchUsers :many
 SELECT u.id, u.display_name, u.avatar_url, u.trainer_intent,
-       EXISTS (SELECT 1 FROM follows f WHERE f.follower_id = $1::text AND f.followee_id = u.id) ::boolean AS following
+       EXISTS (SELECT 1 FROM follows f WHERE f.follower_id = $1::text AND f.followee_id = u.id) ::boolean AS following,
+       -- 「코치」 배지 파생값(SPEC-052)
+       EXISTS (SELECT 1 FROM coaching_grants cg WHERE cg.trainer_id = u.id AND cg.status = 'active')::boolean AS is_coach
 FROM users u
 WHERE u.id <> $1::text
   AND (
@@ -1942,6 +1952,7 @@ type SearchUsersRow struct {
 	AvatarUrl     *string
 	TrainerIntent bool
 	Following     bool
+	IsCoach       bool
 }
 
 // 사람 찾기 — 표시 이름·이메일 부분일치. 자기 자신과 차단 관계는 뺀다.
@@ -1961,6 +1972,7 @@ func (q *Queries) SearchUsers(ctx context.Context, arg SearchUsersParams) ([]Sea
 			&i.AvatarUrl,
 			&i.TrainerIntent,
 			&i.Following,
+			&i.IsCoach,
 		); err != nil {
 			return nil, err
 		}

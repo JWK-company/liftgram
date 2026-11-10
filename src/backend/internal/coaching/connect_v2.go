@@ -208,7 +208,8 @@ func (s *Service) CreateInvite(ctx context.Context, viewerID string) (Invite, er
 	if err := requireIdentity(viewerID); err != nil {
 		return Invite{}, err
 	}
-	// 코칭 의향을 밝힌 사람만 — 의향 없는 코드는 받는 쪽에서 어차피 막힌다.
+	// [원본] 코칭 의향을 밝힌 사람만 — 의향 없는 코드는 받는 쪽에서 어차피 막힌다.
+	// [개선] SPEC-052 — 누구나 만든다(계정이 있는지만 본다). 남용은 요청 제한(invite_limit.go)이 막는다.
 	if err := s.assertTrainerEligible(ctx, viewerID); err != nil {
 		return Invite{}, err
 	}
@@ -250,7 +251,8 @@ func (s *Service) GetMyInvite(ctx context.Context, viewerID string) (Invite, boo
 
 // GetInvite는 회원이 코드로 코치 카드를 본다(연결 전).
 //
-//	만료·회수·없음·코치가 의향을 내림 → 모두 같은 NotFound(코드가 있었는지 알리지 않는다)
+//	만료·회수·없음·코치 계정 없음 → 모두 같은 NotFound(코드가 있었는지 알리지 않는다)
+//	([원본] 「코치가 의향을 내림」도 NotFound 였다 — SPEC-052 부터 의향은 코치 찾기 노출일 뿐)
 //	내 코드 → Validation 「내 초대 코드예요」 · 차단 사이 → NotFound(있는 줄도 모르게)
 //	이미 다른 코치가 있다 → Conflict 「이미 코치가 있어요…」(화면이 범위 시트 전에 보인다)
 func (s *Service) GetInvite(ctx context.Context, viewerID, code string) (Peer, Invite, error) {
@@ -323,7 +325,7 @@ func (s *Service) liveInvite(ctx context.Context, raw string) (Invite, error) {
 	return inv, nil
 }
 
-// checkInviteUsable — 본인 코드·차단·코치 의향·이미 다른 코치(앞선 확인).
+// checkInviteUsable — 본인 코드·차단·코치 계정 있음([원본] 코치 의향)·이미 다른 코치(앞선 확인).
 func (s *Service) checkInviteUsable(ctx context.Context, viewerID string, inv Invite) error {
 	if inv.TrainerID == viewerID {
 		return errs.New(errs.Validation, msgOwnInvite)
@@ -335,15 +337,13 @@ func (s *Service) checkInviteUsable(ctx context.Context, viewerID string, inv In
 	if blocked {
 		return errs.New(errs.NotFound, msgInviteNotFound)
 	}
-	ok, err := s.repo.TrainerEligible(ctx, inv.TrainerID)
-	if err != nil {
+	// [원본] 코치가 의향(trainer_intent)을 내리면 코드는 죽은 것과 같았다 — if !ok { return NotFound }
+	// [개선] SPEC-052 — 의향은 코치 찾기 노출일 뿐이다. 코치 계정이 사라졌을 때만 「없는 코드」.
+	if _, err := s.repo.TrainerEligible(ctx, inv.TrainerID); err != nil {
 		if isNotFound(err) {
 			return errs.New(errs.NotFound, msgInviteNotFound)
 		}
 		return err
-	}
-	if !ok {
-		return errs.New(errs.NotFound, msgInviteNotFound)
 	}
 	other, err := s.repo.HasOtherActiveCoach(ctx, viewerID, inv.TrainerID)
 	if err != nil {

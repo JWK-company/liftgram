@@ -579,7 +579,19 @@ func (r *pgRepo) GetCoachCard(ctx context.Context, userID string) (CoachCard, er
 	if tags == nil {
 		tags = []string{}
 	}
-	return CoachCard{TrainerIntent: u.TrainerIntent, Bio: u.CoachBio, Tags: tags}, nil
+	// [원본] return CoachCard{TrainerIntent: u.TrainerIntent, Bio: u.CoachBio, Tags: tags}, nil
+	// [개선] SPEC-052 — 배지는 파생값(활성 연결의 코치인가).
+	// 확인이 실패하면 배지만 뺀다 — 프로필 전체를 실패시킬 일이 아니다(auth WithCoach 와 같은 정책 · REV-105 S8).
+	isCoach, err := r.q.IsActiveCoach(ctx, userID)
+	if err != nil {
+		slog.Warn("[feed] 코치 여부 확인 실패", "err", err)
+		isCoach = false
+	}
+	// 소개·태그는 노출을 켠 사람만(SPEC-052 · REV-106 S2) — 코칭 Peer(visibleCard)와 같은 규칙을 서버에서
+	if !u.TrainerIntent {
+		return CoachCard{TrainerIntent: false, Bio: "", Tags: []string{}, IsCoach: isCoach}, nil
+	}
+	return CoachCard{TrainerIntent: u.TrainerIntent, Bio: u.CoachBio, Tags: tags, IsCoach: isCoach}, nil
 }
 
 func (r *pgRepo) ListExplore(ctx context.Context, viewerID string, limit int32) ([]Post, error) {
@@ -718,6 +730,7 @@ func (r *pgRepo) ListFollows(ctx context.Context, viewerID, userID string, follo
 				Author:    Author{ID: row.ID, DisplayName: deref(row.DisplayName), AvatarURL: deref(row.AvatarUrl)},
 				Following: row.Following,
 				Coach:     row.TrainerIntent,
+				IsCoach:   row.IsCoach,
 			})
 		}
 		return out, nil
@@ -731,6 +744,7 @@ func (r *pgRepo) ListFollows(ctx context.Context, viewerID, userID string, follo
 			Author:    Author{ID: row.ID, DisplayName: deref(row.DisplayName), AvatarURL: deref(row.AvatarUrl)},
 			Following: row.Following,
 			Coach:     row.TrainerIntent,
+			IsCoach:   row.IsCoach,
 		})
 	}
 	return out, nil
@@ -747,6 +761,7 @@ func (r *pgRepo) SearchUsers(ctx context.Context, viewerID, query string, limit 
 			Author:    Author{ID: row.ID, DisplayName: deref(row.DisplayName), AvatarURL: deref(row.AvatarUrl)},
 			Following: row.Following,
 			Coach:     row.TrainerIntent,
+			IsCoach:   row.IsCoach,
 		})
 	}
 	return out, nil
