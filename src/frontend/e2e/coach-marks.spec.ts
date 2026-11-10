@@ -5,7 +5,10 @@
 //       포커스를 옮기지 않음 · 설정 「안내 다시 보기」로 다시 뜸 · 「이전」을 누르면 본 것
 //   (b) 루틴 세트 번호: 세트 표가 보이면 · 번호를 누르면 본 것
 //   (c) 슈퍼셋 묶음 완료로 휴식이 걸리면 휴식 막대 위에
+//   #T18 — 「알겠어요」가 없어졌다: 「이전」·세트 번호 안내는 그 버튼 옆 말풍선 · 몇 초 뒤 저절로 · 어디를 눌러도 사라짐(=본 것).
+//   여기서는 저절로 사라지는 시간을 liftgram.hint.ms 로 길게(60초) 둬 흐름을 본다 — 짧은 시간은 coach-bubble.spec.ts 가 본다.
 import { expect, test, type Page } from "@playwright/test";
+import { 빈곳_누르기 } from "./helpers/blankSpot";
 
 const base = process.env.BASE ?? "http://127.0.0.1:3100";
 test.use({
@@ -17,6 +20,8 @@ test.use({
         localStorage: [
           { name: "onboarding_seen_v1", value: "yes" },
           { name: "liftgram.nudge.suppressed", value: "e2e" },
+          // [개선] #T18 — 저절로 사라지기 전에 흐름을 다 볼 수 있게
+          { name: "liftgram.hint.ms", value: "60000" },
         ],
       },
     ],
@@ -106,7 +111,10 @@ test("(a) 「이전」 첫 안내 — 한 번만 · 창·입력 중엔 숨음 ·
   await expect(hint).toBeVisible();
 
   // 창이 열리면 숨고 닫히면 다시
-  await page.getByTestId("btn-we-menu").first().click();
+  // [원본] await page.getByTestId("btn-we-menu").first().click();
+  // [개선] #T18 — 누르면(포인터) 안내가 사라지니(본 것) 키보드로 연다 — 창에 가려 숨는 규칙만 본다
+  await page.getByTestId("btn-we-menu").first().focus();
+  await page.keyboard.press("Enter");
   await expect(hint).toHaveCount(0);
   await page.keyboard.press("Escape");
   await expect(hint).toBeVisible({ timeout: 5_000 });
@@ -121,14 +129,18 @@ test("(a) 「이전」 첫 안내 — 한 번만 · 창·입력 중엔 숨음 ·
   await page.reload();
   await 안_뜸(page, hint);
 
-  // 설정 「안내 다시 보기」 → 다시 뜬다 → 「알겠어요」 → 다시 와도 안 뜬다
+  // [원본] 설정 「안내 다시 보기」 → 다시 뜬다 → 「알겠어요」 → 다시 와도 안 뜬다
+  // [개선] #T18 — 「알겠어요」 대신 다른 곳을 누르면 사라지고 본 것
   await page.goto("/profile");
   await page.getByTestId("row-hints-reset").click();
   await expect(page.getByText("사용법 안내를 다시 보여 드릴게요")).toBeVisible();
   await page.goto("/workout");
   // 위에서 「이전」을 채운 세트는 아직 안 마쳤다 — 「이전」 칩이 여전히 눌린다
   await expect(hint).toBeVisible({ timeout: 20_000 });
-  await page.getByTestId("hint-prev-ok").click();
+  // [원본] await page.getByTestId("hint-prev-ok").click();
+  await expect(page.getByTestId("hint-prev-ok")).toHaveCount(0);
+  await 빈곳_누르기(page);
+  await expect(page).toHaveURL(/\/workout/);
   await expect(hint).toHaveCount(0);
   await page.reload();
   await 안_뜸(page, hint);
@@ -158,6 +170,11 @@ test("(b) 루틴 세트 번호 첫 안내 — 세트 표가 보이면 · 번호�
   await page.getByTestId("picker-list").locator("button").first().click();
   await page.getByTestId("picker-confirm").click();
   await expect(page.getByTestId("set-table").first()).toBeVisible({ timeout: 15_000 });
+  // [개선] #T18 — 말풍선은 아래 저장 막대 뒤에 가린 세트 번호를 가리키지 않는다 — 세트 번호가 정말 보이게 굴린다
+  await page
+    .getByTestId("rx-type")
+    .first()
+    .evaluate((el) => el.scrollIntoView({ block: "center" }));
   await expect(hint).toBeVisible({ timeout: 10_000 });
   await expect(hint).toContainText("세트 번호");
   await page.getByTestId("set-table-row").first().getByTestId("rx-type").click();
@@ -189,8 +206,12 @@ test("(c) 슈퍼셋 묶음 완료로 휴식이 걸리면 — 휴식 막대 위�
       return h && bar ? h.y + h.height <= bar.y + 1 : false;
     })
     .toBe(true);
-  await page.getByTestId("hint-long-done-ok").click();
+  // [원본] await page.getByTestId("hint-long-done-ok").click();
+  // [개선] #T18 — 버튼이 없고, 다른 곳을 누르면 사라진다(말풍선은 누름을 받지 않는다)
+  await expect(page.getByTestId("hint-long-done-ok")).toHaveCount(0);
+  await 빈곳_누르기(page);
   await expect(hint).toHaveCount(0);
+  expect(await page.evaluate(() => localStorage.getItem("liftgram.hint.longDone"))).toBe("seen");
 });
 
 test("하나씩 — 「이전」 안내가 떠 있어도 슈퍼셋 묶음 완료 순간엔 그 안내가 차례를 넘겨받는다", async ({
@@ -204,16 +225,39 @@ test("하나씩 — 「이전」 안내가 떠 있어도 슈퍼셋 묶음 완료
   await 빠른_운동(page, ["바벨 벤치프레스", "바벨 로우"]);
   const prev = page.getByTestId("hint-prev");
   const long = page.getByTestId("hint-long-done");
-  await expect(prev).toBeVisible({ timeout: 15_000 });
+  // [원본] await expect(prev).toBeVisible({ timeout: 15_000 });
+  // [원본] await expect(long).toHaveCount(0);
+  // [원본] await page.getByTestId("workout-exercises").locator("> div").first().getByTestId("btn-we-menu").click();
+  // [원본] await page.getByTestId("btn-superset").click();
+  // [원본] await page.getByTestId("superset-option").first().click();
+  // [원본] await expect(page.getByTestId("btn-unlink-superset")).toBeVisible({ timeout: 10_000 });
+  // [원본] await 세트_기록(page, 60, 8);
+  // [개선] #T18 — 어디를 눌러도 안내가 사라지니(두 번째 종목을 고르는 누름에 「이전」 안내가 이미 본 것이 됨)
+  //   「안내 다시 보기」로 되살린 뒤, 「이전」 안내를 띄운 채로 남은 조작은 키보드로 한다 — 차례 넘김만 본다
+  await page.goto("/profile");
+  await page.getByTestId("row-hints-reset").click();
+  await page.goto("/workout");
+  await expect(prev).toBeVisible({ timeout: 20_000 });
   await expect(long).toHaveCount(0);
-  await page.getByTestId("workout-exercises").locator("> div").first().getByTestId("btn-we-menu").click();
-  await page.getByTestId("btn-superset").click();
-  await page.getByTestId("superset-option").first().click();
+  const 키로 = async (loc: ReturnType<Page["getByTestId"]>) => {
+    await loc.focus();
+    await page.keyboard.press("Enter");
+  };
+  await 키로(page.getByTestId("workout-exercises").locator("> div").first().getByTestId("btn-we-menu"));
+  await 키로(page.getByTestId("btn-superset"));
+  await 키로(page.getByTestId("superset-option").first());
   await expect(page.getByTestId("btn-unlink-superset")).toBeVisible({ timeout: 10_000 });
-  await 세트_기록(page, 60, 8);
+  const row = 첫세트(page);
+  await row.getByTestId("set-weight").fill("60");
+  await row.getByTestId("set-reps").fill("8");
+  await row.getByTestId("set-reps").blur();
+  await expect(prev).toBeVisible();
+  await 키로(row.getByTestId("set-done"));
+  await expect(row.getByTestId("set-done")).toHaveAttribute("aria-pressed", "true");
   await expect(long).toBeVisible({ timeout: 10_000 });
   // 한 번에 하나 — 「이전」은 세트를 마쳤으니 본 것
   await expect(prev).toHaveCount(0);
-  await page.getByTestId("hint-long-done-ok").click();
+  // [원본] await page.getByTestId("hint-long-done-ok").click();
+  await 빈곳_누르기(page);
   await expect(long).toHaveCount(0);
 });

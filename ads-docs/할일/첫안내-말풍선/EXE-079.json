@@ -1,0 +1,569 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "EXE-079 첫 안내 말풍선 — 구현(#T18)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "요약",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "화면 지도 S-159 h.prev. 첫 안내를 「설명하는 버튼 옆 말풍선 · 버튼 없음 · 저절로 사라짐」으로 바꿨다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "「이전」 안내(h.prev): 화면에 다 보이는 첫 「이전」 칩 바로 위(공간이 없으면 아래)에 꼬리 달린 말풍선. 스크롤을 따라가고, 칩이 머리·아래 막대 뒤로 가면 숨었다가 다시 보이면 뜬다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "「알겠어요」 버튼 없음. 5초(글이 길면 8초까지) 뒤 저절로 사라진다. 화면 어디를 눌러도(누름이 끝난 뒤) 사라진다. 칩 자체를 누르면 칩 동작(지난 값 채우기)도 그대로 된다. 말풍선은 누름을 받지 않아 덮은 자리의 버튼도 그대로 눌린다. 끌어서 스크롤하는 것은 닫지 않는다. Esc 도 닫는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "사라지면 본 것 — 다시 뜨지 않는다. 프로필 「안내 다시 보기」·한 번에 하나·urgent longDone 차례 넘김·창/입력 중 숨김은 그대로다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "세트 번호 안내(h.rxtype)도 세트 번호 옆 말풍선. 길게 눌러 이 종목만 안내(h.longdone)는 「방금 묶음을 마친 순간」 안내라 휴식 막대 위 자리를 두고, 버튼 없음·저절로·누르면 사라짐만 같게 했다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "접근성: 글은 늘 붙어 있는 sr-only role=status(aria-live=polite) 칸이 처음 뜰 때 한 번 읽는다 — 말풍선이 사라져도 칸의 글은 남아 읽기가 끊기지 않는다(말풍선은 aria-hidden). 줄임 모션이면 나타남·사라짐 움직임 없음.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "바꾼 파일",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "파일",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "무엇",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/ui/CoachMark.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "anchor 말풍선(자리 계산·꼬리·머리/아래 막대 한계) · 저절로 사라짐 · 누름(탭)으로 사라짐 · 「알겠어요」 버튼 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "[원본]",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 주석",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/CoachHints.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "PrevHint·RxTypeHint 에 anchor · LongDoneHint 는 자리 유지",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/lib/coachMarks.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "「본 것」 규칙 주석만",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/coach-bubble.spec.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "새 e2e 5개(360px·다크)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/helpers/blankSpot.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "새 파일 — 눌러도 아무 일 없는 빈 곳 고르기",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/coach-marks.spec.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "「알겠어요」 대신 빈 곳 누름 · 창 열기·「하나씩」은 키보드로 · 세트 번호는 보이게 굴린 뒤(",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "[원본]",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 보존)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "시험",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "tsc — 통과. biome — 고친 파일 통과.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "관련 e2e: coach-bubble 5 + coach-marks 4 — 9 통과 · 실패 0(같은 실행의 moderation:35·66 실패는 1eb9223 기준선에서도 같은 「전에 로그인했던 계정 기록」 창으로 실패 — 무관).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "전체 e2e(두 항목 적용, WORKERS=4): 528개 중 468 통과 · 11 실패 · 49 건너뜀 — 실패 내역은 EXE-078 과 같고 모두 무관(기준선 8 · favicon 브라우저 닫힘(재실행 통과) · auth-formal 메일 환경 2).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "리뷰",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "REV-109 — 채택 9 · 보류 1(일부) · 기각 0.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "남은 일",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "저절로 사라지는 시간(5~8초)은 실기기에서 한 번 더 보고 조정.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "패치: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/private/tmp/claude-501/-Users-woobi-Desktop-tarae-liftgram/6fe27aed-5ef2-46c9-b834-5f6e2effb054/scratchpad/t18.patch",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(t17 다음에 적용 · 두 패치는 같은 파일을 건드리지 않음).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "할일/첫안내-말풍선",
+  "id": "EXE-079",
+  "meta": {
+    "phase": "1",
+    "result": "done"
+  },
+  "relations": {},
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "첫 안내 말풍선 구현(#T18)",
+  "type": "Execution",
+  "updated": "2026-11-10T02:44:29Z"
+}

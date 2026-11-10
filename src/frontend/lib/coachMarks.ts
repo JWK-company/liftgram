@@ -3,7 +3,9 @@
 // · 키 liftgram.hint.<id> = "seen" — 이 기기 사실이라 동기하지 않는다(SYNCED_PREF_KEYS 에 넣지 않는다)
 // · liftgram.hint.suppressed 가 있으면 아무 안내도 띄우지 않는다(e2e 기본 상태 · 다시 보기로 지우지 않는다)
 // · 한 번에 하나만(모듈 잠금) · 첫 실행 안내를 보기 전에는 띄우지 않는다
-// · 「알겠어요」나 그 동작(「이전」 누름 등)을 하면 본 것 · 누르지 않고 떠나면 안 본 것(다음에 다시)
+// [원본] · 「알겠어요」나 그 동작(「이전」 누름 등)을 하면 본 것 · 누르지 않고 떠나면 안 본 것(다음에 다시)
+// [개선] #T18 · 몇 초 지나 저절로 사라지거나 · 화면 어디를 누르거나 · 그 동작(「이전」 누름 등)을 하면 본 것 ·
+//        다 보기 전에 떠나면 안 본 것(다음에 다시)
 import { useCallback, useEffect, useState } from "react";
 import { useInputFocused, useOverlayOpen } from "./overlayPresence";
 

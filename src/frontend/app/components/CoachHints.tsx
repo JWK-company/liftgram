@@ -20,7 +20,17 @@ const PREV_SELECTOR = '[data-testid="set-prev"]:not([disabled]), [data-testid="c
 export function PrevHint() {
   const when = useSelectorPresent(PREV_SELECTOR, !isCoachMarkSeen("prev"), true);
   const { open, dismiss } = useCoachMark("prev", when);
-  return <CoachMark open={open} text={t("hint.prev")} onDismiss={dismiss} testId="hint-prev" />;
+  // [원본] return <CoachMark open={open} text={t("hint.prev")} onDismiss={dismiss} testId="hint-prev" />;
+  // [개선] #T18 — 화면 안에 보이는 첫 「이전」 칩 옆에 말풍선으로(몇 초 뒤 · 어디를 눌러도 사라짐)
+  return (
+    <CoachMark
+      open={open}
+      text={t("hint.prev")}
+      onDismiss={dismiss}
+      testId="hint-prev"
+      anchor={PREV_SELECTOR}
+    />
+  );
 }
 
 /** (c) 슈퍼셋 묶음을 처음 체크해 휴식이 걸렸을 때 — 휴식 막대 위에 · 그 휴식이 끝나면 버린다 */
@@ -44,12 +54,28 @@ export function LongDoneHint() {
   useEffect(() => () => clearCoachMarkTrigger("longDone"), []);
   // 그 순간에만 맞는 안내라 「이전」 안내가 쥔 차례를 넘겨받는다
   const { open, dismiss } = useCoachMark("longDone", fired && resting, true);
+  // #T18 — 이 안내는 「방금 묶음을 마쳤다」는 순간에 대한 것이라 휴식 막대 위 자리를 그대로 둔다(anchor 없음).
+  // 「알겠어요」가 없어지고 몇 초 뒤 · 어디를 눌러도 사라지는 것은 CoachMark 가 세 안내 모두에 같게 한다.
   return <CoachMark open={open} text={t("hint.longDone")} onDismiss={dismiss} testId="hint-long-done" />;
 }
 
+const RX_TYPE_SELECTOR = '[data-testid="rx-type"]';
+
 /** (b) 루틴 편집 — 세트 번호를 누르면 종류 바꾸기·복사·삭제 */
 export function RxTypeHint() {
-  const when = useSelectorPresent('[data-testid="rx-type"]', !isCoachMarkSeen("rxType"), true);
+  // [원본] const when = useSelectorPresent('[data-testid="rx-type"]', !isCoachMarkSeen("rxType"), true);
+  // [개선] #T18 — 같은 선택자를 말풍선 anchor 로도 쓴다
+  const when = useSelectorPresent(RX_TYPE_SELECTOR, !isCoachMarkSeen("rxType"), true);
   const { open, dismiss } = useCoachMark("rxType", when);
-  return <CoachMark open={open} text={t("hint.rxType")} onDismiss={dismiss} testId="hint-rx-type" />;
+  // [원본] return <CoachMark open={open} text={t("hint.rxType")} onDismiss={dismiss} testId="hint-rx-type" />;
+  // [개선] #T18 — 보이는 첫 세트 번호 옆에 말풍선으로
+  return (
+    <CoachMark
+      open={open}
+      text={t("hint.rxType")}
+      onDismiss={dismiss}
+      testId="hint-rx-type"
+      anchor={RX_TYPE_SELECTOR}
+    />
+  );
 }
