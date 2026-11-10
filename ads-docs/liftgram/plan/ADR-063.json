@@ -1,0 +1,285 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "맥락",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "ADR-045 는 자막·음성 수집·받아쓰기를 하지 않기로 했다(유튜브 약관 · 저작권 · 서버 차단). 2026-11-10 사용자가 「왜 우리만 빡빡하게?」를 물었고, 검토 결과 금지의 근거는 한국 법이 아니라 유튜브 약관(공식 API 밖 내려받기·긁기 금지)과 운영 위험(공식 API 키·서버가 영상 기능 전체를 받치고 있음)이었다. 저작권 면에서는 종목·세트·횟수 같은 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "사실",
+            "type": "text"
+          },
+          {
+            "text": "은 저작물이 아니고, 대본 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "원문을 저장·표시",
+            "type": "text"
+          },
+          {
+            "text": "하는 것이 문제다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "결정",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "서버 수집 금지는 유지",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — 우리 서버·API 키로 자막·음성을 긁지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "사용자 붙여넣기 허용",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — 사용자가 유튜브 「스크립트 표시」에서 복사해 넣은 글은 앱이 해석한다(SRS-116). 원문은 저장하지 않고 해석 결과·근거 시각·영상 링크만 남긴다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "운영자 검수 열람 허용",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — 영상 루틴·팁 검수 때 대표 승인 아래 대표의 브라우저에서 「스크립트 표시」에 보이는 글을 사람 속도로 읽어 사실을 보완할 수 있다(내려받기 도구·서버 전송 없음 · 원문은 작업 뒤 지움). 근거 표시는 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "script",
+                    "type": "text"
+                  },
+                  {
+                    "text": ".",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "고정 댓글은 계속 쓰지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "대안",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "서버가 비공식 경로로 자막 수집: 가장 편하지만 약관 위반 · 데이터센터 IP 차단으로 자주 깨짐 · 같은 계정의 공식 API 키까지 위험 — 기각(사용자 선택 A, 2026-11-10).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "계속 설명란·챕터만: 안전하지만 말로만 처방하는 영상(다수)을 못 다룸 — 기각.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "결과",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "장점: 서버 위험 그대로 · 말로만 처방하는 영상도 사용자·운영자 손을 거쳐 반영.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "위험: 운영자 열람은 대표의 구글 계정이 자동 접근으로 의심받을 가능성(낮음 · 사람 속도·소량) — 대표가 감수하기로 함.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "ADR-045 의 「자막 수집 안 함」 중 위 두 경로만 바꾼다(그 밖은 유지).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "liftgram/plan",
+  "id": "ADR-063",
+  "meta": {},
+  "relations": {
+    "informs": [
+      "SRS-092",
+      "SRS-116"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "스크립트는 사람이 보이는 화면에서만 — 서버 수집 금지는 유지, 사용자 붙여넣기·운영자 검수 열람 허용",
+  "type": "ADR",
+  "updated": "2026-11-10T02:15:10Z"
+}

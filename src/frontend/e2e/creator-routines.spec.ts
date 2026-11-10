@@ -110,7 +110,12 @@ test("초보자 부위별 → 황철순 가슴 — 출처·댓글 근거·기본
   await page.getByTestId("creator-version-cr-bg-pt-chest-hcs").click();
   await expect(page.getByTestId("creator-source")).toContainText("황철순(CHUL SOON HWANG)");
   await expect(page.getByTestId("creator-basis")).toContainText("시청자");
-  await expect(page.getByTestId("creator-disclaimer")).toContainText("대조하지 않았어요");
+  // [원본] toContainText("대조하지 않았어요") — 2026-11-10 본편(스크립트) 대조 뒤 근거 자료 + 본편 대조 문구(ADR-063)
+  await expect(page.getByTestId("creator-disclaimer")).toContainText("본편과 대조했어요");
+  // 종목 장면 링크 — 그 시각부터 새 창
+  const at = page.getByTestId("creator-at-link").first();
+  await expect(at).toHaveAttribute("href", /^https:\/\/www\.youtube\.com\/watch\?v=UqlUZFZgczk&t=\d+s$/);
+  await expect(at).toHaveAttribute("target", "_blank");
   await expect(page.getByTestId("creator-sheet")).toContainText("기본값");
   await expect(page.getByTestId("creator-open-video")).toHaveAttribute(
     "href",

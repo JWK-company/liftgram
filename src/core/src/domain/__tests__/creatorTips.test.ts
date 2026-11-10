@@ -71,7 +71,7 @@ test('팁 데이터: id 유일 · 영상 하나는 한 팁에만 · 출처 필�
     assert.ok(t.pointsKo.length >= 2 && t.pointsKo.length <= 5, `${t.id} 요점 ${t.pointsKo.length}줄`);
     for (const p of t.pointsKo) {
       assert.ok(p.text.trim().length >= 8 && p.text.length <= 80, `${t.id} 요점 길이 「${p.text}」`);
-      assert.ok(['desc', 'chapter', 'basis'].includes(p.from), `${t.id} 요점 근거 없음 「${p.text}」`);
+      assert.ok(['desc', 'chapter', 'basis', 'script'].includes(p.from), `${t.id} 요점 근거 없음 「${p.text}」`);
       if (p.from === 'basis') assert.ok(t.basis, `${t.id}: basis 근거인데 basis 가 없다`);
       if (p.from === 'chapter') assert.ok(t.chapters?.length, `${t.id}: 챕터 근거인데 챕터가 없다`);
     }
@@ -207,4 +207,11 @@ test('원본 영상 주소: 시각이 양수면 &t=초s · 0·음수·NaN·없�
   assert.equal(chapterTimeLabel(455), '7:35');
   assert.equal(chapterTimeLabel(3725), '1:02:05');
   assert.equal(chapterTimeLabel(Number.NaN), '0:00');
+});
+
+test('스크립트 근거(ADR-063): from script 요점이 있으면 scriptCheckedAt 필수 · 날짜 형식', () => {
+  for (const t of CREATOR_TIPS) {
+    if (t.pointsKo.some((p) => p.from === 'script')) assert.ok(t.scriptCheckedAt, `${t.id}: script 근거인데 scriptCheckedAt 없음`);
+    if (t.scriptCheckedAt !== undefined) assert.match(t.scriptCheckedAt, /^\d{4}-\d{2}-\d{2}$/, `${t.id} scriptCheckedAt`);
+  }
 });

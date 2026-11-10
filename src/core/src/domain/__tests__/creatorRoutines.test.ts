@@ -178,3 +178,13 @@ test('보강(SPEC-047): 프로 전신·푸시·초보자 분할은 7개 이상 �
   }
   for (const t of CREATOR_TOPICS) assert.ok(creatorRoutinesFor(t.id).length >= 7, `${t.id}: ${creatorRoutinesFor(t.id).length}개`);
 });
+
+test('스크립트 보완(ADR-063): atSec 은 0 이상 정수 · scriptCheckedAt 은 날짜 형식', () => {
+  for (const r of CREATOR_ROUTINES) {
+    if (r.scriptCheckedAt !== undefined) assert.match(r.scriptCheckedAt, /^\d{4}-\d{2}-\d{2}$/, `${r.id} scriptCheckedAt`);
+    for (const d of r.days)
+      for (const it of d.items)
+        if (it.atSec !== undefined)
+          assert.ok(Number.isInteger(it.atSec) && it.atSec >= 0 && it.atSec < 6 * 3600, `${r.id} ${it.exerciseId} atSec ${it.atSec}`);
+  }
+});

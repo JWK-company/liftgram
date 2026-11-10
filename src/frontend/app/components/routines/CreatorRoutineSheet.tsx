@@ -4,6 +4,7 @@
 // 규칙(ADR-045): 출처는 「출처: 채널 · 「제목」」 인용으로만 · 원본은 유튜브 링크(새 창) · 제휴·보증 아님 고지 ·
 // 저장 루틴 이름에는 채널명을 넣지 않고(공유 시 이름만 퍼짐 · qa H-2) 출처는 루틴 메모에 둔다.
 import {
+  chapterTimeLabel,
   creatorChannelLabel,
   creatorRoutineNotes,
   creatorRoutinesFor,
@@ -245,9 +246,15 @@ function CreatorVersionStep({
       </AppText>
       <AppText variant="label" color="textMuted" className="mt-[2px] block">
         {/* 근거 문구는 실제 근거대로(qa code M-3): 분석 자료가 있으면 그 줄이 대신한다 */}
-        {routine.basis
-          ? t("creator.checkedOnly", { date: routine.source.verifiedAt })
-          : t("creator.verified", { date: routine.source.verifiedAt })}
+        {/* [원본] basis ? checkedOnly : verified — [개선 2026-11-10 · ADR-063] 스크립트(본편 말)와 대조했으면 그 날짜로 「본편 기준」 */}
+        {/* 근거 자료(basis)가 수치의 근거면 본편 대조는 덧붙일 뿐이다(코드 리뷰 M-1) */}
+        {routine.scriptCheckedAt
+          ? t(routine.basis ? "creator.basisScript" : "creator.verifiedScript", {
+              date: routine.scriptCheckedAt,
+            })
+          : routine.basis
+            ? t("creator.checkedOnly", { date: routine.source.verifiedAt })
+            : t("creator.verified", { date: routine.source.verifiedAt })}
       </AppText>
       {routine.basis ? (
         // 루틴이 영상을 분석한 2차 자료 기준일 때 — 어디서 왔는지 밝힌다
@@ -298,6 +305,24 @@ function CreatorVersionStep({
                   <span className="shrink-0 text-(--color-ink2) text-[length:var(--text-sm)] tabular-nums">
                     {i.sets}×{reps}
                   </span>
+                  {i.atSec !== undefined ? (
+                    // 그 종목 장면부터(유튜브 새 창) — 영상을 넘겨 찾지 않게(ADR-063)
+                    // 0초도 t 를 붙여야 유튜브가 「이어 보기」 위치 대신 처음부터 연다(코드 리뷰 M-3) — 1초로
+                    // 누르는 칸은 44px — 줄 높이는 음수 여백으로 그대로(M-2)
+                    <a
+                      href={youtubeWatchUrl(routine.source.videoId, Math.max(1, i.atSec))}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-testid="creator-at-link"
+                      aria-label={t("creator.atAria", {
+                        name: names.get(i.exerciseId) ?? i.exerciseId,
+                        time: chapterTimeLabel(i.atSec),
+                      })}
+                      className="-my-[13px] inline-flex min-h-[44px] shrink-0 items-center px-[6px] text-(--color-ink3) text-[length:var(--text-xs)] tabular-nums underline decoration-(--color-line-strong)"
+                    >
+                      {"\u25B6\uFE0E"} {chapterTimeLabel(i.atSec)}
+                    </a>
+                  ) : null}
                   {isDefault ? (
                     <span className="shrink-0 rounded-[var(--radius-pill)] bg-(--color-surface) px-[6px] text-(--color-ink3) text-[length:var(--text-xs)]">
                       {t("creator.defaultChip")}
@@ -340,7 +365,15 @@ function CreatorVersionStep({
         className="mt-[var(--spacing-md)] block"
         data-testid="creator-disclaimer"
       >
-        {t(routine.basis ? "creator.disclaimerSecondary" : "creator.disclaimer", { email: CONTACT })}
+        {/* [원본] basis ? disclaimerSecondary : disclaimer — 본편과 대조했으면 「대조하지 않았어요」 문구를 쓰지 않는다 */}
+        {t(
+          routine.basis
+            ? routine.scriptCheckedAt
+              ? "creator.disclaimerSecondaryScript"
+              : "creator.disclaimerSecondary"
+            : "creator.disclaimer",
+          { email: CONTACT },
+        )}
       </AppText>
     </SheetShell>
   );

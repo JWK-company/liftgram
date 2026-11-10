@@ -165,9 +165,12 @@ export function TipDetail({
         {sourceLine(tip)}
       </AppText>
       <AppText variant="label" color="textMuted" className="mt-[2px] block">
-        {tip.basis
-          ? t("creator.checkedOnly", { date: tip.source.verifiedAt })
-          : t("creator.verified", { date: tip.source.verifiedAt })}
+        {/* [개선 2026-11-10 · ADR-063] 스크립트(본편 말)와 대조했으면 「본편 기준」 */}
+        {tip.scriptCheckedAt
+          ? t("creator.verifiedScript", { date: tip.scriptCheckedAt })
+          : tip.basis
+            ? t("creator.checkedOnly", { date: tip.source.verifiedAt })
+            : t("creator.verified", { date: tip.source.verifiedAt })}
       </AppText>
       {tip.basis ? (
         <a
@@ -198,7 +201,7 @@ export function TipDetail({
         {t("tips.safety")}
       </AppText>
       <AppText variant="label" color="textMuted" className="mt-[4px] block" data-testid="tip-disclaimer">
-        {t("tips.disclaimer", { email: CONTACT })}
+        {t(tip.scriptCheckedAt ? "tips.disclaimerScript" : "tips.disclaimer", { email: CONTACT })}
       </AppText>
     </div>
   );
