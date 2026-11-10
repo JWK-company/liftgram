@@ -15,7 +15,9 @@ export default function OfflinePage() {
         action={
           <a
             href="/"
-            className="rounded-lg bg-(--color-brand) px-4 py-2 font-semibold text-(--color-on-brand)"
+            // [원본] className="rounded-lg bg-(--color-brand) px-4 py-2 font-semibold text-(--color-on-brand)"
+            // [개선] 둥근 정도는 토큰 · 누르는 자리 44px(SPEC-056 F2·F7)
+            className="inline-flex min-h-[44px] items-center rounded-[var(--radius-sm)] bg-(--color-brand) px-4 py-2 font-semibold text-(--color-on-brand)"
             data-testid="offline-home"
           >
             {tw("web.offline.home")}

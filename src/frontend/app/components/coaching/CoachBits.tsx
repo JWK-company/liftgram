@@ -69,7 +69,9 @@ export function CoachCard({
   return (
     <div
       data-testid={testId}
-      className="flex items-start gap-[var(--spacing-md)] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) p-[var(--spacing-md)]"
+      // [원본] className="flex items-start gap-[var(--spacing-md)] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) p-[var(--spacing-md)]"
+      // [개선] 시트·join 화면 안 상자 대신 아래 가는 선으로 나뉜 머리(SPEC-056 F1 · 상자 안 상자 금지)
+      className="flex items-start gap-[var(--spacing-md)] border-(--color-line) border-b py-[var(--spacing-md)]"
     >
       <Avatar name={name} url={avatarUrl} size={48} />
       <div className="flex min-w-0 flex-1 flex-col gap-[var(--spacing-xs)]">

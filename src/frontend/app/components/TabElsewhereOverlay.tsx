@@ -65,7 +65,8 @@ export function TabElsewhereOverlay() {
           ref={buttonRef}
           type="button"
           data-testid="btn-tab-take-over"
-          className="min-h-11 rounded-md bg-(--color-brand) px-5 font-semibold text-(--color-on-brand)"
+          // [원본] className="min-h-11 rounded-md …" · [개선] 둥근 정도는 토큰(SPEC-056 F2)
+          className="min-h-11 rounded-[var(--radius-sm)] bg-(--color-brand) px-5 font-semibold text-(--color-on-brand)"
           onClick={() => takeOverHere()}
         >
           {t("tabs.takeOver")}
@@ -95,7 +96,8 @@ export function LegacyTabBand() {
       <button
         type="button"
         data-testid="btn-legacy-tab-dismiss"
-        className="min-h-11 rounded-md px-3 font-semibold"
+        // [원본] className="min-h-11 rounded-md px-3 font-semibold" · [개선] 토큰(SPEC-056 F2)
+        className="min-h-11 rounded-[var(--radius-sm)] px-3 font-semibold"
         onClick={() => setDismissed(true)}
       >
         {t("common.ok")}

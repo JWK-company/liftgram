@@ -109,7 +109,9 @@ export function BodyweightRow() {
               data-testid="btn-bodyweight-record"
               aria-label={t("bodyweight.recordAria")}
               onClick={() => setSheet("record")}
-              className="flex h-[44px] min-w-[44px] items-center justify-center rounded-[var(--radius-pill)] border border-(--color-line-strong) px-[var(--spacing-md)] font-medium text-(--color-ink) text-[length:var(--text-sm)] active:bg-(--color-surface-alt)"
+              // [원본] className="flex h-[44px] min-w-[44px] items-center justify-center rounded-[var(--radius-pill)] border border-(--color-line-strong) px-[var(--spacing-md)] font-medium text-(--color-ink) text-[length:var(--text-sm)] active:bg-(--color-surface-alt)"
+              // [개선] 버튼 둥근 정도는 sm(Button 과 같다 · 큰 버튼 알약 금지 · SPEC-056 F2)
+              className="flex h-[44px] min-w-[44px] items-center justify-center rounded-[var(--radius-sm)] border border-(--color-line-strong) px-[var(--spacing-md)] font-medium text-(--color-ink) text-[length:var(--text-sm)] active:bg-(--color-surface-alt)"
             >
               {t("bodyweight.record")}
             </button>
@@ -414,7 +416,9 @@ export function BodyweightHistorySheet({ onClose }: { onClose: () => void }) {
               type="button"
               data-testid="btn-bodyweight-unset"
               onClick={() => setConfirmUnset(true)}
-              className="flex h-[44px] w-full items-center justify-center rounded-[var(--radius-md)] border border-(--color-line-strong) font-medium text-(--color-ink) text-[length:var(--text-md)] active:bg-(--color-surface-alt)"
+              // [원본] className="flex h-[44px] w-full items-center justify-center rounded-[var(--radius-md)] border border-(--color-line-strong) font-medium text-(--color-ink) text-[length:var(--text-md)] active:bg-(--color-surface-alt)"
+              // [개선] 버튼 둥근 정도는 sm(Button 과 같다 · 큰 버튼 알약 금지 · SPEC-056 F2)
+              className="flex h-[44px] w-full items-center justify-center rounded-[var(--radius-sm)] border border-(--color-line-strong) font-medium text-(--color-ink) text-[length:var(--text-md)] active:bg-(--color-surface-alt)"
             >
               {t("bodyweight.unsetAction")}
             </button>
@@ -427,7 +431,9 @@ export function BodyweightHistorySheet({ onClose }: { onClose: () => void }) {
             type="button"
             data-testid="bodyweight-history-close"
             onClick={onClose}
-            className="h-[44px] w-full rounded-[var(--radius-md)] border border-(--color-line-strong) font-semibold text-(--color-ink) text-[length:var(--text-md)]"
+            // [원본] className="h-[44px] w-full rounded-[var(--radius-md)] border border-(--color-line-strong) font-semibold text-(--color-ink) text-[length:var(--text-md)]"
+            // [개선] 버튼 둥근 정도는 sm(Button 과 같다 · 큰 버튼 알약 금지 · SPEC-056 F2)
+            className="h-[44px] w-full rounded-[var(--radius-sm)] border border-(--color-line-strong) font-semibold text-(--color-ink) text-[length:var(--text-md)]"
           >
             {t("common.ok")}
           </button>
@@ -557,7 +563,9 @@ export function BodyweightHistorySheet({ onClose }: { onClose: () => void }) {
           type="button"
           data-testid="bodyweight-history-close"
           onClick={onClose}
-          className="h-[44px] w-full rounded-[var(--radius-md)] border border-(--color-line-strong) font-semibold text-(--color-ink) text-[length:var(--text-md)]"
+          // [원본] className="h-[44px] w-full rounded-[var(--radius-md)] border border-(--color-line-strong) font-semibold text-(--color-ink) text-[length:var(--text-md)]"
+          // [개선] 버튼 둥근 정도는 sm(Button 과 같다 · 큰 버튼 알약 금지 · SPEC-056 F2)
+          className="h-[44px] w-full rounded-[var(--radius-sm)] border border-(--color-line-strong) font-semibold text-(--color-ink) text-[length:var(--text-md)]"
         >
           {t("common.ok")}
         </button>
@@ -922,7 +930,9 @@ export function BodyweightPanel({
             type="button"
             data-testid="btn-bodyweight-unset"
             onClick={() => setConfirmUnset(true)}
-            className="flex h-[44px] w-full items-center justify-center rounded-[var(--radius-md)] border border-(--color-line-strong) font-medium text-(--color-ink) text-[length:var(--text-md)] active:bg-(--color-surface-alt)"
+            // [원본] className="flex h-[44px] w-full items-center justify-center rounded-[var(--radius-md)] border border-(--color-line-strong) font-medium text-(--color-ink) text-[length:var(--text-md)] active:bg-(--color-surface-alt)"
+            // [개선] 버튼 둥근 정도는 sm(Button 과 같다 · 큰 버튼 알약 금지 · SPEC-056 F2)
+            className="flex h-[44px] w-full items-center justify-center rounded-[var(--radius-sm)] border border-(--color-line-strong) font-medium text-(--color-ink) text-[length:var(--text-md)] active:bg-(--color-surface-alt)"
           >
             {t("bodyweight.unsetAction")}
           </button>

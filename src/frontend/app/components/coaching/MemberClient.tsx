@@ -300,7 +300,9 @@ function Ended() {
       <a
         href="/coaching"
         data-testid="member-to-coaching"
-        className="inline-flex min-h-11 items-center rounded-[var(--radius-md)] border border-(--color-line) px-[var(--spacing-lg)] font-semibold text-(--color-ink) text-[length:var(--text-sm)]"
+        // [원본] className="inline-flex min-h-11 items-center rounded-[var(--radius-md)] border border-(--color-line) px-[var(--spacing-lg)] font-semibold text-(--color-ink) text-[length:var(--text-sm)]"
+        // [개선] Button secondary 와 같은 모양 — 둥근 sm · 누르는 것의 경계 line-strong(SPEC-056 F2·F7)
+        className="inline-flex min-h-11 items-center rounded-[var(--radius-sm)] border border-(--color-line-strong) px-[var(--spacing-lg)] font-semibold text-(--color-ink) text-[length:var(--text-sm)]"
       >
         {t("coaching.member.toCoaching")}
       </a>
@@ -366,7 +368,8 @@ function Period44({
       // [원본] 이름 없는 tablist · 화살표 이동 없음(코드 리뷰 L-5)
       aria-label={t("coaching.member.period")}
       data-testid="report-period"
-      className="mb-[var(--spacing-sm)] flex rounded-[10px] bg-(--color-surface-alt) p-[3px]"
+      // [원본] className="mb-[var(--spacing-sm)] flex rounded-[10px] bg-(--color-surface-alt) p-[3px]" · [개선] 분절 토글 판은 유지 · 둥근 정도만 토큰(SPEC-056 F2)
+      className="mb-[var(--spacing-sm)] flex rounded-[var(--radius-lg)] bg-(--color-surface-alt) p-[3px]"
       onKeyDown={(e) => {
         const next = rovingNext(e, values, value);
         if (!next) return;
@@ -386,7 +389,8 @@ function Period44({
             tabIndex={on ? 0 : -1}
             data-testid={it.testId}
             onClick={() => onChange(it.value)}
-            className={`flex min-h-11 min-w-0 flex-1 items-center justify-center rounded-[8px] text-[length:var(--text-sm)] ${
+            // [원본] rounded-[8px] · [개선] 토큰(SPEC-056 F2)
+            className={`flex min-h-11 min-w-0 flex-1 items-center justify-center rounded-[var(--radius-md)] text-[length:var(--text-sm)] ${
               on ? "bg-(--seg-on) font-semibold text-(--color-ink) shadow-sm" : "text-(--color-ink2)"
             }`}
           >
@@ -916,7 +920,9 @@ function WorkoutRow({
   ].filter(Boolean);
   return (
     <div
-      className="mb-[var(--spacing-sm)] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card)"
+      // [원본] className="mb-[var(--spacing-sm)] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card)"
+      // [개선] 운동마다 상자 대신 아래 가는 선으로 나뉜 줄(SPEC-056 F1 · 기록 탭 목록과 같다)
+      className="border-(--color-line) border-b"
       data-testid="member-workout"
       data-id={w.id}
     >
@@ -925,7 +931,8 @@ function WorkoutRow({
         aria-expanded={open}
         onClick={onToggle}
         data-testid="member-workout-toggle"
-        className="flex min-h-11 w-full min-w-0 items-center gap-[var(--spacing-sm)] px-[var(--spacing-md)] py-[var(--spacing-sm)] text-left"
+        // [원본] className="… px-[var(--spacing-md)] …" · [개선] 상자가 없어져 좌우 여백 px-xs(SPEC-056)
+        className="flex min-h-11 w-full min-w-0 items-center gap-[var(--spacing-sm)] px-[var(--spacing-xs)] py-[var(--spacing-sm)] text-left"
       >
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 items-center gap-[var(--spacing-xs)]">
@@ -958,7 +965,8 @@ function WorkoutRow({
       </button>
       {open ? (
         <div
-          className="border-(--color-line) border-t px-[var(--spacing-md)] py-[var(--spacing-sm)]"
+          // [원본] className="border-(--color-line) border-t px-[var(--spacing-md)] py-[var(--spacing-sm)]" · [개선] 상자가 없어져 px-xs(SPEC-056)
+          className="border-(--color-line) border-t px-[var(--spacing-xs)] py-[var(--spacing-sm)]"
           data-testid="member-workout-detail"
         >
           {w.exercises.map((e) => (
@@ -1034,7 +1042,9 @@ function BodyCard({ body, range }: { body: readonly string[]; range: { startMs: 
   return (
     <div
       data-testid="member-body-card"
-      className="mt-[var(--spacing-md)] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) p-[var(--spacing-md)]"
+      // [원본] className="mt-[var(--spacing-md)] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) p-[var(--spacing-md)]"
+      // [개선] 상자 대신 위 가는 선으로 나뉜 구역(SPEC-056 F1)
+      className="mt-[var(--spacing-md)] border-(--color-line) border-t py-[var(--spacing-md)]"
     >
       <div className="mb-[var(--spacing-sm)] flex items-center gap-[var(--spacing-xs)]">
         <Icon name="scale-outline" size={18} color="var(--color-ink2)" />

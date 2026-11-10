@@ -486,7 +486,8 @@ export default function CoachingClient() {
         {results && results.length > 0 ? (
           <div data-testid="coaching-results">
             {results.map((p) => (
-              <Card key={p.id} className="mb-[var(--spacing-sm)] flex items-center gap-[var(--spacing-sm)]">
+              // [원본] <Card key={p.id} className="mb-[var(--spacing-sm)] flex items-center gap-[var(--spacing-sm)]"> · [개선] 평평한 구역이 줄줄이 붙는 구분선 목록 — 틈 없음(SPEC-056 F1)
+              <Card key={p.id} className="flex items-center gap-[var(--spacing-sm)] py-[var(--spacing-md)]!">
                 <Avatar name={p.displayName} url={p.avatarUrl} size={36} />
                 <div className="min-w-0 flex-1">
                   {/* [원본] 이름만 · [개선] SPEC-052 — 활성 연결의 코치면 「코치」 배지(파생값) */}
@@ -686,7 +687,9 @@ function GrantRow({
   const statusId = useId();
   return (
     <Card
-      className="mb-[var(--spacing-sm)] flex items-center gap-[var(--spacing-sm)] py-[var(--spacing-md)]! pr-[var(--spacing-xs)]!"
+      // [원본] className="mb-[var(--spacing-sm)] flex items-center gap-[var(--spacing-sm)] py-[var(--spacing-md)]! pr-[var(--spacing-xs)]!"
+      // [개선] 평평한 구역이 줄줄이 붙는 구분선 목록 — 줄 사이 틈 없음(SPEC-056 F1)
+      className="flex items-center gap-[var(--spacing-sm)] py-[var(--spacing-md)]! pr-[var(--spacing-xs)]!"
       data-testid="coaching-grant"
       data-status={active ? "active" : grant.status === GrantStatus.PENDING ? "pending" : "revoked"}
     >
@@ -916,7 +919,9 @@ export function MemberRoutinesBody({
                   data-testid="member-exercise"
                   onClick={() => setEditing({ routine: r, block: b })}
                   // [원본] py-[var(--spacing-sm)] — 줄 높이가 44px 에 못 미쳤다(회원 화면 탭 · SPEC-050 P2)
-                  className="mt-[var(--spacing-xs)] flex min-h-11 w-full min-w-0 items-center gap-[var(--spacing-sm)] rounded-[var(--radius-md)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[var(--spacing-sm)] text-left"
+                  // [원본] className="mt-[var(--spacing-xs)] flex min-h-11 w-full min-w-0 items-center gap-[var(--spacing-sm)] rounded-[var(--radius-md)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[var(--spacing-sm)] text-left" — 회색 판 줄
+                  // [개선] 회색 판 대신 아래 가는 선으로 나뉜 줄(SPEC-056 F1)
+                  className="flex min-h-11 w-full min-w-0 items-center gap-[var(--spacing-sm)] border-(--color-line) border-b px-[var(--spacing-xs)] py-[var(--spacing-sm)] text-left"
                 >
                   <AppText variant="caption" className="min-w-0 flex-1 truncate">
                     {b.exerciseName || b.exerciseId}

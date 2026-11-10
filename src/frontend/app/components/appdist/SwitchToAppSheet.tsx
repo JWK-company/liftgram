@@ -29,8 +29,9 @@ import { AppText, Card } from "../ui/primitives";
 const STEPS = ["check", "download", "open", "done"] as const;
 type Step = (typeof STEPS)[number];
 
+// [원본] "… rounded-[var(--radius-md)] …" · [개선] 버튼 둥근 정도 sm(Button 과 같다 · SPEC-056 F2)
 const LINK =
-  "flex min-h-[48px] items-center justify-center rounded-[var(--radius-md)] bg-(--color-brand) px-[var(--spacing-lg)] font-semibold text-(--color-on-brand) focus-visible:outline-2 focus-visible:outline-(--color-ink) focus-visible:outline-offset-2";
+  "flex min-h-[48px] items-center justify-center rounded-[var(--radius-sm)] bg-(--color-brand) px-[var(--spacing-lg)] font-semibold text-(--color-on-brand) focus-visible:outline-2 focus-visible:outline-(--color-ink) focus-visible:outline-offset-2";
 
 export function SwitchToAppSheet({
   latest,

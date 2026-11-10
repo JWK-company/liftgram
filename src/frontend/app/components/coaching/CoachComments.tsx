@@ -61,7 +61,9 @@ export function CommentBubble({
     <div
       data-testid="coach-comment"
       data-id={c.id}
-      className="mb-[var(--spacing-sm)] min-w-0 rounded-[var(--radius-md)] border border-(--color-coaching) border-l-4 bg-(--color-coaching-soft) px-[var(--spacing-md)] py-[var(--spacing-sm)]"
+      // [원본] className="mb-[var(--spacing-sm)] min-w-0 rounded-[var(--radius-md)] border border-(--color-coaching) border-l-4 bg-(--color-coaching-soft) px-[var(--spacing-md)] py-[var(--spacing-sm)]"
+      // [개선] 둘레 상자는 걷고 청록 왼쪽 띠 + 옅은 청록 판만(코치 말이라는 뜻 · SPEC-056 F1 강조 띠)
+      className="mb-[var(--spacing-sm)] min-w-0 border-(--color-coaching) border-l-4 bg-(--color-coaching-soft) px-[var(--spacing-md)] py-[var(--spacing-sm)]"
     >
       <div className="flex min-w-0 items-center gap-[var(--spacing-xs)]">
         <AppText

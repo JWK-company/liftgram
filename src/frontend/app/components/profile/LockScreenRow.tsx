@@ -20,8 +20,9 @@ type LockRowState = {
   diag: string[];
 };
 
+// [원본] "… px-[var(--spacing-lg)] …" · [개선] 판 없는 ListGroup 에 맞춰 px-xs(ui/rows.tsx ListRow 와 같다 · SPEC-056)
 const SWITCH_ROW =
-  "flex min-h-[52px] w-full items-center gap-[var(--spacing-md)] px-[var(--spacing-lg)] py-[var(--spacing-md)] text-left active:bg-(--color-surface-alt) focus-visible:outline-2 focus-visible:outline-(--color-brand)";
+  "flex min-h-[52px] w-full items-center gap-[var(--spacing-md)] px-[var(--spacing-xs)] py-[var(--spacing-md)] text-left active:bg-(--color-surface-alt) focus-visible:outline-2 focus-visible:outline-(--color-brand)";
 
 export function LockScreenRow() {
   const { user } = useAuth();
@@ -181,7 +182,11 @@ export function LockScreenRow() {
       {/* 진단 기록(SPEC-020) — 실기기에서 왜 안 떴는지 보이게(화면 꺼짐·켜짐 · 고른 길 · 결과). 운동 이름·값은 없다.
           협업자·관리자에게만 보인다(SPEC-025 — 일반 사용자에게는 뜻이 없는 기록이다). 알림이 꺼져 있어도 보인다(일부러 — 원인 확인용) · 기록 문구는 네이티브 한국어 고정(개발 진단용 · REV-017 웹 #5 보류) */}
       {isInsider(user?.role) && state.lockScreen && state.diag.length > 0 ? (
-        <details data-testid="row-lock-diag" className="px-[var(--spacing-lg)] py-[var(--spacing-md)]">
+        <details
+          data-testid="row-lock-diag"
+          // [원본] className="px-[var(--spacing-lg)] py-[var(--spacing-md)]" · [개선] ListRow 와 같은 px-xs(SPEC-056)
+          className="px-[var(--spacing-xs)] py-[var(--spacing-md)]"
+        >
           <summary className="min-h-[44px] cursor-pointer focus-visible:outline-2 focus-visible:outline-(--color-brand) py-[var(--spacing-sm)] text-(--color-ink2) text-[length:var(--text-sm)]">
             {t("profile.lockDiag")}
           </summary>
