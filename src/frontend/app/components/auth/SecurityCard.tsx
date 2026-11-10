@@ -92,7 +92,10 @@ export function SecurityCard() {
           </AppText>
         ) : (
           <div
-            className="mt-[var(--spacing-sm)] rounded-[var(--radius-md)] border border-(--color-warn) p-[var(--spacing-md)]"
+            // [원본] className="mt-[var(--spacing-sm)] rounded-[var(--radius-md)] border border-(--color-warn) p-[var(--spacing-md)]" — 구역 안 상자
+            // [개선] 상자 대신 왼쪽 경고색 강조선(SPEC-056 F1 · P6 코드 리뷰 M-1)
+            className="mt-[var(--spacing-sm)] py-[var(--spacing-xs)] pl-[var(--spacing-md)]"
+            style={{ boxShadow: "inset 3px 0 0 var(--color-warn)" }}
             data-testid="verify-banner"
           >
             <AppText variant="caption" className="block">

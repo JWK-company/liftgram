@@ -131,7 +131,16 @@ for (const scheme of ["light", "dark"] as const) {
     await noOverflow(page);
     await 마치기(page);
 
-    for (const route of ["/", "/calendar", "/stats", "/profile", "/exercises"]) {
+    for (const route of [
+      "/",
+      "/calendar",
+      "/stats",
+      "/profile",
+      "/exercises",
+      "/gear",
+      "/history",
+      "/routines/new",
+    ]) {
       await page.goto(route);
       await page.waitForTimeout(1500);
       expect(await boxes(page), `${route} 화면 안 상자`).toEqual([]);

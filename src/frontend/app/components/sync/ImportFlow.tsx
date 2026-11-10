@@ -243,6 +243,7 @@ function ProgressBar({ ratio, label, testId }: { ratio: number | null; label: st
         className="mt-[6px] h-2 w-full overflow-hidden rounded-[var(--radius-pill)] bg-(--color-surface-alt)"
       >
         <div
+          // [원본] className={`h-full rounded-full bg-(--color-brand) …`} · [개선] 둥근 정도 토큰(SPEC-056 F2)
           className={`h-full rounded-[var(--radius-pill)] bg-(--color-brand) ${pct == null ? "w-1/3 animate-pulse" : ""}`}
           style={pct == null ? undefined : { width: `${pct}%` }}
         />
