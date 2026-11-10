@@ -194,7 +194,8 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
             <ol className="flex flex-col gap-[var(--spacing-sm)]">
               {instructions.map((step, i) => (
                 <li key={step} className="flex gap-[var(--spacing-sm)]">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-(--color-surface-alt)">
+                  {/* [원본] <span className="flex h-6 w-6 … rounded-[var(--radius-pill)] bg-(--color-surface-alt)"> — 회색 원 · [개선] 번호 글자만(SPEC-056 F5) */}
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center">
                     <AppText variant="caption" color="primary" className="font-bold">
                       {String(i + 1)}
                     </AppText>

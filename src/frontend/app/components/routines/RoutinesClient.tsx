@@ -636,9 +636,10 @@ export default function RoutinesClient() {
           // [개선] 같은 행동이 바로 위 「새 루틴 만들기」 버튼에 있다 @plm SRS-093
         />
 
-        {folderGroups.map(([name, members]) => (
+        {folderGroups.map(([name, members], i) => (
           <FolderGroup
             key={name}
+            first={i === 0}
             name={name}
             members={members}
             open={openFolders[name] ?? false}
@@ -662,7 +663,8 @@ export default function RoutinesClient() {
             // [개선] 빈 상태는 안내만 — 같은 행동이 머리 「+ 새 루틴」에 있고, 빨강 채움이 「빠른 운동 시작」과 겹쳤다(P3 QA M2) @plm SRS-071
           />
         ) : (
-          <ListGroup testId="routine-list">
+          // [원본] <ListGroup testId="routine-list"> · [개선] 폴더 묶음 바로 아래면 윗선이 겹치지 않게(SPEC-056 F1)
+          <ListGroup testId="routine-list" className={folderGroups.length ? "border-t-0!" : ""}>
             {loose.map((r) => (
               <RoutineRow
                 key={r.id}
@@ -696,7 +698,8 @@ export default function RoutinesClient() {
               className="mt-[var(--spacing-xl)]"
               title={t(section === "beginner" ? "concept.sectionBeginner" : "concept.sectionTitle")}
             />
-            <div className="grid grid-cols-2 gap-[var(--spacing-sm)]">
+            {/* [원본] <div className="grid grid-cols-2 gap-[var(--spacing-sm)]"> · [개선] 칸 사이 세로 틈 없이 아래 선만 이어지게(SPEC-056 F1) */}
+            <div className="grid grid-cols-2 gap-x-[var(--spacing-lg)]">
               {topics.map((c) => (
                 <button
                   key={c.id}
@@ -704,7 +707,9 @@ export default function RoutinesClient() {
                   data-testid={`concept-topic-${c.id}`}
                   onClick={() => setCreatorTopic(c)}
                   // min-w-0 이 없으면 긴 이름이 카드를 밀어 화면 전체가 가로로 넘친다(flex 기본값 함정).
-                  className="flex min-w-0 flex-1 flex-col gap-[2px] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface) p-[var(--spacing-md)] text-left"
+                  // [원본] className="flex min-w-0 flex-1 flex-col gap-[2px] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface) p-[var(--spacing-md)] text-left"
+                  // [개선] 상자 타일 대신 아래 가는 선 한 칸(SPEC-056 F1)
+                  className="flex min-h-[44px] min-w-0 flex-1 flex-col gap-[2px] border-(--color-line) border-b py-[var(--spacing-md)] text-left active:opacity-70"
                 >
                   <AppText variant="body" className="block truncate font-bold">
                     {lang === "ko" ? c.nameKo : c.nameEn}
@@ -726,14 +731,17 @@ export default function RoutinesClient() {
               {t("tips.sectionBlurb")}
             </AppText> */}
             {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
-            <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-[var(--spacing-sm)]">
+            {/* [원본] <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-[var(--spacing-sm)]"> · [개선] 아래 선만(SPEC-056 F1) */}
+            <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-x-[var(--spacing-lg)]">
               {tipTopics.map((c) => (
                 <button
                   key={c.id}
                   type="button"
                   data-testid={`tip-topic-${c.id}`}
                   onClick={() => setTipTopic(c)}
-                  className="flex min-w-0 flex-1 flex-col gap-[2px] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface) p-[var(--spacing-md)] text-left"
+                  // [원본] className="flex min-w-0 flex-1 flex-col gap-[2px] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface) p-[var(--spacing-md)] text-left"
+                  // [개선] 상자 타일 대신 아래 가는 선 한 칸(SPEC-056 F1)
+                  className="flex min-h-[44px] min-w-0 flex-1 flex-col gap-[2px] border-(--color-line) border-b py-[var(--spacing-md)] text-left active:opacity-70"
                 >
                   <AppText variant="body" className="block truncate font-bold">
                     {lang === "ko" ? c.nameKo : c.nameEn}
@@ -916,7 +924,9 @@ function EntryRow({
       data-testid={testId}
       onClick={onPress}
       disabled={disabled}
-      className="mb-[var(--spacing-sm)] flex w-full items-center gap-[var(--spacing-sm)] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface) px-[var(--spacing-md)] py-[var(--spacing-md)] disabled:opacity-45"
+      // [원본] className="mb-[var(--spacing-sm)] flex w-full items-center gap-[var(--spacing-sm)] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface) px-[var(--spacing-md)] py-[var(--spacing-md)] disabled:opacity-45"
+      // [개선] 평평한 기록지(SPEC-056 F1) — 상자 없이 아래 가는 선으로 나뉜 한 줄(누르는 자리 44px 이상)
+      className="flex min-h-[44px] w-full items-center gap-[var(--spacing-sm)] border-(--color-line) border-b py-[var(--spacing-md)] disabled:opacity-45"
     >
       <Icon name={icon} size={18} color="var(--color-brand)" />
       <AppText variant="body" className="flex-1 text-left font-semibold">
@@ -949,10 +959,9 @@ function WeekStrip({
         return (
           <span
             key={d}
-            style={{
-              borderColor: isToday ? "var(--color-brand)" : "var(--color-line)",
-              backgroundColor: isToday ? "var(--color-brand-muted)" : "var(--color-surface-alt)",
-            }}
+            // [원본] style={{ borderColor: isToday ? "var(--color-brand)" : "var(--color-line)", backgroundColor: isToday ? "var(--color-brand-muted)" : "var(--color-surface-alt)" }}
+            // [개선] 회색 판 일곱 칸을 걷고 오늘만 빨강 테두리(채움 없음 · SPEC-056 F1·F6)
+            style={{ borderColor: isToday ? "var(--color-brand)" : "transparent" }}
             className="flex flex-1 flex-col items-center rounded-[var(--radius-sm)] border py-[6px]"
           >
             <AppText
@@ -1033,7 +1042,9 @@ function TodayCard({
               icon="play"
               size="sm"
               // [원본] variant={primary ? "primary" : "secondary"} — 주 행동이 아니면 회색이라 아래 루틴 줄(옅은 강조)보다 약해 보였다(리뷰 2026-11-09)
-              variant={primary ? "primary" : "tonalOnTint"}
+              // [원본] variant={primary ? "primary" : "tonalOnTint"} — 분홍 카드 위 판이었다
+              // [개선] 카드가 평평해져(왼쪽 강조선) 판 없는 빨강 글자 — 루틴 「▶ 시작」과 같은 규칙(SPEC-056 F4)
+              variant={primary ? "primary" : "ghost"}
               fullWidth={false}
               disabled={busy}
               testId="btn-start-today"
@@ -1047,7 +1058,9 @@ function TodayCard({
   }
 
   return (
-    <Card alt className="mb-[var(--spacing-sm)]">
+    // [원본] <Card alt className="mb-[var(--spacing-sm)]"> — 옅은 판
+    // [개선] 안내뿐인 구역이라 평평하게(SPEC-056 F1)
+    <Card>
       <AppText variant="label" color="textMuted">
         {t("schedule.todayLabel")}
       </AppText>
@@ -1104,7 +1117,9 @@ function NextCard({
         })
       : null;
   return (
-    <Card className="mb-[var(--spacing-sm)]" style={originStripeStyle(routine)}>
+    // [원본] <Card className="mb-[var(--spacing-sm)]" style={originStripeStyle(routine)}>
+    // [개선] 평평한 구역은 아래 선으로 나뉘어 사이 여백이 필요 없다 · 코치 띠는 Card 가 안쪽 여백을 준다(SPEC-056)
+    <Card style={originStripeStyle(routine)}>
       <div className="flex items-center" data-testid="next-card">
         <div className="mr-[var(--spacing-md)] min-w-0 flex-1">
           <AppText variant="label" color="textMuted">
@@ -1141,7 +1156,8 @@ function NextCard({
 /** 주 행동을 정하기 전 「다음 운동」 카드 자리 — 같은 높이로 비워 둔다(빠른 시작이 밀려 내려가지 않게 · /qa M-2 M-2). */
 function NextCardSkeleton() {
   return (
-    <Card className="mb-[var(--spacing-sm)]" aria-hidden>
+    // [원본] <Card className="mb-[var(--spacing-sm)]" aria-hidden> · [개선] 평평한 구역(SPEC-056)
+    <Card aria-hidden>
       <div className="flex items-center" data-testid="next-card-skeleton">
         <div className="mr-[var(--spacing-md)] min-w-0 flex-1">
           <div className="h-[14px] w-[64px] rounded-[4px] bg-(--color-surface-alt)" />
@@ -1181,7 +1197,8 @@ function RecoCard({
 }) {
   if (reco.status !== "ok" || !reco.routineId || !reco.muscle) {
     return (
-      <Card alt className="mb-[var(--spacing-sm)]">
+      // [원본] <Card alt className="mb-[var(--spacing-sm)]"> — 옅은 판 · [개선] 평평한 구역(SPEC-056 F1)
+      <Card>
         <AppText variant="label" color="textMuted">
           {t("routines.todayRecoLabel")}
         </AppText>
@@ -1216,7 +1233,9 @@ function RecoCard({
             icon="play"
             size="sm"
             // [원본] variant={primary ? "primary" : "secondary"} — 주 행동이 아니면 회색이라 아래 루틴 줄(옅은 강조)보다 약해 보였다(리뷰 2026-11-09)
-            variant={primary ? "primary" : "tonalOnTint"}
+            // [원본] variant={primary ? "primary" : "tonalOnTint"} — 분홍 카드 위 판이었다
+            // [개선] 판 없는 빨강 글자(SPEC-056 F4)
+            variant={primary ? "primary" : "ghost"}
             fullWidth={false}
             disabled={busy}
             testId="btn-start-reco"
@@ -1241,7 +1260,10 @@ function FolderGroup({
   onActions,
   onCopy,
   todayId = null,
+  first = false,
 }: {
+  /** 맨 위 폴더 — 평평한 목록의 윗선을 긋는다(SPEC-056 F1) */
+  first?: boolean;
   name: string;
   members: Routine[];
   open: boolean;
@@ -1257,7 +1279,9 @@ function FolderGroup({
 }) {
   const [preview, setPreview] = useState<Routine | null>(null); // 루틴 미리보기(SPEC-045)
   return (
-    <Card className="mb-[var(--spacing-md)]" data-testid="folder-group">
+    // [원본] <Card className="mb-[var(--spacing-md)]" data-testid="folder-group">
+    // [개선] 폴더도 구분선 목록의 한 칸 — 사이 여백 없이 이어지고 맨 위 폴더만 윗선(SPEC-056 F1)
+    <Card className={first ? "border-t" : ""} data-testid="folder-group">
       {preview ? (
         <RoutinePreviewSheet
           repo={repo}
@@ -1333,7 +1357,7 @@ function FolderGroup({
               <Button
                 title={t("routines.start")}
                 size="sm"
-                variant="tonal"
+                variant="ghost" // [원본] variant="tonal" — 연한 빨강 판 · [개선] 판 없는 빨강 글자(SPEC-056 F4 · 사용자 피드백)
                 icon="play"
                 fullWidth={false}
                 disabled={busy}
@@ -1376,7 +1400,9 @@ function RoutineRow({
   return (
     // 코치 루틴 왼쪽 청록 띠(SPEC-050 P3a) — 안쪽 그림자라 줄 자리가 그대로다
     <div
-      className="px-[var(--spacing-lg)] py-[var(--spacing-md)]"
+      // [원본] className="px-[var(--spacing-lg)] py-[var(--spacing-md)]" — 상자 목록 안쪽 여백
+      // [개선] 판 없는 구분선 목록이라 좌우 여백 없음 · 코치 띠가 있으면 띠 옆만 띄운다(SPEC-056 F1)
+      className={`py-[var(--spacing-md)] ${originStripeStyle(routine) ? "pl-[var(--spacing-md)]" : ""}`}
       style={originStripeStyle(routine)}
       data-origin={routine.origin ?? undefined}
     >
@@ -1433,7 +1459,7 @@ function RoutineRow({
           <Button
             title={t("routines.start")}
             size="sm"
-            variant="tonal"
+            variant="ghost" // [원본] variant="tonal" — 연한 빨강 판 · [개선] 판 없는 빨강 글자(SPEC-056 F4 · 사용자 피드백)
             icon="play"
             fullWidth={false}
             disabled={busy}
@@ -1481,7 +1507,9 @@ function CatchUpCard({
 }) {
   if (!name) return null; // 지워진 루틴을 가리키고 있다 — 권할 것이 없다
   return (
-    <Card className="mb-[var(--spacing-sm)]" data-testid="catchup-card">
+    // [원본] <Card className="mb-[var(--spacing-sm)]" data-testid="catchup-card">
+    // [개선] 놓친 루틴 = 왼쪽 주황(경고) 강조선의 평평한 구역(SPEC-056 REV-122)
+    <Card accent="var(--color-warn)" data-testid="catchup-card">
       <AppText variant="label" color="warning" className="block">
         {t("schedule.catchUpLabel")}
       </AppText>
@@ -1499,7 +1527,7 @@ function CatchUpCard({
         <Button
           title={t("schedule.startThis")}
           size="sm"
-          variant="tonal"
+          variant="ghost" // [원본] variant="tonal" — 연한 빨강 판 · [개선] 판 없는 빨강 글자(SPEC-056 F4 · 사용자 피드백)
           fullWidth={false}
           disabled={busy}
           onPress={onStart}

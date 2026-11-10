@@ -480,7 +480,8 @@ export function PrescriptionRows({
             data-testid="scheme-chip"
             data-scheme={schemeOf(rows) ?? ""}
             onClick={() => setSchemeOpen(true)}
-            className="flex min-h-[44px] items-center self-start rounded-full border border-(--color-line) bg-(--color-surface-alt) px-[14px]"
+            // [원본] className="… rounded-full border border-(--color-line) bg-(--color-surface-alt) px-[14px]" — 누르는 값 칩(판 유지) · [개선] 둥근 정도는 토큰(SPEC-056 F2)
+            className="flex min-h-[44px] items-center self-start rounded-[var(--radius-pill)] border border-(--color-line) bg-(--color-surface-alt) px-[14px]"
           >
             <AppText variant="label" color="text">
               {t("scheme.chip", { name: schemeChipName(rows, allowLoad) })} ▾
@@ -711,7 +712,8 @@ export function PrescriptionRows({
           <Button
             title={t("routines.rxAddSet")}
             icon="add"
-            variant="secondary"
+            // [원본] variant="secondary" · [개선] 종목마다 반복되는 보조 행동이라 회색 글자(SPEC-056 F4 · 운동 화면 「세트 추가」와 같다)
+            variant="quiet"
             size="sm"
             testId="rx-add-set"
             onPress={addSet}
@@ -720,7 +722,8 @@ export function PrescriptionRows({
         <div className="flex-1">
           <Button
             title={t("routines.setAddWarmup")}
-            variant="secondary"
+            // [원본] variant="secondary" · [개선] 종목마다 반복되는 보조 행동이라 회색 글자(SPEC-056 F4 · 운동 화면 「세트 추가」와 같다)
+            variant="quiet"
             size="sm"
             testId="rx-add-warmup"
             onPress={addWarmup}

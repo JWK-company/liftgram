@@ -412,7 +412,9 @@ export default function ExercisePickerScreen({
             ) : (
               <ul
                 data-testid="picker-list"
-                className="mt-[var(--spacing-xs)] overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>li+li]:border-(--color-line) [&>li+li]:border-t"
+                // [원본] className="mt-[var(--spacing-xs)] overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>li+li]:border-(--color-line) [&>li+li]:border-t"
+                // [개선] 평평한 기록지(SPEC-056 F1) — 큰 상자 대신 가는 선만
+                className="mt-[var(--spacing-xs)] overflow-hidden border-(--color-line) border-y [&>li+li]:border-(--color-line) [&>li+li]:border-t"
               >
                 {rows.map(({ e, info, alias }) => (
                   <li key={e.id}>
@@ -435,7 +437,8 @@ export default function ExercisePickerScreen({
                 <AppText variant="label" color="textFaint" className="block pb-[var(--spacing-xs)]">
                   비슷한 운동
                 </AppText>
-                <ul className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>li+li]:border-(--color-line) [&>li+li]:border-t">
+                {/* [원본] <ul className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>li+li]:border-(--color-line) [&>li+li]:border-t"> · [개선] 가는 선만(SPEC-056 F1) */}
+                <ul className="overflow-hidden border-(--color-line) border-y [&>li+li]:border-(--color-line) [&>li+li]:border-t">
                   {similar.map((e) => (
                     <li key={e.id}>
                       <PickRow
@@ -503,16 +506,21 @@ const PickRow = memo(function PickRow({
       data-testid={`pick-${e.id}`}
       aria-pressed={mode === "multi" ? selected : undefined}
       onClick={() => onPress(e.id, info)}
-      className={`flex min-h-[60px] w-full items-center gap-[var(--spacing-md)] px-[var(--spacing-md)] py-[var(--spacing-sm)] text-left active:bg-(--color-surface-alt) ${
-        selected ? "bg-(--color-brand-muted)" : ""
+      // [원본] className={`flex min-h-[60px] w-full items-center gap-[var(--spacing-md)] px-[var(--spacing-md)] py-[var(--spacing-sm)] text-left active:bg-(--color-surface-alt) ${selected ? "bg-(--color-brand-muted)" : ""}`}
+      // [개선] 고른 줄은 바탕 채움 대신 왼쪽 빨강 강조선 + 순서 번호(SPEC-056 F6) · 판 없는 목록이라 좌우 여백 없음
+      style={selected ? { boxShadow: "inset 3px 0 0 var(--color-brand)" } : undefined}
+      className={`flex min-h-[60px] w-full items-center gap-[var(--spacing-md)] py-[var(--spacing-sm)] text-left active:bg-(--color-surface-alt) ${
+        selected ? "pl-[var(--spacing-md)]" : ""
       }`}
     >
       {hasPictogram(e.id) ? (
-        <span className="h-10 w-12 shrink-0 overflow-hidden rounded-[var(--radius-sm)] bg-(--color-surface-alt)">
+        // [원본] <span className="h-10 w-12 shrink-0 overflow-hidden rounded-[var(--radius-sm)] bg-(--color-surface-alt)"> · [개선] 그림만(SPEC-056 F5)
+        <span className="h-10 w-12 shrink-0 overflow-hidden">
           <Pictogram exerciseId={e.id} className="h-full w-full" />
         </span>
       ) : (
-        <span className="flex h-10 w-12 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-(--color-surface-alt)">
+        // [원본] <span className="flex h-10 w-12 … rounded-[var(--radius-sm)] bg-(--color-surface-alt)"> · [개선] 아이콘만(SPEC-056 F5)
+        <span className="flex h-10 w-12 shrink-0 items-center justify-center">
           <Icon name="barbell-outline" size={18} color="var(--color-ink3)" />
         </span>
       )}
@@ -537,7 +545,8 @@ const PickRow = memo(function PickRow({
       {mode === "multi" ? (
         <span
           data-testid={selected ? "pick-order" : undefined}
-          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 font-bold text-[length:var(--text-sm)] ${
+          // [원본] rounded-full · [개선] 둥근 정도는 토큰(SPEC-056 F2)
+          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--radius-pill)] border-2 font-bold text-[length:var(--text-sm)] ${
             selected
               ? "border-(--color-brand) bg-(--color-brand) text-(--color-on-brand)"
               : "border-(--color-line-strong)"

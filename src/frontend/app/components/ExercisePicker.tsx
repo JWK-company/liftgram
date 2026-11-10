@@ -178,7 +178,8 @@ function PickRow({ e, alias, onPress }: { e: Row; alias: string | null; onPress:
     >
       {/* P5: 이름만으로 헷갈리는 종목을 그림으로 가린다(피드백 #8) — 시드 종목만, 정지 그림 @plm SRS-055 */}
       {hasPictogram(e.id) ? (
-        <span className="h-8 w-10 shrink-0 overflow-hidden rounded-[var(--radius-sm)] bg-(--color-surface-alt)">
+        // [원본] <span className="h-8 w-10 shrink-0 overflow-hidden rounded-[var(--radius-sm)] bg-(--color-surface-alt)"> · [개선] 그림만(SPEC-056 F5)
+        <span className="h-8 w-10 shrink-0 overflow-hidden">
           <Pictogram exerciseId={e.id} className="h-full w-full" />
         </span>
       ) : null}

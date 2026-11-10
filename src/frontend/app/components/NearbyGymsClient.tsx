@@ -368,8 +368,10 @@ function GymCard({ gym, recommended }: { gym: RankedGym; recommended?: boolean }
     <Card
       boxed={recommended}
       data-testid={recommended ? "gym-recommended" : "gym-row"}
-      className={`mb-[var(--spacing-sm)] flex items-center ${
-        recommended ? "border border-(--color-brand) bg-(--color-brand-muted)" : ""
+      // [원본] className={`mb-[var(--spacing-sm)] flex items-center ${recommended ? "border border-(--color-brand) bg-(--color-brand-muted)" : ""}`}
+      // [개선] 평평한 줄은 아래 선으로 나뉘어 사이 여백이 없다 — 추천 상자만 아래 여백(SPEC-056 F1)
+      className={`flex items-center ${
+        recommended ? "mb-[var(--spacing-sm)] border border-(--color-brand) bg-(--color-brand-muted)" : ""
       }`}
     >
       <div className="min-w-0 flex-1 pr-[var(--spacing-md)]">

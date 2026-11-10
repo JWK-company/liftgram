@@ -757,7 +757,9 @@ export default function RoutineImport({
           {resume ? (
             <div
               data-testid="import-resume"
-              className="mt-[var(--spacing-md)] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) p-[var(--spacing-md)]"
+              // [원본] className="mt-[var(--spacing-md)] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) p-[var(--spacing-md)]"
+              // [개선] 상자 대신 아래 가는 선의 구역(SPEC-056 F1)
+              className="mt-[var(--spacing-md)] border-(--color-line) border-b py-[var(--spacing-md)]"
             >
               <AppText variant="body" className="block font-semibold">
                 {t("routineImport.resumeTitle")}
@@ -1019,7 +1021,8 @@ export default function RoutineImport({
                     className="mb-[var(--spacing-sm)] w-full rounded-[var(--radius-sm)] border border-(--color-line) bg-transparent min-h-[44px] px-[var(--spacing-sm)] py-[var(--spacing-xs)] font-semibold text-(--color-ink)"
                   />
                 ) : null}
-                <ul className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>li+li]:border-(--color-line) [&>li+li]:border-t">
+                {/* [원본] <ul className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) …"> · [개선] 가는 선만(SPEC-056 F1) */}
+                <ul className="overflow-hidden border-(--color-line) border-y [&>li+li]:border-(--color-line) [&>li+li]:border-t">
                   {d.items.map((row) => (
                     <RowCard
                       key={row.key}

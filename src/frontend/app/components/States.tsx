@@ -19,7 +19,9 @@ export function Loading({ label = "불러오는 중" }: { label?: string }) {
     <div
       role="status"
       aria-busy="true"
-      className="flex flex-col items-center gap-3 rounded-xl bg-(--color-card) p-8"
+      // [원본] className="flex flex-col items-center gap-3 rounded-xl bg-(--color-card) p-8"
+      // [개선] 평평한 기록지(SPEC-056 F1·F2) — 판 없이 가운데 정렬만
+      className="flex flex-col items-center gap-3 p-8"
       data-testid="state-loading"
     >
       <LogoSpinner size={52} />
@@ -32,7 +34,9 @@ export function Loading({ label = "불러오는 중" }: { label?: string }) {
 export function Empty({ title, hint, action }: { title: string; hint: string; action?: React.ReactNode }) {
   return (
     <div
-      className="rounded-xl border border-dashed border-(--color-line) p-8 text-center"
+      // [원본] className="rounded-xl border border-dashed border-(--color-line) p-8 text-center"
+      // [개선] 점선 상자 없이(SPEC-056 F1)
+      className="p-8 text-center"
       data-testid="state-empty"
     >
       <p className="font-semibold text-(--color-ink)">{title}</p>
@@ -45,14 +49,21 @@ export function Empty({ title, hint, action }: { title: string; hint: string; ac
 /** 실패했을 때. message는 서버가 준 problem+json의 detail을 그대로 넣는 것을 기본으로 한다. */
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
-    <div className="rounded-xl border border-(--color-warn) bg-(--color-card) p-6" data-testid="state-error">
+    // [원본] <div className="rounded-xl border border-(--color-warn) bg-(--color-card) p-6" data-testid="state-error">
+    // [개선] 오류는 알림 띠라 상자 유지 · 둥근 정도만 토큰(SPEC-056 F1·F2)
+    <div
+      className="rounded-[var(--radius-md)] border border-(--color-warn) bg-(--color-card) p-6"
+      data-testid="state-error"
+    >
       <p className="font-semibold text-(--color-warn)">문제가 발생했습니다</p>
       <p className="mt-1 text-sm text-(--color-ink2)">{message}</p>
       {onRetry ? (
         <button
           type="button"
           onClick={onRetry}
-          className="mt-4 rounded-lg border border-(--color-line) px-3 py-2 text-sm"
+          // [원본] className="mt-4 rounded-lg border border-(--color-line) px-3 py-2 text-sm"
+          // [개선] 둥근 정도 토큰 · 누르는 것의 경계 line-strong · 44px(SPEC-056 F2·F7)
+          className="mt-4 min-h-[44px] rounded-[var(--radius-sm)] border border-(--color-line-strong) px-3 py-2 text-sm"
         >
           다시 시도
         </button>

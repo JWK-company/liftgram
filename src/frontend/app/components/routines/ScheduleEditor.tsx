@@ -186,7 +186,8 @@ export function ScheduleEditor({
               className={`rounded-[var(--radius-pill)] border px-[var(--spacing-md)] py-[var(--spacing-xs)] ${
                 on
                   ? "border-(--color-brand) bg-(--color-brand-muted)"
-                  : "border-(--color-line) bg-(--color-surface-alt)"
+                  : // [원본] "border-(--color-line) bg-(--color-surface-alt)" · [개선] 회색 판 대신 경계선만(SPEC-056 F7 · ui/Chip 과 같다)
+                    "border-(--color-line-strong) bg-(--color-card)"
               }`}
             >
               <AppText variant="caption" color={on ? "primary" : "text"} className={on ? "font-bold!" : ""}>

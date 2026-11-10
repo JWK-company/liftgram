@@ -653,7 +653,9 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
             title={t("routines.addExercise")}
             icon="add"
             // [원본] variant="secondary"
-            variant={exercises.length === 0 ? "primary" : "secondary"}
+            // [원본] variant={exercises.length === 0 ? "primary" : "secondary"}
+            // [개선] 종목이 있으면 반복되는 보조 행동이라 회색 글자(SPEC-056 F4 · 운동 화면 「세트 추가」와 같다)
+            variant={exercises.length === 0 ? "primary" : "quiet"}
             testId="btn-add-routine-exercise"
             onPress={() => setPicking({ mode: "add" })}
           />
@@ -1203,9 +1205,11 @@ function FolderChip({
     <button
       type="button"
       onClick={onPress}
+      // [원본] style={{ backgroundColor: active ? "var(--color-brand-muted)" : "var(--color-surface-alt)", borderColor: active ? "var(--color-brand)" : "var(--color-line)" }}
+      // [개선] 고르지 않은 칸은 회색 판 대신 바탕 + 누르는 것의 경계(line-strong) — ui/Chip 과 같은 규칙(SPEC-056 F7)
       style={{
-        backgroundColor: active ? "var(--color-brand-muted)" : "var(--color-surface-alt)",
-        borderColor: active ? "var(--color-brand)" : "var(--color-line)",
+        backgroundColor: active ? "var(--color-brand-muted)" : "var(--color-card)",
+        borderColor: active ? "var(--color-brand)" : "var(--color-line-strong)",
       }}
       className="flex items-center gap-[4px] rounded-[var(--radius-md)] border px-[var(--spacing-sm)] py-[6px]"
     >
@@ -1545,7 +1549,8 @@ function CardioTargetFields({
             value={vals[m] ?? ""}
             onChange={(e) => setVals((v) => ({ ...v, [m]: e.target.value }))}
             onBlur={persist}
-            className="w-full rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface) px-[var(--spacing-md)] py-[var(--spacing-sm)] text-center text-[length:var(--text-md)] text-(--color-ink) placeholder:text-(--color-ink3)"
+            // [원본] border-(--color-line) bg-(--color-surface) · [개선] 입력칸 경계는 line-strong(SPEC-056 F7)
+            className="w-full rounded-[var(--radius-sm)] border border-(--color-line-strong) bg-transparent px-[var(--spacing-md)] py-[var(--spacing-sm)] text-center text-[length:var(--text-md)] text-(--color-ink) placeholder:text-(--color-ink3)"
           />
         </div>
       ))}

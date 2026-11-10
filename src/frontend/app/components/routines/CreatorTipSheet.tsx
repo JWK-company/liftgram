@@ -53,7 +53,9 @@ export function TipRow({ tip, onPress, testId }: { tip: CreatorTip; onPress: () 
       type="button"
       data-testid={testId ?? `tip-row-${tip.id}`}
       onClick={onPress}
-      className="flex min-w-0 flex-col gap-[4px] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface) p-[var(--spacing-md)] text-left"
+      // [원본] className="flex min-w-0 flex-col gap-[4px] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface) p-[var(--spacing-md)] text-left"
+      // [개선] 상자 대신 아래 가는 선으로 나뉜 줄(SPEC-056 F1)
+      className="flex min-h-[44px] min-w-0 flex-col gap-[4px] border-(--color-line) border-b py-[var(--spacing-md)] text-left active:opacity-70"
     >
       <AppText variant="body" className="block break-words font-bold">
         {tip.titleKo}
@@ -239,7 +241,8 @@ export function CreatorTipTopicSheet({ topic, onClose }: { topic: TipTopic; onCl
             </AppText>
           )} */}
           {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
-          <div className="mt-[var(--spacing-sm)] flex flex-col gap-[var(--spacing-sm)]">
+          {/* [원본] <div className="mt-[var(--spacing-sm)] flex flex-col gap-[var(--spacing-sm)]"> · [개선] 구분선 목록이라 틈 없음(SPEC-056 F1) */}
+          <div className="mt-[var(--spacing-sm)] flex flex-col border-(--color-line) border-t">
             {tips.map((tip) => (
               <TipRow key={tip.id} tip={tip} onPress={() => setPicked(tip)} />
             ))}

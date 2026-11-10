@@ -202,7 +202,10 @@ test("루틴이 있으면 오늘 할 루틴 「시작」이 주 행동, 빠른 �
         brand: probe("--color-brand"),
       };
     });
-  expect(tone.bg).toBe(tone.muted);
+  // [원본] expect(tone.bg).toBe(tone.muted);
+  // SPEC-056: 루틴 「▶ 시작」은 판 없는 빨강 글자(ghost) — 연한 판을 걷었다(사용자 피드백 · F4 예외)
+  expect(tone.bg).toBe("rgba(0, 0, 0, 0)");
+  expect(tone.bg).not.toBe(tone.muted);
   expect(tone.fg).toBe(tone.brand);
   // 주 버튼이 아닌 「새 루틴 만들기」·「빠른 운동 시작」은 테두리 강조(빨간 테두리·글자 · 카드 판) — 빨강 채움 아님
   for (const id of ["btn-new-routine", "btn-quick-start"]) {
