@@ -87,7 +87,10 @@ export function Overlay({
   }, [root]);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    // [원본] const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    // [개선] 안쪽에서 이미 처리한 Esc(preventDefault — 체중 패널 안 목표·고치기 입력 닫기)는 시트를 닫지 않는다.
+    //   React 리스너와 이 리스너가 같은 document 에 붙어 stopPropagation 으로는 막히지 않는다(2026-11-10 리뷰 H-1)
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && !e.defaultPrevented && onClose();
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);

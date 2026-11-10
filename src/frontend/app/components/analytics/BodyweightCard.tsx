@@ -27,14 +27,15 @@ import { bodyweightUnitOf, formatBodyweight, shownBodyweight } from "@app/core/d
 import { fromKg } from "@app/core";
 import { useUser } from "@app/core/state/userContext";
 import { useState } from "react";
-import { setBodyweightGoalKg, useBodyweightGoalKg } from "@/lib/bodyweightPref";
+// [원본] import { setBodyweightGoalKg, useBodyweightGoalKg } from "@/lib/bodyweightPref"; — 목표 바꾸기·지우기는 체중 패널로
+import { useBodyweightGoalKg } from "@/lib/bodyweightPref";
 import { useBodyweightLogs } from "@/lib/bodyweightLogs";
 import { lang, t } from "@/lib/i18n";
-import { BodyweightRecordSheet } from "../profile/BodyweightRow";
-import { WeighInSheet, formatBodyweightDate } from "../session/WeighInSheet";
-import { Button } from "../ui/Button";
+// [원본] import { BodyweightRecordSheet } from "../profile/BodyweightRow"; · WeighInSheet · Button · MoreMenu — 머리 버튼·목표 시트를 체중 패널로
+import { BodyweightHistorySheet } from "../profile/BodyweightRow";
+import { formatBodyweightDate } from "../session/WeighInSheet";
+import { Icon } from "../ui/Icon";
 import { LineChart } from "../ui/LineChart";
-import { MoreMenu } from "../ui/MoreMenu";
 import { AppText, Card } from "../ui/primitives";
 import { SectionLabel, Segmented } from "../ui/rows";
 
@@ -73,7 +74,8 @@ export function BodyweightCard() {
   const { logs, loaded } = useBodyweightLogs();
   const goalKg = useBodyweightGoalKg();
   const [range, setRange] = useState<Range>("3m");
-  const [sheet, setSheet] = useState<null | "record" | "goal">(null);
+  // [원본] useState<null | "record" | "goal"> — 목표는 체중 패널 안으로 옮겼다
+  const [sheet, setSheet] = useState<null | "record">(null);
   const [metricPick, setMetricPick] = useState<Metric>("weight");
   // 기준 시각은 기간을 바꿀 때만 다시 잡는다(그리기마다 창이 흔들리지 않게)
   const [nowMs, setNowMs] = useState(() => Date.now());
@@ -158,37 +160,51 @@ export function BodyweightCard() {
                 {fmt(headLatest.weightKg)} · {bodyweightWhen(headLatest.measuredAt)}
               </span>
             ) : null}
-            <Button
-              title={t("bodyweight.record")}
-              variant="outline"
-              size="sm"
-              fullWidth={false}
-              onPress={() => setSheet("record")}
-              testId="btn-bodyweight-card-record"
-              className="min-h-11 px-[var(--spacing-md)]!"
-            />
-            <MoreMenu
-              testId="bodyweight-more"
-              sheetTestId="bodyweight-more-sheet"
-              title={t("bodyweight.cardTitle")}
-              options={[
-                {
-                  label: goalKg != null ? t("bodyweight.goalChange") : t("bodyweight.goalSet"),
-                  onPress: () => setSheet("goal"),
-                  testId: "btn-bodyweight-goal",
-                },
-                ...(goalKg != null
-                  ? [
-                      {
-                        label: t("bodyweight.goalClear"),
-                        onPress: () => setBodyweightGoalKg(null),
-                        destructive: true,
-                        testId: "btn-bodyweight-goal-clear",
-                      },
-                    ]
-                  : []),
-              ]}
-            />
+            {/* [원본] 테두리 「기록」(Button outline sm · 빨간 테두리) + ⋯(목표 바꾸기·지우기 → 따로 뜨는 목표 시트) — 다른 카드 머리(「전체 ›」·기간 화살표)와 모양이 달랐고
+                목표 바꾸기·지우기가 단계가 많았다(2026-11-10 사용자 지적)
+                        <Button
+                          title={t("bodyweight.record")}
+                          variant="outline"
+                          size="sm"
+                          fullWidth={false}
+                          onPress={() => setSheet("record")}
+                          testId="btn-bodyweight-card-record"
+                          className="min-h-11 px-[var(--spacing-md)]!"
+                        />
+                        <MoreMenu
+                          testId="bodyweight-more"
+                          sheetTestId="bodyweight-more-sheet"
+                          title={t("bodyweight.cardTitle")}
+                          options={[
+                            {
+                              label: goalKg != null ? t("bodyweight.goalChange") : t("bodyweight.goalSet"),
+                              onPress: () => setSheet("goal"),
+                              testId: "btn-bodyweight-goal",
+                            },
+                            ...(goalKg != null
+                              ? [
+                                  {
+                                    label: t("bodyweight.goalClear"),
+                                    onPress: () => setBodyweightGoalKg(null),
+                                    destructive: true,
+                                    testId: "btn-bodyweight-goal-clear",
+                                  },
+                                ]
+                              : []),
+                          ]}
+                        /> */}
+            {/* [개선] 다른 카드 머리처럼 회색 글자 + › 하나 — 누르면 체중 패널 시트(바로 입력 · 목표 · 지난 기록). 빨강 채움·테두리 없음 */}
+            <button
+              type="button"
+              data-testid="btn-bodyweight-card-record"
+              aria-label={t("bodyweight.cardRecordAria")}
+              aria-haspopup="dialog"
+              onClick={() => setSheet("record")}
+              className="flex min-h-11 shrink-0 items-center gap-[2px] rounded-[var(--radius-sm)] pl-[var(--spacing-xs)] font-medium text-(--color-ink2) text-[length:var(--text-sm)] focus-visible:outline-2 focus-visible:outline-(--color-brand) active:bg-(--color-surface-alt)"
+            >
+              {t("bodyweight.record")}
+              <Icon name="chevron-forward" size={16} color="var(--color-ink2)" />
+            </button>
           </div>
         }
       />
@@ -400,6 +416,7 @@ export function BodyweightCard() {
         {/* [원본] 카드 바닥 밑줄 글자 「목표 정하기/바꾸기」·「목표 지우기」 — ⋯ 메뉴로 옮겼다(SPEC-049). 옛 판은 git 47f940c. */}
       </Card>
 
+      {/* [원본] 따로 뜨는 기록 시트 + 목표 시트(⋯ 에서)
       {sheet === "record" ? <BodyweightRecordSheet onClose={() => setSheet(null)} /> : null}
       {sheet === "goal" ? (
         <WeighInSheet
@@ -415,7 +432,9 @@ export function BodyweightCard() {
             setSheet(null);
           }}
         />
-      ) : null}
+      ) : null} */}
+      {/* [개선] 프로필 「체중」과 같은 시트 — 체중 패널(바로 입력 · 목표 체중 · 지난 기록) */}
+      {sheet === "record" ? <BodyweightHistorySheet onClose={() => setSheet(null)} /> : null}
     </>
   );
 }

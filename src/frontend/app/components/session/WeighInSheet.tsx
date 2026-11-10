@@ -47,9 +47,11 @@ import { clearWeighInMarks, hasWeighInMark, readWeighInEnabled, setWeighInMark }
 import { afterBodyweightWrite, useBodyweightLogs } from "@/lib/bodyweightLogs";
 import { lang, t } from "@/lib/i18n";
 import { useToast } from "../Toast";
-import { Button } from "../ui/Button";
+// [원본] import { Button } from "../ui/Button"; — 「기록/고치기」는 ⌄/⌃ 펼침 버튼(aria-expanded)으로 직접 그린다
 import { Icon } from "../ui/Icon";
 import { Card } from "../ui/primitives";
+// 체중 패널(2026-11-10) — 운동 카드·프로필·통계가 같은 패널을 쓴다(함수 안에서만 쓰여 서로 불러도 순환 문제 없음)
+import { BodyweightPanel } from "../profile/BodyweightRow";
 
 /** 인바디 두 칸(SPEC-049 Phase 3) — null = 안 적음 */
 export interface InbodyValues {
@@ -94,6 +96,9 @@ export function WeighInSheet({
   inbody,
   testId = "weighin-sheet",
   inline = false,
+  inlineSecondary = false,
+  primaryVariant = "brand",
+  inlineShowTitle = false,
   onTypingChange,
 }: {
   title: string;
@@ -106,9 +111,13 @@ export function WeighInSheet({
   secondaryLabel: string;
   /**
    * 저장(kg). 실패하면 throw — 시트는 열린 채로 남는다.
-   * extras = 인바디 칸을 펼쳤을 때만(빈칸은 null) — inbody 를 안 넘긴 시트(목표 체중)·접어 둔 채 저장하면 undefined(그대로 둔다).
+   * [원본] extras = 인바디 칸을 펼쳤을 때만(빈칸은 null) — inbody 를 안 넘긴 시트(목표 체중)·접어 둔 채 저장하면 undefined(그대로 둔다).
+   * [개선] 인바디 칸은 늘 보인다(2026-11-10 · 토글 없앰). extras = inbody 를 넘긴 시트에서 칸별로 —
+   *   글자가 있으면 그 값 · 비었고 출발값도 없었으면 **키를 빼서 적지 않음(그대로 둔다)** · 출발값을 사람이 지웠으면 null(지움).
+   *   inbody 를 안 넘긴 시트(목표 체중)는 undefined.
    */
-  onSave: (kg: number, extras?: InbodyValues) => Promise<void> | void;
+  // [원본] onSave: (kg: number, extras?: InbodyValues) => Promise<void> | void;
+  onSave: (kg: number, extras?: Partial<InbodyValues>) => Promise<void> | void;
   /** 둘째 버튼 — 없으면 onDismiss */
   onSecondary?: () => void;
   /** 스크림·Esc·뒤로(trapBack) */
@@ -119,14 +128,21 @@ export function WeighInSheet({
   extra?: ReactNode;
   /** ±30% 확인의 기준값(kg) — 없으면 last 의 값. 목표 시트처럼 last 가 없으면 확인하지 않는다 */
   compareKg?: number | null;
-  /** 인바디 두 칸의 출발값(SPEC-049 Phase 3) — 넘기면 「인바디 수치도 적기」 펼침이 생긴다. 목표 시트는 넘기지 않는다 */
+  /** 인바디 두 칸의 출발값(SPEC-049 Phase 3) — 넘기면 두 칸이 늘 보인다([원본] 「인바디 수치도 적기」 펼침). 목표 시트는 넘기지 않는다 */
   inbody?: InbodyValues;
   testId?: string;
   /**
    * 안에 끼우는 모양(프로필 「체중」 시트의 바로 입력) — 포탈·스크림·제목·둘째 버튼·Esc·Tab 가두기 없이 입력과 저장만.
-   * 저장해도 닫히지 않고 다음 기록을 받을 수 있게 남는다(인바디 칸은 비우고 접는다). 닫기는 바깥 시트가 맡는다.
+   * 저장해도 닫히지 않고 다음 기록을 받을 수 있게 남는다(인바디 칸은 비운다). 닫기는 바깥 시트가 맡는다.
+   * [개선] 운동 화면 「오늘 체중」 카드도 이 모양으로 카드 안에 펼친다(저장하면 바깥이 접는다 · 2026-11-10).
    */
   inline?: boolean;
+  /** [개선] 저장 버튼 모양 — 빨강 채움(brand · 기본)은 화면의 주 행동 하나. 운동 화면(「완료」)·패널 안 목표·고치기 입력은 outline(2026-11-10 리뷰 M-1) */
+  primaryVariant?: "brand" | "outline";
+  /** [개선] 안에 끼운 모양에서도 제목을 한 줄 보인다(패널 안 목표·고치기 — 바로 입력과 구분 · 리뷰 M-3) */
+  inlineShowTitle?: boolean;
+  /** [개선] 안에 끼운 모양에도 둘째 버튼(취소)을 둔다 — 체중 패널 안의 고치기·목표처럼 열었다 닫는 입력(2026-11-10) */
+  inlineSecondary?: boolean;
   /** 직접 입력칸이 열리고 닫힐 때(inline) — 바깥 시트가 「입력 중 바깥 누름 = 입력 확정만」을 지키게(qa P3-7 · 리뷰 M-1) */
   onTypingChange?: (typing: boolean) => void;
 }) {
@@ -139,10 +155,14 @@ export function WeighInSheet({
   const [entryError, setEntryError] = useState(false);
   /** ±30% 확인을 띄운 kg — 같은 값으로 한 번 더 누르면 저장 */
   const [jumpAsk, setJumpAsk] = useState<number | null>(null);
-  // 인바디 — 출발값이 있으면 펼친 채로 연다
-  const [inbodyOpen, setInbodyOpen] = useState(
-    () => inbody != null && (inbody.skeletalMuscleKg != null || inbody.bodyFatPct != null),
-  );
+  // [원본] 인바디 — 출발값이 있으면 펼친 채로 연다
+  // const [inbodyOpen, setInbodyOpen] = useState(
+  //   () => inbody != null && (inbody.skeletalMuscleKg != null || inbody.bodyFatPct != null),
+  // );
+  // [개선] 토글 없이 늘 보인다(2026-11-10 사용자 요청) — 「펼치지 않음 = 손대지 않음」은 save 에서 「빈칸 = 적지 않음」으로 지킨다
+  const inbodyOpen = inbody != null;
+  // 출발값(연 순간) — 비었던 칸을 비운 채 저장하면 그 칸은 쓰지 않는다(save · 연 뒤 다른 기기 값이 들어와도 덮지 않게)
+  const inbodyStart = useRef(inbody);
   const [smmText, setSmmText] = useState(() => numText(inbody?.skeletalMuscleKg));
   const [pbfText, setPbfText] = useState(() => numText(inbody?.bodyFatPct));
   const [smmError, setSmmError] = useState(false);
@@ -158,6 +178,8 @@ export function WeighInSheet({
   const typingCb = useRef(onTypingChange);
   typingCb.current = onTypingChange;
   useEffect(() => typingCb.current?.(typing), [typing]);
+  // [개선] 입력 중에 사라지면(Esc·취소로 닫힘) 「입력 중」 표시를 걷는다 — 바깥 시트의 다음 스크림 누름이 무시되지 않게(리뷰 L-2)
+  useEffect(() => () => typingCb.current?.(false), []);
   const saveBtnRef = useRef<HTMLButtonElement | null>(null);
   const refocusSave = useRef(false);
   const lastSaved = useRef<{ kg: number; at: number } | null>(null);
@@ -273,19 +295,32 @@ export function WeighInSheet({
     const { kg: value, ok } = commitTyped();
     if (!ok || entryError) return; // 받지 않은 입력 — 이유 줄을 본 뒤 다시 고치거나 ± 로 맞춘다
     // 인바디 — 펼쳤을 때만 읽는다. 범위 밖이면 칸 아래 이유를 보이고 저장하지 않는다(REV-094)
-    let extras: InbodyValues | undefined;
+    // [원본] let extras: InbodyValues | undefined;
+    let extras: Partial<InbodyValues> | undefined;
     if (inbody && inbodyOpen) {
-      const smm = parseInbody(smmText, isValidSkeletalMuscleKg);
-      const pbf = parseInbody(pbfText, isValidBodyFatPct);
+      // [개선] 출발값 그대로인 칸(손대지 않음)은 읽지도 쓰지도 않는다 — 연 사이 다른 기기가 바꾼 값을 덮지 않게(리뷰 M-2)
+      const start = inbodyStart.current;
+      const smmSame = start?.skeletalMuscleKg != null && smmText.trim() === numText(start.skeletalMuscleKg);
+      const pbfSame = start?.bodyFatPct != null && pbfText.trim() === numText(start.bodyFatPct);
+      const smm = smmSame ? null : parseInbody(smmText, isValidSkeletalMuscleKg);
+      const pbf = pbfSame ? null : parseInbody(pbfText, isValidBodyFatPct);
       setSmmError(smm === undefined);
       setPbfError(pbf === undefined);
       if (smm === undefined || pbf === undefined) return;
-      extras = { skeletalMuscleKg: smm, bodyFatPct: pbf };
+      // [원본] extras = { skeletalMuscleKg: smm, bodyFatPct: pbf };
+      // [개선] 빈칸 = 적지 않음 — 비었고 출발값도 없던 칸·출발값 그대로인 칸은 키를 뺀다. 출발값을 사람이 지운 칸만 null(지움)
+      extras = {
+        ...(!smmSame && (smm != null || start?.skeletalMuscleKg != null) ? { skeletalMuscleKg: smm } : {}),
+        ...(!pbfSame && (pbf != null || start?.bodyFatPct != null) ? { bodyFatPct: pbf } : {}),
+      };
     }
-    // [개선] inline — 저장 직후(2초 안) 같은 값을 또 누르면 같은 줄이 하나 더 쌓인다(두 번 누름 · 리뷰 M-3). 인바디를 펼쳤으면 새 값일 수 있어 받는다
+    // 이번 저장에 인바디 값이 실렸나(빈칸만이면 체중만 저장한 것)
+    const withInbody = extras != null && (extras.skeletalMuscleKg != null || extras.bodyFatPct != null);
+    // [개선] inline — 저장 직후(2초 안) 같은 값을 또 누르면 같은 줄이 하나 더 쌓인다(두 번 누름 · 리뷰 M-3). 인바디를 적었으면 새 값일 수 있어 받는다
     if (
       inline &&
-      extras === undefined &&
+      // [원본] extras === undefined && — 칸이 늘 보여 extras 가 늘 있다 → 값이 실렸는지로
+      !withInbody &&
       lastSaved.current?.kg === value &&
       Date.now() - lastSaved.current.at < 2_000
     )
@@ -306,7 +341,9 @@ export function WeighInSheet({
           refocusSave.current = true;
           setBusy(false);
           setJumpAsk(null);
-          setInbodyOpen(false);
+          // [원본] setInbodyOpen(false); — 늘 보이는 칸이라 접지 않고 비우기만
+          // 비운 칸의 출발값도 「없음」으로(다음 저장이 지난 출발값을 기준으로 null 을 싣지 않게 · 리뷰 L-1)
+          inbodyStart.current = { skeletalMuscleKg: null, bodyFatPct: null };
           setSmmText("");
           setPbfText("");
           setSmmError(false);
@@ -351,6 +388,15 @@ export function WeighInSheet({
   const content = (
     <>
       {/* 제목 — 안에 끼울 때는 바깥 시트가 제목을 갖는다(이 덩어리는 fieldset 의 이름으로만) */}
+      {/* [개선] 안에 끼운 모양의 보이는 제목 한 줄(패널 안 목표·고치기 · 리뷰 M-3) — 제목 요소가 아니라 fieldset 이름과 같은 글자 */}
+      {inline && inlineShowTitle ? (
+        <p
+          data-testid={`${testId}-title`}
+          className="font-semibold text-(--color-ink) text-[length:var(--text-sm)]"
+        >
+          {title}
+        </p>
+      ) : null}
       {inline ? null : (
         <h2
           id={`${testId}-title`}
@@ -475,6 +521,7 @@ export function WeighInSheet({
 
       {inbody ? (
         <div className="mt-[var(--spacing-sm)]" data-testid="weighin-inbody">
+          {/* [원본] 펼침 버튼 — 「인바디 수치도 적기 ›」/「인바디 수치 접기 ⌄」(aria-expanded). 누르지 않으면 칸이 없었다
           <button
             type="button"
             data-testid="weighin-inbody-toggle"
@@ -490,11 +537,19 @@ export function WeighInSheet({
             <span className="font-medium">
               {t(inbodyOpen ? "bodyweight.inbodyHide" : "bodyweight.inbodyToggle")}
             </span>
-          </button>
+          </button> */}
           {inbodyOpen ? (
             <div className="flex flex-col gap-[6px]">
-              <p className="text-(--color-ink2) text-[length:var(--text-xs)]">
-                {t("bodyweight.inbodyOptional")}
+              {/* [원본] <p className="text-(--color-ink2) text-[length:var(--text-xs)]">{t("bodyweight.inbodyOptional")}</p> */}
+              {/* [개선] 소제목 「인바디 수치」 + 「선택 · 비워 두면 적지 않아요」 — 토글 글자가 하던 이름표를 잇는다 */}
+              <p className="flex flex-wrap items-baseline gap-x-[var(--spacing-xs)] text-[length:var(--text-sm)]">
+                <span className="font-medium text-(--color-ink)">{t("bodyweight.inbodyTitle")}</span>
+                <span
+                  className="text-(--color-ink2) text-[length:var(--text-xs)]"
+                  data-testid="weighin-inbody-optional"
+                >
+                  {t("bodyweight.inbodyOptional")}
+                </span>
               </p>
               {(
                 [
@@ -583,7 +638,8 @@ export function WeighInSheet({
             : "sticky bottom-0 mt-[var(--spacing-md)] flex gap-[var(--spacing-sm)] bg-(--color-surface) pt-[var(--spacing-xs)]"
         }
       >
-        {inline ? null : (
+        {/* [원본] {inline ? null : ( */}
+        {inline && !inlineSecondary ? null : (
           <button
             type="button"
             data-testid="weighin-secondary"
@@ -601,7 +657,12 @@ export function WeighInSheet({
           onClick={save}
           disabled={busy}
           aria-busy={busy}
-          className="h-[44px] flex-1 rounded-[var(--radius-md)] bg-(--color-brand) font-semibold text-(--color-on-brand) text-[length:var(--text-md)] disabled:opacity-60"
+          // [원본] className="h-[44px] flex-1 rounded-[var(--radius-md)] bg-(--color-brand) font-semibold text-(--color-on-brand) …"
+          className={`h-[44px] flex-1 rounded-[var(--radius-md)] font-semibold text-[length:var(--text-md)] disabled:opacity-60 ${
+            primaryVariant === "outline"
+              ? "border border-(--color-brand) bg-(--color-card) text-(--color-brand)"
+              : "bg-(--color-brand) text-(--color-on-brand)"
+          }`}
         >
           {jumpAsk != null && jumpAsk === kg ? t("bodyweight.saveAnyway") : primaryLabel}
         </button>
@@ -649,6 +710,7 @@ export function WeighInSheet({
         aria-labelledby={`${testId}-title`}
         data-testid="weighin-panel"
         // 높이 ≤ 50dvh — 헤더 타이머가 시트 위로 보인다(U-7). 내용이 넘치면 시트 안에서 스크롤.
+        //   2026-11-10 체중 패널 통일 뒤로 이 포탈 모양을 그리는 곳은 없다(WeighInCheckin 은 주석 처리 · 고치기·목표·통계 기록은 패널 안 inline)
         className="relative max-h-[50dvh] w-full max-w-[560px] overflow-y-auto rounded-t-[var(--radius-lg)] bg-(--color-surface) px-[var(--spacing-lg)] pt-[var(--spacing-md)] pb-[calc(var(--spacing-md)+env(safe-area-inset-bottom))]"
       >
         {content}
@@ -670,6 +732,7 @@ type Gate = { last: { kg: number; measuredAt: number } | null };
  * 운동 화면 첫 진입의 체크인(U-7). 운동마다 한 번만 판정한다 — 화면을 연 채 설정을 켜도 그 운동에서는 뜨지 않는다.
  * 띄우는 순간 `weighin:<workoutId>` 를 남긴다 → 새로고침·다시 들어와도 같은 운동에서 다시 뜨지 않는다(sessionStorage 가 아니라 localStorage).
  */
+// [개선] 지금은 그리지 않는다(ActiveWorkout 주석). 다시 켜면 포탈 시트 높이를 50dvh 로 돌려야 헤더 타이머가 보인다(U-7 · 리뷰 L-4)
 export function WeighInCheckin({ workoutId, startedAt }: { workoutId: string; startedAt: number }) {
   const { user, bodyweightKg, refresh } = useUser();
   const toast = useToast();
@@ -771,6 +834,8 @@ export function WeighInCheckin({ workoutId, startedAt }: { workoutId: string; st
  * 있으면 「오늘 체중 72.6kg ✓」 — 누르면 같은 시트로 그날 가장 최근 줄을 고친다(latestOnLocalDay).
  * 날짜는 ActiveWorkout 이 매초 넘기는 now 로 판정한다 — 자정을 넘기면 다시 「오늘 체중 기록」.
  * 모양은 SPEC-046 「다른 창을 여는 줄」 — 바탕 없는 줄 + 아이콘 + › · 누르는 자리 44px.
+ * [개선] 2026-11-10 사용자 요청 — 운동 중에는 밑에서 올라오는 시트를 띄우지 않는다. 「기록/고치기 ⌄」를 누르면 같은 입력
+ *   (WeighInSheet inline · ±·직접 입력·인바디 칸·±30% 확인·저장)이 카드 안에 펼쳐지고, 저장하면 접히며 값·✓ 가 반영된다. 다시 누르면 접힘.
  */
 const WEIGHIN_CARD_KEY = "liftgram.weighinCardCollapsed";
 
@@ -780,7 +845,28 @@ export function WeighInRow({ now }: { now: number }) {
   const toast = useToast();
   // [원본] const [open, setOpen] = useState(false); — 고칠 줄을 매초 다시 판정해 연 사이 생긴 남의 줄을 덮었다(P1-2 리뷰)
   // [개선] 열 때 고칠 줄 id 를 고정한다(null = 새 줄). 저장 때 그 줄이 사라졌으면 새로 쓴다
-  const [target, setTarget] = useState<{ id: string | null } | null>(null);
+  // [원본] useState<{ id: string | null } | null>(null)
+  // [개선] 열 때 그 줄의 값도 기억 — 손대지 않은 체중은 덮지 않고(같은 줄을 아래 「지난 기록」에서 고쳤어도), 그 줄이 사라져 새로 쓸 때는
+  //   보이던 인바디를 잃지 않는다(2026-11-10 리뷰 M-1·M-2)
+  const [target, setTarget] = useState<{
+    id: string | null;
+    startKg: number | null;
+    smm: number | null;
+    pbf: number | null;
+  } | null>(null);
+  const openTarget = (
+    row: {
+      id: string;
+      weightKg: number;
+      skeletalMuscleKg?: number | null;
+      bodyFatPct?: number | null;
+    } | null,
+  ) => ({
+    id: row?.id ?? null,
+    startKg: row?.weightKg ?? null,
+    smm: row?.skeletalMuscleKg ?? null,
+    pbf: row?.bodyFatPct ?? null,
+  });
   // 접기 — 기기에 기억(운동마다 다시 펼치지 않게). 저장소가 막혀도 펼친 채로 동작
   const [collapsed, setCollapsed] = useState(() => {
     try {
@@ -789,7 +875,12 @@ export function WeighInRow({ now }: { now: number }) {
       return false;
     }
   });
-  const toggleCollapsed = () =>
+  // [원본] const toggleCollapsed = () => setCollapsed(…) — [개선] 카드를 접으면 펼친 입력도 닫는다(접힌 카드 밑에 입력이 남지 않게)
+  const toggleCollapsed = () => {
+    setTarget(null);
+    setCollapsedStored();
+  };
+  const setCollapsedStored = () =>
     setCollapsed((c) => {
       try {
         localStorage.setItem(WEIGHIN_CARD_KEY, c ? "0" : "1");
@@ -797,6 +888,17 @@ export function WeighInRow({ now }: { now: number }) {
       return !c;
     });
   const unit = bodyweightUnitOf(user?.weightUnit);
+  // [개선] 펼친 입력을 닫으면(저장·다시 누름) 포커스를 「기록/고치기」 버튼으로 — 저장 버튼이 사라져 body 로 빠지지 않게
+  const editBtnRef = useRef<HTMLButtonElement | null>(null);
+  const wasOpen = useRef(false);
+  useEffect(() => {
+    const open = target != null;
+    if (wasOpen.current && !open) {
+      const a = document.activeElement;
+      if (!a || a === document.body) editBtnRef.current?.focus({ preventScroll: true });
+    }
+    wasOpen.current = open;
+  }, [target]);
   // 옛 체크인이 남긴 `weighin:<운동>` 표시를 한 번 걷는다(체크인을 막아 더는 지우는 곳이 없다 · P1-2 리뷰)
   useEffect(() => {
     clearWeighInMarks({});
@@ -829,6 +931,37 @@ export function WeighInRow({ now }: { now: number }) {
   ]
     .filter(Boolean)
     .join(" · ");
+  // [개선] 저장 — 열 때 고정한 줄(target.id)을 고치고, 그 줄이 사라졌으면 새로 쓴다(옛 시트의 onSave 그대로) · 끝나면 접는다
+  const saveToday = async (kg: number, extras?: Partial<InbodyValues>) => {
+    try {
+      const repo = await import("@app/core/data/bodyweightRepository");
+      const id = target?.id ?? null;
+      const still = id ? (await repo.listBodyweightLogs()).some((l) => l.id === id) : false;
+      // [원본] if (id && still) await repo.updateBodyweightLog(id, { weight: kg, unit: "kg", ...(extras ?? {}) });
+      // [원본] else await repo.addBodyweightLog({ weight: kg, unit: "kg", source: "checkin", ...(extras ?? {}) });
+      // [개선] 고치기 — 바뀐 것만(체중은 연 값과 다를 때만 · 인바디는 extras 가 이미 바뀐 칸만). 새로 쓰기 — 연 줄의 인바디 위에 extras
+      if (id && still) {
+        const patch = {
+          ...(kg !== target?.startKg ? { weight: kg, unit: "kg" as const } : {}),
+          ...(extras ?? {}),
+        };
+        if (Object.keys(patch).length > 0) await repo.updateBodyweightLog(id, patch);
+      } else
+        await repo.addBodyweightLog({
+          weight: kg,
+          unit: "kg",
+          source: "checkin",
+          ...(id ? { skeletalMuscleKg: target?.smm ?? null, bodyFatPct: target?.pbf ?? null } : {}),
+          ...(extras ?? {}),
+        });
+      await afterBodyweightWrite(refresh);
+      toast(t("bodyweight.saved"));
+      setTarget(null);
+    } catch (e) {
+      toast(errorText(e, t("bodyweight.saveFailed")), "error");
+      throw e;
+    }
+  };
   const status = today
     ? fmt(today.weightKg)
     : before
@@ -892,18 +1025,74 @@ export function WeighInRow({ now }: { now: number }) {
                 </p>
               ) : null}
             </div>
-            <Button
-              title={today ? t("bodyweight.edit") : t("bodyweight.record")}
-              variant="outline" // 운동 화면의 빨강 채움은 「완료」 하나
-              size="sm"
-              fullWidth={false}
-              testId="weighin-row"
-              className="min-h-11 shrink-0 self-center! px-[var(--spacing-lg)]!"
-              onPress={() => setTarget({ id: today?.id ?? null })}
-            />
+            {/* [원본] <Button title={today ? 고치기 : 기록} variant="outline" size="sm" fullWidth={false} testId="weighin-row"
+                  className="min-h-11 shrink-0 self-center! px-[var(--spacing-lg)]!" onPress={() => setTarget({ id: today?.id ?? null })} />
+                  — 누르면 바닥 시트(weighin-sheet)가 올라왔다 */}
+            {/* [개선] 같은 모양(outline sm · 카드 판 + 빨간 테두리·글자) + ⌄/⌃ — 카드 안 입력을 펼치고 접는다(aria-expanded) */}
+            <button
+              type="button"
+              ref={editBtnRef}
+              data-testid="weighin-row"
+              aria-expanded={target != null}
+              aria-controls={target ? "weighin-card-editor" : undefined}
+              // [원본] onClick={() => setTarget((cur) => (cur ? null : { id: today?.id ?? null }))}
+              onClick={() => setTarget((cur) => (cur ? null : openTarget(today)))}
+              className="relative inline-flex min-h-11 shrink-0 items-center justify-center gap-[4px] self-center rounded-[var(--radius-sm)] border border-(--color-brand) border-solid bg-(--color-card) px-[var(--spacing-md)] font-semibold text-(--color-brand) text-[length:var(--text-sm)] focus-visible:outline-2 focus-visible:outline-(--color-brand) focus-visible:outline-offset-2 active:opacity-85"
+            >
+              {today ? t("bodyweight.edit") : t("bodyweight.record")}
+              <Icon name={target ? "chevron-up" : "chevron-down"} size={16} color="var(--color-brand)" />
+            </button>
           </div>
         )}
+        {/* [개선] 카드 안 입력(운동 화면엔 시트를 띄우지 않는다) — 프로필 「체중」 시트의 바로 입력과 같은 inline 모양 */}
+        {target && !collapsed ? (
+          // biome-ignore lint/a11y/noStaticElementInteractions: 안의 입력에서 올라온 Esc 만 받아 접는다 — 누르는 자리가 아니다
+          <div
+            id="weighin-card-editor"
+            data-testid="weighin-card-editor"
+            // Esc = 접기(키보드 사용자가 「기록/고치기」로 돌아가지 않아도 · 포커스는 그 버튼으로 · 리뷰 L-3)
+            //   패널 안 확인 창(포탈)의 Esc 는 React 트리로 여기까지 올라온다 — 이 묶음 DOM 안에서 눌린 것만 받는다
+            onKeyDown={(e) => {
+              if (e.key === "Escape" && e.currentTarget.contains(e.target as Node)) {
+                e.stopPropagation();
+                setTarget(null);
+              }
+            }}
+            className="mt-[var(--spacing-md)] border-(--color-line) border-t pt-[var(--spacing-sm)]"
+          >
+            {/* [원본] 바로 입력 하나(WeighInSheet inline testId="weighin-editor")
+                [개선] 체중 패널(프로필·통계와 같은 구역·testid) — 맨 위 오늘 입력, 목표·지난 기록은 「목표 · 지난 기록 ⌄」 아래(2026-11-10) */}
+            <BodyweightPanel
+              compact
+              entry={
+                <WeighInSheet
+                  inline
+                  testId="bodyweight-entry"
+                  // 운동 화면의 빨강 채움은 「완료」 하나 — 카드 안 저장은 테두리(리뷰 M-1)
+                  primaryVariant="outline"
+                  title={target.id ? t("bodyweight.sheetTodayEditTitle") : t("bodyweight.sheetCheckinTitle")}
+                  unit={unit}
+                  initialKg={editing?.weightKg ?? bodyweightKg ?? before?.kg ?? null}
+                  // 「지난 72.5kg · 날짜」는 카드 본문에 이미 있다 — 지난 기록이 하나도 없을 때만 「값을 맞춰 주세요」 줄
+                  // [원본] last={before ? undefined : null}
+                  // [개선] 오늘 줄을 고칠 때는 그 값이 진짜 값 — 「값을 맞춰 주세요」를 띄우지 않는다
+                  last={before || target.id ? undefined : null}
+                  compareKg={before?.kg ?? null}
+                  inbody={{
+                    skeletalMuscleKg: editing?.skeletalMuscleKg ?? null,
+                    bodyFatPct: editing?.bodyFatPct ?? null,
+                  }}
+                  primaryLabel={t("bodyweight.save")}
+                  secondaryLabel={t("common.cancel")}
+                  onDismiss={() => setTarget(null)}
+                  onSave={saveToday}
+                />
+              }
+            />
+          </div>
+        ) : null}
       </Card>
+      {/* [원본] 바닥 시트 — 운동 화면 위로 올라오던 「오늘 체중」 시트(trapBack · 취소 · 스크림). 저장은 아래 saveToday 로 옮겼다
       {target ? (
         <WeighInSheet
           testId="weighin-sheet"
@@ -940,6 +1129,7 @@ export function WeighInRow({ now }: { now: number }) {
           }}
         />
       ) : null}
+      */}
     </>
   );
 }

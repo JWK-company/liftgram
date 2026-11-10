@@ -1,0 +1,888 @@
+{
+ "schemaVersion": 1,
+ "id": "REV-111",
+ "type": "Review",
+ "title": "인바디 기본 펼침 · 운동 중 체중 카드 · 체중 패널 통일 코드 리뷰",
+ "group": "할일/인바디-기본-펼침",
+ "meta": {
+  "mode": "code",
+  "adopted": "26",
+  "held": "7",
+  "rejected": "1"
+ },
+ "relations": {},
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 1
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "REV-111 인바디 기본 펼침 · 운동 중 체중 카드 · 체중 패널 통일 — 코드 리뷰"
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "요약"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "독립 리뷰어 세 명이 읽었다. 첫 판(인바디 늘 보임 + 운동 카드 안 펼침)은 1명이 맡았고, 범위가 커진 둘째 판(체중 패널 통일 · 통계 카드 머리)은 2명(화면·접근성 / 데이터·시험)이 따로 읽었다. 높음 1건(패널 안 Esc 가 바깥 시트까지 닫음 — 두 리뷰어가 같이 짚음), 중간 8건, 낮음 다수. 26건 채택, 7건 보류, 1건 기각."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "채택"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "H-1 패널 안 Esc 가 「체중」 시트까지 닫음(높음)",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " — React 리스너와 Overlay 리스너가 같은 document 에 붙어 stopPropagation 으로 못 막는다. 패널 안 입력은 "
+         },
+         {
+          "type": "text",
+          "text": "preventDefault",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 로 「처리함」을 표시하고, 공용 Overlay("
+         },
+         {
+          "type": "text",
+          "text": "ui/Dialog.tsx",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ")는 "
+         },
+         {
+          "type": "text",
+          "text": "defaultPrevented",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 인 Esc 를 거른다. e2e: 목표·고치기 Esc 뒤 시트가 남는다."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "데이터 M-1 운동 카드 고치기 중 그 줄이 사라지면 보이던 인바디가 새 줄에서 빠짐",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " — 열 때 그 줄의 체중·인바디를 기억(target.startKg·smm·pbf)하고 새로 쓸 때 그 위에 바뀐 칸을 얹는다. e2e: 목록에서 그 줄을 지운 뒤 맨 위 저장 → 체지방률 25 그대로 새 줄."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "데이터 M-2 같은 줄을 아래 「지난 기록」에서 고친 뒤 맨 위 저장이 체중을 덮음",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " — 맨 위 저장은 바뀐 것만(체중은 연 값과 다를 때만 · 인바디는 출발값 그대로면 키를 뺌). e2e: 아래에서 71.0·25 로 고친 뒤 맨 위 그대로 저장 → 71.0·25 유지."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "데이터 M-3 「출발값 그대로 = 키 뺌」을 직접 재는 시험이 없음",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " — 위 두 겹친 편집 시험으로 화면 흐름 그대로 잰다."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "첫 판 M-2 손대지 않은 칸도 다시 씀",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " — 칸 글자가 출발값 그대로면 읽지도 쓰지도 않는다(범위 검사도 건너뜀)."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "화면 M-1 빨강 채움이 여러 개",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " — "
+         },
+         {
+          "type": "text",
+          "text": "primaryVariant",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "(brand/outline) 추가. 운동 카드 안 저장(「완료」가 있음)·패널 안 목표·고치기 저장은 테두리. 빨강 채움은 프로필·통계의 바로 입력 「저장」 하나."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "화면 M-2 「정하기/바꾸기」·「고치기」를 누르면 포커스가 body 로",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " — 열면 그 입력의 첫 조작 요소로, 닫으면 연 버튼으로."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "화면 M-3 펼친 목표·고치기가 바로 입력과 구분 안 됨",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " — 테두리 상자 + 보이는 제목 한 줄(「목표 체중」·「기록 고치기 · 70.0kg · 날짜」 — fieldset 이름과 같은 글자)."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "첫 판 M-1 시험 주석과 실제 동작이 다름(Esc·뒤로)",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " — 운동 카드 입력에서 Esc = 접기를 넣고 시험으로 잰다."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "첫 판 L-1",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " inline 저장 뒤 인바디 출발값도 비움 · "
+         },
+         {
+          "type": "text",
+          "text": "L-2",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " aria-controls 는 열렸을 때만 · "
+         },
+         {
+          "type": "text",
+          "text": "L-3",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 카드 입력 Esc = 접기(포커스는 「기록/고치기」) · "
+         },
+         {
+          "type": "text",
+          "text": "L-4",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " WeighInCheckin 을 다시 켜면 50dvh 가 필요하다는 메모 · "
+         },
+         {
+          "type": "text",
+          "text": "L-5",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 파일 머리 확인 목록·「시트_없음」 도우미가 카드 입력도 봄 · "
+         },
+         {
+          "type": "text",
+          "text": "L-6",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 「열자마자 보임」·가상 키보드 흉내 범위를 주석으로 바로잡음 · "
+         },
+         {
+          "type": "text",
+          "text": "L-7",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 운동 카드 고치기에서 채워진 값을 지우면 그 값만 null 이 되는 시험 · 주석으로 막은 옛 JSX 들여쓰기 바로잡음."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "화면 L 1",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 지우기·미설정 확인 뒤 포커스를 「지난 기록」 소제목으로 · "
+         },
+         {
+          "type": "text",
+          "text": "L 2",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 패널 id 는 "
+         },
+         {
+          "type": "text",
+          "text": "useId",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " · "
+         },
+         {
+          "type": "text",
+          "text": "L 4",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 운동 카드(compact)의 목표 구역 위 여백 줄임 · "
+         },
+         {
+          "type": "text",
+          "text": "L 6",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 쓰는 곳 없는 "
+         },
+         {
+          "type": "text",
+          "text": "BodyweightRecordSheet",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 를 "
+         },
+         {
+          "type": "text",
+          "text": "[원본]",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 주석으로 막고 틀린 주석 바로잡음 · 포탈 시트 높이는 원래 50dvh 로 되돌림(그리는 곳이 없음) · "
+         },
+         {
+          "type": "text",
+          "text": "L 8",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 스크린샷 새 판으로 다시 확인(고치기 때 「값을 맞춰 주세요」 줄 없음)."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "데이터 L-1",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 포커스 검사를 "
+         },
+         {
+          "type": "text",
+          "text": "toBeFocused()",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "(기다려 읽기)로 — 이번에 쓴 줄 · "
+         },
+         {
+          "type": "text",
+          "text": "L-2",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 입력 중 사라지면 「입력 중」 표시를 걷음 · "
+         },
+         {
+          "type": "text",
+          "text": "L-4",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 고치던 줄이 사라지면 고치기 상태도 걷음."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "보류"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "화면 L 3",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 운동 화면에서 패널 소제목이 h2 — 다른 제목 요소가 없어 단계가 비진 않는다. 카드 제목 체계 정리 때 같이."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "화면 L 4(일부)",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 카드 접기 ⌃ 와 「고치기 ⌃」가 세로로 가까움 — 모양 결정이 필요(카드 접기 버튼 자리)."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "화면 L 5",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 시트 위 확인 창의 Esc 가 시트까지 닫음 — 이번 변경 전부터 있던 공용 Overlay 문제(맨 위 창만 Esc 받기). 따로 고친다."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "화면 L 7",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " WeighInSheet ↔ BodyweightRow 서로 불러오기 — 함수 안에서만 써서 동작한다. 파일 나누기는 다음 정리 때."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "데이터 L-3",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 목표 「지우기」 되돌리기 — 요구가 「한 번」이라 그대로. 잘못 누름이 보고되면 알림에 되돌리기."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "데이터 L-5(일부)",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 「체중」 시트(공용 Overlay) 안 Tab 가두기 시험 — 공용 Overlay 의 몫."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "첫 판 잡음",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 쓰지 않게 된 i18n 키 "
+         },
+         {
+          "type": "text",
+          "text": "inbodyToggle",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "·"
+         },
+         {
+          "type": "text",
+          "text": "inbodyHide",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " — "
+         },
+         {
+          "type": "text",
+          "text": "[원본]",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 주석이 참조해 남겨 둠."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "기각"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "첫 판 잡음",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " "
+         },
+         {
+          "type": "text",
+          "text": "if (inbody && inbodyOpen)",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 중복 — "
+         },
+         {
+          "type": "text",
+          "text": "inbodyOpen = inbody != null",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 이라 무해하고, 옛 구조를 읽기 쉽게 남겨 둠."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ }
+}

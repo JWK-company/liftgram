@@ -1606,6 +1606,7 @@ export const ko = {
   // SPEC-049 Phase 3 — 인바디(골격근량·체지방률)
   "bodyweight.inbodyToggle": "인바디 수치도 적기",
   "bodyweight.inbodyHide": "인바디 수치 접기",
+  "bodyweight.inbodyTitle": "인바디 수치", // [개선] 늘 펼친 인바디 칸의 소제목(토글 글자 inbodyToggle·inbodyHide 대신)
   "bodyweight.smmLabel": "골격근량",
   "bodyweight.pbfLabel": "체지방률",
   "bodyweight.inbodyOptional": "선택 · 비워 두면 적지 않아요",
@@ -1650,6 +1651,16 @@ export const ko = {
   "bodyweight.goalSet": "목표 정하기",
   "bodyweight.goalChange": "목표 바꾸기",
   "bodyweight.goalClear": "목표 지우기",
+  // [개선] 체중 패널 목표 구역(2026-11-10) — ⋯ 메뉴·따로 뜨는 목표 시트 대신 패널 안 한 줄
+  "bodyweight.goalTitle": "목표 체중",
+  "bodyweight.goalNone": "없음",
+  "bodyweight.goalSetShort": "정하기",
+  "bodyweight.goalChangeShort": "바꾸기",
+  "bodyweight.goalClearShort": "지우기",
+  "bodyweight.goalSaved": "목표를 저장했어요",
+  "bodyweight.goalCleared": "목표를 지웠어요",
+  "bodyweight.panelMore": "목표 · 지난 기록",
+  "bodyweight.cardRecordAria": "체중 기록·목표 열기",
   "bodyweight.weekly": "주간 변화 {kg} · {pct}",
   "bodyweight.weeklyCaption": "최근 28일 기록으로 계산했어요",
   "bodyweight.chartAria": "체중 곡선 · 최근 {latest} · 기간 변화 {change}",

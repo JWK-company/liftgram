@@ -1602,6 +1602,7 @@ export const en: Record<TransKey, string> = {
   // SPEC-049 Phase 3 — 인바디(골격근량·체지방률)
   "bodyweight.inbodyToggle": "Add InBody numbers",
   "bodyweight.inbodyHide": "Hide InBody numbers",
+  "bodyweight.inbodyTitle": "InBody numbers", // [개선] heading of the always-shown InBody fields
   "bodyweight.smmLabel": "Skeletal muscle",
   "bodyweight.pbfLabel": "Body fat",
   "bodyweight.inbodyOptional": "Optional · leave blank to skip",
@@ -1646,6 +1647,16 @@ export const en: Record<TransKey, string> = {
   "bodyweight.goalSet": "Set goal",
   "bodyweight.goalChange": "Change goal",
   "bodyweight.goalClear": "Clear goal",
+  // [개선] bodyweight panel goal section (2026-11-10)
+  "bodyweight.goalTitle": "Goal weight",
+  "bodyweight.goalNone": "None",
+  "bodyweight.goalSetShort": "Set",
+  "bodyweight.goalChangeShort": "Change",
+  "bodyweight.goalClearShort": "Clear",
+  "bodyweight.goalSaved": "Goal saved",
+  "bodyweight.goalCleared": "Goal cleared",
+  "bodyweight.panelMore": "Goal · past entries",
+  "bodyweight.cardRecordAria": "Open bodyweight log and goal",
   "bodyweight.weekly": "Weekly change {kg} · {pct}",
   "bodyweight.weeklyCaption": "From the last 28 days of entries",
   "bodyweight.chartAria": "Bodyweight line · latest {latest} · change {change}",
