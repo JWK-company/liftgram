@@ -666,6 +666,7 @@ export default function CalendarClient() {
                 key={w.id}
                 href={`/history/${w.id}`}
                 // [원본] className="flex min-h-[56px] items-center gap-[var(--spacing-md)] px-[var(--spacing-lg)] py-[var(--spacing-sm)] active:bg-(--color-surface-alt)"
+                // [개선] 좌우 여백 0 — 줄 글자를 화면 여백에 맞춘다(SPEC-056 F1)
                 className="flex min-h-[56px] items-center gap-[var(--spacing-md)] py-[var(--spacing-sm)] active:bg-(--color-surface-alt)"
               >
                 <span className="flex min-w-0 flex-1 flex-col">

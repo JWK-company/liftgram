@@ -84,7 +84,8 @@ export default function HistoryClient() {
           <div data-testid="history-list" className="flex flex-col gap-[var(--spacing-lg)]">
             {groups.map((g) => (
               <section key={g.key}>
-                <div className="flex items-baseline justify-between px-[var(--spacing-xs)] pb-[var(--spacing-sm)]">
+                {/* [원본] px-[var(--spacing-xs)] · [개선] 줄과 같은 왼쪽 선(P4 코드 리뷰 L-3) */}
+                <div className="flex items-baseline justify-between pb-[var(--spacing-sm)]">
                   <h2 className="font-bold text-(--color-ink) text-[length:var(--text-md)]">{g.label}</h2>
                   <span className="text-(--color-ink2) text-[length:var(--text-sm)] tabular-nums">
                     {`${g.rows.length}회 · ${formatWeight(g.volume, weightUnit)}`}

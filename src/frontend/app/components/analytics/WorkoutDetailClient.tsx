@@ -598,7 +598,7 @@ function ExerciseCard({
       ) : null}
 
       <div className="mt-[var(--spacing-md)] flex items-center">
-        <span className="w-10">
+        <span className="w-10 pl-[6px]">
           <AppText variant="caption" color="textFaint">
             {t("analytics.setColumnHeader")}
           </AppText>
@@ -643,9 +643,10 @@ function ExerciseCard({
               focusSet && s.id === focusSet ? { boxShadow: "inset 3px 0 0 var(--color-brand)" } : undefined
             }
             // [원본] className="flex w-full items-center rounded-[var(--radius-sm)] py-[var(--spacing-xs)] text-left"
-            className={`flex min-h-[44px] w-full items-center py-[var(--spacing-xs)] text-left ${focusSet && s.id === focusSet ? "pl-[var(--spacing-sm)]" : ""}`}
+            // [개선] 줄 채움·둥근 판 없이(SPEC-056 F1) — 강조 줄만 여백을 더하면 열이 어긋나므로 번호 칸이 모든 줄에서 같은 여백을 갖는다(P4 코드 리뷰 M-1)
+            className="flex min-h-[44px] w-full items-center py-[var(--spacing-xs)] text-left"
           >
-            <span className="w-10">
+            <span className="w-10 pl-[6px]">
               <AppText variant="body" color="textMuted">
                 {String(s.setNumber)}
               </AppText>
