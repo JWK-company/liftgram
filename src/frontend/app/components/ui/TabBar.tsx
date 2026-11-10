@@ -1,6 +1,7 @@
 // @plm SRS-051 SRS-054  하단 탭 바 — 5칸 · 라인 아이콘 · 현재 탭 위쪽 강조선 (결정 D1·D4)
 //
-// 탭은 운동 · 기록 · 피드 · 분석 · 프로필. 옛 6칸에서 기록과 캘린더는 같은 데이터(지난 운동)라
+// [원본] 탭은 운동 · 기록 · 피드 · 분석 · 프로필.
+// [개선] 탭은 피드 · 운동 · 기록 · 분석 · 프로필(2026-11-10 사용자 지시 — 순서는 TAB_ORDER 한 곳). 옛 6칸에서 기록과 캘린더는 같은 데이터(지난 운동)라
 // 한 탭의 목록/달력 전환으로 합쳤다 — /calendar 주소는 그대로 살아 있고 「기록」 탭이 켜진다.
 // 아이콘은 앱 아이콘과 같은 선 굵기의 라인 그림을 여기서 직접 그린다(북타래 탭바와 같은 형태).
 //
@@ -27,7 +28,9 @@ type Tab = { key: TabKey; href: string; label: string; testId: string; match: (p
  */
 const under = (p: string, ...bases: string[]) => bases.some((b) => p === b || p.startsWith(`${b}/`));
 
-const TABS: Tab[] = [
+// [원본] 탭 순서 운동 · 기록 · 피드 · 분석 · 프로필 — 배열 그대로 두고 아래 TABS 에서 순서만 바꾼다
+// [개선] 탭 순서 피드 · 운동 · 기록 · 분석 · 프로필(2026-11-10 사용자 지시)
+const TAB_DEFS: Tab[] = [
   {
     key: "workout",
     href: "/",
@@ -81,6 +84,15 @@ const TABS: Tab[] = [
     match: (p) => under(p, "/profile", "/account", "/gear", "/coaching", "/blocked", "/bookmarks"),
   },
 ];
+const TAB_ORDER: TabKey[] = ["feed", "workout", "records", "stats", "profile"];
+const TABS: Tab[] = TAB_ORDER.map((k) => TAB_DEFS.find((t) => t.key === k)).filter((t): t is Tab => !!t);
+// 순서 목록과 정의가 어긋나면(빠짐·중복·오타) 탭이 조용히 사라지지 않게 개발 중에 바로 알린다.
+if (
+  process.env.NODE_ENV !== "production" &&
+  (TABS.length !== TAB_DEFS.length || new Set(TAB_ORDER).size !== TAB_ORDER.length)
+) {
+  throw new Error("TabBar: TAB_ORDER 와 TAB_DEFS 가 맞지 않아요");
+}
 
 // [원본] FEEDBACK 탭 { key: "feedback", href: "/feedback", label: "피드백", testId: "nav-feedback", match: under("/feedback") }
 
