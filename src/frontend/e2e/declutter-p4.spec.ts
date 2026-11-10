@@ -115,7 +115,9 @@ test("숫자 스테퍼 값에 점선 밑줄이 없다(루틴 편집·프로필)"
 
   // 종목 줄의 부가 행동(슈퍼셋·대체·삭제)은 빨강이 아니다 — 빨강은 이 화면의 주 행동 하나에만.
   // [원본] 대체 글자색 하나만 쟀다 — 슈퍼셋·삭제가 빨강으로 돌아가도 통과했다(/qa P4 M-4)
-  for (const id of ["btn-re-swap", "btn-re-superset", "btn-re-remove"]) {
+  // [원본] for (const id of ["btn-re-swap", "btn-re-superset", "btn-re-remove"]) {
+  // [개선] 세트 줄 끝 🗑 도 부가 행동(세트 휴지통)
+  for (const id of ["btn-re-swap", "btn-re-superset", "btn-re-remove", "rx-remove"]) {
     expect(await accentUse(page, id), `${id} 강조색`).toEqual([]);
   }
 

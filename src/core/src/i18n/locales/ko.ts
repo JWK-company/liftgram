@@ -798,6 +798,7 @@ export const ko = {
   "routines.rxColRepMin": "최소",
   "routines.rxColRepMax": "최대",
   "routines.rxAddSet": "세트 추가",
+  "routines.rxRemoveSet": "{n}세트 삭제",
   "routines.rxType.normal": "일반",
   "routines.rxType.warmup": "웜업",
   "routines.rxType.top": "탑",
@@ -905,7 +906,8 @@ export const ko = {
   "hint.ok": "알겠어요",
   "hint.okAria": "알겠어요, 사용법 안내 닫기",
   "hint.prev": "「이전」을 누르면 지난 무게·횟수가 그대로 들어가요",
-  "hint.rxType": "세트 번호를 누르면 종류 바꾸기·복사·삭제가 나와요",
+  // [원본] "hint.rxType": "세트 번호를 누르면 종류 바꾸기·복사·삭제가 나와요", — 삭제는 줄 끝 🗑 로 나갔고 복사는 값이 다를 때만 보인다(세트 휴지통)
+  "hint.rxType": "세트 번호를 누르면 세트 종류를 바꿀 수 있어요",
   "hint.longDone": "묶음 전체가 완료됐어요 · 이 종목만은 체크를 길게 눌러요",
   "hint.resetTitle": "안내 다시 보기",
   "hint.resetCaption": "처음 쓸 때 나온 사용법 안내를 다시 보여요",

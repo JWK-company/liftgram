@@ -964,7 +964,7 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
         />
       ) : null}
 
-      {/* 첫 안내(SPEC-046 (b)) — 세트 번호를 누르면 종류 바꾸기·복사·삭제 · 키보드 순서가 화면과 같게 맨 끝에(P3 리뷰) */}
+      {/* 첫 안내(SPEC-046 (b)) — 세트 번호를 누르면 세트 종류 바꾸기(삭제는 줄 끝 🗑) · 키보드 순서가 화면과 같게 맨 끝에(P3 리뷰) */}
       <RxTypeHint />
     </div>
   );

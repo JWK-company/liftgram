@@ -340,6 +340,32 @@ export function PrescriptionRows({
     emit(rows.filter((_, idx) => idx !== i));
   };
 
+  // 세트 휴지통 — 입력 중인 칸이 있으면 먼저 올리고(blur) 다음 그림의 표에서 지운다.
+  // 버튼을 눌러도 칸이 blur 되지 않는 기기(iOS)에서 사라지는 칸이 옛 표로 값을 올려 지운 줄이 되살아나지 않게(리뷰 #1).
+  const removeRef = useRef(remove);
+  removeRef.current = remove;
+  const tableRef = useRef<HTMLDivElement>(null);
+  const focusAfterRemove = useRef<number | null>(null);
+  const removeFromTrash = (i: number) => {
+    const a = document.activeElement;
+    if (a instanceof HTMLInputElement && tableRef.current?.contains(a)) a.blur();
+    focusAfterRemove.current = i;
+    setTimeout(() => removeRef.current(i), 0);
+  };
+  // 지운 뒤 포커스 — 같은 자리(없으면 위) 줄의 🗑, 한 줄만 남으면 그 줄 번호(리뷰 #4)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: 줄 수가 바뀐 그림 뒤에 한 번 — 값은 ref 로 읽는다
+  useEffect(() => {
+    const i = focusAfterRemove.current;
+    if (i == null) return;
+    focusAfterRemove.current = null;
+    const rowEls = tableRef.current?.querySelectorAll('[data-testid="set-table-row"]');
+    const row = rowEls?.[Math.min(i, rowEls.length - 1)];
+    const target =
+      row?.querySelector<HTMLElement>('[data-testid="rx-remove"]') ??
+      row?.querySelector<HTMLElement>('[data-testid="rx-type"]');
+    target?.focus();
+  }, [rows.length]);
+
   const addSet = () => {
     if (rows.length >= ROUTINE_SETS_MAX) return;
     const last = rows[rows.length - 1];
@@ -439,7 +465,7 @@ export function PrescriptionRows({
   let normal = 0;
 
   return (
-    <div data-testid="set-table">
+    <div data-testid="set-table" ref={tableRef}>
       {/* 세트 방식(SPEC-041) — 루틴 편집에서만. 코칭은 지금 처방 화면 그대로다. */}
       {routine ? (
         <div className="flex flex-col gap-[4px] pb-[var(--spacing-xs)]">
@@ -494,7 +520,9 @@ export function PrescriptionRows({
             {t("routines.setColReps")}
           </AppText>
         </span>
-        {routine ? null : <span className="w-[44px] shrink-0" />}
+        {/* [원본] {routine ? null : <span className="w-[44px] shrink-0" />} */}
+        {/* [개선] 루틴 편집도 줄 끝에 🗑 칸이 있어 머리 칸을 맞춘다(세트 휴지통) */}
+        <span className="w-[44px] shrink-0" />
       </div>
 
       {rows.map((r, i) => {
@@ -591,7 +619,23 @@ export function PrescriptionRows({
               </div>
               )}
               {/* [원본] 루틴 편집에도 줄마다 … (무게 기준·삭제) — 세트 방식이 무게 기준을 정하고 삭제는 번호 시트로(SPEC-041) */}
-              {routine ? null : allowLoad || rows.length > 1 ? (
+              {/* [원본] {routine ? null : allowLoad || rows.length > 1 ? ( */}
+              {/* [개선] 루틴 편집은 줄 끝 🗑 — 번호 시트의 「삭제」를 밖으로(흐린 회색 · 빨강은 주 행동만 · 한 줄이면 빈 칸) */}
+              {routine ? (
+                rows.length > 1 ? (
+                  <button
+                    type="button"
+                    data-testid="rx-remove"
+                    aria-label={t("routines.rxRemoveSet", { n: i + 1 })}
+                    onClick={() => removeFromTrash(i)}
+                    className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-[var(--radius-pill)] focus-visible:outline-2 focus-visible:outline-(--color-ink3) active:bg-(--color-surface-alt)"
+                  >
+                    <Icon name="trash-outline" size={18} color="var(--color-ink3)" />
+                  </button>
+                ) : (
+                  <span className="w-[44px] shrink-0" />
+                )
+              ) : allowLoad || rows.length > 1 ? (
                 <button
                   type="button"
                   data-testid="rx-more"
@@ -724,16 +768,10 @@ export function PrescriptionRows({
                   },
                 ]
               : []),
-            ...(routine && rows.length > 1
-              ? [
-                  {
-                    label: t("common.delete"),
-                    destructive: true,
-                    testId: "rx-delete",
-                    onPress: () => remove(typeRow),
-                  },
-                ]
-              : []),
+            // [원본] 루틴 편집 맨 아래 「삭제」 — 줄 끝 🗑 로 옮겼다(세트 휴지통)
+            // ...(routine && rows.length > 1
+            //   ? [{ label: t("common.delete"), destructive: true, testId: "rx-delete", onPress: () => remove(typeRow) }]
+            //   : []),
           ]}
         />
       ) : null}

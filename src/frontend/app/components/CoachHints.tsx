@@ -61,7 +61,7 @@ export function LongDoneHint() {
 
 const RX_TYPE_SELECTOR = '[data-testid="rx-type"]';
 
-/** (b) 루틴 편집 — 세트 번호를 누르면 종류 바꾸기·복사·삭제 */
+/** (b) 루틴 편집 — 세트 번호를 누르면 세트 종류 바꾸기(삭제는 줄 끝 🗑 · 세트 휴지통) */
 export function RxTypeHint() {
   // [원본] const when = useSelectorPresent('[data-testid="rx-type"]', !isCoachMarkSeen("rxType"), true);
   // [개선] #T18 — 같은 선택자를 말풍선 anchor 로도 쓴다

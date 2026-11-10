@@ -1,0 +1,498 @@
+{
+ "schemaVersion": 1,
+ "id": "REV-110",
+ "type": "Review",
+ "title": "세트 휴지통 코드 리뷰",
+ "group": "할일/세트-휴지통",
+ "meta": {
+  "mode": "code",
+  "adopted": "8",
+  "held": "4",
+  "rejected": "0"
+ },
+ "relations": {},
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 1
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "세트 휴지통 코드 리뷰"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "독립 리뷰어 1명(화면·접근성·시험). 대상: 루틴 편집 세트 줄 끝 🗑 · 번호 시트 「삭제」 제거 · 첫 안내 문구."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "채택"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "#1 입력 중 칸이 있는 채 지우면 지운 줄이 되살아남(중간~높음)",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " — 사라지는 NumCell 의 정리 effect 가 옛 표로 값을 올린다. iOS 처럼 버튼을 눌러도 칸이 blur 되지 않을 때. → 🗑 은 표 안의 입력칸을 먼저 blur(값 올림)하고 다음 그림의 최신 "
+         },
+         {
+          "type": "text",
+          "text": "remove",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 로 지운다("
+         },
+         {
+          "type": "text",
+          "text": "removeRef",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " · "
+         },
+         {
+          "type": "text",
+          "text": "setTimeout 0",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ")."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "#4 삭제 뒤 포커스 사라짐(중간)",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " → 같은 자리(없으면 위) 줄의 🗑, 한 줄만 남으면 그 줄 번호로 포커스."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "#7 포커스 테두리 없음(낮음)",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " → "
+         },
+         {
+          "type": "text",
+          "text": "focus-visible:outline-2",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "(회색 ink3 — 빨강 아님)."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "#8 누를 때 바탕까지 흐려짐(낮음)",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " → "
+         },
+         {
+          "type": "text",
+          "text": "active:opacity-70",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 빼고 "
+         },
+         {
+          "type": "text",
+          "text": "active:bg-surface-alt",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 만."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "#10 영어 문구 어색(낮음)",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " → \"Tap a set number to change the set type\"."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "#11·#12 시험 빈틈(중간)",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " → blur 없이 누르는 경우("
+         },
+         {
+          "type": "text",
+          "text": "el.click()",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ")·종류(data-type)·횟수까지 줄마다 다르게 넣고 지운 뒤 비교 · 포커스 "
+         },
+         {
+          "type": "text",
+          "text": "toBeFocused",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "#14 다크 색 비교 대상(낮음)",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " → 가장 가까운 불투명 조상(카드) 바탕과 비교."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "#15 1번 시험에 말풍선이 같이 뜸(낮음)",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " → 그 시험은 "
+         },
+         {
+          "type": "text",
+          "text": "liftgram.hint.rxType=seen",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 으로 끔."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "보류"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "#3 되돌리기 없음(중간)",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " — 한 번 누르면 바로 지움(전엔 시트+삭제 두 번). 「n세트를 지웠어요 · 되돌리기」 토스트 여부는 사용자 결정."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "#5 레이블 번호 = 줄 순번(중간)",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " — 웜업이 섞이면 화면 글자(W W 1 2 3)와 「3세트 삭제」가 다르다. 사용자 지정 형식 「n세트 삭제」를 따름 — 「3번째 세트(웜업) 삭제」로 바꿀지 결정 필요."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "#13 말풍선 겹침 검사가 위쪽 배치에서 늘 통과(낮음)",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " — 아래 배치에서는 둘째 줄 🗑 을 덮을 수 있으나 말풍선이 누름을 받지 않고(pointer-events:none) 누르면 사라져 지장 없음. 그 경우는 시험에서 「덮인 🗑 이 그대로 눌림」으로 확인."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "#16 운동 중 시트 시험은 현 상태 회귀용",
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " — 그대로 둠."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "기각"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "없음(#2·#6·#9 는 문제없음 확인)."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ }
+}

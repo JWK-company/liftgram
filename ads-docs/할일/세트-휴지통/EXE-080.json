@@ -1,0 +1,388 @@
+{
+ "schemaVersion": 1,
+ "id": "EXE-080",
+ "type": "Execution",
+ "title": "세트 휴지통 구현",
+ "group": "할일/세트-휴지통",
+ "meta": {
+  "phase": "1",
+  "result": "done"
+ },
+ "relations": {},
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 1
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "세트 휴지통 구현"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "루틴 편집(새 루틴·루틴 편집, 화면 지도 S-14·S-13) 세트 표의 삭제를 번호 시트에서 줄 끝 🗑 으로 옮겼다."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "바꾼 것"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "src/frontend/app/components/routines/PrescriptionRows.tsx",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " — 루틴 편집 줄 끝 🗑("
+         },
+         {
+          "type": "text",
+          "text": "rx-remove",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " · trash-outline 18 · ink3 · 44×44 · aria-label 「n세트 삭제」 · 한 줄이면 빈 칸) · 머리 줄 44px 칸 · 번호 시트의 「삭제」("
+         },
+         {
+          "type": "text",
+          "text": "rx-delete",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ") 제거(코칭 처방의 ⋯ 메뉴 삭제는 그대로) · 입력칸 먼저 올리고 지움 · 지운 뒤 포커스."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "src/core/src/i18n/locales/ko.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "·"
+         },
+         {
+          "type": "text",
+          "text": "en.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " — "
+         },
+         {
+          "type": "text",
+          "text": "hint.rxType",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 「세트 번호를 누르면 세트 종류를 바꿀 수 있어요」 · "
+         },
+         {
+          "type": "text",
+          "text": "routines.rxRemoveSet",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "src/frontend/app/components/CoachHints.tsx",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "·"
+         },
+         {
+          "type": "text",
+          "text": "routines/RoutineEditor.tsx",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " — 주석 문구만."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "운동 중 세트 시트("
+         },
+         {
+          "type": "text",
+          "text": "session/SetRowEdit.tsx",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ")는 바꾸지 않음."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "시험"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "새 "
+         },
+         {
+          "type": "text",
+          "text": "src/frontend/e2e/set-trash.spec.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "(3) — 줄마다 🗑·44px·360px 넘침 없음(무게 78 · 횟수 칸 51.6px)·라이트/다크 빨강 없음·그 세트만 빠짐(종류·무게·횟수)·blur 없이 눌러도 되살아나지 않음·포커스·한 줄이면 없음·시트에 삭제 없음 · 안내 문구에 「복사」「삭제」 없음·말풍선이 🗑 을 덮지 않음(다크) · 운동 중 시트 그대로."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "고친 시험: "
+         },
+         {
+          "type": "text",
+          "text": "set-table.spec.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "(시트 삭제 → 🗑) · "
+         },
+         {
+          "type": "text",
+          "text": "set-scheme.spec.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "(시트에 삭제 없음 · 🗑 있음) · "
+         },
+         {
+          "type": "text",
+          "text": "declutter-p4.spec.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "("
+         },
+         {
+          "type": "text",
+          "text": "rx-remove",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 강조색 없음)."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "관련 묶음 59/60 통과(summary-card:36 은 HEAD 에서도 실패 — 로그아웃 뒤 로그인 칸이 안 뜸, 이 변경과 무관). 전체 473 통과 · 10 실패(기준선 motion-video 4·opengym-import 3·declutter-block:139 + manual-update:333 재실행 통과 + summary-card:36 HEAD 에서도 실패) · 49 건너뜀."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "tsc 통과 · biome 새로 쓴 줄 규칙 맞춤(기존 서식 경고는 그대로)."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "리뷰"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "REV-110 — 채택 8 · 보류 4 · 기각 0."
+     }
+    ]
+   }
+  ]
+ }
+}

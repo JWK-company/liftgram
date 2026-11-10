@@ -55,9 +55,11 @@ test("세트 표 → 운동 화면 — 타입·무게·횟수가 그대로 · �
   // [원본] 줄 메뉴(…)에서 지우기 — SPEC-041 에서 번호 시트로 옮겼다
   // await 줄(page).nth(5).getByTestId("rx-more").click();
   // await page.getByTestId("rx-delete").click();
+  // [원본] 번호 시트에서 지우기(SPEC-041) — 줄 끝 🗑 로 옮겼다(세트 휴지통)
+  // await 줄(page).nth(5).getByTestId("rx-type").click();
+  // await page.getByTestId("rx-delete").click();
   // [개선]
-  await 줄(page).nth(5).getByTestId("rx-type").click();
-  await page.getByTestId("rx-delete").click();
+  await 줄(page).nth(5).getByTestId("rx-remove").click();
   await expect(줄(page)).toHaveCount(5);
   await 타입(page, 1, "탑세트 (T)");
   await 타입(page, 2, "백오프 (B)");

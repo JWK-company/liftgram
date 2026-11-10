@@ -101,10 +101,12 @@ test("루틴 편집 — 세트 방식 고르기·되돌리기·바벨 드롭세�
   expect(글자).toEqual(["W", "W", "P", "T", "B"]);
   await expect(표(page).getByTestId("scheme-guide")).toContainText("P = 피더");
 
-  // 번호 시트 — 피더와 삭제가 있다(시트만 보고 닫는다)
+  // [원본] 번호 시트 — 피더와 삭제가 있다 · await expect(page.getByTestId("rx-delete")).toBeVisible();
+  // [개선] 번호 시트 — 피더는 있고 삭제는 줄 끝 🗑 으로 나갔다(세트 휴지통 · 시트만 보고 닫는다)
   await 줄(page).nth(1).getByTestId("rx-type").click();
   await expect(page.getByTestId("rx-type-feeder")).toBeVisible();
-  await expect(page.getByTestId("rx-delete")).toBeVisible();
+  await expect(page.getByTestId("rx-delete")).toHaveCount(0);
+  await expect(줄(page).nth(1).getByTestId("rx-remove")).toBeVisible();
   await page.keyboard.press("Escape");
 
   // 저장하고 다시 열어도 같은 방식 · 수정함 아님
