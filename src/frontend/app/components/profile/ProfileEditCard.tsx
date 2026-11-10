@@ -74,7 +74,9 @@ export function ProfileEditCard() {
                 });
               }}
             />
-            <span className="flex h-[42px] items-center justify-center rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface-alt)">
+            {/* [원본] <span className="flex h-[42px] items-center justify-center rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface-alt)"> — 회색 채움 막대 */}
+            {/* [개선] 테두리만 있는 중립 버튼(Button secondary 와 같다) · 누르는 자리 44px(SPEC-056 F4·F7) */}
+            <span className="flex min-h-[44px] items-center justify-center rounded-[var(--radius-sm)] border border-(--color-line-strong) bg-transparent">
               <AppText variant="body" color={saving ? "textMuted" : "text"}>
                 {t("profileEdit.changePhoto")}
               </AppText>

@@ -206,7 +206,8 @@ export function SecurityCard() {
                 </AppText>
                 <button
                   type="button"
-                  className="text-sm text-(--color-ink2)"
+                  // [원본] className="text-sm text-(--color-ink2)" · [개선] 누르는 자리 44px(SPEC-056 F7)
+                  className="min-h-[44px] px-[var(--spacing-xs)] text-sm text-(--color-ink2)"
                   disabled={busy}
                   data-testid={`btn-unlink-${p}`}
                   onClick={() =>

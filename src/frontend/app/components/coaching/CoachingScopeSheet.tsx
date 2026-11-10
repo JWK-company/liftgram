@@ -69,7 +69,9 @@ export function CoachingScopeSheet({
       <AppText variant="label" color="textMuted" className="mt-[var(--spacing-lg)] block">
         {t("coaching.scope.title")}
       </AppText>
-      <div className="mt-[var(--spacing-xs)] overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t">
+      {/* [원본] <div className="mt-[var(--spacing-xs)] overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t"> — 시트 안 상자 */}
+      {/* [개선] 시트 안 상자 대신 위아래 가는 선과 줄 사이 선(ui/rows.tsx ListGroup 과 같다 · SPEC-056 F1 상자 안 상자 금지) */}
+      <div className="mt-[var(--spacing-xs)] overflow-hidden border-(--color-line) border-y [&>*+*]:border-(--color-line) [&>*+*]:border-t">
         {ROWS.map((r) => (
           <ScopeSwitch
             key={r.key}
@@ -159,7 +161,9 @@ function ScopeSwitch({
       aria-describedby={descId}
       data-testid={testId}
       onClick={onToggle}
-      className="flex min-h-[52px] w-full items-center gap-[var(--spacing-sm)] px-[var(--spacing-md)] py-[var(--spacing-sm)] text-left"
+      // [원본] className="flex min-h-[52px] w-full items-center gap-[var(--spacing-sm)] px-[var(--spacing-md)] py-[var(--spacing-sm)] text-left"
+      // [개선] 판이 없어져 좌우 여백 px-xs(ListRow 와 같다 · SPEC-056)
+      className="flex min-h-[52px] w-full items-center gap-[var(--spacing-sm)] px-[var(--spacing-xs)] py-[var(--spacing-sm)] text-left"
     >
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="break-words font-medium text-(--color-ink) text-[length:var(--text-md)]">
@@ -176,7 +180,8 @@ function ScopeSwitch({
         >
           <span
             style={{ transform: on ? "translateX(20px)" : "translateX(0)" }}
-            className="absolute top-[2px] left-[2px] block h-[24px] w-[24px] rounded-full bg-(--color-surface) shadow transition-transform"
+            // [원본] className="… rounded-full …" · [개선] 둥근 정도는 토큰(SPEC-056 F2)
+            className="absolute top-[2px] left-[2px] block h-[24px] w-[24px] rounded-[var(--radius-pill)] bg-(--color-surface) shadow transition-transform"
           />
         </span>
       </span>

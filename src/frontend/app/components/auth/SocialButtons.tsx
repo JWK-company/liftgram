@@ -63,7 +63,8 @@ export function LastLoginBadge() {
       <span
         aria-hidden="true"
         data-testid="last-login-badge"
-        className="pointer-events-none absolute -top-2.5 right-3 rounded-full bg-(--color-brand) px-2 py-0.5 font-semibold text-(--color-on-brand) text-[11px] leading-none ring-2 ring-(--color-card)"
+        // [원본] className="… rounded-full …" · [개선] 둥근 정도는 토큰(SPEC-056 F2 · 태그는 알약 허용)
+        className="pointer-events-none absolute -top-2.5 right-3 rounded-[var(--radius-pill)] bg-(--color-brand) px-2 py-0.5 font-semibold text-(--color-on-brand) text-[11px] leading-none ring-2 ring-(--color-card)"
       >
         {t("auth.lastBadge")}
       </span>
@@ -143,7 +144,10 @@ export function SocialButtons({
           <span>{t("auth.continueWith", { provider: providerLabel(p) })}</span>
           {/* 서버 답을 받기 전에는 표시하지 않는다 — 켜진 제공자에 잠깐 「설정 필요」가 번쩍이던 문제. */}
           {loaded ? (
-            <span className="rounded-full border border-(--color-line) bg-(--color-card) px-2 py-0.5 text-xs text-(--color-ink2)">
+            <span
+              // [원본] className="rounded-full …" · [개선] 둥근 정도는 토큰(SPEC-056 F2)
+              className="rounded-[var(--radius-pill)] border border-(--color-line) bg-(--color-card) px-2 py-0.5 text-xs text-(--color-ink2)"
+            >
               {t("auth.setupNeeded")}
             </span>
           ) : null}

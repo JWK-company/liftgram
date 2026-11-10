@@ -66,7 +66,8 @@ export function ImportElsewhereNotice() {
           ref={reloadRef}
           type="button"
           data-testid="import-elsewhere-reload"
-          className="min-h-11 rounded-md bg-(--color-brand) px-5 font-semibold text-(--color-on-brand)"
+          // [원본] className="min-h-11 rounded-md …" · [개선] 둥근 정도는 토큰(SPEC-056 F2)
+          className="min-h-11 rounded-[var(--radius-sm)] bg-(--color-brand) px-5 font-semibold text-(--color-on-brand)"
           onClick={() => location.reload()}
         >
           {t("import.reload")}

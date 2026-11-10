@@ -265,7 +265,8 @@ export default function ProfileClient() {
         {/* ── 나(시안 09): 맨 위는 사람 — 아바타 · 이름 · 경력/코칭 의향 + 편집. 계정 주소 카드는 아래 「계정과 데이터」 로. */}
         <Card className="mb-[var(--spacing-xl)]">
           <div className="flex items-center gap-[var(--spacing-md)]" data-testid="profile-me">
-            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-(--color-brand) font-bold text-(--color-on-brand) text-[length:var(--text-lg)]">
+            {/* [원본] … rounded-full … · [개선] 둥근 정도는 토큰(아바타는 원 · SPEC-056 F2) */}
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-(--color-brand) font-bold text-(--color-on-brand) text-[length:var(--text-lg)]">
               {displayName.slice(0, 1).toUpperCase()}
             </span>
             <span className="flex min-w-0 flex-1 flex-col">
@@ -283,7 +284,9 @@ export default function ProfileClient() {
               type="button"
               data-testid="btn-edit-experience"
               onClick={() => setSheet("experience")}
-              className="h-9 shrink-0 rounded-[var(--radius-pill)] border border-(--color-line) px-[var(--spacing-md)] font-medium text-(--color-ink) text-[length:var(--text-sm)] active:bg-(--color-surface-alt)"
+              // [원본] className="h-9 shrink-0 rounded-[var(--radius-pill)] border border-(--color-line) px-[var(--spacing-md)] font-medium text-(--color-ink) text-[length:var(--text-sm)] active:bg-(--color-surface-alt)"
+              // [개선] 버튼은 알약 대신 작은 둥근 정도 · 누르는 것의 경계 line-strong · 누르는 자리 44px(SPEC-056 F2·F7)
+              className="min-h-[44px] shrink-0 rounded-[var(--radius-sm)] border border-(--color-line-strong) px-[var(--spacing-md)] font-medium text-(--color-ink) text-[length:var(--text-sm)] active:bg-(--color-surface-alt)"
             >
               {t("common.edit")}
             </button>

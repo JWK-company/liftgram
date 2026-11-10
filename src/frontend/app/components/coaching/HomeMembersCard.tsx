@@ -114,7 +114,9 @@ export function HomeMembersCard() {
       href="/coaching"
       data-testid="home-members-card"
       data-count={count}
-      className="mt-[var(--spacing-lg)] mb-[var(--spacing-sm)] flex min-h-11 min-w-0 items-center gap-[var(--spacing-sm)] rounded-[var(--radius-md)] border border-(--color-line) border-l-4 border-l-(--color-coaching) bg-(--color-card) px-[var(--spacing-md)] py-[var(--spacing-sm)]"
+      // [원본] className="mt-[var(--spacing-lg)] mb-[var(--spacing-sm)] flex min-h-11 min-w-0 items-center gap-[var(--spacing-sm)] rounded-[var(--radius-md)] border border-(--color-line) border-l-4 border-l-(--color-coaching) bg-(--color-card) px-[var(--spacing-md)] py-[var(--spacing-sm)]"
+      // [개선] 상자는 걷고 청록 왼쪽 띠(코칭 뜻)만 남긴다 — 위아래는 가는 선(SPEC-056 F1 · 띠는 REV-122 유지)
+      className="mt-[var(--spacing-lg)] mb-[var(--spacing-sm)] flex min-h-11 min-w-0 items-center gap-[var(--spacing-sm)] border-(--color-line) border-y border-l-4 border-l-(--color-coaching) px-[var(--spacing-md)] py-[var(--spacing-sm)]"
     >
       <Icon name="people-outline" size={20} color="var(--color-coaching-ink)" />
       <div className="min-w-0 flex-1">

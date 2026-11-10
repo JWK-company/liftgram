@@ -25,7 +25,9 @@ export function NotFoundBack() {
         if (canBack) window.history.back();
         else window.location.assign("/");
       }}
-      className="inline-flex min-h-[44px] items-center rounded-[var(--radius-md)] border border-(--color-line) px-[var(--spacing-lg)] font-semibold text-(--color-ink)"
+      // [원본] className="inline-flex min-h-[44px] items-center rounded-[var(--radius-md)] border border-(--color-line) px-[var(--spacing-lg)] font-semibold text-(--color-ink)"
+      // [개선] Button secondary 와 같은 모양 — 둥근 sm · 누르는 것의 경계 line-strong(SPEC-056 F2·F7)
+      className="inline-flex min-h-[44px] items-center rounded-[var(--radius-sm)] border border-(--color-line-strong) px-[var(--spacing-lg)] font-semibold text-(--color-ink)"
     >
       {t("notFound.back")}
     </button>

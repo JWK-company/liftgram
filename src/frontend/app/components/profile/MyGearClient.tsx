@@ -89,7 +89,8 @@ export default function MyGearClient() {
                   aria-label={t("common.delete")}
                   data-testid={`gear-remove-${g.category}`}
                   onClick={() => toggle(g.category)}
-                  className="pr-[var(--spacing-xs)]"
+                  // [원본] className="pr-[var(--spacing-xs)]" · [개선] 누르는 자리 44px(SPEC-056 F7)
+                  className="-ml-[13px] flex h-[44px] w-[44px] shrink-0 items-center justify-center"
                 >
                   <Icon name="close-circle" size={18} color="var(--color-ink3)" />
                 </button>
@@ -124,7 +125,8 @@ export default function MyGearClient() {
         <AppText variant="label" color="textFaint" className="mb-[var(--spacing-sm)] block">
           {t("gear.myGearAll")}
         </AppText>
-        <div className="flex flex-col gap-[var(--spacing-xs)]" data-testid="gear-all">
+        {/* [원본] <div className="flex flex-col gap-[var(--spacing-xs)]" data-testid="gear-all"> · [개선] 구분선 목록(SPEC-056 F1) */}
+        <div className="flex flex-col border-(--color-line) border-t" data-testid="gear-all">
           {GEAR_CATEGORIES.map((c) => {
             const on = owned.has(c);
             return (
@@ -135,15 +137,22 @@ export default function MyGearClient() {
                 aria-pressed={on}
                 disabled={saving}
                 onClick={() => toggle(c)}
-                style={{ backgroundColor: on ? "var(--color-brand-muted)" : "var(--color-surface)" }}
-                className="flex items-center rounded-[var(--radius-md)] px-[var(--spacing-md)] py-[var(--spacing-md)] disabled:opacity-60"
+                // [원본] style={{ backgroundColor: on ? "var(--color-brand-muted)" : "var(--color-surface)" }}
+                // [원본] className="flex items-center rounded-[var(--radius-md)] px-[var(--spacing-md)] py-[var(--spacing-md)] disabled:opacity-60"
+                // [개선] 고른 줄을 채움으로 보이지 않는다 — ✓ 아이콘·글자 진하기로, 줄은 아래 가는 선(SPEC-056 F1·F6)
+                className="flex min-h-[44px] items-center border-(--color-line) border-b px-[var(--spacing-xs)] py-[var(--spacing-md)] disabled:opacity-60"
               >
                 <Icon
                   name={on ? "checkmark-circle" : "ellipse-outline"}
                   size={18}
                   color={on ? "var(--color-brand)" : "var(--color-ink3)"}
                 />
-                <AppText variant="body" color={on ? "text" : "textMuted"} className="ml-[var(--spacing-sm)]">
+                <AppText
+                  variant="body"
+                  color={on ? "text" : "textMuted"}
+                  // [원본] className="ml-[var(--spacing-sm)]" · [개선] 고른 줄은 굵게(SPEC-056 F6)
+                  className={`ml-[var(--spacing-sm)] ${on ? "font-semibold" : ""}`}
+                >
                   {t(gearLabelKey(c))}
                 </AppText>
               </button>

@@ -24,7 +24,9 @@ export function EffortLoggingRow() {
       data-testid="switch-effort-logging"
       onClick={() => setEffortLogging(!on)}
       // ListRow(ui/rows.tsx)와 같은 줄 모양
-      className="flex min-h-[52px] w-full items-center gap-[var(--spacing-md)] px-[var(--spacing-lg)] py-[var(--spacing-md)] text-left active:bg-(--color-surface-alt)"
+      // [원본] className="flex min-h-[52px] w-full items-center gap-[var(--spacing-md)] px-[var(--spacing-lg)] py-[var(--spacing-md)] text-left active:bg-(--color-surface-alt)"
+      // [개선] 판 없는 ListGroup 에 맞춰 좌우 여백 px-xs(ui/rows.tsx ListRow 와 같다 · SPEC-056)
+      className="flex min-h-[52px] w-full items-center gap-[var(--spacing-md)] px-[var(--spacing-xs)] py-[var(--spacing-md)] text-left active:bg-(--color-surface-alt)"
     >
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="truncate font-medium text-(--color-ink) text-[length:var(--text-md)]">

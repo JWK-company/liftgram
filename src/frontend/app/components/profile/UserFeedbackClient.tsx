@@ -113,7 +113,10 @@ export default function UserFeedbackClient() {
               <div
                 role="status"
                 data-testid="user-feedback-sent"
-                className="mb-[var(--spacing-md)] rounded-[var(--radius-sm)] bg-(--color-surface-alt) p-[var(--spacing-md)]"
+                // [원본] className="mb-[var(--spacing-md)] rounded-[var(--radius-sm)] bg-(--color-surface-alt) p-[var(--spacing-md)]" — 회색 판
+                // [개선] 판 대신 왼쪽 초록 강조선(보냈음 · SPEC-056 F1·F6)
+                style={{ boxShadow: "inset 3px 0 0 var(--color-ok)" }}
+                className="mb-[var(--spacing-md)] py-[var(--spacing-sm)] pl-[var(--spacing-md)]"
               >
                 <AppText variant="body">{t("userFeedback.sent")}</AppText>
               </div>

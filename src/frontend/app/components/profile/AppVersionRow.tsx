@@ -39,7 +39,9 @@ export function AppVersionRow() {
     <div
       data-testid="app-version-row"
       data-state={row}
-      className="flex min-h-[52px] w-full items-center gap-[var(--spacing-md)] px-[var(--spacing-lg)] py-[var(--spacing-md)]"
+      // [원본] className="flex min-h-[52px] w-full items-center gap-[var(--spacing-md)] px-[var(--spacing-lg)] py-[var(--spacing-md)]"
+      // [개선] 판 없는 ListGroup 에 맞춰 좌우 여백 px-xs(ui/rows.tsx ListRow 와 같다 · SPEC-056)
+      className="flex min-h-[52px] w-full items-center gap-[var(--spacing-md)] px-[var(--spacing-xs)] py-[var(--spacing-md)]"
     >
       <span className="flex min-w-0 flex-1 flex-col">
         <span
@@ -71,7 +73,9 @@ export function AppVersionRow() {
           disabled={row !== "ready" || upd.phase === "updating"}
           aria-describedby={subtitle ? descId : undefined}
           onClick={() => void startUpdate()}
-          className="min-h-[44px] shrink-0 rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[var(--spacing-lg)] font-semibold text-(--color-ink) text-[length:var(--text-sm)] focus-visible:outline-2 focus-visible:outline-(--color-brand) focus-visible:outline-offset-2 disabled:opacity-45"
+          // [원본] className="min-h-[44px] shrink-0 rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[var(--spacing-lg)] …" — 회색 채움 막대
+          // [개선] 테두리만 있는 중립 버튼(Button secondary 와 같다 · SPEC-056 F4)
+          className="min-h-[44px] shrink-0 rounded-[var(--radius-sm)] border border-(--color-line-strong) bg-transparent px-[var(--spacing-lg)] font-semibold text-(--color-ink) text-[length:var(--text-sm)] focus-visible:outline-2 focus-visible:outline-(--color-brand) focus-visible:outline-offset-2 disabled:opacity-45"
         >
           {tw("web.sw.update")}
         </button>

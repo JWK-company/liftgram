@@ -23,8 +23,9 @@ export default function AppPageClient() {
     void fetchLatest(true).then(setLatest);
   }, []);
 
+  // [원본] "… rounded-[var(--radius-md)] …" · [개선] 버튼 둥근 정도 sm(Button 과 같다 · SPEC-056 F2)
   const linkCls =
-    "flex min-h-[48px] items-center justify-center rounded-[var(--radius-md)] bg-(--color-brand) px-[var(--spacing-lg)] font-semibold text-(--color-on-brand) focus-visible:outline-2 focus-visible:outline-(--color-ink) focus-visible:outline-offset-2";
+    "flex min-h-[48px] items-center justify-center rounded-[var(--radius-sm)] bg-(--color-brand) px-[var(--spacing-lg)] font-semibold text-(--color-on-brand) focus-visible:outline-2 focus-visible:outline-(--color-ink) focus-visible:outline-offset-2";
   // 안내 파일의 지문이 앱에 박힌 릴리스 지문과 다르면 받기를 내지 않는다(REV-013 보안 M-2 — 바뀐 json 으로 남의 파일을 받게 하지 않게)
   const certOk = !!latest && normFp(latest.certSha256) === RELEASE_CERT_SHA256;
 

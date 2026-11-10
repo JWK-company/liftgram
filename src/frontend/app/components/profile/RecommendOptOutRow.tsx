@@ -54,7 +54,9 @@ export function RecommendOptOutRow() {
       // [원본] aria-describedby={descId} — 설명 줄 없앰(SPEC-055 Phase 4)
       data-testid="switch-recommend-opt"
       onClick={toggle}
-      className="flex min-h-[52px] w-full items-center gap-[var(--spacing-md)] px-[var(--spacing-lg)] py-[var(--spacing-sm)] text-left"
+      // [원본] className="flex min-h-[52px] w-full items-center gap-[var(--spacing-md)] px-[var(--spacing-lg)] py-[var(--spacing-sm)] text-left"
+      // [개선] 판 없는 ListGroup 에 맞춰 좌우 여백 px-xs(ui/rows.tsx ListRow 와 같다 · SPEC-056)
+      className="flex min-h-[52px] w-full items-center gap-[var(--spacing-md)] px-[var(--spacing-xs)] py-[var(--spacing-sm)] text-left"
     >
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="truncate font-medium text-(--color-ink) text-[length:var(--text-md)]">

@@ -51,7 +51,9 @@ export function AppUpdateCard() {
         data-why={offer.kind === "none" ? offer.why : ""}
         disabled={!actionable}
         onClick={() => setOpen(true)}
-        className="flex min-h-[52px] w-full items-center gap-[var(--spacing-md)] px-[var(--spacing-lg)] py-[var(--spacing-md)] text-left focus-visible:outline-2 focus-visible:outline-(--color-brand) focus-visible:-outline-offset-2 disabled:cursor-default"
+        // [원본] className="flex min-h-[52px] w-full items-center gap-[var(--spacing-md)] px-[var(--spacing-lg)] py-[var(--spacing-md)] text-left focus-visible:outline-2 focus-visible:outline-(--color-brand) focus-visible:-outline-offset-2 disabled:cursor-default"
+        // [개선] 판 없는 ListGroup 에 맞춰 좌우 여백 px-xs(ui/rows.tsx ListRow 와 같다 · SPEC-056)
+        className="flex min-h-[52px] w-full items-center gap-[var(--spacing-md)] px-[var(--spacing-xs)] py-[var(--spacing-md)] text-left focus-visible:outline-2 focus-visible:outline-(--color-brand) focus-visible:-outline-offset-2 disabled:cursor-default"
       >
         <span className="flex min-w-0 flex-1 flex-col">
           <span className="truncate font-medium text-(--color-ink) text-[length:var(--text-md)]">

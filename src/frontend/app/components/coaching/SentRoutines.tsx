@@ -149,7 +149,8 @@ function SentRow({ row, hideStatus = false }: { row: Row; hideStatus?: boolean }
     <>
       <span
         aria-hidden
-        className={`h-[36px] w-[3px] shrink-0 rounded-full ${row.status === "ended" ? "bg-(--color-line)" : "bg-(--color-coaching)"}`}
+        // [원본] rounded-full · [개선] 토큰(SPEC-056 F2)
+        className={`h-[36px] w-[3px] shrink-0 rounded-[var(--radius-pill)] ${row.status === "ended" ? "bg-(--color-line)" : "bg-(--color-coaching)"}`}
       />
       <span className="min-w-0 flex-1">
         <span className="block truncate font-semibold text-(--color-ink) text-[length:var(--text-md)]">

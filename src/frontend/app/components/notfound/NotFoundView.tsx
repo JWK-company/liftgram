@@ -26,7 +26,8 @@ export function NotFoundView({
             <a
               href={primaryHref}
               data-testid="not-found-home"
-              className="inline-flex min-h-[44px] items-center rounded-[var(--radius-md)] bg-(--color-brand) px-[var(--spacing-lg)] font-semibold text-(--color-on-brand)"
+              // [원본] rounded-[var(--radius-md)] · [개선] 버튼 둥근 정도 sm(Button 과 같다 · SPEC-056 F2)
+              className="inline-flex min-h-[44px] items-center rounded-[var(--radius-sm)] bg-(--color-brand) px-[var(--spacing-lg)] font-semibold text-(--color-on-brand)"
             >
               {t(primaryLabel)}
             </a>

@@ -239,10 +239,11 @@ function ProgressBar({ ratio, label, testId }: { ratio: number | null; label: st
         aria-valuemax={100}
         aria-valuenow={pct ?? undefined}
         data-testid={testId}
-        className="mt-[6px] h-2 w-full overflow-hidden rounded-full bg-(--color-surface-alt)"
+        // [원본] className="mt-[6px] h-2 w-full overflow-hidden rounded-full bg-(--color-surface-alt)" · [개선] 둥근 정도는 토큰(SPEC-056 F2)
+        className="mt-[6px] h-2 w-full overflow-hidden rounded-[var(--radius-pill)] bg-(--color-surface-alt)"
       >
         <div
-          className={`h-full rounded-full bg-(--color-brand) ${pct == null ? "w-1/3 animate-pulse" : ""}`}
+          className={`h-full rounded-[var(--radius-pill)] bg-(--color-brand) ${pct == null ? "w-1/3 animate-pulse" : ""}`}
           style={pct == null ? undefined : { width: `${pct}%` }}
         />
       </div>
