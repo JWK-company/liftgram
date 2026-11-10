@@ -283,11 +283,20 @@ for id,name,par,label,ev,desc in [
  ('s.bwgoal','목표 체중','/stats','머리 ⋯ 목표','C/analytics/BodyweightCard.tsx:178','목표 입력(인바디 칸 없음)'),
 ]:
     sh(id,name,par,label,ev,desc,'','기록·분석')
-e('/profile','s.bw','체중 줄','C/profile/BodyweightRow.tsx:91','open')
+# [원본] e('/profile','s.bw','체중 줄','C/profile/BodyweightRow.tsx:91','open')
+# [개선] v0.91.1 — 프로필 「기록」 버튼이 없어져 기록 시트(s.bw)로 가는 길은 분석 카드 「기록」만 남는다
 P='/profile'
 # [원본] for id,name,label,ev in [('s.p.exp','운동 경력·코칭 의향','경력 줄','C/profile/ProfileClient.tsx:608'),('s.p.unit','단위','단위 줄','C/profile/ProfileClient.tsx:472'),('s.p.theme','화면 테마','테마 줄','C/profile/ProfileClient.tsx:485'),('s.p.lang','언어','언어 줄','C/profile/ProfileClient.tsx:501'),('s.p.sound','휴식 알림음','알림음 줄','C/profile/ProfileClient.tsx:514'),('s.p.equip','내 가용 기구','기구 줄','C/profile/ProfileClient.tsx:552'),('s.p.custom','커스텀 기구 이름','기구 이름 줄','C/profile/ProfileClient.tsx:580'),('s.p.bwall','체중 기록 전체','전체 기록','C/profile/BodyweightRow.tsx:199'),('s.p.bwedit','기록 고치기','기록 항목','C/profile/BodyweightRow.tsx:154'),('s.p.bwrm','이 기록을 지울까요?','삭제 탭','C/profile/BodyweightRow.tsx:297'),('s.p.bwnone','체중 미설정으로 두기','미설정','C/profile/BodyweightRow.tsx:320')]:
-for id,name,label,ev in [('s.p.exp','운동 경력·코치 찾기 노출','경력 줄','C/profile/ProfileClient.tsx:283 · C/profile/ProfileClient.tsx:592'),('s.p.unit','단위','단위 줄','C/profile/ProfileClient.tsx:472'),('s.p.theme','화면 테마','테마 줄','C/profile/ProfileClient.tsx:485'),('s.p.lang','언어','언어 줄','C/profile/ProfileClient.tsx:501'),('s.p.sound','휴식 알림음','알림음 줄','C/profile/ProfileClient.tsx:514'),('s.p.equip','내 가용 기구','기구 줄','C/profile/ProfileClient.tsx:552'),('s.p.custom','커스텀 기구 이름','기구 이름 줄','C/profile/ProfileClient.tsx:580'),('s.p.bwall','체중 기록 전체','전체 기록','C/profile/BodyweightRow.tsx:199'),('s.p.bwedit','기록 고치기','기록 항목','C/profile/BodyweightRow.tsx:154'),('s.p.bwrm','이 기록을 지울까요?','삭제 탭','C/profile/BodyweightRow.tsx:297'),('s.p.bwnone','체중 미설정으로 두기','미설정','C/profile/BodyweightRow.tsx:320')]:
+# [원본] for id,name,label,ev in [('s.p.exp','운동 경력·코치 찾기 노출','경력 줄','C/profile/ProfileClient.tsx:283 · C/profile/ProfileClient.tsx:592'),('s.p.unit','단위','단위 줄','C/profile/ProfileClient.tsx:472'),('s.p.theme','화면 테마','테마 줄','C/profile/ProfileClient.tsx:485'),('s.p.lang','언어','언어 줄','C/profile/ProfileClient.tsx:501'),('s.p.sound','휴식 알림음','알림음 줄','C/profile/ProfileClient.tsx:514'),('s.p.equip','내 가용 기구','기구 줄','C/profile/ProfileClient.tsx:552'),('s.p.custom','커스텀 기구 이름','기구 이름 줄','C/profile/ProfileClient.tsx:580'),('s.p.bwall','체중 기록 전체','전체 기록','C/profile/BodyweightRow.tsx:199'),('s.p.bwedit','기록 고치기','기록 항목','C/profile/BodyweightRow.tsx:154'),('s.p.bwrm','이 기록을 지울까요?','삭제 탭','C/profile/BodyweightRow.tsx:297'),('s.p.bwnone','체중 미설정으로 두기','미설정','C/profile/BodyweightRow.tsx:320')]:
+for id,name,label,ev in [('s.p.exp','운동 경력·코치 찾기 노출','경력 줄','C/profile/ProfileClient.tsx:283 · C/profile/ProfileClient.tsx:592'),('s.p.unit','단위','단위 줄','C/profile/ProfileClient.tsx:472'),('s.p.theme','화면 테마','테마 줄','C/profile/ProfileClient.tsx:485'),('s.p.lang','언어','언어 줄','C/profile/ProfileClient.tsx:501'),('s.p.sound','휴식 알림음','알림음 줄','C/profile/ProfileClient.tsx:514'),('s.p.equip','내 가용 기구','기구 줄','C/profile/ProfileClient.tsx:552'),('s.p.custom','커스텀 기구 이름','기구 이름 줄','C/profile/ProfileClient.tsx:580')]:
     sh(id,name,P,label,ev,'','','프로필')
+# [개선] 체중 한 줄(v0.91.1) — 프로필 「체중 ‹최근 값› ›」 한 줄 → 「체중」 시트(바로 입력 + 지난 기록 + 미설정으로 두기 + 확인).
+#   고치기·지우기·미설정 확인은 그 시트에서 연다. 「기록」 버튼·「체중 기록 전체」 줄·부가 설명은 없어졌다(설명은 미설정 확인 창에만).
+BR='C/profile/BodyweightRow.tsx'
+sh('s.p.bwall','체중',P,'체중 줄 ‹최근 값› ›',BR+':126 · '+BR+':269','맨 위 바로 입력(체중 ± · 인바디 펼쳐 적기 · 저장해도 시트는 열린 채 새 줄이 목록 맨 위) · 「지난 기록」 목록(최근 것이 위 · 줄마다 「고치기」·「지우기」) · 「체중 미설정으로 두기」(값이 있을 때) · 「확인」','기록이 없으면 「지난 기록이 없어요 — 값을 맞춰 주세요」·「아직 기록이 없어요」 · 미설정 버튼 없음','프로필')
+sh('s.p.bwedit','기록 고치기','s.p.bwall','지난 기록 줄 「고치기」',BR+':364 · '+BR+':213','값·날짜 고치기(날짜가 지금보다 뒤면 지금으로) · 떠 있는 동안 「체중」 시트는 내린다','','프로필')
+sh('s.p.bwrm','이 기록을 지울까요?','s.p.bwall','지난 기록 줄 「지우기」',BR+':377 · '+BR+':418','어느 기록인지(값 · 날짜) 한 줄 · 「지우기」','마지막 기록이면 제목 「마지막 기록이에요」 + 「마지막 기록을 지우면 체중이 미설정으로 돌아가요」','프로필')
+sh('s.p.bwnone','체중 미설정으로 두기','s.p.bwall','「체중 미설정으로 두기」',BR+':395 · '+BR+':441','확인 창 — 「기록은 남아요. 맨몸·어시스트 볼륨은 체중 없이 계산해요」(설명은 여기에만) · 확인하면 줄 값 「미설정」, 다음 기록이 오면 다시 그 값','체중 값이 있을 때만 버튼이 보임','프로필')
 [x for x in N if x['id']=='s.p.exp'][0].update(desc='경력 칩(초보·중급·상급) · 「코치 찾기에 나를 보여 주기」 스위치(기본 꺼짐 · 켜면 코치 찾기 검색에 이름·소개·태그가 보임, 꺼 두어도 초대 코드로 연결 가능) · 켜면 코치 소개·태그 칸 · 프로필 요약 줄 「코치 찾기에 보임」(v0.91.0 · SPEC-052)',cond='로그인했으면 서버 계정 값을 보인다')
 sh('s.updatecard','프로필 앱 업데이트 카드',P,'앱 업데이트 카드','C/appdist/AppUpdateCard.tsx:74','시트를 띄우는 카드와 뱃지','','앱 배포')
 n('s.apksheet','앱 설치 파일 업데이트','sheet','앱 배포','다운로드, 설치 단계'); e('g.dist','s.apksheet','띠 누르기','C/appdist/AppUpdateSheet.tsx:381','open'); e('s.updatecard','s.apksheet','카드 누르기','C/appdist/AppUpdateSheet.tsx:381','open')
@@ -337,12 +346,14 @@ e('/account','s.owner','계정 충돌','C/sync/AccountGuard.tsx:23','open')
 # 시스템
 for id,name,desc,cond,ev in [
  ('y.error','오류 화면(문제가 발생했습니다)','「다시 시도」','렌더 오류','F/app/error.tsx'),
- ('y.404','404(Next 기본)','not-found 파일이 없어 기본 화면이 뜬다','없는 주소, 없는 종목, 운영의 /diag/db','F/app/exercise/[id]/page.tsx:62'),
+# [원본]  ('y.404','404(Next 기본)','not-found 파일이 없어 기본 화면이 뜬다','없는 주소, 없는 종목, 운영의 /diag/db','F/app/exercise/[id]/page.tsx:62'),
+ ('y.404','없는 화면(자연어)','「죄송해요. 찾는 화면이 없어요」 + 「운동 홈으로」·「뒤로 가기」 · 없는 종목·모양 틀린 종목 id 는 「죄송해요. 이 종목을 찾을 수 없어요」 + 「종목 목록으로」 · 숫자 404·영어 글자는 안 보임(상태 코드만 404)','없는 주소, 없는 종목, 모양 틀린 종목 id, 운영의 /diag/db','F/app/not-found.tsx:31 · F/app/exercise/[id]/not-found.tsx:5 · C/notfound/NotFoundView.tsx:7'),
  ('y.boot','부팅 덮개','로고 스피너, 상한 2500ms','앱 웹뷰','F/app/layout.tsx:74'),
  ('y.updboot','업데이트 직후 덮개','재시작 깜빡임을 가림, 15초 뒤 해제','업데이트 후 60초 이내','F/app/layout.tsx:69'),
  ('y.sw503','서비스 워커 최후 대체(글자 offline)','상태 503','/offline도 캐시에 없을 때','src/frontend/sw/sw.template.js'),
  ('y.appoff','앱 오프라인: 인터넷에 연결되어 있지 않아요','「다시 시도」','앱 웹뷰 로드 실패','src/mobile/www/offline.html'),
- ('y.apk404','APK 404(글자 not found)','','/downloads 파일 없음','F/server.mjs:145'),
+# [원본]  ('y.apk404','APK 404(글자 not found)','','/downloads 파일 없음','F/server.mjs:145'),
+ ('y.apk404','설치 파일 없음(자연어)','「죄송해요. 이 설치 파일을 찾을 수 없어요」 + 「최신 앱 받기」·「리프트그램 홈으로」 · 상태 404 · .apk 로 저장되지 않는 HTML','/downloads 파일 없음','F/server.mjs:157 · F/server.mjs:182'),
  ('y.states','화면별 로딩·오류 상태','Loading, Empty, ErrorState, LogoSpinner','데이터 로딩 중','C/States.tsx'),
 ]:
     n(id,name,'system','시스템 상태',desc,cond); e('g.boot',id,'조건 충족 때',ev,'open')
@@ -384,14 +395,19 @@ e('s.summary','s.check','확인 필요 목록','C/session/WorkoutSummary.tsx:148
 e('/exercise/[id]','s.check','확인 필요 목록','C/analytics/ExerciseProgress.tsx:39','open')
 e('s.editset','s.check','고치기 시트 위 확인 패널','C/analytics/WorkoutDetailClient.tsx:36','open')
 e('/stats','/history/[id]','최근 PR 줄 ›','C/analytics/StatsClient.tsx:341')
-# 첫 안내(v0.82.0 · SPEC-046) — 화면 아래 말풍선 · 한 번에 하나 · 창·입력 중엔 숨음 · 프로필 「안내 다시 보기」로 다시
+# [원본] 첫 안내(v0.82.0 · SPEC-046) — 화면 아래 말풍선 · 한 번에 하나 · 창·입력 중엔 숨음 · 프로필 「안내 다시 보기」로 다시
+# 첫 안내(v0.82.0 · SPEC-046 · v0.91.1 #T18) — 가리키는 버튼 옆 말풍선(길게 눌러 안내는 휴식 막대 위) · 「알겠어요」 없음 · 5초 뒤·어디를 눌러도 사라짐 · 한 번에 하나 · 창·입력 중엔 숨음 · 프로필 「안내 다시 보기」로 다시
 for id,name,par,ev,desc,cond in [
- ('h.prev','첫 안내: 「이전」 누르기','/workout','C/CoachHints.tsx:15','「「이전」을 누르면 지난 무게·횟수가 그대로 들어가요」','이전 기록이 있는 「이전」 칩이 보일 때 · 처음 한 번'),
- ('h.longdone','첫 안내: 길게 눌러 이 종목만','/workout','C/CoachHints.tsx:22','「묶음 전체가 완료됐어요 · 이 종목만은 체크를 길게 눌러요」 · 휴식 막대 위','슈퍼셋 묶음 완료로 휴식이 걸린 순간 · 처음 한 번'),
- ('h.rxtype','첫 안내: 세트 번호 누르기','/routines/[id]','C/CoachHints.tsx:46','「세트 번호를 누르면 종류 바꾸기·복사·삭제가 나와요」','세트 표가 보일 때 · 처음 한 번'),
+# [원본]  ('h.prev','첫 안내: 「이전」 누르기','/workout','C/CoachHints.tsx:15','「「이전」을 누르면 지난 무게·횟수가 그대로 들어가요」','이전 기록이 있는 「이전」 칩이 보일 때 · 처음 한 번'),
+# [원본]  ('h.longdone','첫 안내: 길게 눌러 이 종목만','/workout','C/CoachHints.tsx:22','「묶음 전체가 완료됐어요 · 이 종목만은 체크를 길게 눌러요」 · 휴식 막대 위','슈퍼셋 묶음 완료로 휴식이 걸린 순간 · 처음 한 번'),
+# [원본]  ('h.rxtype','첫 안내: 세트 번호 누르기','/routines/[id]','C/CoachHints.tsx:46','「세트 번호를 누르면 종류 바꾸기·복사·삭제가 나와요」','세트 표가 보일 때 · 처음 한 번'),
+ ('h.prev','첫 안내: 「이전」 누르기','/workout','C/CoachHints.tsx:20 · C/ui/CoachMark.tsx:183','「이전」 칩 바로 위(공간 없으면 아래) 꼬리 달린 말풍선 「「이전」을 누르면 지난 무게·횟수가 그대로 들어가요」 · 「알겠어요」 없음 · 5초 뒤 저절로·어디를 눌러도 사라짐(누른 버튼 동작은 그대로) · 스크롤을 따라감','이전 기록이 있는 「이전」 칩이 보일 때 · 처음 한 번'),
+ ('h.longdone','첫 안내: 길게 눌러 이 종목만','/workout','C/CoachHints.tsx:37 · C/ui/CoachMark.tsx:183','「묶음 전체가 완료됐어요 · 이 종목만은 체크를 길게 눌러요」 · 자리는 휴식 막대 위 그대로 · 「알겠어요」 없음 · 저절로/누르면 사라짐','슈퍼셋 묶음 완료로 휴식이 걸린 순간 · 처음 한 번'),
+ ('h.rxtype','첫 안내: 세트 번호 누르기','/routines/[id]','C/CoachHints.tsx:65 · C/ui/CoachMark.tsx:183','세트 번호 바로 위(공간 없으면 아래) 말풍선 「세트 번호를 누르면 종류 바꾸기·복사·삭제가 나와요」 · 「알겠어요」 없음 · 저절로/누르면 사라짐','세트 표가 보일 때 · 처음 한 번'),
 ]:
     sh(id,name,par,'조건 충족 때 자동',ev,desc,cond,'첫 안내')
-e('/routines/new','h.rxtype','조건 충족 때 자동','C/CoachHints.tsx:46','open')
+# [원본] e('/routines/new','h.rxtype','조건 충족 때 자동','C/CoachHints.tsx:46','open')
+e('/routines/new','h.rxtype','조건 충족 때 자동','C/CoachHints.tsx:65','open')
 e('/profile','h.prev','「안내 다시 보기」(세 안내를 다시)','C/profile/HintsResetRow.tsx:9','open')
 
 # ── 화면 안 구역(2026-11-09) — build.py 가 S-nn.k 번호를 붙인다. 순서를 바꾸면 번호가 바뀌니 새 구역은 끝에 더한다.
@@ -434,7 +450,9 @@ AREAS={
  ('추정 1RM 목록','',ST+':249'),('1RM 변화','','C/analytics/ExerciseChangeCards.tsx:113'),('근육 균형','',ST+':317'),('세트 힘든 정도','',ST+':319'),('최근 PR','1RM 목록에 없는 PR · 줄을 누르면 그 기록',ST+':325'),
  ('광고 자리','',ST+':369'),('그대로인 종목','','C/analytics/ExerciseChangeCards.tsx:146'),('근육별 주간 세트','',ST+':375'),('체중','숫자 줄 바로 아래로 옮김 · 머리 최근 값·날짜 · 「기록」 · ⋯ 목표 · 체중/골격근량/체지방률 고르기 · 곡선',ST+':260'),('의료 아님 고지','',ST+':380')],
 '/profile':[('앱바','「프로필」',PC+':255'),('나 카드','아바타 · 이름 · 경력 · 편집',PC+':258'),('의견 보내기','',PC+':285'),
- ('설정 묶음','단위 · 테마 · 언어 · 체중 · 알림음 · 잠금화면 카드 · 힘든 정도 · 추천 표시 · 근육 그림 · 사용 통계 · 가용 기구 · 기구 이름 · 안내 다시 보기',PC+':295'),
+ 
+# [원본]  ('설정 묶음','단위 · 테마 · 언어 · 체중 · 알림음 · 잠금화면 카드 · 힘든 정도 · 추천 표시 · 근육 그림 · 사용 통계 · 가용 기구 · 기구 이름 · 안내 다시 보기',PC+':295'),
+ ('설정 묶음','단위 · 테마 · 언어 · 「체중 ‹최근 값› ›」 한 줄(설명 없음 · 누르면 「체중」 시트) · 알림음 · 잠금화면 카드 · 힘든 정도 · 추천 표시 · 근육 그림 · 사용 통계 · 가용 기구 · 기구 이름 · 안내 다시 보기',PC+':303 · C/profile/BodyweightRow.tsx:126'),
  ('계정과 데이터','로그인·보안 · 백업 · 장비함 · 코칭 · 저장한 글 · 차단 목록',PC+':366'),('앱 버전·업데이트','',PC+':408'),('바닥 고지','의료 아님 · 약관 · 개인정보 · 오픈소스 · 사업자',PC+':417')],
 '/exercises':[('머리','← · 「운동」 · + 커스텀 운동','F/app/exercises/page.tsx:29'),('검색칸','',CC+':241'),('스무고개·초기화 줄','',CC+':249'),('스무고개 경로','',CC+':282'),
  ('근육군 칩','',CC+':291'),('기구 칩','',CC+':320'),('종목 목록','그림 · 이름 · 부위·기구',CC+':336'),('오프라인 안내','',CC+':361')],
