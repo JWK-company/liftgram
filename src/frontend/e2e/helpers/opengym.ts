@@ -90,13 +90,22 @@ export async function 새_기기(browser: Browser): Promise<[BrowserContext, Pag
   return [ctx, await ctx.newPage()];
 }
 
-/** 프로필에서 「세트 힘든 정도 기록」 스위치를 원하는 상태로 */
-export async function 힘든정도_설정(page: Page, on: boolean): Promise<void> {
-  await page.goto("/profile");
-  const sw = page.getByTestId("switch-effort-logging");
-  await expect(sw).toBeVisible({ timeout: 20_000 });
-  if ((await sw.getAttribute("aria-checked")) !== String(on)) await sw.click();
-  await expect(sw).toHaveAttribute("aria-checked", String(on));
+// [원본] 프로필에서 「세트 힘든 정도 기록」 스위치를 원하는 상태로
+// export async function 힘든정도_설정(page: Page, on: boolean): Promise<void> {
+//   await page.goto("/profile");
+//   const sw = page.getByTestId("switch-effort-logging");
+//   await expect(sw).toBeVisible({ timeout: 20_000 });
+//   if ((await sw.getAttribute("aria-checked")) !== String(on)) await sw.click();
+//   await expect(sw).toHaveAttribute("aria-checked", String(on));
+// }
+// [개선] 스위치를 막았다(SPEC-055 Phase 3 — 세트 줄 「여유」 칸은 설정 없이 누구나). 옛 시험이 부르면 아무것도 하지 않는다
+//   — 막힌 시험(test.skip)만 부른다. 새 시험은 부르지 않는다.
+export async function 힘든정도_설정(_page: Page, _on: boolean): Promise<void> {}
+
+/** n번째 블록 i번째 세트 줄의 「여유」 칸(SPEC-055 Phase 3) */
+export async function 여유_칸(page: Page, n = 0, i = 0): Promise<Locator> {
+  const row = 세트_줄(page, n, i);
+  return row.getByTestId(`set-spare-${await 세트_id(row)}`);
 }
 
 export async function 빠른_운동_시작(page: Page): Promise<void> {

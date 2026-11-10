@@ -2,20 +2,20 @@
 // @plm SRS-077  프로필 설정 한 줄 — 「운동 전 체중 체크인」 스위치(기본 끔 · 화면 조용함)
 //
 // MuscleMapRow·EffortLoggingRow 와 같은 모양·같은 구조(줄 전체가 role="switch" 버튼 하나 · 보이는 스위치는 aria-hidden 모양 · QA CU-13).
-import { useId } from "react";
+// [원본] import { useId } from "react"; — 설명 줄을 없애 aria-describedby 가 가리킬 것이 없다(SPEC-055 Phase 4)
 import { setWeighInEnabled, useWeighInEnabled } from "@/lib/bodyweightPref";
 import { t } from "@/lib/i18n";
 
 export function WeighInSettingRow() {
   const on = useWeighInEnabled();
-  const descId = useId();
+  // [원본] const descId = useId(); — 설명 줄 없앰(SPEC-055 Phase 4)
   return (
     <button
       type="button"
       role="switch"
       aria-checked={on}
       aria-label={t("bodyweight.settingTitle")}
-      aria-describedby={descId}
+      // [원본] aria-describedby={descId} — 설명 줄 없앰(SPEC-055 Phase 4)
       data-testid="switch-weighin"
       onClick={() => setWeighInEnabled(!on)}
       // ListRow(ui/rows.tsx)와 같은 줄 모양
@@ -25,9 +25,10 @@ export function WeighInSettingRow() {
         <span className="truncate font-medium text-(--color-ink) text-[length:var(--text-md)]">
           {t("bodyweight.settingTitle")}
         </span>
-        <span id={descId} className="break-words text-(--color-ink2) text-[length:var(--text-sm)]">
+        {/* [원본] <span id={descId} className="break-words text-(--color-ink2) text-[length:var(--text-sm)]">
           {t("bodyweight.settingCaption")}
-        </span>
+        </span> */}
+        {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
       </span>
       <span aria-hidden className="flex h-[44px] w-[56px] shrink-0 items-center justify-center">
         <span

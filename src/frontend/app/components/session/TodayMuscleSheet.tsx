@@ -162,9 +162,10 @@ function TodayMuscleSheet({
               </li>
             ) : null}
           </ul>
-          <AppText variant="caption" color="textFaint" className="mt-[var(--spacing-xs)] block">
+          {/* [원본] <AppText variant="caption" color="textFaint" className="mt-[var(--spacing-xs)] block">
             {t("muscleMap.halfNote")}
-          </AppText>
+          </AppText> */}
+          {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
         </>
       )}
     </SheetShell>

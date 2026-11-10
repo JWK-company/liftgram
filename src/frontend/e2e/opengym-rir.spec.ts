@@ -60,7 +60,60 @@ async function 시트_열기(chip: Locator, page: Page): Promise<void> {
   await expect.poll(() => 포커스(page)).toBe("rir-sheet-title");
 }
 
-test("켜면 세트에 힘든 정도를 적고 · 다른 값에서 바꾸고 · 기록 상세와 다른 기기에 같은 값이 보인다", async ({
+// [개선] SPEC-055 Phase 3 — 칩·시트·설정 스위치 대신 세트 줄 「여유」 칸(누를 때마다 비움 → 0 → 1 → 2 → 3 → 4+).
+//   같은 왕복(세트 → 기록 상세 → 분석 카드 → 다른 기기)을 여유 칸으로 잰다.
+test("여유 칸으로 적은 값이 기록 상세·분석·다른 기기에 같은 값으로 보인다", async ({ page, browser }) => {
+  test.setTimeout(240_000);
+  const 메일 = 새_메일("spare");
+  await 준비(page);
+  await 가입(page, 메일, "여유");
+
+  await 빠른_운동_시작(page);
+  await 종목_추가(page, "바벨 벤치프레스");
+  await 세트_기록(page, 0, 0, 60, 10);
+
+  const row = 세트_줄(page, 0, 0);
+  const cell = row.getByTestId(`set-spare-${await 세트_id(row)}`);
+  await expect(cell).toHaveText("–");
+  // 다른 값에서 바꾸기 — 3 까지 갔다가 4+ → 비움 → 0 → 1 → 2(같은 칸을 한 바퀴)
+  for (let k = 0; k < 4; k++) await cell.click();
+  await expect(cell).toHaveText("+3");
+  await page.waitForTimeout(1_000); // 저장(600ms)
+  for (let k = 0; k < 5; k++) await cell.click(); // 4+ → 비움 → 0 → 1 → 2
+  await expect(cell).toHaveText("+2");
+  // 다음 다시 그리기(1.5초 폴링) 뒤에도 옛 값으로 돌아가지 않는다
+  await page.waitForTimeout(2_000);
+  await expect(cell).toHaveText("+2");
+  await expect(cell).toHaveAttribute("data-rir", "2");
+
+  await 마치기(page);
+  await 최근_기록_상세(page);
+  await expect(page.getByTestId("detail-set-rir").first()).toHaveText("2");
+
+  await page.goto("/stats");
+  await expect(page.getByTestId("effort-head")).toHaveText("평균 여유 2개 · 여유 3개 이하 100%", {
+    timeout: 20_000,
+  });
+  await expect(page.getByTestId("effort-coverage")).toContainText("기록한 세트 1/1");
+  await page.getByTestId("stats-1rm").locator("a").first().click();
+  await expect(page.getByTestId("progress-effort-legend")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("progress-effort-fill")).toHaveCount(1);
+  await 동기(page);
+
+  const [ctxB, pageB] = await 새_기기(browser);
+  try {
+    await 준비(pageB);
+    await 로그인(pageB, 메일);
+    await 동기(pageB);
+    await 최근_기록_상세(pageB);
+    await expect(pageB.getByTestId("detail-set-rir").first()).toHaveText("2");
+  } finally {
+    await ctxB.close();
+  }
+});
+
+// [원본] 켜면 칩 → 시트로 적던 시험 — SPEC-055 Phase 3 에서 칩·시트·설정 스위치를 막았다(위 여유 칸 시험이 대신한다)
+test.skip("켜면 세트에 힘든 정도를 적고 · 다른 값에서 바꾸고 · 기록 상세와 다른 기기에 같은 값이 보인다", async ({
   page,
   browser,
 }) => {
@@ -156,7 +209,8 @@ test("켜면 세트에 힘든 정도를 적고 · 다른 값에서 바꾸고 · 
   }
 });
 
-test("끄면 세트 줄에 칩이 없고(DOM 0) · 켜면 생기고 · 다시 끄면 사라진다", async ({ page }) => {
+// [원본] 설정 스위치 시험 — 스위치를 막았다(SPEC-055 Phase 3)
+test.skip("끄면 세트 줄에 칩이 없고(DOM 0) · 켜면 생기고 · 다시 끄면 사라진다", async ({ page }) => {
   test.setTimeout(120_000);
   await 준비(page);
   await 빠른_운동_시작(page);
@@ -232,7 +286,8 @@ for (const vp of [
   { width: 360, height: 640 },
   { width: 390, height: 844 },
 ]) {
-  test(`휴식 중 시트 선택지 6개가 휴식 막대 위 · 포커스 복귀 (${vp.width}×${vp.height})`, async ({
+  // [원본] 힘든 정도 시트 시험 — 시트를 막았다(SPEC-055 Phase 3 · 여유 칸은 시트 없이 누를 때마다 바뀐다)
+  test.skip(`휴식 중 시트 선택지 6개가 휴식 막대 위 · 포커스 복귀 (${vp.width}×${vp.height})`, async ({
     page,
   }) => {
     test.setTimeout(120_000);
@@ -280,7 +335,8 @@ for (const vp of [
     await expect.poll(() => 포커스(page)).toBe(chipId);
   });
 
-  test(`좌표 — 꺼짐 = 기준선, 켜짐 증가분 ≤ 40px (${vp.width}×${vp.height})`, async ({ page }) => {
+  // [원본] 칩 켜짐/꺼짐 좌표 시험 — 칩·스위치를 막았다(SPEC-055 Phase 3 · 여유 칸은 세트 첫 줄 안이라 줄이 늘지 않는다 → set-spare-reps.spec)
+  test.skip(`좌표 — 꺼짐 = 기준선, 켜짐 증가분 ≤ 40px (${vp.width}×${vp.height})`, async ({ page }) => {
     test.setTimeout(150_000);
     await page.setViewportSize(vp);
     await 준비(page);
@@ -373,12 +429,15 @@ test.describe("로컬 DB 이관·가드", () => {
     expect(after.setsWithRirKey).toBe(after.sets);
     expect(await page.evaluate(() => localStorage.getItem("liftgram.maxSchemaSeen"))).toBe(BUNDLE_SCHEMA);
 
-    // 힘든 정도를 적은 세트가 없으면 노력 카드는 접힌 안내 한 줄(펼치면 설정 입구 문구 · U-22)
+    // [원본] 힘든 정도를 적은 세트가 없으면 노력 카드는 접힌 안내 한 줄(펼치면 설정 입구 문구 · U-22)
+    // await expect(page.getByTestId("effort-empty")).toBeVisible({ timeout: 20_000 });
+    // await page.getByTestId("effort-empty-toggle").click();
+    // await expect(page.getByTestId("effort-empty")).toContainText("설정에서 켜면 운동 중에 적을 수 있어요");
+    // [개선] 적은 세트가 없으면 카드도 안내도 없다(SPEC-055 R5)
     await page.goto("/stats");
-    await expect(page.getByTestId("effort-empty")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("stats-1rm")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("effort-card")).toHaveCount(0);
-    await page.getByTestId("effort-empty-toggle").click();
-    await expect(page.getByTestId("effort-empty")).toContainText("설정에서 켜면 운동 중에 적을 수 있어요");
+    await expect(page.getByTestId("effort-empty")).toHaveCount(0);
   });
 
   test("다운그레이드 가드 — 더 높은 스키마를 본 기기면 가드 화면, 진짜 DB 는 그대로", async ({ page }) => {

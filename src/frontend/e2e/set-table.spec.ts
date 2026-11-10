@@ -125,7 +125,9 @@ test("지난 기록 먼저 — 같은 무게 세트는 지난 기록으로 시�
   // [원본] 고정 줄 — 줄 메뉴(…)는 SPEC-041 에서 뺐다(옛 루틴의 고정 줄은 그대로 계산한다)
   // await 줄(page).nth(2).getByTestId("rx-more").click();
   // await page.getByTestId("rx-basis-fixed").click();
-  await expect(page.getByTestId("set-table-hint")).toBeVisible();
+  // [원본] await expect(page.getByTestId("set-table-hint")).toBeVisible();
+  // [개선] 설명 줄 없앰(SPEC-055 Phase 4)
+  await expect(page.getByTestId("set-table-hint")).toHaveCount(0);
   await page.getByTestId("btn-routine-start").click();
   await expect(page).toHaveURL(/\/workout/, { timeout: 20_000 });
   const sets = page.getByTestId("set-list").first().locator("> div");

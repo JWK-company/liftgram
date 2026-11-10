@@ -93,16 +93,19 @@ export function SuspectPanel({
 
   return (
     <div data-testid="check-panel" data-set-id={info.setId}>
-      <AppText variant="body" className="mb-[var(--spacing-xs)] block">
+      {/* [원본] className="mb-[var(--spacing-xs)] block" — 아래 설명 줄(mb-md)이 버튼과의 여백을 맡았다 */}
+      {/* [개선] 설명 줄을 없애 그 여백을 본문이 맡는다(SPEC-055 Phase 4) */}
+      <AppText variant="body" className="mb-[var(--spacing-md)] block">
         {info.reason === "reps"
           ? t("check.bodyReps", { name: info.exerciseName, weight, reps: info.reps })
           : usual
             ? t("check.body", { name: info.exerciseName, weight, reps: info.reps, usual })
             : t("check.bodyNoUsual", { name: info.exerciseName, weight, reps: info.reps })}
       </AppText>
-      <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-md)] block">
+      {/* [원본] <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-md)] block">
         {t("check.note")}
-      </AppText>
+      </AppText> */}
+      {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
       <div className="flex flex-col gap-[var(--spacing-sm)]">
         {info.lbPlausible && info.unit === "kg" ? (
           <Button

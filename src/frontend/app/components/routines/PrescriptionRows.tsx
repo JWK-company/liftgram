@@ -237,7 +237,11 @@ export function PrescriptionRows({
       if (Number.isNaN(n) || n <= 0) return;
       const kg = enteredWeightToKg(n, unit, Number.NaN);
       if (kg == null) return;
-      patch(i, { loadBasis: "start", loadKg: Math.round(Math.min(LOAD_KG_MAX, kg) * 10000) / 10000, loadPct: undefined });
+      patch(i, {
+        loadBasis: "start",
+        loadKg: Math.round(Math.min(LOAD_KG_MAX, kg) * 10000) / 10000,
+        loadPct: undefined,
+      });
       setOfferRow(i);
       return;
     }
@@ -442,7 +446,9 @@ export function PrescriptionRows({
     const wasWorking = r.setType !== "warmup" && r.setType !== "drop" && r.setType !== "feeder";
     const rest = rows.filter((_, j) => j !== i);
     // [원본] const others = rest.filter((x) => x.setType !== "warmup" && x.setType !== "drop");
-    const others = rest.filter((x) => x.setType !== "warmup" && x.setType !== "drop" && x.setType !== "feeder"); // REV-076 L-3
+    const others = rest.filter(
+      (x) => x.setType !== "warmup" && x.setType !== "drop" && x.setType !== "feeder",
+    ); // REV-076 L-3
     const restGoal = effortGoalOf(rest);
     const targetRir = !working
       ? null
@@ -480,10 +486,16 @@ export function PrescriptionRows({
               {t("scheme.chip", { name: schemeChipName(rows, allowLoad) })} ▾
             </AppText>
           </button>
-          {schemeOf(rows) ? (
+          {/* [원본] {schemeOf(rows) ? (
             <AppText variant="caption" color="textMuted" data-testid="scheme-guide">
               {t(`scheme.guide.${schemeOf(rows)}` as Parameters<typeof t>[0])}
               {rows.some((r) => r.setType === "feeder") ? ` · ${t("scheme.legendFeeder")}` : ""}
+            </AppText>
+          ) : null} */}
+          {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) — 세트 줄 「P」 글자를 푸는 범례만 남긴다(피더가 있을 때 · 문구 리뷰 M4) */}
+          {rows.some((r) => r.setType === "feeder") ? (
+            <AppText variant="caption" color="textMuted" data-testid="scheme-legend">
+              {t("scheme.legendFeeder")}
             </AppText>
           ) : null}
           {undoRows ? (
@@ -568,15 +580,15 @@ export function PrescriptionRows({
                       routine && pct
                         ? (pctKgShown(r) ?? "")
                         : pct
-                        ? String(r.loadPct ?? "")
-                        : r.loadKg != null && r.loadKg > 0
-                          ? String(
-                              displayWeight(
-                                r.loadBasis === "fixed" ? r.loadKg / fixedMultiplier : r.loadKg,
-                                unit,
-                              ),
-                            )
-                          : ""
+                          ? String(r.loadPct ?? "")
+                          : r.loadKg != null && r.loadKg > 0
+                            ? String(
+                                displayWeight(
+                                  r.loadBasis === "fixed" ? r.loadKg / fixedMultiplier : r.loadKg,
+                                  unit,
+                                ),
+                              )
+                            : ""
                     }
                     onCommit={(text) => commitWeight(i, text)}
                   />
@@ -600,23 +612,23 @@ export function PrescriptionRows({
                   />
                 </div>
               ) : (
-              <div className="flex min-w-0 flex-1 items-center gap-[2px]">
-                <NumCell
-                  testId="rx-rep-min"
-                  label={`${t("routines.setColReps")} ${t("routines.rxColRepMin")}`}
-                  value={r.repMin == null ? "" : String(r.repMin)}
-                  onCommit={(text) => commitRep(i, "repMin", text)}
-                />
-                <AppText variant="caption" color="textFaint">
-                  ~
-                </AppText>
-                <NumCell
-                  testId="rx-rep-max"
-                  label={`${t("routines.setColReps")} ${t("routines.rxColRepMax")}`}
-                  value={r.repMax == null ? "" : String(r.repMax)}
-                  onCommit={(text) => commitRep(i, "repMax", text)}
-                />
-              </div>
+                <div className="flex min-w-0 flex-1 items-center gap-[2px]">
+                  <NumCell
+                    testId="rx-rep-min"
+                    label={`${t("routines.setColReps")} ${t("routines.rxColRepMin")}`}
+                    value={r.repMin == null ? "" : String(r.repMin)}
+                    onCommit={(text) => commitRep(i, "repMin", text)}
+                  />
+                  <AppText variant="caption" color="textFaint">
+                    ~
+                  </AppText>
+                  <NumCell
+                    testId="rx-rep-max"
+                    label={`${t("routines.setColReps")} ${t("routines.rxColRepMax")}`}
+                    value={r.repMax == null ? "" : String(r.repMax)}
+                    onCommit={(text) => commitRep(i, "repMax", text)}
+                  />
+                </div>
               )}
               {/* [원본] 루틴 편집에도 줄마다 … (무게 기준·삭제) — 세트 방식이 무게 기준을 정하고 삭제는 번호 시트로(SPEC-041) */}
               {/* [원본] {routine ? null : allowLoad || rows.length > 1 ? ( */}
@@ -718,31 +730,31 @@ export function PrescriptionRows({
 
       {/* [원본] 강도 목표는 루틴 편집에도 있었다 — 세트 방식 안내가 맡는다(SPEC-041). 코칭 화면에는 남긴다. */}
       {routine ? null : (
-      <div className="mt-[var(--spacing-md)]" data-testid="effort-goal" data-goal={String(goal)}>
-        <AppText variant="label" color="textMuted" className="block">
-          {t("routines.effortTitle")}
-          {goal === "mixed" ? ` · ${t("routines.effortMixed")}` : ""}
-        </AppText>
-        <div className="mt-[4px] flex flex-wrap gap-[6px]">
-          <SelectChip
-            label={t("routines.effortNone")}
-            active={goal === null}
-            tall
-            testId="effort-none"
-            onPress={() => emit(withEffortGoal(rows, null))}
-          />
-          {effortChips.map((rir) => (
+        <div className="mt-[var(--spacing-md)]" data-testid="effort-goal" data-goal={String(goal)}>
+          <AppText variant="label" color="textMuted" className="block">
+            {t("routines.effortTitle")}
+            {goal === "mixed" ? ` · ${t("routines.effortMixed")}` : ""}
+          </AppText>
+          <div className="mt-[4px] flex flex-wrap gap-[6px]">
             <SelectChip
-              key={rir}
-              label={t("routines.effortValue", { rir })}
-              active={goal === rir}
+              label={t("routines.effortNone")}
+              active={goal === null}
               tall
-              testId={`effort-${rir}`}
-              onPress={() => emit(withEffortGoal(rows, rir))}
+              testId="effort-none"
+              onPress={() => emit(withEffortGoal(rows, null))}
             />
-          ))}
+            {effortChips.map((rir) => (
+              <SelectChip
+                key={rir}
+                label={t("routines.effortValue", { rir })}
+                active={goal === rir}
+                tall
+                testId={`effort-${rir}`}
+                onPress={() => emit(withEffortGoal(rows, rir))}
+              />
+            ))}
+          </div>
         </div>
-      </div>
       )}
 
       {typeRow != null && rows[typeRow] ? (
@@ -789,7 +801,9 @@ export function PrescriptionRows({
               description: allowed
                 ? t(`scheme.desc.${def.id}` as Parameters<typeof t>[0])
                 : t("scheme.blocked"),
-              selected: current ? current === def.id : def.id === "straight" && schemeChipName(rows, allowLoad) === t("scheme.name.straight"),
+              selected: current
+                ? current === def.id
+                : def.id === "straight" && schemeChipName(rows, allowLoad) === t("scheme.name.straight"),
               disabled: !allowed,
               testId: `scheme-${def.id}`,
               onPress: () => applyScheme(def.id),

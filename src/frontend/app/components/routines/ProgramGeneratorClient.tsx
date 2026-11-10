@@ -302,9 +302,10 @@ export default function ProgramGeneratorClient() {
               testId="program-split-count"
             />
             <div className="mb-[var(--spacing-lg)]">
-              <AppText variant="caption" color="textFaint" className="mb-[var(--spacing-sm)] block">
+              {/* [원본] <AppText variant="caption" color="textFaint" className="mb-[var(--spacing-sm)] block">
                 {t("program.splitMusclesHint")}
-              </AppText>
+              </AppText> */}
+              {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
               {splitMuscles.map((sel, si) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: 분할 칸은 순서가 곧 신원이다
                 <div key={si} className="mb-[var(--spacing-md)]">

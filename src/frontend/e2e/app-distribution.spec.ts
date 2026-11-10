@@ -387,7 +387,10 @@ test("안드로이드 크롬 PWA — 바꾸기: 끊김·설정 대기면 멈춤 
   expect(href).toContain(`S.browser_fallback_url=${encodeURIComponent(`${new URL(page.url()).origin}/app`)}`);
   expect(href).not.toMatch(/code|ac=|token/i);
   await page.getByTestId("btn-switch-next").click();
-  await expect(page.getByTestId("switch-done")).toBeVisible({ timeout: 20_000 });
+  // [원본] await expect(page.getByTestId("switch-done")).toBeVisible({ timeout: 20_000 });
+  // [개선] 「웹 아이콘은 지워도 돼요」 설명 줄 없앰(SPEC-055 Phase 4) — 마지막 단계는 「완료」 버튼으로 본다
+  await expect(page.getByTestId("btn-switch-finish")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("switch-done")).toHaveCount(0);
   await page.getByTestId("btn-switch-finish").click();
   expect(
     await page.evaluate(() =>

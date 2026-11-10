@@ -6,15 +6,20 @@
 //
 // 배치(U-21): 머리 한 줄(「평균 여유 1.8개 · 여유 3개 이하 64%」) + 적은 세트 비율 회색 한 줄 + 분포 막대(DistributionBars 재사용)
 //   + 주별 추이는 접기(Fold). 「RIR 3 이하」 같은 전문 용어 대신 「여유 3개 이하」.
-// 기록이 없으면 접힌 안내 한 줄 — 펼치면 「설정에서 켜면 운동 중에 적을 수 있어요」(입구를 잇는다 · U-22).
-// 이 카드는 설정(effortLogging)을 보지 않는다 — 가져온 RPE 만 있어도 보인다(분석은 데이터가 있으면 보이고, 입력 칩만 설정을 따른다 · U-22 의도).
+// [원본] 기록이 없으면 접힌 안내 한 줄 — 펼치면 「설정에서 켜면 운동 중에 적을 수 있어요」(입구를 잇는다 · U-22).
+// [원본] [개선] 기록이 0개면(불러오는 중에도) 아무것도 그리지 않는다 — 설정 스위치가 없어졌고, 여유 칸은 늘 세트 줄에 있다(SPEC-055 R5).
+// [개선] 불러오는 동안은 예전처럼 24px 자리를 둔다(늦게 끼어들며 아래를 밀지 않게 · QA CU-11 ①) · 기록이 0개로 확정되면 아무것도 그리지 않는다
+//   — 설정 스위치가 없어졌고, 여유 칸은 늘 세트 줄에 있다(SPEC-055 R5 · REV M-3).
+// [원본] 이 카드는 설정(effortLogging)을 보지 않는다 — 가져온 RPE 만 있어도 보인다(분석은 데이터가 있으면 보이고, 입력 칩만 설정을 따른다 · U-22 의도).
+// [개선] 이 카드는 설정을 보지 않는다 — 가져온 RPE 만 있어도 보인다(데이터가 있으면 보인다 · U-22). 입력(세트 줄 여유 칸)도 이제 설정 없이 늘 있다(SPEC-055).
 // 웰니스: 권고·평가 문구를 두지 않는다(「더 세게」 등 없음).
 import { summarizeEffort, type EffortSummary } from "@app/core";
 import { useEffect, useState } from "react";
-import { useEffortLogging } from "@/lib/effortPref";
+// [원본] import { useEffortLogging } from "@/lib/effortPref"; — 설정 의존을 없앴다(SPEC-055 R5)
 import { t } from "@/lib/i18n";
 import { DistributionBars } from "../ui/charts";
-import { AppText, Card } from "../ui/primitives";
+// [원본] import { AppText, Card } from "../ui/primitives"; — AppText 는 막은 빈 안내만 썼다(SPEC-055 R5)
+import { Card } from "../ui/primitives";
 import { FoldToggle, MetaLine, useFold } from "../ui/quiet";
 import { SectionLabel } from "../ui/rows";
 import { formatRir } from "../session/RirSheet";
@@ -39,11 +44,13 @@ const avgHead = (v: number) => {
 const WEEKS_MAX = 12;
 
 export function EffortCard({ days }: { /** 위쪽 기간의 일수(null = 전체) */ days: number | null }) {
-  const [summary, setSummary] = useState<EffortSummary | null>(null);
+  // [원본] const [summary, setSummary] = useState<EffortSummary | null>(null);
+  // [개선] undefined = 불러오는 중 · null = 못 읽음(빈 것과 같이 그리지 않음) — 불러오는 중과 0개를 가른다(REV M-3)
+  const [summary, setSummary] = useState<EffortSummary | null | undefined>(undefined);
   // 접기 기억은 기기 로컬(Fold 규칙) — scope 에 「:」를 넣지 않는다(같은 무리의 다른 키를 지우는 규칙에 걸리지 않게)
   const [weeklyOpen, setWeeklyOpen] = useFold("statsEffortWeekly");
-  const [emptyOpen, setEmptyOpen] = useFold("statsEffortEmpty");
-  const loggingOn = useEffortLogging();
+  // [원본] const [emptyOpen, setEmptyOpen] = useFold("statsEffortEmpty");
+  // [원본] const loggingOn = useEffortLogging();
 
   useEffect(() => {
     let cancelled = false;
@@ -57,41 +64,47 @@ export function EffortCard({ days }: { /** 위쪽 기간의 일수(null = 전체
     };
   }, [days]);
 
-  // [원본] if (!summary) return null; — 늦게 끼어들며 아래를 밀어냈다(QA CU-11 ①). 접힌 안내 한 줄만큼 자리를 둔다.
-  if (!summary)
+  // [원본] // [원본] if (!summary) return null; — 늦게 끼어들며 아래를 밀어냈다(QA CU-11 ①). 접힌 안내 한 줄만큼 자리를 둔다.
+  // [원본] if (!summary)
+  // [원본]   return <div aria-hidden data-testid="effort-loading" className="mb-[var(--spacing-lg)] min-h-[24px]" />;
+  // [원본]
+  // [원본] if (summary.coverage.rated === 0) {
+  // [원본]   // 기록을 이미 켠 사람에게 「설정에서 켜면」을 보이지 않는다 — 이 기간에 없을 뿐이다(QA CU-4). 기간이 전체가 아니면 「이 기간에」.
+  // [원본]   const emptyLabel = t(days != null ? "effort.emptyFoldPeriod" : "effort.emptyFold");
+  // [원본]   if (loggingOn)
+  // [원본]     return (
+  // [원본]       <AppText
+  // [원본]         variant="caption"
+  // [원본]         color="textMuted"
+  // [원본]         className="mb-[var(--spacing-lg)] block px-[var(--spacing-xs)]"
+  // [원본]         data-testid="effort-empty"
+  // [원본]       >
+  // [원본]         {emptyLabel}
+  // [원본]       </AppText>
+  // [원본]     );
+  // [원본]   return (
+  // [원본]     <div className="mb-[var(--spacing-lg)] px-[var(--spacing-xs)]" data-testid="effort-empty">
+  // [원본]       <FoldToggle
+  // [원본]         open={emptyOpen}
+  // [원본]         onToggle={() => setEmptyOpen(!emptyOpen)}
+  // [원본]         label={emptyLabel}
+  // [원본]         testId="effort-empty-toggle"
+  // [원본]         controls="effort-empty-hint"
+  // [원본]       />
+  // [원본]       {emptyOpen ? (
+  // [원본]         <AppText id="effort-empty-hint" variant="caption" color="textMuted" className="block">
+  // [원본]           {t("effort.emptyHint")}
+  // [원본]         </AppText>
+  // [원본]       ) : null}
+  // [원본]     </div>
+  // [원본]   );
+  // [원본] }
+  // [원본] [개선] 불러오는 중·기록 0개 = 아무것도 없음(자리도 두지 않는다 · SPEC-055 R5)
+  // [원본] if (!summary || summary.coverage.rated === 0) return null;
+  // [개선] 불러오는 중 = 24px 자리(QA CU-11 ① · REV M-3) · 못 읽음·기록 0개 = 아무것도 없음
+  if (summary === undefined)
     return <div aria-hidden data-testid="effort-loading" className="mb-[var(--spacing-lg)] min-h-[24px]" />;
-
-  if (summary.coverage.rated === 0) {
-    // 기록을 이미 켠 사람에게 「설정에서 켜면」을 보이지 않는다 — 이 기간에 없을 뿐이다(QA CU-4). 기간이 전체가 아니면 「이 기간에」.
-    const emptyLabel = t(days != null ? "effort.emptyFoldPeriod" : "effort.emptyFold");
-    if (loggingOn)
-      return (
-        <AppText
-          variant="caption"
-          color="textMuted"
-          className="mb-[var(--spacing-lg)] block px-[var(--spacing-xs)]"
-          data-testid="effort-empty"
-        >
-          {emptyLabel}
-        </AppText>
-      );
-    return (
-      <div className="mb-[var(--spacing-lg)] px-[var(--spacing-xs)]" data-testid="effort-empty">
-        <FoldToggle
-          open={emptyOpen}
-          onToggle={() => setEmptyOpen(!emptyOpen)}
-          label={emptyLabel}
-          testId="effort-empty-toggle"
-          controls="effort-empty-hint"
-        />
-        {emptyOpen ? (
-          <AppText id="effort-empty-hint" variant="caption" color="textMuted" className="block">
-            {t("effort.emptyHint")}
-          </AppText>
-        ) : null}
-      </div>
-    );
-  }
+  if (!summary || summary.coverage.rated === 0) return null;
 
   const { avg, shareAtOrBelow3, buckets, weekly, coverage } = summary;
   // [원본] const weeks = [...weekly].reverse(); // 최근 주가 위

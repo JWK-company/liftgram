@@ -107,7 +107,9 @@ test("운동 중 — 다른 세트도 똑같이 · 전체 선택 · 뒤로는 �
   await expect(세트들(page)).toHaveCount(3);
   // 버튼으로 닫은 뒤 뒤로 한 번 → 운동 화면에서 벗어난다(묵은 칸에 갇히지 않는다)
   await 세트들(page).nth(2).getByTestId("set-type").click();
-  await page.getByRole("button", { name: "취소" }).click();
+  // [원본] await page.getByRole("button", { name: "취소" }).click();
+  // [개선] 머리 「취소」(이름 「운동 취소(삭제)」)와 겹치지 않게 정확히(SPEC-055 Phase 2)
+  await page.getByRole("button", { name: "취소", exact: true }).click();
   await expect(page.getByTestId("set-type-sheet")).toHaveCount(0);
   await page.goBack();
   await expect(page).not.toHaveURL(/\/workout/, { timeout: 10_000 });
@@ -123,7 +125,7 @@ test("뒤로 가기 — 시트에서 확인창으로 넘어가도 확인창이 �
   await expect(세트들(page)).toHaveCount(3, { timeout: 20_000 });
 
   // 시트 → 확인창(같은 순간에 닫고 연다) — 확인창이 곧바로 닫히지 않는다 · 뒤로면 확인창만 닫힌다
-  await page.getByTestId("btn-session-menu").click();
+  // [원본] await page.getByTestId("btn-session-menu").click(); — ⋯ 없이 머리 「취소」를 바로 누른다(SPEC-055 Phase 2)
   await page.getByTestId("btn-discard").click();
   await expect(page.getByTestId("confirm-discard")).toBeVisible();
   await page.waitForTimeout(800);

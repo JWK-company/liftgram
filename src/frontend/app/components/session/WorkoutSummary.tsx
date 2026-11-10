@@ -267,11 +267,12 @@ export function WorkoutSummary({
             </ListGroup>
           </div>
         )}
-        {extras?.breakdown.some((ex) => ex.best1RM > 0) ? (
+        {/* [원본] {extras?.breakdown.some((ex) => ex.best1RM > 0) ? (
           <AppText variant="caption" color="textFaint" className="mt-[var(--spacing-xs)] block">
             {t("wellness.oneRepMaxCaption")}
           </AppText>
-        ) : null}
+        ) : null} */}
+        {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
 
         {/* 광고 자리 — 결과를 다 보여 준 뒤, 세트가 있는 운동만(SPEC-022) */}
         {summary.workingSets > 0 ? <AdSlot placement="summary" /> : null}

@@ -21,7 +21,7 @@ import { AppWebLinkBridge } from "./components/AppWebLinkBridge";
 import { UsageTracker } from "./components/UsageTracker";
 import { SessionProvider } from "./components/SessionProvider";
 import { ToastProvider } from "./components/Toast";
-import { OnboardingOverlay } from "./components/OnboardingOverlay";
+// [원본] import { OnboardingOverlay } from "./components/OnboardingOverlay"; — 첫 실행 온보딩을 띄우지 않는다(SPEC-055 Phase 2 · S-54)
 import { ServiceWorker } from "./components/ServiceWorker";
 import { SchemaGuard } from "./components/SchemaGuard";
 import { PrefsBridge } from "./components/PrefsBridge";
@@ -128,8 +128,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
                 <GlobalWorkoutBar />
                 <TabBar />
-                {/* 첫 실행 안내는 **한 번만** 뜬다(본 표시는 이 기기에 남는다). */}
-                <OnboardingOverlay />
+                {/* [원본] 첫 실행 안내는 **한 번만** 뜬다(본 표시는 이 기기에 남는다).
+                <OnboardingOverlay /> */}
+                {/* [개선] 첫 실행 온보딩을 띄우지 않는다 — 운동 경력은 프로필에서 고른다(SPEC-055 Phase 2 · S-54) */}
                 {/* 오프라인 셸·새 버전 띠 — 운동 중인지 알아야 해서 SessionProvider 안에 둔다. */}
                 <ServiceWorker />
                 {/* 다른 계정의 올라가지 않은 기록이 있으면 지우지 않고 고르게 한다. */}

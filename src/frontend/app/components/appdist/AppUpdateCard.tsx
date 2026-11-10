@@ -57,11 +57,12 @@ export function AppUpdateCard() {
           <span className="truncate font-medium text-(--color-ink) text-[length:var(--text-md)]">
             {title}
           </span>
-          <span className="text-(--color-ink3) text-[length:var(--text-xs)]">
-            {/* [원본] 앱이면 늘 cardTitle — 제목과 같은 말을 되풀이했다(REV-013 화면 M-8 일부) */}
+          {/* [원본] <span className="text-(--color-ink3) text-[length:var(--text-xs)]">
+            {/* [원본] 앱이면 늘 cardTitle — 제목과 같은 말을 되풀이했다(REV-013 화면 M-8 일부) * /}
             {shell.kind === "web" ? t("appDist.bannerSwitchBody") : t("appDist.cardSub")}
-            {/* [원본] 서명 지문 — 일반 사용자에게 뜻이 없다(SPEC-025) */}
-          </span>
+            {/* [원본] 서명 지문 — 일반 사용자에게 뜻이 없다(SPEC-025) * /}
+          </span> */}
+          {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
         </span>
         {badge ? (
           <span data-testid="app-update-card-badge" data-badge={badge.key}>

@@ -487,6 +487,8 @@ export const ko = {
   "calendar.weekendInclude": "포함",
   "calendar.weekendExclude": "제외",
   "calendar.brag": "이번 달 자랑하기",
+  "calendar.bragMonth": "{month}월 자랑하기", // SPEC-055 — 보고 있는 달이 이번 달이 아닐 때
+  "calendar.bragPosting": "올리는 중…",
   "calendar.bragTitle": "이번 달 자랑",
   "calendar.bragCaption": "🔥 {month} 운동 결산 — {days}일 운동 · 총 {sessions}회 · 볼륨 {volume} 💪",
   "calendar.bragDone": "피드에 공유했어요! 💪",
@@ -966,6 +968,7 @@ export const ko = {
   "session.discardWorkout.message": "이 세션을 삭제할까요? 기록한 세트가 모두 사라집니다.",
   "session.discardWorkout.title": "운동 취소",
   "session.discardWorkoutButton": "운동 취소(삭제)",
+  "session.discardHeaderButton": "취소", // SPEC-055 — 운동 화면 머리 「취소」(aria-label 은 discardWorkoutButton)
   "session.done": "완료",
   "session.duration": "소요시간",
   "session.exerciseSetsVolume": "{count}세트 · 볼륨 {volume}",
@@ -1725,6 +1728,19 @@ export const ko = {
   "effort.detailConvertedAria": "여유 약 {value}개, RPE {rpe}에서 바꾼 값",
   // [원본] "진한 부분이 길수록 그날 세트에 남은 여유가 적었어요" — 채움이 다크에서 바탕에 묻혀 가운데 줄로 바꿨다(QA CU-2)
   "effort.progressLegend": "가운데 줄이 길수록 그날 세트에 남은 여유가 적었어요",
+  // 세트 줄 「여유」 칸(SPEC-055 Phase 3 · B안) — 누를 때마다 비움 → 0 → 1 → 2 → 3 → 4+
+  "effort.spareHead": "여유",
+  // [원본] "effort.spareAria": "세트 {set} 여유 {value}개 — 눌러서 바꾸기",
+  // [원본] "effort.spareAriaMax": "세트 {set} 여유 4개 이상 — 눌러서 바꾸기",
+  // [원본] "effort.spareAriaEmpty": "세트 {set} 여유 비움 — 눌러서 바꾸기",
+  // [개선] 접근 이름은 보이는 글자로 시작한다(WCAG 2.5.3 · REV M-4) — {shown} = 칸 글자(「+2」·「4+」·「0」·「+0.5」)
+  "effort.spareAria": "{shown} · 세트 {set} 여유 — 눌러서 바꾸기",
+  "effort.spareAriaMax": "4+ · 세트 {set} 여유 — 눌러서 바꾸기",
+  "effort.spareAriaEmpty": "여유 없음 · 세트 {set} — 눌러서 바꾸기",
+  "effort.spareLive": "여유 {value}개",
+  "effort.spareLiveMax": "여유 4개 이상",
+  // [원본] "effort.spareLiveEmpty": "여유 비움",
+  "effort.spareLiveEmpty": "여유 없음",
   // 근육 지도·균형 화면(P2 · SRS-075·076) — 세트 수 사실만, 평가·권고 없음(웰니스 · guideCopy 게이트 `muscleMap.`). @plm SRS-075 SRS-076
   "muscleMap.settingTitle": "근육 그림 보기",
   "muscleMap.settingCaption": "오늘·추천 루틴 카드와 운동 중 「오늘 근육」 버튼에 근육 그림을 보여요",

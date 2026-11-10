@@ -50,7 +50,8 @@ import { ListGroup, ListRow, SectionLabel } from "../ui/rows";
 import { PREFS_EVENT } from "@/lib/prefs";
 import { BusinessInfo } from "../BusinessInfo";
 import { RecommendOptOutRow } from "./RecommendOptOutRow";
-import { EffortLoggingRow } from "./EffortLoggingRow"; // 세트 힘든 정도 기록 스위치 @plm SRS-073
+// [원본] import { EffortLoggingRow } from "./EffortLoggingRow"; // 세트 힘든 정도 기록 스위치 @plm SRS-073
+// [개선] 스위치를 막았다 — 세트 줄 「여유」 칸은 누구나 쓴다(SPEC-055 Phase 3). 설정 키·동기(lib/prefs.ts)는 그대로 둔다
 import { MuscleMapRow } from "./MuscleMapRow"; // 근육 그림 보기 스위치 @plm SRS-075
 import { BodyweightRow } from "./BodyweightRow"; // 체중 칸(최신값 + 기록 + 전체 기록) @plm SRS-077
 import { UsageStatsRow } from "./UsageStatsRow";
@@ -350,7 +351,7 @@ export default function ProfileClient() {
             onPress={() => setSheet("sound")}
           />
           <LockScreenRow />
-          <EffortLoggingRow />
+          {/* [원본] <EffortLoggingRow /> — 세트 힘든 정도 기록 스위치. 여유 칸은 설정 없이 늘 보인다(SPEC-055 Phase 3) */}
           {user ? <RecommendOptOutRow /> : null}
           <MuscleMapRow />
           {/* [원본] <WeighInSettingRow /> — 운동 전 체중 체크인 스위치. 체크인 시트를 운동 화면 맨 위 줄로 바꿔 없앴다(SPEC-049) */}
@@ -377,14 +378,16 @@ export default function ProfileClient() {
             testId="account-card"
             icon="lock-closed-outline"
             title={account ? "로그인·보안" : t("auth.login")}
-            subtitle={account ? account.email || t("profile.account") : t("auth.offlineNote")}
+            // [원본] subtitle={account ? account.email || t("profile.account") : t("auth.offlineNote")}
+            // [개선] 로그인 전 「로그인 없이도…」 설명 줄 없앰(SPEC-055 Phase 4) — 로그인했으면 계정(내용)은 그대로
+            subtitle={account ? account.email || t("profile.account") : undefined}
             href="/account"
           />
           <ListRow
             testId="row-backup"
             icon="download-outline"
             title="백업 파일"
-            subtitle="내보내기 · 가져오기"
+            // [원본] subtitle="내보내기 · 가져오기" — 설명 줄 없앰(SPEC-055 Phase 4)
             href="/account#backup"
           />
           <ListRow testId="btn-gear" icon="fitness-outline" title={t("gear.myGearEntry")} href="/gear" />
@@ -496,9 +499,10 @@ export default function ProfileClient() {
       ) : null}
       {sheet === "sound" ? (
         <SheetShell title={t("profile.restSound")} onClose={() => setSheet(null)} testId="sound-sheet">
-          <AppText variant="caption" color="textMuted" className="block">
+          {/* [원본] <AppText variant="caption" color="textMuted" className="block">
             {t("profile.restSoundCaption")}
-          </AppText>
+          </AppText> */}
+          {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
           <div className="mt-[var(--spacing-sm)] flex flex-wrap gap-[var(--spacing-xs)]">
             {REST_SOUND_KINDS.map((k) => (
               <Chip
@@ -538,9 +542,10 @@ export default function ProfileClient() {
           onClose={() => setSheet(null)}
           testId="equipment-sheet"
         >
-          <AppText variant="caption" color="textMuted" className="block">
+          {/* [원본] <AppText variant="caption" color="textMuted" className="block">
             {t("profile.availableEquipmentCaption")}
-          </AppText>
+          </AppText> */}
+          {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
           <div className="mt-[var(--spacing-sm)] flex flex-wrap gap-[var(--spacing-xs)]">
             {ALL_EQUIPMENT.map((eq) => (
               <Chip
@@ -570,9 +575,10 @@ export default function ProfileClient() {
           }}
           testId="machine-sheet"
         >
-          <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-sm)] block">
+          {/* [원본] <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-sm)] block">
             {t("machineVariant.settingsHint")}
-          </AppText>
+          </AppText> */}
+          {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
           {CUSTOM_VARIANT_KEYS.map((k, i) => (
             <TextField
               key={k}
@@ -644,14 +650,15 @@ export default function ProfileClient() {
             </AppText>
           ) : null}
               [개선] SPEC-052 — 늘 무엇이 보이는지 한 줄(켜도 꺼도 초대 코드로 연결 가능) */}
-          <AppText
+          {/* [원본] <AppText
             variant="caption"
             color="textFaint"
             className="mt-[var(--spacing-xs)] block"
             data-testid="trainer-intent-hint"
           >
             {t("experience.intentHint")}
-          </AppText>
+          </AppText> */}
+          {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
           {/* 의향을 켜면 코치 소개(80자)·태그(6개 중 3개) — 서버 프로필에만 저장(SPEC-050)
               SPEC-052: 의향 = 코치 찾기 노출. 소개·태그는 켰을 때만 보이고 편집된다(사용자 결정 2) */}
           {/* 기준은 서버 계정 값 — 로컬만 켜지고 서버 저장이 실패하면 칸을 보이지 않는다(코드 리뷰 지적 7) */}

@@ -34,9 +34,10 @@ export function PlateAskLine({ onAnswer }: { onAnswer: (oneSide: boolean) => voi
     >
       <span className="mr-auto min-w-0 py-[6px]">
         <span className="block">{t("session.plateAsk")}</span>
-        <span className="block text-[length:var(--text-xs)] text-(--color-ink3)">
+        {/* [원본] <span className="block text-[length:var(--text-xs)] text-(--color-ink3)">
           {t("session.plateAskHint")}
-        </span>
+        </span> */}
+        {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
       </span>
       {opt(true)}
       <span aria-hidden className="text-(--color-ink3)">

@@ -2,7 +2,7 @@
 //
 // · 키 liftgram.hint.<id> = "seen" — 이 기기 사실이라 동기하지 않는다(SYNCED_PREF_KEYS 에 넣지 않는다)
 // · liftgram.hint.suppressed 가 있으면 아무 안내도 띄우지 않는다(e2e 기본 상태 · 다시 보기로 지우지 않는다)
-// · 한 번에 하나만(모듈 잠금) · 첫 실행 안내를 보기 전에는 띄우지 않는다
+// · 한 번에 하나만(모듈 잠금) · [원본] 첫 실행 안내를 보기 전에는 띄우지 않는다 → [개선] 온보딩을 없애 조건도 뺐다(SPEC-055)
 // [원본] · 「알겠어요」나 그 동작(「이전」 누름 등)을 하면 본 것 · 누르지 않고 떠나면 안 본 것(다음에 다시)
 // [개선] #T18 · 몇 초 지나 저절로 사라지거나 · 화면 어디를 누르거나 · 그 동작(「이전」 누름 등)을 하면 본 것 ·
 //        다 보기 전에 떠나면 안 본 것(다음에 다시)
@@ -14,7 +14,8 @@ export type CoachMarkId = (typeof COACH_MARK_IDS)[number];
 
 const key = (id: CoachMarkId) => `liftgram.hint.${id}`;
 export const HINT_SUPPRESSED_KEY = "liftgram.hint.suppressed";
-const ONBOARDING_KEY = "onboarding_seen_v1"; // OnboardingOverlay 의 SEEN_KEY 와 같다
+// [원본] const ONBOARDING_KEY = "onboarding_seen_v1"; // OnboardingOverlay 의 SEEN_KEY 와 같다
+// [개선] 온보딩을 띄우지 않으므로(SPEC-055 Phase 2 · REV-118 R1) 「온보딩을 본 뒤」 조건을 뺀다 — 새 사용자에게도 첫 안내가 뜬다
 const EVENT = "liftgram-hint";
 
 function read(k: string): string | null {
@@ -127,7 +128,9 @@ export function useCoachMark(
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const seen = mounted ? isCoachMarkSeen(id) : true;
-  const allowed = mounted && read(HINT_SUPPRESSED_KEY) == null && read(ONBOARDING_KEY) === "yes";
+  // [원본] const allowed = mounted && read(HINT_SUPPRESSED_KEY) == null && read(ONBOARDING_KEY) === "yes";
+  // [개선] 온보딩 표시 없이도(REV-118 R1)
+  const allowed = mounted && read(HINT_SUPPRESSED_KEY) == null;
   const candidate = !seen && allowed && when;
   // 후보일 때만 화면을 지켜본다(안내를 다 본 사람의 운동 화면에 관찰자를 두지 않는다)
   const overlay = useOverlayOpen(candidate);

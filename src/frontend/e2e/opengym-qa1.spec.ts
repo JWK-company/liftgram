@@ -109,7 +109,8 @@ test.describe("체중 입력 되돌림 없음(CD-1·CD-2)", () => {
   });
 });
 
-test("RIR 칩 — 횟수 입력 직후 곧바로 고른 값이 유지되고(경합) · 다시 열면 그 값에서 · 접근 이름은 보이는 글자로 시작", async ({
+// [원본] 힘든 정도 칩·시트 — SPEC-055 Phase 3 에서 칩·시트·설정 스위치를 막았다(세트 줄 「여유」 칸으로). 같은 경합은 아래 여유 칸 시험이 잰다.
+test.skip("RIR 칩 — 횟수 입력 직후 곧바로 고른 값이 유지되고(경합) · 다시 열면 그 값에서 · 접근 이름은 보이는 글자로 시작", async ({
   page,
 }) => {
   test.setTimeout(120_000);
@@ -145,7 +146,36 @@ test("RIR 칩 — 횟수 입력 직후 곧바로 고른 값이 유지되고(경�
   await expect(row.getByTestId("set-reps")).toHaveValue("8");
 });
 
-test("설정 즉시 반영 — 운동 화면을 연 채 다른 탭에서 켜고 끄면 그 화면이 따라간다", async ({
+// [개선] 여유 칸 — 횟수 입력 직후(blur 저장이 대기열에 있는 채) 곧바로 눌러도 고른 값이 유지되고 입력값을 잃지 않는다(CU-7 같은 경합)
+test("여유 칸 — 횟수 입력 직후 곧바로 눌러도 고른 값이 유지되고(경합) · 접근 이름에 세트 번호", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await 준비(page);
+  await 빠른_운동_시작(page);
+  await 종목_추가(page, "바벨 벤치프레스");
+  await 안내_띠_닫기(page);
+  const row = 세트_줄(page, 0, 0);
+  const cell = row.getByTestId(`set-spare-${await 세트_id(row)}`);
+  await expect(cell).toBeVisible();
+  // [원본] await expect(cell).toHaveAttribute("aria-label", "세트 1 여유 비움 — 눌러서 바꾸기");
+  // [개선] 접근 이름은 보이는 글자로 시작(REV M-4)
+  await expect(cell).toHaveAttribute("aria-label", "여유 없음 · 세트 1 — 눌러서 바꾸기");
+
+  await row.getByTestId("set-weight").fill("60");
+  await row.getByTestId("set-reps").fill("8");
+  for (let k = 0; k < 4; k++) await cell.click(); // 비움 → 0 → 1 → 2 → 3
+  await expect(cell).toHaveText("+3");
+  await 유지(() => cell.textContent(), "+3");
+  await expect(cell).toHaveAttribute("data-rir", "3");
+  // [원본] await expect(cell).toHaveAttribute("aria-label", "세트 1 여유 3개 — 눌러서 바꾸기");
+  await expect(cell).toHaveAttribute("aria-label", "+3 · 세트 1 여유 — 눌러서 바꾸기");
+  await expect(row.getByTestId("set-weight")).toHaveValue("60");
+  await expect(row.getByTestId("set-reps")).toHaveValue("8");
+});
+
+// [원본] 설정 즉시 반영 — 막은 「힘든 정도 기록」 스위치 시험(SPEC-055 Phase 3)
+test.skip("설정 즉시 반영 — 운동 화면을 연 채 다른 탭에서 켜고 끄면 그 화면이 따라간다", async ({
   page,
   context,
 }) => {
@@ -176,7 +206,7 @@ test.describe("rpe 만 있는 세트·분포 칸·진척 막대(CU-12 ③④) ·
   }) => {
     test.setTimeout(180_000);
     await 준비(page);
-    await 힘든정도_설정(page, false);
+    // [원본] await 힘든정도_설정(page, false); — 스위치를 막았다(SPEC-055 Phase 3)
     await 빠른_운동_시작(page);
     await 종목_추가(page, "바벨 벤치프레스");
     await 세트_기록(page, 0, 0, 60, 10);
@@ -225,15 +255,26 @@ test.describe("rpe 만 있는 세트·분포 칸·진척 막대(CU-12 ③④) ·
       "여유 2.5~3개1세트",
       "여유 3.5개 이상1세트",
     ]);
-    // 노력 카드는 Epley 주석 뒤에 온다(CU-1) — 주석(「추정치」)이 카드보다 위
-    const order = await page.evaluate(() => {
+    // [원본] 노력 카드는 Epley 주석 뒤에 온다(CU-1) — 주석(「추정치」)이 카드보다 위
+    // const order = await page.evaluate(() => {
+    //   const card = document.querySelector('[data-testid="effort-card"]');
+    //   const cap = Array.from(document.querySelectorAll("span,p")).find((n) =>
+    //     n.textContent?.includes("실측값이 아니에요"),
+    //   );
+    //   return card && cap ? card.compareDocumentPosition(cap) & Node.DOCUMENT_POSITION_PRECEDING : -1;
+    // });
+    // expect(order).toBeGreaterThan(0);
+    // [개선] 1RM 밑 긴 주석은 없앴다(제목이 「추정 1RM」 · SPEC-055 Phase 4) — 노력 카드 밑에 추정 꼬리표가 붙지 않는지만 본다
+    await expect(page.getByText("실측값이 아니에요")).toHaveCount(0);
+    const tagAfterCard = await page.evaluate(() => {
       const card = document.querySelector('[data-testid="effort-card"]');
-      const cap = Array.from(document.querySelectorAll("span,p")).find((n) =>
-        n.textContent?.includes("실측값이 아니에요"),
-      );
-      return card && cap ? card.compareDocumentPosition(cap) & Node.DOCUMENT_POSITION_PRECEDING : -1;
+      const tag = document.querySelector('[data-testid="stats-recent-pr-estimate"]');
+      const prs = document.querySelector('[data-testid="stats-recent-prs"]');
+      // 꼬리표가 있으면 「최근 PR」 목록 바로 뒤여야 한다(노력 카드 수치에 붙지 않게)
+      if (!card || !tag) return true;
+      return !!prs && !!(prs.compareDocumentPosition(tag) & Node.DOCUMENT_POSITION_FOLLOWING);
     });
-    expect(order).toBeGreaterThan(0);
+    expect(tagAfterCard).toBe(true);
 
     // 종목 진척 막대 — 가운데 줄 높이 = (4 − 2.17)/4 ≈ 0.46 of 막대
     await page.getByTestId("stats-1rm").locator("a").first().click();

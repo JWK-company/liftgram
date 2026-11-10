@@ -23,6 +23,28 @@ export function normalizeRir(v: number | null | undefined): number | null {
   return Math.round(clipped / EFFORT_RIR_STEP) * EFFORT_RIR_STEP;
 }
 
+/** 세트 줄 「여유」 칸의 최댓값 — 「4+」 는 4 로 저장(ADR-038 · SPEC-055 Phase 3) */
+export const SPARE_RIR_MAX = 4;
+
+/**
+ * 세트 줄 「여유」 칸 다음 값 — 비움 → 0 → 1 → 2 → 3 → 4+ → 비움(SPEC-055 Phase 3).
+ * 옛 0.5 단위 값은 다음 정수로(0.5 → 1), 4 이상(옛 값 포함)은 비움.
+ * [개선] 화면 파일(SpareRepsCell)에 있던 것을 여기로 — 단위 시험을 달려고(REV M-5)
+ */
+export function nextSpareRir(v: number | null): number | null {
+  if (v == null) return 0;
+  if (v >= SPARE_RIR_MAX) return null;
+  return Math.floor(v) + 1;
+}
+
+/** 「여유」 칸 글자 — 비움 「–」 · 0 「0」 · 「+2」 · 4 이상 「4+」 · 옛 값 「+0.5」 */
+export function spareRirText(v: number | null): string {
+  if (v == null) return '–';
+  if (v >= SPARE_RIR_MAX) return '4+';
+  if (v === 0) return '0';
+  return `+${Number.isInteger(v) ? String(v) : v.toFixed(1)}`;
+}
+
 /** RPE → RIR 환산(10 − RPE, 0~10 으로 자름). 숫자가 아니면 null. */
 export function rirFromRpe(rpe: number | null | undefined): number | null {
   if (rpe === null || rpe === undefined || !Number.isFinite(rpe)) return null;

@@ -39,7 +39,7 @@ test.use({ serviceWorkers: "block" });
 // [원본] async function 체크인_설정(page, on) — 프로필 「운동 전 체중 체크인」 스위치를 켜고 껐다(SPEC-049 에서 스위치를 없앴다)
 
 async function 운동_취소(page: Page): Promise<void> {
-  await page.getByTestId("btn-session-menu").click();
+  // [원본] await page.getByTestId("btn-session-menu").click(); — ⋯ 없이 머리 「취소」를 바로 누른다(SPEC-055 Phase 2)
   await page.getByTestId("btn-discard").click();
   await page.getByTestId("dialog-confirm").click();
   await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
@@ -468,11 +468,11 @@ test("통계 체중 카드 — 하나면 안내 · 불규칙 간격 3점 곡선 
   );
   // 고르기 전에는 안내(읽지 않음 · 값 줄 밖) — 누르면 사라진다(SPEC-046)
   const hint = page.getByTestId("bodyweight-chart-hint");
-  await expect(hint).toBeVisible();
-  await expect(hint).toHaveAttribute("aria-hidden", "true");
-  await expect(page.getByTestId("bodyweight-chart-readout").getByTestId("bodyweight-chart-hint")).toHaveCount(
-    0,
-  );
+  // [원본] await expect(hint).toBeVisible();
+  // [원본] await expect(hint).toHaveAttribute("aria-hidden", "true");
+  // [원본] await expect(page.getByTestId("bodyweight-chart-readout").getByTestId("bodyweight-chart-hint")).toHaveCount(0);
+  // [개선] 「그래프를 눌러 값 보기」 설명 줄 없앰(SPEC-055 Phase 4)
+  await expect(hint).toHaveCount(0);
   // 누르면 그 점 값
   const svgBox = await page.getByTestId("bodyweight-chart-svg").boundingBox();
   if (svgBox) await page.mouse.click(svgBox.x + xs[0], svgBox.y + 40);

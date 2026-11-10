@@ -16,6 +16,25 @@ const PENDING = "liftgram.prefsPending";
 const PUSH = "**/sync.v1.SyncService/Push";
 const ls = (page: Page, k: string) => page.evaluate((key) => localStorage.getItem(key), k);
 
+// [원본] 「힘든 정도 기록」 스위치(switch-effort-logging · liftgram.effortLogging)로 쟀다
+// [개선] 그 스위치를 막았다(SPEC-055 Phase 3 — 여유 칸은 누구나) → 같은 동기 설정 스위치인 「근육 그림 보기」로 잰다.
+//   근육 그림은 기본 켬(키 없음 = 켬)이라 켜기는 「끔 → 켬」 두 번 눌러 "1" 을 디스크에 남긴다(되돌림의 「옛 값」).
+const SW = "switch-muscle-map";
+const KEY = "liftgram.muscleMap";
+
+/** 스위치를 켜고 그 값("1")이 실제로 저장되게 — 이미 켜져 있어도 한 번 껐다 켠다 */
+async function 켜서_저장(page: Page): Promise<void> {
+  const sw = page.getByTestId(SW);
+  await expect(sw).toBeVisible({ timeout: 20_000 });
+  if ((await sw.getAttribute("aria-checked")) === "true") {
+    await sw.click();
+    await expect(sw).toHaveAttribute("aria-checked", "false");
+  }
+  await sw.click();
+  await expect(sw).toHaveAttribute("aria-checked", "true");
+  expect(await ls(page, KEY)).toBe("1");
+}
+
 /** 표식이 사라질 때까지(부팅 마무리 쓰기가 끝남) — 그 뒤에도 값이 그대로인지 본다 */
 async function 표식_정리_대기(page: Page): Promise<void> {
   await expect.poll(() => ls(page, PENDING), { timeout: 15_000 }).toBeNull();
@@ -51,34 +70,32 @@ async function 누르고_곧바로_새로고침(page: Page, testId: string): Pro
   ]);
 }
 
-test("힘든 정도 기록 — 끄고 곧바로 새로고침해도 꺼진 채로 남는다", async ({ page }) => {
+// [원본] test("힘든 정도 기록 — 끄고 곧바로 새로고침해도 꺼진 채로 남는다") — 본문은 아래와 같고 스위치 "switch-effort-logging"·키 "liftgram.effortLogging" 만 SW·KEY 로 바뀌었다
+test("근육 그림 보기 — 끄고 곧바로 새로고침해도 꺼진 채로 남는다", async ({ page }) => {
   test.setTimeout(90_000);
   await 준비(page);
   await page.goto("/profile");
-  const sw = page.getByTestId("switch-effort-logging");
-  await expect(sw).toBeVisible({ timeout: 20_000 });
-  if ((await sw.getAttribute("aria-checked")) !== "true") await sw.click();
-  await expect(sw).toHaveAttribute("aria-checked", "true");
+  await 켜서_저장(page);
   await 표식_정리_대기(page);
   await 내려쓰기_대기(page); // 켠 값이 프로필·디스크에 확실히 남게(되돌림의 「옛 값」을 만든다)
 
   // 끄고 **같은 틱에** 새로고침 — 클릭 처리기는 동기로 localStorage 에 쓰고, 프로필 쓰기(동적 import → DB 쓰기 → 내려쓰기)는
   // 시작도 못 한 채 문서가 사라진다. 이전 코드에선 매번 「켜짐」으로 되돌아왔다(결정적 재현).
-  await 누르고_곧바로_새로고침(page, "switch-effort-logging");
+  await 누르고_곧바로_새로고침(page, SW);
 
-  const sw2 = page.getByTestId("switch-effort-logging");
+  const sw2 = page.getByTestId(SW);
   await expect(sw2).toBeVisible({ timeout: 20_000 });
   await 표식_정리_대기(page);
-  expect(await ls(page, "liftgram.effortLogging")).toBe("0");
+  expect(await ls(page, KEY)).toBe("0");
   await expect(sw2).toHaveAttribute("aria-checked", "false");
 
   // 마무리 쓰기가 디스크에 남았는지 — 한 번 더 열어도 꺼짐
   await page.reload();
-  await expect(page.getByTestId("switch-effort-logging")).toHaveAttribute("aria-checked", "false", {
+  await expect(page.getByTestId(SW)).toHaveAttribute("aria-checked", "false", {
     timeout: 20_000,
   });
   await page.waitForTimeout(1_000); // 프로필 값이 내려올 틈
-  expect(await ls(page, "liftgram.effortLogging")).toBe("0");
+  expect(await ls(page, KEY)).toBe("0");
 });
 
 test("테마 — 다크에서 시스템으로 바꾸고 곧바로 새로고침해도 시스템으로 남는다", async ({ page }) => {
@@ -113,16 +130,19 @@ test("테마 — 다크에서 시스템으로 바꾸고 곧바로 새로고침�
   expect(await page.evaluate(() => document.documentElement.getAttribute("data-theme"))).toBeNull();
 });
 
+// [원본] 힘든 정도 기록 스위치로 쟀다 — 근육 그림 보기로(SPEC-055 Phase 3)
 test("내려쓰기가 실패해도(IndexedDB 쓰기 중단) — 새로고침 뒤 꺼진 값이 남고, 다음 부팅이 프로필에 다시 써서 마무리한다", async ({
   page,
 }) => {
   test.setTimeout(90_000);
   await 준비(page);
   await page.goto("/profile");
-  const sw = page.getByTestId("switch-effort-logging");
-  await expect(sw).toBeVisible({ timeout: 20_000 });
-  if ((await sw.getAttribute("aria-checked")) !== "true") await sw.click();
-  await expect(sw).toHaveAttribute("aria-checked", "true");
+  // [원본] const sw = page.getByTestId("switch-effort-logging");
+  // [원본] await expect(sw).toBeVisible({ timeout: 20_000 });
+  // [원본] if ((await sw.getAttribute("aria-checked")) !== "true") await sw.click();
+  // [원본] await expect(sw).toHaveAttribute("aria-checked", "true");
+  const sw = page.getByTestId(SW);
+  await 켜서_저장(page);
   await 표식_정리_대기(page);
   await 내려쓰기_대기(page);
 
@@ -132,21 +152,21 @@ test("내려쓰기가 실패해도(IndexedDB 쓰기 중단) — 새로고침 뒤
   await sw.click();
   await expect(sw).toHaveAttribute("aria-checked", "false");
   await page.waitForTimeout(1_500); // 프로필 쓰기 → 내려쓰기(실패)가 끝날 틈
-  if (process.env.PF_OLD !== "1") expect(await ls(page, PENDING)).toContain("liftgram.effortLogging"); // 실패했으니 표식이 남는다
+  if (process.env.PF_OLD !== "1") expect(await ls(page, PENDING)).toContain(KEY); // 실패했으니 표식이 남는다
   await page.unroute(PUSH); // 새로고침 뒤엔 막지 않는다(IndexedDB 패치는 문서와 함께 사라진다)
 
   await page.reload(); // 새 문서 — 쓰기 중단 없음
-  await expect(page.getByTestId("switch-effort-logging")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId(SW)).toBeVisible({ timeout: 20_000 });
   await 표식_정리_대기(page); // 부팅 마무리(다시 쓰기 → 내려쓰기 성공)
-  expect(await ls(page, "liftgram.effortLogging")).toBe("0");
-  await expect(page.getByTestId("switch-effort-logging")).toHaveAttribute("aria-checked", "false");
+  expect(await ls(page, KEY)).toBe("0");
+  await expect(page.getByTestId(SW)).toHaveAttribute("aria-checked", "false");
 
   await page.reload();
-  await expect(page.getByTestId("switch-effort-logging")).toHaveAttribute("aria-checked", "false", {
+  await expect(page.getByTestId(SW)).toHaveAttribute("aria-checked", "false", {
     timeout: 20_000,
   });
   await page.waitForTimeout(1_000);
-  expect(await ls(page, "liftgram.effortLogging")).toBe("0");
+  expect(await ls(page, KEY)).toBe("0");
 });
 
 test("테마도 같다 — 내려쓰기 실패 뒤 새로고침해도 고른 값(라이트)이 남고 마무리된다", async ({ page }) => {

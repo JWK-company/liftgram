@@ -92,7 +92,9 @@ test("기록 상세 — 한쪽 입력은 머리에 한 번, 빈 RPE 열·반복 
   // RPE 를 하나도 적지 않았으니 RPE 열이 없다
   await expect(ex.getByText("RPE", { exact: true })).toHaveCount(0);
   // 추정 주석은 화면에 한 번(옛: 종목마다 3)
-  await expect(page.getByText("기록으로 계산한 추정치예요 · 실측값이 아니에요")).toHaveCount(1);
+  // [원본] await expect(page.getByText("기록으로 계산한 추정치예요 · 실측값이 아니에요")).toHaveCount(1);
+  // [개선] 종목 머리 「추정 1RM …」 꼬리표가 있어 화면 끝 주석도 없앰(SPEC-055 Phase 4)
+  await expect(page.getByText("기록으로 계산한 추정치예요 · 실측값이 아니에요")).toHaveCount(0);
   // lb 종목 1RM 은 lb
   const flyCard = ex.locator("> *").filter({ hasText: "덤벨 플라이" });
   await expect(flyCard.getByTestId("detail-1rm")).toContainText("lb");
@@ -108,7 +110,12 @@ test("분석 — 「추정치」 태그 없음 · 같은 종목이 1RM·최근 P
 
   await page.goto("/stats");
   await expect(page.getByTestId("stat-volume")).toBeVisible({ timeout: 20_000 });
-  await expect(page.getByText("추정치", { exact: true })).toHaveCount(0);
+  // [원본] await expect(page.getByText("추정치", { exact: true })).toHaveCount(0);
+  // [개선] 줄마다 붙던 태그는 여전히 없다 — 「최근 PR」 목록 끝 꼬리표 한 줄만(SPEC-055 Phase 4 · 옛 긴 주석을 줄임)
+  await expect(page.getByTestId("stats-recent-prs").getByText("추정치", { exact: true })).toHaveCount(0);
+  await expect(page.getByTestId("stats-1rm").getByText("추정치", { exact: true })).toHaveCount(0);
+  expect(await page.getByText("추정치", { exact: true }).count()).toBeLessThanOrEqual(1);
+  await expect(page.getByText("기록으로 계산한 추정치예요 · 실측값이 아니에요")).toHaveCount(0);
   const names = await page.evaluate(() =>
     Array.from(
       document.querySelectorAll(

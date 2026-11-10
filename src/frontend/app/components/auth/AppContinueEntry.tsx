@@ -40,11 +40,12 @@ export function AppContinueEntry() {
       data-testid="app-continue-entry"
       data-emphasis={emph ? "1" : "0"}
     >
-      {emph ? (
+      {/* [원본] {emph ? (
         <AppText variant="body" className="mb-[var(--spacing-sm)] block" data-testid="app-continue-new">
           {t("appContinue.entryNew")}
         </AppText>
-      ) : null}
+      ) : null} */}
+      {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
       <Button
         title={t("appContinue.entry")}
         variant={emph ? "primary" : "secondary"}
@@ -68,9 +69,10 @@ export function AppContinueEntry() {
           {t("appContinue.failed")}
         </AppText>
       ) : null}
-      <AppText variant="caption" color="textMuted" className="mt-[var(--spacing-xs)] block">
+      {/* [원본] <AppText variant="caption" color="textMuted" className="mt-[var(--spacing-xs)] block">
         {t("appContinue.entryHint")}
-      </AppText>
+      </AppText> */}
+      {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
     </Card>
   );
 }

@@ -247,7 +247,9 @@ test("PWA 에서 바꾸기로 켜진 앱(liftgram://start)은 진입점을 강�
   await expect(app.getByTestId("app-continue-entry")).toHaveAttribute("data-emphasis", "1", {
     timeout: 20_000,
   });
-  await expect(app.getByTestId("app-continue-new")).toBeVisible();
+  // [원본] await expect(app.getByTestId("app-continue-new")).toBeVisible();
+  // [개선] 「앱을 새로 설치했나요?…」 설명 줄 없앰(SPEC-055 Phase 4) — 강조(빨강 버튼)는 data-emphasis 로 본다
+  await expect(app.getByTestId("app-continue-new")).toHaveCount(0);
   const plain = await 앱(browser);
   await plain.goto("/account");
   await expect(plain.getByTestId("app-continue-entry")).toHaveAttribute("data-emphasis", "0", {

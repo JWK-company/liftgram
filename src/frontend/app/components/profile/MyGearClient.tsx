@@ -66,9 +66,10 @@ export default function MyGearClient() {
       />
 
       <div className="flex-1 p-[var(--spacing-lg)]">
-        <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-md)] block">
+        {/* [원본] <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-md)] block">
           {t("gear.myGearHint")}
-        </AppText>
+        </AppText> */}
+        {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
 
         {myGear.length === 0 ? (
           <EmptyState

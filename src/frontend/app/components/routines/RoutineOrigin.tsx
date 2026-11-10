@@ -76,7 +76,7 @@ function NewDot({ routineId }: { routineId: string }) {
 /** 코치 루틴 머리 띠 — 「코치 ○○님이 짠 루틴이에요」 + 안내(미리보기·보기 화면). */
 export function CoachRoutineBanner({
   routine,
-  hint = true,
+  // [원본] hint = true, — 안내 줄(routines.coachLockedHint)을 그리지 않는다(SPEC-055 Phase 4) · prop 은 부르는 곳 때문에 남김
 }: {
   routine: RoutineOriginFields;
   hint?: boolean;
@@ -93,11 +93,12 @@ export function CoachRoutineBanner({
           ? t("routines.coachLockedBanner", { name: b.coachName })
           : t("routines.coachLockedBannerNoName")}
       </span>
-      {hint ? (
+      {/* [원본] {hint ? (
         <span className="mt-[2px] block text-(--color-ink2) text-[length:var(--text-xs)]">
           {t("routines.coachLockedHint")}
         </span>
-      ) : null}
+      ) : null} */}
+      {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
     </div>
   );
 }

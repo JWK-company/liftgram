@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState } from "react";
 import { t } from "@/lib/i18n";
 import { TextArea } from "../ui/inputs";
-import { AppText } from "../ui/primitives";
+// [원본] import { AppText } from "../ui/primitives"; — 설명 줄 없앰(SPEC-055 Phase 4)
 
 export function WorkoutNoteField({ workoutId, initial }: { workoutId: string; initial: string | null }) {
   const [text, setText] = useState(initial ?? "");
@@ -67,11 +67,12 @@ export function WorkoutNoteField({ workoutId, initial }: { workoutId: string; in
         placeholder={t("note.placeholder")}
         onChange={(e) => setText(e.target.value)}
         onBlur={() => void save().catch(() => {})}
-        className="mb-[var(--spacing-xs)]!"
+        // [원본] className="mb-[var(--spacing-xs)]!" — 아래 힌트 줄과의 간격이었다(힌트를 없애 여백도 뺀다 · SPEC-055 Phase 4)
       />
-      <AppText variant="caption" color="textFaint">
+      {/* [원본] <AppText variant="caption" color="textFaint">
         {t("note.hint")}
-      </AppText>
+      </AppText> */}
+      {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
     </div>
   );
 }

@@ -178,34 +178,52 @@ test("노출을 끈 사람이 초대 코드 → 다른 기기에서 연결 → �
   }
 });
 
-test("첫 실행 안내에 트레이너 질문이 없고, 경력만 보낸다 — 켜 둔 코치 찾기 노출은 그대로", async ({
-  page,
-}) => {
+// [원본] 첫 실행 안내(온보딩)로 경력을 보냈다 — SPEC-055 Phase 2 에서 온보딩을 없앴다
+// test("첫 실행 안내에 트레이너 질문이 없고, 경력만 보낸다 — 켜 둔 코치 찾기 노출은 그대로", async ({
+//   page,
+// }) => {
+//   test.setTimeout(120_000);
+//   await 가입(page, 새_메일("role-onb"), `안내${Date.now().toString(36)}`);
+//   await 노출_켜기(page);
+//
+//   await page.evaluate(() => localStorage.removeItem("onboarding_seen_v1"));
+//   await page.reload();
+//   await expect(page.getByTestId("onboarding")).toBeVisible({ timeout: 20_000 });
+//   await page.getByTestId("onboarding-next").click();
+//   await expect(page.getByTestId("onboarding")).toContainText("운동 경력을 알려주세요");
+//   await expect(page.getByTestId("onboarding-intent")).toHaveCount(0);
+//   await expect(page.getByTestId("onboarding")).not.toContainText("트레이너");
+//   await expect(page.getByTestId("onboarding")).not.toContainText("회원을 구하고");
+//   await page.getByTestId("onboarding-level-intermediate").click();
+//   const sent = page.waitForRequest("**/auth.v1.AuthService/UpdateProfile");
+//   await page.getByTestId("onboarding-done").click();
+//   const body = (await sent).postData() ?? "";
+//   expect(body).toContain("setExperienceLevel");
+//   expect(body).not.toContain("TrainerIntent");
+//   expect(body).not.toContain("trainerIntent");
+//   await expect(page.getByTestId("onboarding")).toHaveCount(0);
+//
+//   await page.goto("/profile");
+//   await page.getByTestId("btn-edit-experience").click();
+//   await expect(page.getByTestId("level-intermediate")).toHaveAttribute("aria-pressed", "true", {
+//     timeout: 20_000,
+//   });
+//   await expect(page.getByTestId("trainer-intent")).toHaveAttribute("aria-pressed", "true");
+// });
+// [개선] 온보딩이 뜨지 않는다 — 켜 둔 코치 찾기 노출은 그대로(경력은 프로필에서 고른다 · SPEC-055)
+test("첫 실행 안내(온보딩)가 뜨지 않는다 — 켜 둔 코치 찾기 노출은 그대로", async ({ page }) => {
   test.setTimeout(120_000);
   await 가입(page, 새_메일("role-onb"), `안내${Date.now().toString(36)}`);
   await 노출_켜기(page);
 
   await page.evaluate(() => localStorage.removeItem("onboarding_seen_v1"));
   await page.reload();
-  await expect(page.getByTestId("onboarding")).toBeVisible({ timeout: 20_000 });
-  await page.getByTestId("onboarding-next").click();
-  await expect(page.getByTestId("onboarding")).toContainText("운동 경력을 알려주세요");
-  await expect(page.getByTestId("onboarding-intent")).toHaveCount(0);
-  await expect(page.getByTestId("onboarding")).not.toContainText("트레이너");
-  await expect(page.getByTestId("onboarding")).not.toContainText("회원을 구하고");
-  await page.getByTestId("onboarding-level-intermediate").click();
-  const sent = page.waitForRequest("**/auth.v1.AuthService/UpdateProfile");
-  await page.getByTestId("onboarding-done").click();
-  const body = (await sent).postData() ?? "";
-  expect(body).toContain("setExperienceLevel");
-  expect(body).not.toContain("TrainerIntent");
-  expect(body).not.toContain("trainerIntent");
+  await page.waitForTimeout(1_500);
   await expect(page.getByTestId("onboarding")).toHaveCount(0);
 
   await page.goto("/profile");
   await page.getByTestId("btn-edit-experience").click();
-  await expect(page.getByTestId("level-intermediate")).toHaveAttribute("aria-pressed", "true", {
+  await expect(page.getByTestId("trainer-intent")).toHaveAttribute("aria-pressed", "true", {
     timeout: 20_000,
   });
-  await expect(page.getByTestId("trainer-intent")).toHaveAttribute("aria-pressed", "true");
 });

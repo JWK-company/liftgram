@@ -541,15 +541,16 @@ export function WeighInSheet({
           {inbodyOpen ? (
             <div className="flex flex-col gap-[6px]">
               {/* [원본] <p className="text-(--color-ink2) text-[length:var(--text-xs)]">{t("bodyweight.inbodyOptional")}</p> */}
-              {/* [개선] 소제목 「인바디 수치」 + 「선택 · 비워 두면 적지 않아요」 — 토글 글자가 하던 이름표를 잇는다 */}
+              {/* [개선] 소제목 「인바디 수치」 — 토글 글자가 하던 이름표를 잇는다(「선택 · 비워 두면…」 꼬리는 SPEC-055 Phase 4 에서 없앰) */}
               <p className="flex flex-wrap items-baseline gap-x-[var(--spacing-xs)] text-[length:var(--text-sm)]">
                 <span className="font-medium text-(--color-ink)">{t("bodyweight.inbodyTitle")}</span>
-                <span
+                {/* [원본] <span
                   className="text-(--color-ink2) text-[length:var(--text-xs)]"
                   data-testid="weighin-inbody-optional"
                 >
                   {t("bodyweight.inbodyOptional")}
-                </span>
+                </span> */}
+                {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
               </p>
               {(
                 [

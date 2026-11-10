@@ -144,9 +144,10 @@ export function InviteCard({ primary = true }: { primary?: boolean } = {}) {
           >
             {t("coaching.invite.expires", { date: expiryLabel(Number(invite.expiresAt), lang) })}
           </AppText>
-          <AppText variant="caption" color="textFaint" className="mt-[var(--spacing-xs)] block text-center">
+          {/* [원본] <AppText variant="caption" color="textFaint" className="mt-[var(--spacing-xs)] block text-center">
             {t("coaching.invite.hint")}
-          </AppText>
+          </AppText> */}
+          {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
           <div className="mt-[var(--spacing-md)] flex flex-wrap gap-[var(--spacing-sm)]">
             <div className="min-w-[120px] flex-1">
               <Button

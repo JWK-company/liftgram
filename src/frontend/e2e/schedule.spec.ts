@@ -117,8 +117,11 @@ test("이번 달 자랑하기는 운동이 있을 때만 뜬다", async ({ page 
 
   // 아직 아무것도 안 했으면 버튼이 없다.
   await page.goto("/calendar");
-  // 자랑하기는 기록 머리의 ⋯ 안에 있다 — 운동이 없으면 ⋯ 째로 없다(SRS-054 시안 06).
+  // [원본] 자랑하기는 기록 머리의 ⋯ 안에 있다 — 운동이 없으면 ⋯ 째로 없다(SRS-054 시안 06).
+  // await expect(page.getByTestId("records-more")).toHaveCount(0);
+  // [개선] ⋯ 없이 머리 오른쪽 버튼(SPEC-055 Phase 2) — 운동이 없으면 버튼이 없다
   await expect(page.getByTestId("month-label")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("btn-brag-month")).toHaveCount(0);
   await expect(page.getByTestId("records-more")).toHaveCount(0);
 
   // 운동을 하나 마치면 뜬다.
@@ -145,9 +148,15 @@ test("이번 달 자랑하기는 운동이 있을 때만 뜬다", async ({ page 
   await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
 
   await page.goto("/calendar");
-  await expect(page.getByTestId("records-more")).toBeVisible({ timeout: 20_000 });
-  await page.getByTestId("records-more").click();
-  await expect(page.getByTestId("btn-brag-month")).toBeVisible();
+  // [원본] await expect(page.getByTestId("records-more")).toBeVisible({ timeout: 20_000 });
+  // [원본] await page.getByTestId("records-more").click();
+  // [원본] await expect(page.getByTestId("btn-brag-month")).toBeVisible();
+  // [개선] ⋯ 없이 바로 보인다 · 이번 달이면 「이번 달 자랑하기」 · 44px(SPEC-055 Phase 2)
+  const brag = page.getByTestId("btn-brag-month");
+  await expect(brag).toBeVisible({ timeout: 20_000 });
+  await expect(brag).toHaveText("이번 달 자랑하기");
+  expect((await brag.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(44);
+  await expect(page.getByTestId("records-more")).toHaveCount(0);
 
   // 로그인하지 않았으면 그 사실을 알린다(조용히 실패하지 않는다).
   await page.getByTestId("btn-brag-month").click();

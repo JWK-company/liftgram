@@ -749,9 +749,10 @@ export default function RoutineImport({
 
       {!review ? (
         <section data-testid="import-input">
-          <AppText variant="caption" color="textMuted" className="block">
+          {/* [원본] <AppText variant="caption" color="textMuted" className="block">
             {t("routineImport.lead")}
-          </AppText>
+          </AppText> */}
+          {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) — 입력칸 안내문이 같은 말을 한다 */}
 
           {resume ? (
             <div
@@ -1069,9 +1070,10 @@ export default function RoutineImport({
               <summary className="min-h-[44px] cursor-pointer py-[var(--spacing-sm)] text-(--color-ink2) text-[length:var(--text-sm)]">
                 {t("routineImport.mentionedTitle", { count: review.mentionedOnly.length })}
               </summary>
-              <AppText variant="caption" color="textFaint" className="block">
+              {/* [원본] <AppText variant="caption" color="textFaint" className="block">
                 {t("routineImport.mentionedHint")}
-              </AppText>
+              </AppText> */}
+              {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
               <div className="mt-[var(--spacing-xs)] flex flex-wrap gap-[var(--spacing-xs)]">
                 {review.mentionedOnly.map((m) => (
                   <button

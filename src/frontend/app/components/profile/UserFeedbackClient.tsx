@@ -102,9 +102,10 @@ export default function UserFeedbackClient() {
           </div>
         ) : (
           <>
-            <AppText variant="body" className="mb-[var(--spacing-sm)] block">
+            {/* [원본] <AppText variant="body" className="mb-[var(--spacing-sm)] block">
               {t("userFeedback.intro")}
-            </AppText>
+            </AppText> */}
+            {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
             <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-lg)] block">
               {t("userFeedback.privacy")}
             </AppText>

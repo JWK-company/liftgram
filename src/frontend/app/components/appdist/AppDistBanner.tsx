@@ -95,12 +95,9 @@ export function AppDistBanner() {
       : o.kind === "reinstall"
         ? t("appDist.bannerReinstall")
         : t("appDist.bannerSwitch");
-  const body =
-    o.kind === "update"
-      ? t("appDist.bannerUpdateBody")
-      : o.kind === "reinstall"
-        ? t("appDist.bannerReinstallBody")
-        : t("appDist.bannerSwitchBody");
+  // [원본] const body = o.kind === "update" ? t("appDist.bannerUpdateBody") : o.kind === "reinstall" ? t("appDist.bannerReinstallBody") : t("appDist.bannerSwitchBody");
+  // [개선] 업데이트·앱으로 옮기기 부연은 설명 줄 없앰(SPEC-055 Phase 4) — 다시 설치(보안·절차)만 남김
+  const body = o.kind === "reinstall" ? t("appDist.bannerReinstallBody") : null;
   // [원본] 「보기」 하나 — 무엇을 하는지 말하지 않았다(REV-013 화면 L-13)
   const cta =
     o.kind === "update"
@@ -124,7 +121,8 @@ export function AppDistBanner() {
           <div id="app-dist-title" role="status" className="font-semibold" data-testid="app-dist-title">
             {title}
           </div>
-          <div className="mt-[2px] text-(--color-ink2)">{body}</div>
+          {/* [원본] <div className="mt-[2px] text-(--color-ink2)">{body}</div> */}
+          {body ? <div className="mt-[2px] text-(--color-ink2)">{body}</div> : null}
           <div className="mt-[var(--spacing-xs)] flex flex-wrap gap-x-[var(--spacing-md)]">
             <button
               type="button"

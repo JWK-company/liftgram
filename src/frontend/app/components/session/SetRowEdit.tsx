@@ -2,7 +2,8 @@
 // @plm SRS-004  세트 한 줄(근력) — app의 features/session/ExerciseBlock 안 SetRowEdit을 웹으로
 //
 // ─────────────────────────────────────────────────────────────────────────────
-// 한 줄에 들어가는 것:  [타입칩] [이전 기록] [무게] [횟수] [체크] [▼ 상세]
+// [원본] 한 줄에 들어가는 것:  [타입칩] [이전 기록] [무게] [횟수] [체크] [▼ 상세]
+// [개선] 한 줄에 들어가는 것:  [타입칩] [이전 기록] [무게] [횟수] [여유] [체크] [▼ 상세] — 여유 칸(SPEC-055 Phase 3 · B안)
 //
 // 화면에서 제일 자주 만지는 줄이라 규칙이 몇 가지 있다 — 전부 app에서 이유가 있어 생긴 것들이다:
 //
@@ -33,8 +34,10 @@ import {
 import { enteredWeightToKg } from "@app/core/domain/blockUnit";
 import { useEffect, useRef, useState } from "react";
 import { useSetDrafts } from "./setDrafts";
-import { RirChip } from "./RirChip"; // 세트 힘든 정도 칩(켰을 때만) @plm SRS-073
-import { useEffortLogging } from "@/lib/effortPref";
+// [원본] import { RirChip } from "./RirChip"; // 세트 힘든 정도 칩(켰을 때만) @plm SRS-073
+// [원본] import { useEffortLogging } from "@/lib/effortPref";
+// [개선] 설정 없이 누구나 쓰는 「여유」 칸 — 칩·시트 대신 누를 때마다 바뀐다(SPEC-055 Phase 3)
+import { SpareRepsCell } from "./SpareRepsCell";
 import { markCoachMarkSeen } from "@/lib/coachMarks";
 import { lang, t } from "@/lib/i18n";
 import { ActionSheet, SheetShell } from "../ui/Dialog";
@@ -180,9 +183,18 @@ export function SetRowEdit({
   const [typeMenu, setTypeMenu] = useState(false);
   const [varOpen, setVarOpen] = useState(false);
   // const [plates, setPlates] = useState<string | null>(null); // [원본] SPEC-023
-  const effortOn = useEffortLogging(); // 켰을 때만 처방 줄에 RIR 칩(끄면 DOM 0 · U-1) @plm SRS-073
-  // 워밍업은 칩 없음(분석 대상 밖 · QA CU-8) — 처방 RIR 글자는 꺼짐일 때처럼 그대로 보인다
-  const chipOn = effortOn && !set.isWarmup && set.setType !== "warmup";
+  // [원본] const effortOn = useEffortLogging(); // 켰을 때만 처방 줄에 RIR 칩(끄면 DOM 0 · U-1) @plm SRS-073
+  // [원본] // 워밍업은 칩 없음(분석 대상 밖 · QA CU-8) — 처방 RIR 글자는 꺼짐일 때처럼 그대로 보인다
+  // [원본] const chipOn = effortOn && !set.isWarmup && set.setType !== "warmup";
+  // [개선] 칩은 막았다 — 처방 줄은 처방이 있을 때만, 처방 RIR 글자는 늘 그대로(SPEC-055 Phase 3)
+  const chipOn = false;
+  // 워밍업(피더 포함 — isWarmup 이 켜진다)은 여유 칸 대신 같은 폭의 빈 자리(분석 대상 밖 · QA CU-8)
+  const spareOn = !set.isWarmup && set.setType !== "warmup";
+  // [개선] 기다리던 여유 저장(600ms)이 워밍업이 된 세트에 가지 않게(REV L-5) — 저장하는 순간에 본다.
+  //   spareOnRef = 마지막 그림의 판정 · warmPicked = 종류 메뉴에서 워밍업·피더를 고른 순간(다시 그리기 전에 타이머가 돌 수 있다)
+  const spareOnRef = useRef(spareOn);
+  spareOnRef.current = spareOn;
+  const warmPicked = useRef(false);
 
   // 밖에서 값이 바뀌면(이전 칩 적용·제안 적용) 입력칸도 따라간다.
   // 밖에서 값이 바뀌면 등록부의 입력 중 값도 버린다 — 옛 입력이 묶음 완료 때 새 값을 덮지 않게(SRS-062)
@@ -328,7 +340,9 @@ export function SetRowEdit({
       style={{ backgroundColor: isDone ? "var(--color-ok-soft)" : undefined }}
       className="rounded-[var(--radius-sm)]"
     >
-      <div className="flex items-center gap-[4px] py-[4px]">
+      {/* [원본] <div className="flex items-center gap-[4px] py-[4px]"> */}
+      {/* [개선] 칸 사이 2px — 이전 칸에 「102.5×12」 자리를 내려고(360px · REV H-1). ✓·⌄ 앞은 따로 여백을 둔다 */}
+      <div className="flex items-center gap-[2px] py-[4px]">
         {/* 타입 — 탭하면 일반/워밍업/드롭/실패와 플레이트 계산을 고를 수 있다. */}
         <button
           type="button"
@@ -368,18 +382,30 @@ export function SetRowEdit({
           stretch
           disabled={!prev || isDone}
           onPress={applyPrev}
-          className="w-[66px] shrink-0 justify-center"
+          // [원본] className="w-[66px] shrink-0 justify-center"
+          // [원본] 여유 칸 자리를 이전 칸에서 — 360px 에서 kg 「102.5」·회 「12」가 잘리지 않게(REV-118 U3)
+          // [원본] className="w-[52px] shrink-0 justify-center" — 「100×10」·「102.5×12」·「(8+2)」 횟수가 …로 잘렸다(REV H-1)
+          // [개선] 64px + 칩 안쪽 여백 2px + 글자 13px — 「102.5×12」 가 한 줄에(✓·⌄ 겉보기와 칸 사이를 줄여 낸 자리)
+          className="w-[64px] shrink-0 justify-center"
+          faceClassName="px-[2px]!"
           ariaLabel={prevAria()}
         >
           {prev ? (
             <>
+              {/* [원본] <AppText variant="caption" color={…} center className="block truncate tabular-nums">
+                {`${displayWeight(prev.weightKg, unit)}×${prev.partialReps ? `(${prev.reps}+${prev.partialReps})` : prev.reps}`}
+              </AppText> */}
+              {/* [개선] 13px · 그래도 넘치면(「102.5×(8+2)」) 「×」 뒤에서 두 줄로 — 잘라 숨기지 않는다(REV H-1) */}
               <AppText
                 variant="caption"
                 color={isDone ? "textFaint" : "textMuted"}
                 center
-                className="block truncate tabular-nums"
+                data-testid="set-prev-text"
+                className="block text-[13px]! leading-[16px] tabular-nums"
               >
-                {`${displayWeight(prev.weightKg, unit)}×${prev.partialReps ? `(${prev.reps}+${prev.partialReps})` : prev.reps}`}
+                {`${displayWeight(prev.weightKg, unit)}×`}
+                <wbr />
+                {prev.partialReps ? `(${prev.reps}+${prev.partialReps})` : prev.reps}
               </AppText>
               {prevOptionLabel(prev) ? (
                 <AppText variant="label" color="textFaint" center className="block truncate">
@@ -416,7 +442,9 @@ export function SetRowEdit({
           // [원본] onFocus={(e) => e.currentTarget.select()} — 휴대폰은 탭이 끝날 때 선택이 풀려 커서만 남았다
           onFocus={selectAllOnFocus}
           onMouseUp={keepSelectAllOnMouseUp}
-          className="h-10 min-w-0 flex-1 rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center font-semibold text-[length:var(--text-md)] text-(--color-ink) disabled:border-transparent disabled:bg-transparent disabled:text-(--color-ink2)"
+          // [원본] className="h-10 min-w-0 flex-1 …" — 무게·횟수 같은 폭
+          // [개선] 무게 3 : 횟수 2 — 「102.5」 는 넓고 「12」 는 좁다(여유 칸이 들어온 360px · REV-118 U3)
+          className="h-10 min-w-0 flex-[3] rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center font-semibold text-[length:var(--text-md)] text-(--color-ink) disabled:border-transparent disabled:bg-transparent disabled:text-(--color-ink2)"
         />
         <input
           ref={repsRef}
@@ -434,8 +462,27 @@ export function SetRowEdit({
           // [원본] onFocus={(e) => e.currentTarget.select()} — 휴대폰은 탭이 끝날 때 선택이 풀려 커서만 남았다
           onFocus={selectAllOnFocus}
           onMouseUp={keepSelectAllOnMouseUp}
-          className="h-10 min-w-0 flex-1 rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center font-semibold text-[length:var(--text-md)] text-(--color-ink) disabled:border-transparent disabled:bg-transparent disabled:text-(--color-ink2)"
+          // [원본] className="h-10 min-w-0 flex-1 …"
+          // [개선] 무게 3 : 횟수 2 — 회 칸은 「12」·「100」 이면 충분하다(무게 칸과 짝 · REV-118 U3)
+          className="h-10 min-w-0 flex-[2] rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center font-semibold text-[length:var(--text-md)] text-(--color-ink) disabled:border-transparent disabled:bg-transparent disabled:text-(--color-ink2)"
         />
+
+        {/* 여유(SPEC-055 Phase 3) — 완료한 세트에서도 눌린다 · 워밍업은 같은 폭의 빈 자리 */}
+        {spareOn ? (
+          <SpareRepsCell
+            setId={set.id}
+            setLabel={label}
+            rir={set.rir}
+            savedAt={savedAt}
+            // [원본] onSave={(v) => onUpdate({ rir: v })} // 약속을 그대로 넘긴다(CU-7)
+            // [개선] 저장하는 순간 워밍업이면 건너뛴다(REV L-5) — 약속은 그대로 넘긴다(CU-7)
+            onSave={(v) => (spareOnRef.current && !warmPicked.current ? onUpdate({ rir: v }) : undefined)}
+          />
+        ) : (
+          // [원본] <span aria-hidden="true" data-testid="set-spare-blank" className="mr-[4px] w-[32px] shrink-0" />
+          // [개선] 여유 칸과 같은 폭·여백(✓ 앞 8px = gap 2 + mr 6)
+          <span aria-hidden="true" data-testid="set-spare-blank" className="mr-[6px] w-[32px] shrink-0" />
+        )}
 
         <button
           type="button"
@@ -468,7 +515,9 @@ export function SetRowEdit({
             backgroundColor: isDone ? "var(--color-ok)" : "var(--color-surface-alt)",
             borderColor: isDone ? "var(--color-ok)" : "var(--color-line)",
           }}
-          className="flex h-10 w-[38px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] border"
+          // [원본] className="flex h-10 w-[38px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] border"
+          // [개선] 겉보기 32 × 40 · 누르는 자리는 ::before 로 44 × 44(좌우 6 · 위아래 2 — 여유 칸과 ⌄ 의 누르는 자리와 겹치지 않는다 · REV H-1)
+          className="relative flex h-10 w-[32px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] border before:absolute before:-inset-x-[6px] before:-inset-y-[2px] before:content-['']"
         >
           <Icon name="checkmark" size={16} color={isDone ? "var(--color-on-brand)" : "var(--color-ink3)"} />
         </button>
@@ -481,7 +530,10 @@ export function SetRowEdit({
           // [원본] 상세가 있으면 빨간 바탕·빨간 화살표 — 빨강은 완료·주 행동에만(화면 정리 공용 규칙) @plm SRS-069
           // style={{ backgroundColor: expanded || hasDetail ? "var(--color-brand-muted)" : undefined }}
           style={{ backgroundColor: expanded || hasDetail ? "var(--color-surface-alt)" : undefined }}
-          className="ml-[2px] flex h-10 w-[34px] shrink-0 items-center justify-center rounded-[var(--radius-sm)]"
+          // [원본] className="ml-[2px] flex h-10 w-[34px] …" — 표 머리와 2px 어긋났고 여유 칸 자리가 모자랐다
+          // [원본] className="flex h-10 w-[34px] shrink-0 items-center justify-center rounded-[var(--radius-sm)]"
+          // [개선] 겉보기 28 × 40 · ✓ 와 10px(gap 2 + ml 8) · 누르는 자리 ::before 44 × 44(왼쪽 4 · 오른쪽 12 — 줄 밖 카드 여백으로 · REV H-1)
+          className="relative ml-[8px] flex h-10 w-[28px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] before:absolute before:-inset-y-[2px] before:-right-[12px] before:-left-[4px] before:content-['']"
         >
           <Icon
             name={expanded ? "chevron-up" : "chevron-down"}
@@ -526,7 +578,8 @@ export function SetRowEdit({
           </button>
         </div>
       ) : null}
-      {/* 처방(목표 반복·RIR) — 루틴이 지시한 값이 있을 때만. 힘든 정도 기록을 켜면 처방이 없어도 이 줄에 칩(U-1) @plm SRS-073 */}
+      {/* [원본] 처방(목표 반복·RIR) — 루틴이 지시한 값이 있을 때만. 힘든 정도 기록을 켜면 처방이 없어도 이 줄에 칩(U-1) @plm SRS-073 */}
+      {/* [개선] 처방(목표 반복·RIR) — 루틴이 지시한 값이 있을 때만. 실제 여유는 첫 줄의 여유 칸에 적는다(칩·설정 없음 · SPEC-055 Phase 3) @plm SRS-073 */}
       {/* [원본] {set.targetRir != null || rx?.repMin != null || rx?.repMax != null ? ( */}
       {/* 워밍업 세트에는 칩을 두지 않는다 — 분석(isEffortTarget)이 워밍업을 빼서 적어도 어디에도 안 나온다(QA CU-8) */}
       {/* [원본] {effortOn || set.targetRir != null || rx?.repMin != null || rx?.repMax != null ? ( */}
@@ -560,6 +613,7 @@ export function SetRowEdit({
               {t("session.rxRir", { rir: set.targetRir })}
             </AppText>
           ) : null}
+          {/* [원본] 처방 줄 오른쪽 끝의 힘든 정도 칩 — 여유 칸(세트 줄 첫 줄)으로 옮겼다(SPEC-055 Phase 3)
           {chipOn ? (
             <RirChip
               setId={set.id}
@@ -569,7 +623,7 @@ export function SetRowEdit({
               target={set.targetRir}
               onSave={(v) => onUpdate({ rir: v })} // 약속을 그대로 넘긴다(CU-7)
             />
-          ) : null}
+          ) : null} */}
         </div>
       ) : null}
 
@@ -692,34 +746,59 @@ export function SetRowEdit({
                 !set.isFailed &&
                 set.setType !== "top" &&
                 set.setType !== "backoff",
-              onPress: () => onSetType("normal"),
+              // [원본] onPress: () => onSetType("normal"),
+              onPress: () => {
+                warmPicked.current = false; // 작업 세트로 — 여유 저장 다시 허용(REV L-5)
+                onSetType("normal");
+              },
             },
             {
               label: t("session.setType.warmup"),
               // [원본] selected: set.isWarmup, — 피더도 웜업 표시가 켜진다(SPEC-041)
               selected: set.isWarmup && set.setType !== "feeder",
-              onPress: () => onSetType("warmup"),
+              // [원본] onPress: () => onSetType("warmup"),
+              // [개선] 기다리던 여유 저장을 막는다(REV L-5)
+              onPress: () => {
+                warmPicked.current = true;
+                onSetType("warmup");
+              },
             },
             {
               label: t("session.setType.feeder"),
               selected: set.setType === "feeder",
               testId: "set-type-feeder",
-              onPress: () => onSetType("feeder"),
+              // [원본] onPress: () => onSetType("feeder"),
+              onPress: () => {
+                warmPicked.current = true; // 피더도 워밍업(isWarmup) — 여유 저장 막음(REV L-5)
+                onSetType("feeder");
+              },
             },
             {
               label: t("session.setType.drop"),
               selected: !set.isWarmup && set.isDrop === true,
-              onPress: () => onSetType("drop"),
+              // [원본] onPress: () => onSetType("drop"),
+              onPress: () => {
+                warmPicked.current = false; // 작업 세트로 — 여유 저장 다시 허용(REV L-5)
+                onSetType("drop");
+              },
             },
             {
               label: t("session.setType.top"),
               selected: !set.isWarmup && set.isDrop !== true && !set.isFailed && set.setType === "top",
-              onPress: () => onSetType("top"),
+              // [원본] onPress: () => onSetType("top"),
+              onPress: () => {
+                warmPicked.current = false; // 작업 세트로 — 여유 저장 다시 허용(REV L-5)
+                onSetType("top");
+              },
             },
             {
               label: t("session.setType.backoff"),
               selected: !set.isWarmup && set.isDrop !== true && !set.isFailed && set.setType === "backoff",
-              onPress: () => onSetType("backoff"),
+              // [원본] onPress: () => onSetType("backoff"),
+              onPress: () => {
+                warmPicked.current = false; // 작업 세트로 — 여유 저장 다시 허용(REV L-5)
+                onSetType("backoff");
+              },
             },
             // 다른 세트도 똑같이(SPEC-042) — 이 세트의 무게·횟수를 안 한 세트에
             ...(onCopyToOthers && copyCount > 0
@@ -848,11 +927,12 @@ function SetVariantSheet({
               />
             ))}
           </SheetRow>
-          <div className="mt-[var(--spacing-sm)]">
+          {/* [원본] <div className="mt-[var(--spacing-sm)]">
             <AppText variant="caption" color="textMuted">
               {t("session.setVariantBlockHint")}
             </AppText>
-          </div>
+          </div> */}
+          {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
         </>
       ) : null}
       {/* [원본] 예전에 세트에 적어 둔 그립은 보여 주기만 했다 — 이제 위 줄에서 고르고 지운다(2026-11-05)

@@ -99,11 +99,12 @@ export function TipDetail({
       <div className="mt-[4px]">
         <MuscleChips tip={tip} />
       </div>
-      {lang === "ko" ? null : (
+      {/* [원본] {lang === "ko" ? null : (
         <AppText variant="label" color="textMuted" className="mt-[2px] block">
           {t("creator.koreanContent")}
         </AppText>
-      )}
+      )} */}
+      {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
       <ul className="mt-[var(--spacing-sm)] flex flex-col gap-[6px]" data-testid="tip-points">
         {tip.pointsKo.map((p) => (
           <li key={p.text} className="flex gap-[var(--spacing-sm)]">
@@ -232,11 +233,12 @@ export function CreatorTipTopicSheet({ topic, onClose }: { topic: TipTopic; onCl
           <AppText variant="body" color="textMuted" className="mt-[4px] block">
             {lang === "ko" ? topic.blurbKo : topic.blurbEn}
           </AppText>
-          {lang === "ko" ? null : (
+          {/* [원본] {lang === "ko" ? null : (
             <AppText variant="label" color="textMuted" className="block">
               {t("creator.koreanContent")}
             </AppText>
-          )}
+          )} */}
+          {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
           <div className="mt-[var(--spacing-sm)] flex flex-col gap-[var(--spacing-sm)]">
             {tips.map((tip) => (
               <TipRow key={tip.id} tip={tip} onPress={() => setPicked(tip)} />

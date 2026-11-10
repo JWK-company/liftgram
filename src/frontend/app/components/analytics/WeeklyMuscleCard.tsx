@@ -8,7 +8,8 @@ import type { WeeklyMuscleSets } from "@app/core/domain/exerciseProgress";
 import type { MapMuscle } from "@app/core/domain/muscleLoad";
 import { lang, t } from "@/lib/i18n";
 import { formatMuscleSets } from "../ui/BodyMap";
-import { AppText, Card } from "../ui/primitives";
+// [원본] import { AppText, Card } from "../ui/primitives"; — 설명 줄 없앰(SPEC-055 Phase 4)
+import { Card } from "../ui/primitives";
 import { SectionLabel } from "../ui/rows";
 
 const MAX_MIX = 40;
@@ -99,9 +100,10 @@ export function WeeklyMuscleCard({ data }: { data: WeeklyMuscleSets }) {
             ))}
           </tbody>
         </table>
-        <AppText variant="caption" color="textMuted" className="mt-[var(--spacing-sm)] block">
+        {/* [원본] <AppText variant="caption" color="textMuted" className="mt-[var(--spacing-sm)] block">
           {t("analytics.weeklyNote")}
-        </AppText>
+        </AppText> */}
+        {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
       </Card>
     </section>
   );

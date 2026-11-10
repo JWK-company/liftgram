@@ -257,11 +257,12 @@ export function ShareWorkout({
       />
       <div className="mb-[var(--spacing-md)]">
         <VisibilityPicker value={visibility} onChange={setVisibility} disabled={sharing || shared} />
-        {visibility === Visibility.PUBLIC ? (
+        {/* [원본] {visibility === Visibility.PUBLIC ? (
           <AppText variant="caption" color="textMuted" className="mt-[var(--spacing-xs)] block">
             {t("feed.visibilityPublicHint")}
           </AppText>
-        ) : null}
+        ) : null} */}
+        {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
       </div>
       <Button
         title={shared ? t("session.sharedToFeed") : t("session.shareToFeed")}

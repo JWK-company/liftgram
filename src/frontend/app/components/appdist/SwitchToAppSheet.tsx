@@ -276,9 +276,10 @@ export function SwitchToAppSheet({
             <AppText variant="heading" className="block">
               {t("appDist.step4")}
             </AppText>
-            <AppText variant="body" className="mt-[2px] block" data-testid="switch-done">
+            {/* [원본] <AppText variant="body" className="mt-[2px] block" data-testid="switch-done">
               {t("appDist.doneHint")}
-            </AppText>
+            </AppText> */}
+            {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
             <div className="mt-[var(--spacing-sm)]">
               <Button
                 title={t("appDist.finish")}

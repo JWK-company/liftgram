@@ -96,9 +96,10 @@ export function ScheduleEditor({
         <AppText variant="heading" className="block">
           {t(`schedule.day.${DAY_KEYS[i]}` as TransKey)}
         </AppText>
-        <AppText variant="caption" color="textMuted" className="mt-[2px] block">
+        {/* [원본] <AppText variant="caption" color="textMuted" className="mt-[2px] block">
           {t("schedule.pickPrompt")}
-        </AppText>
+        </AppText> */}
+        {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
 
         {/* app은 시스템 Alert의 한계로 8개만 보여 줬다 — 여기서는 전부 보여 준다. */}
         <div className="mt-[var(--spacing-md)] max-h-[46vh] overflow-y-auto">
@@ -195,9 +196,10 @@ export function ScheduleEditor({
           );
         })}
       </div>
-      <AppText variant="caption" color="textFaint" className="mt-[var(--spacing-xs)] block">
+      {/* [원본] <AppText variant="caption" color="textFaint" className="mt-[var(--spacing-xs)] block">
         {t("schedule.blockHint")}
-      </AppText>
+      </AppText> */}
+      {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
 
       <div className="mt-[var(--spacing-md)] flex gap-[var(--spacing-sm)]">
         <Button title={t("common.cancel")} variant="secondary" onPress={onClose} testId="schedule-cancel" />

@@ -882,9 +882,10 @@ export function MemberRoutinesBody({
 
   const content = (
     <>
-      <AppText variant="caption" color="textMuted" className="block">
+      {/* [원본] <AppText variant="caption" color="textMuted" className="block">
         {t("coaching.routinesHint")}
-      </AppText>
+      </AppText> */}
+      {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
 
       {routines === null ? (
         <div className="flex justify-center py-[var(--spacing-lg)]">

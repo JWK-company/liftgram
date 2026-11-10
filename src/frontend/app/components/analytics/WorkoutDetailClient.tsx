@@ -313,12 +313,13 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
                 ))}
               </div>
             )}
-            {detail.exercises.some((ex) => ex.bestEstimated1RM > 0) ? (
+            {/* [원본] {detail.exercises.some((ex) => ex.bestEstimated1RM > 0) ? (
               // 추정 1RM 주석은 화면에 한 번(D6) — 종목마다 붙던 것
               <AppText variant="caption" color="textFaint" className="mb-[var(--spacing-lg)] block">
                 {t("wellness.oneRepMaxCaption")}
               </AppText>
-            ) : null}
+            ) : null} */}
+            {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
 
             {/* 코치 코멘트(SPEC-050 P4) — 서버에만 있다 · 다 읽기 전·없으면 아무것도 그리지 않는다 */}
             {/* [원본] <MemberWorkoutComments workoutId={detail.workout.id} /> — 다시 읽기(reloadTick)에 코멘트 캐시도 버린다 */}
@@ -543,7 +544,7 @@ function ExerciseCard({
                     ? [
                         {
                           label: unit === "lb" ? t("history.unitAsKg") : t("history.unitAsLb"),
-                          description: t("history.unitSub"),
+                          // [원본] description: t("history.unitSub"), — 설명 줄 없앰(SPEC-055 Phase 4)
                           testId: "detail-ex-unit",
                           onPress: () => onMenu.unit(unit === "lb" ? "kg" : "lb"),
                         },

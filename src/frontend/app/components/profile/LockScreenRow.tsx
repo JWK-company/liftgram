@@ -107,7 +107,7 @@ export function LockScreenRow() {
           aria-checked={state.lockScreen}
           aria-busy={busy}
           aria-label={t("profile.lockScreen")}
-          aria-describedby="lock-screen-hint"
+          // [원본] aria-describedby="lock-screen-hint" — 설명 줄 없앰(SPEC-055 Phase 4)
           data-testid="row-lock-screen"
           onClick={() => void toggleLockScreen()}
           className={SWITCH_ROW}
@@ -116,12 +116,13 @@ export function LockScreenRow() {
             <span className="truncate font-medium text-(--color-ink) text-[length:var(--text-md)]">
               {t("profile.lockScreen")}
             </span>
-            <span
+            {/* [원본] <span
               id="lock-screen-hint"
               className="break-words text-(--color-ink2) text-[length:var(--text-sm)]"
             >
               {t("profile.lockScreenHint")}
-            </span>
+            </span> */}
+            {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
           </span>
           {/* [원본] 「켜짐/꺼짐」 글자 — 다른 설정 줄(스위치)과 달라 눌러 바꾸는 줄인지 몰랐다(사용성 1)
               <span aria-hidden className="shrink-0 text-ink2 text-sm">{state.lockScreen ? lockOn : lockOff}</span>

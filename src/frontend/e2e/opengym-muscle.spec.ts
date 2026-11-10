@@ -315,9 +315,9 @@ test("근육 지도 — 오늘 카드 · 설정 끄기 · 운동 중 시트 숫�
   await expect(bal.getByTestId("muscle-balance-row-triceps")).toHaveAttribute("data-sets", "1");
   await expect(bal.getByTestId("muscle-balance-row-chest")).toHaveAttribute("aria-label", /가슴 2세트, 볼륨/);
   // 볼륨은 세트와 같은 세트를 주근육에 — 안내 한 줄(/qa P2-4)
-  await expect(bal.getByTestId("muscle-balance-volume-note")).toHaveText(
-    "볼륨은 주근육으로 쓰인 세트만 더해요",
-  );
+  // [원본] await expect(bal.getByTestId("muscle-balance-volume-note")).toHaveText("볼륨은 주근육으로 쓰인 세트만 더해요");
+  // [개선] 설명 줄 없앰(SPEC-055 Phase 4)
+  await expect(bal.getByTestId("muscle-balance-volume-note")).toHaveCount(0);
   // 주 이동: 다음은 막혀 있고, 이전으로 가면 빈 기간 → 다시 다음으로
   // 기간 글자는 롤링 창이라 날짜 대신 상대 일수(앞뒤 기간이 같은 날짜를 함께 보이지 않게 · /qa P2-3)
   await expect(page.getByTestId("muscle-balance-next")).toBeDisabled();
@@ -449,7 +449,7 @@ test("근육 지도 — 360·390 겹침 · 다크 대비 · 캡처", async ({ pa
       await 캡처(page, `session-sheet-${w}-${scheme}`);
       await page.keyboard.press("Escape");
       // 이 운동은 버린다(통계 숫자를 흔들지 않게)
-      await page.getByTestId("btn-session-menu").click();
+      // [원본] await page.getByTestId("btn-session-menu").click(); — ⋯ 없이 머리 「취소」를 바로 누른다(SPEC-055 Phase 2)
       await page.getByTestId("btn-discard").click();
       await page.getByTestId("confirm-discard").getByTestId("dialog-confirm").click();
       await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });

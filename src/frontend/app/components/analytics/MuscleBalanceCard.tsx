@@ -203,7 +203,7 @@ export function MuscleBalanceCard({ days }: { /** 위쪽 기간의 일수(null =
                 </li>
               ) : null}
             </ul>
-            <AppText variant="caption" color="textFaint" className="mt-[var(--spacing-xs)] block">
+            {/* [원본] <AppText variant="caption" color="textFaint" className="mt-[var(--spacing-xs)] block">
               {t("muscleMap.halfNote")}
             </AppText>
             <AppText
@@ -213,7 +213,8 @@ export function MuscleBalanceCard({ days }: { /** 위쪽 기간의 일수(null =
               data-testid="muscle-balance-volume-note"
             >
               {t("muscleMap.volumeNote")}
-            </AppText>
+            </AppText> */}
+            {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
 
             {missing.length > 0 ? (
               <div className="mt-[var(--spacing-md)]" data-testid="muscle-balance-untrained">

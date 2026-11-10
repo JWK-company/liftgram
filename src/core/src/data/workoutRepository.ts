@@ -3577,8 +3577,21 @@ export function getLastWorkoutSummary(workoutId: string): WorkoutSummary | null 
   return lastCompletedSummary?.workoutId === workoutId ? lastCompletedSummary : null;
 }
 
-const liveHistCache = new Map<string, PRSnapshot>(); // `${workoutId}::${ex}::${variant}` → 과거 최고(완료 운동만)
-const liveCelebrated = new Set<string>(); // `${setId}:${type}` — 체크 해제→재체크 중복 축하 방지(휘발)
+// [원본] const liveHistCache = new Map<string, PRSnapshot>(); // `${workoutId}::${ex}::${variant}` → 과거 최고(완료 운동만)
+// [원본] const liveCelebrated = new Set<string>(); // `${setId}:${type}` — 체크 해제→재체크 중복 축하 방지(휘발)
+// [개선] 축하는 종목 전체(변형 무시) 기준 · 한 운동에서 종목마다 1번(SPEC-055 Phase 1 · REV-118 D1~D5)
+const liveHistCache = new Map<string, PRSnapshot>(); // `${workoutId}::${ex}` → 종목 전체 과거 최고(완료 운동만)
+const liveCelebrated = new Set<string>(); // `${workoutId}:${exerciseId}` — 실제로 축하한 종목(휘발 · 새로고침 뒤 다시 축하 가능 = 받아들임)
+
+/** 종목 전체(변형 구분 없음)의 지난 완료 운동 최고 — 축하 기준(REV-118 D1 · null 은 기본 칸이라 undefined 를 넘긴다) */
+function historicalBestAllVariants(exerciseId: string, excludeWorkoutId: string): Promise<PRSnapshot> {
+  return historicalSnapshotForExercise(exerciseId, excludeWorkoutId, undefined);
+}
+
+/** 시험용 — 축하 1회 집합을 비운다 */
+export function __resetLiveCelebratedForTest(): void {
+  liveCelebrated.clear();
+}
 
 export async function evalLiveSetPr(
   workoutExerciseId: string,
@@ -3612,34 +3625,67 @@ export async function evalLiveSetPr(
   if (uiWeightKg != null && uiWeightKg > 0) logged.weightKg = uiWeightKg;
   if (uiReps != null && uiReps >= 0) logged.reps = uiReps;
   const thisSet = snapshotFromSets([logged]);
-  if (thisSet.maxVolumeSetKg <= 0 && thisSet.maxWeightKg <= 0) return [];
+  // [원본] if (thisSet.maxVolumeSetKg <= 0 && thisSet.maxWeightKg <= 0) return [];
+  // [개선] 중량 PR 만 축하한다 — 무게가 없으면 볼 것도 없다(SPEC-055 Phase 1)
+  if (thisSet.maxWeightKg <= 0) return [];
+  // [개선] 보조(assisted) 종목은 체중을 모르면 유효 무게를 알 수 없어 축하하지 않는다(REV-118 D4)
+  if (loadMode === 'assisted' && !(bw != null && bw > 0)) return [];
+  // [개선] 한 운동에서 이 종목을 이미 축하했으면 더 보지 않는다(REV-118 D3)
+  const celebrateKey = `${we.workoutId}:${exerciseId}`;
+  if (liveCelebrated.has(celebrateKey)) return [];
+  // [개선] 기다림 전에 키를 먼저 잡는다 — 같은 종목 세트를 빠르게 연달아 체크해도 두 번 축하하지 않게(코드 리뷰 M1).
+  //   PR 이 아니면(또는 도중에 실패하면) 아래 finally 에서 풀어 준다
+  liveCelebrated.add(celebrateKey);
+  let celebrated = false;
+  try {
 
-  const variant = effectiveVariantKey(we);
-  const cacheKey = `${we.workoutId}::${exerciseId}::${variant ?? ''}`;
+  // [원본] const variant = effectiveVariantKey(we);
+  // [원본] const cacheKey = `${we.workoutId}::${exerciseId}::${variant ?? ''}`;
+  // [개선] 캐시 키에서 변형을 뺀다 — 기준이 종목 전체다(REV-118 D2)
+  // [개선] 체중도 키에 넣는다 — 운동 중 체중을 적거나 고치면 맨몸·보조 종목의 기준이 바뀐다(코드 리뷰 M3)
+  const cacheKey = `${we.workoutId}::${exerciseId}::${bw ?? ''}`;
   let hist = liveHistCache.get(cacheKey);
   if (!hist) {
-    hist = await historicalSnapshotForExercise(exerciseId, we.workoutId, variant);
+    // [원본] hist = await historicalSnapshotForExercise(exerciseId, we.workoutId, variant);
+    hist = await historicalBestAllVariants(exerciseId, we.workoutId);
     liveHistCache.set(cacheKey, hist);
   }
-  // 이번 세션에서 앞서 수행한 같은 (종목×기구) 세트들 — 수퍼셋 중복 인스턴스 포함, 자기 자신 제외.
-  const siblingWes = (
-    await workoutExercises().query(Q.where('workout_id', we.workoutId), Q.where('exercise_id', exerciseId)).fetch()
-  ).filter((x) => effectiveVariantKey(x) === variant);
-  const priorSets = siblingWes.length
-    ? (await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(siblingWes.map((x) => x.id)))).fetch()).filter(
-        (s) => s.id !== setId && isPerformed(s),
-      )
-    : [];
-  const sessionPrior = snapshotFromSets(priorSets.map((s) => toLoggedSet(s, loadMode, bw)));
+  // [개선] 지난 기록이 없으면(처음 하는 종목) 축하하지 않는다(REV-118 D4 — hist.maxWeightKg <= 0)
+  if (hist.maxWeightKg <= 0) return [];
+  // [원본] 이번 세션에서 앞서 수행한 같은 (종목×기구) 세트들 — 수퍼셋 중복 인스턴스 포함, 자기 자신 제외.
+  // const siblingWes = (
+  //   await workoutExercises().query(Q.where('workout_id', we.workoutId), Q.where('exercise_id', exerciseId)).fetch()
+  // ).filter((x) => effectiveVariantKey(x) === variant);
+  // [개선] 이번 세션에서 앞서 수행한 같은 종목 세트들(변형 무관) — 수퍼셋 중복 인스턴스 포함, 자기 자신 제외(REV-118 D2)
+  // [원본·코드 리뷰 M1] const siblingWes = await workoutExercises()
+  // [원본·코드 리뷰 M1]   .query(Q.where('workout_id', we.workoutId), Q.where('exercise_id', exerciseId))
+  // [원본·코드 리뷰 M1]   .fetch();
+  // [원본·코드 리뷰 M1] const priorSets = siblingWes.length
+  // [원본·코드 리뷰 M1]   ? (await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(siblingWes.map((x) => x.id)))).fetch()).filter(
+  // [원본·코드 리뷰 M1]       (s) => s.id !== setId && isPerformed(s),
+  // [원본·코드 리뷰 M1]     )
+  // [원본·코드 리뷰 M1]   : [];
+  // [원본·코드 리뷰 M1] const sessionPrior = snapshotFromSets(priorSets.map((s) => toLoggedSet(s, loadMode, bw)));
 
-  const prs = detectMajorPRs(thisSet, mergeSnapshots(hist, sessionPrior));
-  // 같은 세트가 체크 해제→재체크로 같은 타입을 다시 넘겨도 축하는 1회만.
-  return prs.filter((p) => {
-    const k = `${setId}:${p.type}`;
-    if (liveCelebrated.has(k)) return false;
-    liveCelebrated.add(k);
-    return true;
-  });
+  // [원본] const prs = detectMajorPRs(thisSet, mergeSnapshots(hist, sessionPrior));
+  // [개선] 기준은 지난 완료 운동만 — 종목마다 1번이라 이번 운동 앞선 세트와 겨룰 까닭이 없고, 빠르게 연달아 체크할 때
+  //   뒤 세트가 앞 세트의 기준에 섞여 둘 다 축하를 놓치던 경합을 없앤다(코드 리뷰 M1). 이번 운동 세트 조회는 [원본]으로 막았다
+  const prs = detectMajorPRs(thisSet, hist);
+  // [원본] 같은 세트가 체크 해제→재체크로 같은 타입을 다시 넘겨도 축하는 1회만.
+  // return prs.filter((p) => {
+  //   const k = `${setId}:${p.type}`;
+  //   if (liveCelebrated.has(k)) return false;
+  //   liveCelebrated.add(k);
+  //   return true;
+  // });
+  // [개선] 중량 PR 만 남기고, 실제로 축하할 때만 1회 키를 넣는다(REV-118 D3) — 완료 요약 PR 집계는 그대로(completeWorkout)
+  const weightPrs = prs.filter((p) => p.type === 'maxWeight');
+  // [원본] if (weightPrs.length) liveCelebrated.add(celebrateKey);
+  celebrated = weightPrs.length > 0;
+  return weightPrs;
+  } finally {
+    if (!celebrated) liveCelebrated.delete(celebrateKey);
+  }
 }
 
 // ── 튀는 기록 확인(SPEC-044 · SRS-109) ─────────────────────────────

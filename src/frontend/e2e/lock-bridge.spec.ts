@@ -407,7 +407,9 @@ test.describe("앱(가짜 플러그인)", () => {
     await expect(btn).toContainText("2:00");
     await btn.click();
     await expect(page.getByTestId("rest-sheet")).toBeVisible();
-    await expect(page.getByTestId("rest-saved-hint")).toContainText("이번 운동에 저장돼요");
+    // [원본] await expect(page.getByTestId("rest-saved-hint")).toContainText("이번 운동에 저장돼요");
+    // [개선] 설명 줄 없앰(SPEC-055 Phase 4)
+    await expect(page.getByTestId("rest-saved-hint")).toHaveCount(0);
     await page.getByTestId("rest-seconds-plus").click();
     await page.mouse.click(5, 5);
     await expect(page.getByTestId("rest-sheet")).toHaveCount(0);

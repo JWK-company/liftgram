@@ -49,7 +49,9 @@ async function 인바디_칸_보임(scope: Locator): Promise<void> {
     await expect(scope.getByTestId(id)).toBeInViewport({ ratio: 1 });
     await expect(scope.getByTestId(id)).toHaveValue("");
   }
-  await expect(scope.getByTestId("weighin-inbody-optional")).toHaveText("선택 · 비워 두면 적지 않아요");
+  // [원본] await expect(scope.getByTestId("weighin-inbody-optional")).toHaveText("선택 · 비워 두면 적지 않아요");
+  // [개선] 설명 줄 없앰(SPEC-055 Phase 4)
+  await expect(scope.getByTestId("weighin-inbody-optional")).toHaveCount(0);
 }
 
 /** 가로 넘침 없음(문서 · 묶음) */

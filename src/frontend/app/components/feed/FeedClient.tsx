@@ -635,11 +635,12 @@ export default function FeedClient() {
               />
               <div className="mt-[var(--spacing-sm)]">
                 <VisibilityPicker value={visibility} onChange={setVisibility} disabled={posting} />
-                {visibility === Visibility.PUBLIC ? (
+                {/* [원본] {visibility === Visibility.PUBLIC ? (
                   <AppText variant="caption" color="textMuted" className="mt-[var(--spacing-xs)] block">
                     {t("feed.visibilityPublicHint")}
                   </AppText>
-                ) : null}
+                ) : null} */}
+                {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
               </div>
               {/* 착용장비 태그 — 선택 칩 미리보기 + 목록 시트 */}
               <GearTagPicker value={gear} onChange={setGear} disabled={posting} />

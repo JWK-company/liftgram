@@ -118,13 +118,14 @@ export function SummaryView({
       <AppText variant="caption" color="textMuted" className="block" data-testid="ps-range">
         {`${formatSummaryRange(s.range.startMs, s.range.endMs, s.range.tz)} · ${t("progressSummary.rangeDays", { days })}`}
       </AppText>
-      <AppText variant="caption" color="textFaint" className="block" data-testid="ps-basis">
-        {/* 「통계 화면과 다를 수 있어요」는 같은 기기 통계를 보는 회원 본인에게만(P4U-4) */}
+      {/* [원본] <AppText variant="caption" color="textFaint" className="block" data-testid="ps-basis">
+        {/* 「통계 화면과 다를 수 있어요」는 같은 기기 통계를 보는 회원 본인에게만(P4U-4) * /}
         {t(viewer === "member" ? "progressSummary.basis" : "progressSummary.basisShort")}
       </AppText>
       <AppText variant="caption" color="textFaint" className="block" data-testid="ps-bw-free">
         {t("progressSummary.bodyweightFree")}
-      </AppText>
+      </AppText> */}
+      {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
 
       <div className="mt-[var(--spacing-sm)] grid grid-cols-2 gap-[var(--spacing-sm)]">
         <Kpi
@@ -186,11 +187,12 @@ export function SummaryView({
               ))}
             </ListGroup>
           ) : null}
-          {viewer === "trainerReport" && !s.prs ? (
+          {/* [원본] {viewer === "trainerReport" && !s.prs ? (
             <AppText variant="caption" color="textFaint" className="mt-[2px] block px-[var(--spacing-xs)]">
               {t("progressSummary.prListTrainerNote")}
             </AppText>
-          ) : null}
+          ) : null} */}
+          {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
         </Section>
       ) : null}
 

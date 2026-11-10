@@ -124,11 +124,12 @@ export function SecurityCard() {
         <AppText variant="caption" className="block font-semibold">
           {user.hasPassword ? t("security.changePassword") : t("security.setPassword")}
         </AppText>
-        {!user.hasPassword ? (
+        {/* [원본] {!user.hasPassword ? (
           <AppText variant="caption" color="textMuted" className="block">
             {t("security.setPasswordCaption")}
           </AppText>
-        ) : null}
+        ) : null} */}
+        {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
         {user.hasPassword ? (
           <TextField
             testId="pw-current"

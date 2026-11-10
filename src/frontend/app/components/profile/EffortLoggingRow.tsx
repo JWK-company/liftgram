@@ -7,20 +7,20 @@
 // [원본] ListRow + 오른쪽 스위치 버튼 — 스위치만 눌렸다. 모바일에서는 제목을 눌러도 켜지기를 기대한다(QA CU-13).
 // [개선] 줄 전체가 스위치 하나(role="switch")다. ListRow 에 onPress 를 주면 줄이 <button> 이 되어 안의 스위치 버튼과 겹치므로
 //   (버튼 안 버튼 · 같은 역할 두 번 읽힘) ListRow 와 같은 모양을 여기서 그린다. 보이는 스위치는 모양뿐(aria-hidden).
-import { useId } from "react";
+// [원본] import { useId } from "react"; — 설명 줄을 없애 aria-describedby 가 가리킬 것이 없다(SPEC-055 Phase 4)
 import { t } from "@/lib/i18n";
 import { setEffortLogging, useEffortLogging } from "@/lib/effortPref";
 
 export function EffortLoggingRow() {
   const on = useEffortLogging();
-  const descId = useId();
+  // [원본] const descId = useId(); — 설명 줄 없앰(SPEC-055 Phase 4)
   return (
     <button
       type="button"
       role="switch"
       aria-checked={on}
       aria-label={t("effort.settingTitle")}
-      aria-describedby={descId}
+      // [원본] aria-describedby={descId} — 설명 줄 없앰(SPEC-055 Phase 4)
       data-testid="switch-effort-logging"
       onClick={() => setEffortLogging(!on)}
       // ListRow(ui/rows.tsx)와 같은 줄 모양
@@ -30,9 +30,10 @@ export function EffortLoggingRow() {
         <span className="truncate font-medium text-(--color-ink) text-[length:var(--text-md)]">
           {t("effort.settingTitle")}
         </span>
-        <span id={descId} className="break-words text-(--color-ink2) text-[length:var(--text-sm)]">
+        {/* [원본] <span id={descId} className="break-words text-(--color-ink2) text-[length:var(--text-sm)]">
           {t("effort.settingCaption")}
-        </span>
+        </span> */}
+        {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
       </span>
       <SwitchLook on={on} />
     </button>

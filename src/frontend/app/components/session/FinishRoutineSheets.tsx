@@ -116,9 +116,10 @@ function PickChanges({
     });
   return (
     <SheetShell testId="finish-pick" title={t("finish.pickTitle")} onClose={onBack} hideOk>
-      <AppText variant="caption" color="textMuted" className="mt-[var(--spacing-xs)] block">
+      {/* [원본] <AppText variant="caption" color="textMuted" className="mt-[var(--spacing-xs)] block">
         {t("finish.pickMessage")}
-      </AppText>
+      </AppText> */}
+      {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
       <ul
         className="mt-[var(--spacing-md)] flex flex-col gap-[var(--spacing-xs)]"
         data-testid="finish-changes"
@@ -246,11 +247,12 @@ export function NameRoutine({
       onClose={onCancel}
       hideOk
     >
-      {quick ? (
+      {/* [원본] {quick ? (
         <AppText variant="caption" color="textMuted" className="mt-[var(--spacing-xs)] block">
           {t("finish.quickMessage")}
         </AppText>
-      ) : null}
+      ) : null} */}
+      {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
       <div className="mt-[var(--spacing-md)]">
         <TextField
           label={t("finish.nameLabel")}

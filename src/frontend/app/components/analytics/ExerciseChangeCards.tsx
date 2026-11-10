@@ -118,7 +118,8 @@ export function ExerciseChangeCard({
         </Note>
       ) : (
         <>
-          <Note>{t("analytics.changesNote")}</Note>
+          {/* [원본] <Note>{t("analytics.changesNote")}</Note> */}
+          {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
           <ChangeList
             title={t("analytics.changesUp")}
             rows={changes.up}
@@ -145,7 +146,8 @@ export function PlateauCard({ data, asOfMs }: { data: E1rmData; asOfMs: number }
   return (
     <section data-testid="stats-plateaus" className="mb-[var(--spacing-md)]">
       <SectionLabel title={t("analytics.plateauTitle")} />
-      <Note>{t("analytics.plateauNote")}</Note>
+      {/* [원본] <Note>{t("analytics.plateauNote")}</Note> */}
+      {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
       <ListGroup>
         {rows.map((r) => (
           <ListRow

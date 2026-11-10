@@ -90,7 +90,10 @@ test("루틴 편집 — 세트 방식 고르기·되돌리기·바벨 드롭세�
   // 5×5 → 웜업 3 + 작업 5 · 되돌리기 → 3줄
   await 방식_고르기(page, "fiveByFive");
   await expect(줄(page)).toHaveCount(8);
-  await expect(표(page).getByTestId("scheme-guide")).toBeVisible();
+  // [원본] await expect(표(page).getByTestId("scheme-guide")).toBeVisible();
+  // [개선] 방식 안내 줄 — 설명 줄 없앰(SPEC-055 Phase 4) · 피더가 없으면 범례도 없다
+  await expect(표(page).getByTestId("scheme-guide")).toHaveCount(0);
+  await expect(표(page).getByTestId("scheme-legend")).toHaveCount(0);
   await page.getByTestId("scheme-undo").click();
   await expect(줄(page)).toHaveCount(3);
 
@@ -99,7 +102,10 @@ test("루틴 편집 — 세트 방식 고르기·되돌리기·바벨 드롭세�
   await expect(줄(page)).toHaveCount(5);
   const 글자 = (await 줄(page).getByTestId("rx-type").allInnerTexts()).map((x) => x.trim());
   expect(글자).toEqual(["W", "W", "P", "T", "B"]);
-  await expect(표(page).getByTestId("scheme-guide")).toContainText("P = 피더");
+  // [원본] await expect(표(page).getByTestId("scheme-guide")).toContainText("P = 피더");
+  // [개선] 방식 설명 줄은 없앴고(SPEC-055 Phase 4) 「P」 를 푸는 범례만 피더가 있을 때 남는다(문구 리뷰 M4)
+  await expect(표(page).getByTestId("scheme-guide")).toHaveCount(0);
+  await expect(표(page).getByTestId("scheme-legend")).toContainText("P = 피더");
 
   // [원본] 번호 시트 — 피더와 삭제가 있다 · await expect(page.getByTestId("rx-delete")).toBeVisible();
   // [개선] 번호 시트 — 피더는 있고 삭제는 줄 끝 🗑 으로 나갔다(세트 휴지통 · 시트만 보고 닫는다)

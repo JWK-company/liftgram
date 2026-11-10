@@ -589,7 +589,7 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
 
         <Divider />
         <SectionHeader title={t("routines.exercisesSection")} />
-        {exercises.length > 0 ? (
+        {/* [원본] {exercises.length > 0 ? (
           <AppText
             variant="caption"
             color="textMuted"
@@ -598,7 +598,8 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
           >
             {t("routines.setTableHint")}
           </AppText>
-        ) : null}
+        ) : null} */}
+        {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
 
         {/* [원본] 종목이 없으면 큰 빈 상태(아이콘·「종목이 없습니다」·「아래 버튼으로…」)를 그렸다 — 휴대폰에서 「운동 추가」가
             하단 「완료」 밑으로 밀려 완료를 잘못 누르게 했다(피드백 2026-11-09 · S-13)

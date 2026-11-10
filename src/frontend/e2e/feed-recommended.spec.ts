@@ -227,8 +227,10 @@ test("달력 자랑하기는 공개 범위를 고른 뒤 올라간다", async ({
   await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
 
   await page.goto("/calendar");
-  await page.getByTestId("records-more").click({ timeout: 20_000 });
-  await page.getByTestId("btn-brag-month").click();
+  // [원본] await page.getByTestId("records-more").click({ timeout: 20_000 });
+  // [원본] await page.getByTestId("btn-brag-month").click();
+  // [개선] ⋯ 없이 머리 버튼을 바로(SPEC-055 Phase 2)
+  await page.getByTestId("btn-brag-month").click({ timeout: 20_000 });
   await expect(page.getByTestId("brag-sheet")).toBeVisible();
   await page.getByTestId("visibility-private").click();
   await page.getByTestId("brag-post").click();

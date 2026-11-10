@@ -304,7 +304,7 @@ export default function StatsClient() {
             {/* [원본] 추정 주석이 여기 — 아래 「최근 PR」 의 「추정치」 태그(줄마다)와 같은 말이었다. 주석은 두 목록 끝에 한 번. */}
             {/* [개선] 「최근 PR」 구역이 숨으면(흔한 경우) 두 목록의 끝 = 1RM 목록 끝이다 — 주석을 1RM 바로 밑에 붙인다.
                 예전에는 이때도 맨 아래에 남아 근육군 분포·세트 힘든 정도 밑에 붙었고, 그 수치가 추정처럼 읽혔다(QA CU-1). */}
-            {!showRecentPRs && hasOneRmCaption ? (
+            {/* [원본] {!showRecentPRs && hasOneRmCaption ? (
               <AppText
                 variant="caption"
                 color="textFaint"
@@ -313,7 +313,8 @@ export default function StatsClient() {
               >
                 {t("wellness.oneRepMaxCaption")}
               </AppText>
-            ) : null}
+            ) : null} */}
+            {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
             <div className="mb-[var(--spacing-lg)]" />
 
             {/* 추정 1RM 변화 — 위쪽 기간을 따른다 (SRS-101) */}
@@ -378,8 +379,11 @@ export default function StatsClient() {
                 variant="caption"
                 color="textFaint"
                 className="mb-[var(--spacing-lg)] block px-[var(--spacing-xs)]"
+                data-testid="stats-recent-pr-estimate"
               >
-                {t("wellness.oneRepMaxCaption")}
+                {/* [원본] {t("wellness.oneRepMaxCaption")} — 「기록으로 계산한 추정치예요 · 실측값이 아니에요」 */}
+                {/* [개선] 「최근 PR」 값 옆에는 추정 꼬리표가 없어 짧은 「추정치」로 줄임(SPEC-055 Phase 4) — 위 1RM 목록은 제목이 「추정 1RM」 */}
+                {t("analytics.estimateTag")}
               </AppText>
             ) : null}
             <AdSlot placement="stats" />

@@ -39,7 +39,7 @@ import { Button } from "../ui/Button";
 import { SheetShell } from "../ui/Dialog";
 import { ValueChip } from "../ui/ValueChip";
 import { Icon } from "../ui/Icon";
-import { MoreMenu } from "../ui/MoreMenu";
+// [원본] import { MoreMenu } from "../ui/MoreMenu"; — 기록 ⋯ 를 없앴다(SPEC-055 Phase 2)
 import { Segmented } from "../ui/rows";
 // [원본] import { AppText, Card, Tag } from "../ui/primitives"; — Tag 는 PR 칩에만 썼다(금색 글자로 바꿈 · P4)
 import { AppText, Card } from "../ui/primitives";
@@ -175,6 +175,11 @@ export default function CalendarClient() {
   if (!now || !view || !selected || !selectedDate) return null;
 
   const todayKey = dayKeyOf(now.getTime());
+  // [개선] 자랑하기 버튼 이름 — 보고 있는 달이 이번 달이면 「이번 달 자랑하기」, 아니면 「n월 자랑하기」(REV-118 R2)
+  const bragLabel =
+    view.y === now.getFullYear() && view.m === now.getMonth()
+      ? t("calendar.brag")
+      : t("calendar.bragMonth", { month: view.m + 1 });
   const monthLabel = new Date(view.y, view.m, 1).toLocaleDateString("ko-KR", {
     year: "numeric",
     month: "long",
@@ -243,7 +248,9 @@ export default function CalendarClient() {
 
   const bragSheetView = bragSheet ? (
     <SheetShell
-      title={t("calendar.brag")}
+      // [원본] title={t("calendar.brag")}
+      // [개선] 올리는 달이 보고 있는 달이라 버튼과 같은 이름(REV-118 R2)
+      title={bragLabel}
       onClose={() => {
         if (!bragging) setBragSheet(false);
       }}
@@ -252,11 +259,12 @@ export default function CalendarClient() {
     >
       <div className="my-[var(--spacing-md)]">
         <VisibilityPicker value={bragVisibility} onChange={setBragVisibility} disabled={bragging} />
-        {bragVisibility === Visibility.PUBLIC ? (
+        {/* [원본] {bragVisibility === Visibility.PUBLIC ? (
           <AppText variant="caption" color="textMuted" className="mt-[var(--spacing-xs)] block">
             {t("feed.visibilityPublicHint")}
           </AppText>
-        ) : null}
+        ) : null} */}
+        {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
       </div>
       <Button
         title={t("feed.post")}
@@ -283,23 +291,41 @@ export default function CalendarClient() {
     <div className="flex flex-1 flex-col">
       <RecordsHeader
         view="calendar"
+        // [원본] actions={
+        //   // 이번 달 자랑하기는 ⋯ 안으로(시안 06). 한 달에 운동이 없으면 뜻이 없어 메뉴째 숨긴다.
+        //   monthSessions > 0 ? (
+        //     <MoreMenu
+        //       testId="records-more"
+        //       sheetTestId="records-menu"
+        //       options={[
+        //         {
+        //           label: bragging ? "올리는 중…" : t("calendar.brag"),
+        //           testId: "btn-brag-month",
+        //           onPress: () => {
+        //             if (!account) toast(t("session.shareLoginRequired"), "error");
+        //             else setBragSheet(true);
+        //           },
+        //         },
+        //       ]}
+        //     />
+        //   ) : null
+        // }
+        // [개선] ⋯ 없이 머리 오른쪽에 자랑하기 버튼을 바로(SPEC-055 Phase 2 · S-110 · REV-118 R2) — 44px · 보조 모양.
+        //   보고 있는 달이 이번 달이 아니면 「n월 자랑하기」 · 운동 0번이면 숨긴다(그대로)
         actions={
-          // 이번 달 자랑하기는 ⋯ 안으로(시안 06). 한 달에 운동이 없으면 뜻이 없어 메뉴째 숨긴다.
           monthSessions > 0 ? (
-            <MoreMenu
-              testId="records-more"
-              sheetTestId="records-menu"
-              options={[
-                {
-                  label: bragging ? "올리는 중…" : t("calendar.brag"),
-                  testId: "btn-brag-month",
-                  onPress: () => {
-                    if (!account) toast(t("session.shareLoginRequired"), "error");
-                    else setBragSheet(true);
-                  },
-                },
-              ]}
-            />
+            <button
+              type="button"
+              data-testid="btn-brag-month"
+              disabled={bragging}
+              onClick={() => {
+                if (!account) toast(t("session.shareLoginRequired"), "error");
+                else setBragSheet(true);
+              }}
+              className="h-[44px] shrink-0 rounded-[var(--radius-pill)] border border-(--color-line) px-[12px] font-semibold text-(--color-ink2) text-[length:var(--text-sm)] active:bg-(--color-surface-alt) disabled:opacity-45"
+            >
+              {bragging ? t("calendar.bragPosting") : bragLabel}
+            </button>
           ) : null
         }
       />
@@ -597,9 +623,10 @@ export default function CalendarClient() {
                   }
                 />
               </div>
-              <AppText variant="caption" color="textMuted" className="mt-[4px] block">
+              {/* [원본] <AppText variant="caption" color="textMuted" className="mt-[4px] block">
                 {t("calendar.manualMarkedDesc")}
-              </AppText>
+              </AppText> */}
+              {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
             </Card>
           ) : (
             <div>

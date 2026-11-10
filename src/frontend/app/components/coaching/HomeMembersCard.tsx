@@ -122,20 +122,34 @@ export function HomeMembersCard() {
           {/* [원본] {t("coaching.homeCard", { count })} — en 「1 clients」(코드 리뷰 L-6) */}
           {count === 1 ? t("coaching.homeCardOne") : t("coaching.homeCard", { count })}
         </AppText>
+        {/* [원본] 쉬는 회원이 없으면 t("coaching.homeCardHint") 설명 줄을 그렸다
         <AppText
           variant="caption"
           color="textMuted"
           className="block truncate"
           data-testid="home-members-hint"
         >
-          {/* [원본] {t("coaching.homeCardHint")} */}
-          {/* [원본] resting > 0 ? t("coaching.homeCardRest", …) — 영어 「1 clients」(리뷰 중간-3) */}
+          {/* [원본] {t("coaching.homeCardHint")} * /}
+          {/* [원본] resting > 0 ? t("coaching.homeCardRest", …) — 영어 「1 clients」(리뷰 중간-3) * /}
           {resting === 1
             ? t("coaching.homeCardRestOne")
             : resting > 0
               ? t("coaching.homeCardRest", { count: resting })
               : t("coaching.homeCardHint")}
-        </AppText>
+        </AppText> */}
+        {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) — 쉬는 회원 수(내용)가 있을 때만 그 줄을 그린다 */}
+        {resting > 0 ? (
+          <AppText
+            variant="caption"
+            color="textMuted"
+            className="block truncate"
+            data-testid="home-members-hint"
+          >
+            {/* [원본] {t("coaching.homeCardHint")} */}
+            {/* [원본] resting > 0 ? t("coaching.homeCardRest", …) — 영어 「1 clients」(리뷰 중간-3) */}
+            {resting === 1 ? t("coaching.homeCardRestOne") : t("coaching.homeCardRest", { count: resting })}
+          </AppText>
+        ) : null}
       </div>
       <Icon name="chevron-forward" size={16} color="var(--color-ink3)" />
     </a>

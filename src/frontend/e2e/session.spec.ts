@@ -144,9 +144,9 @@ test("두 종목을 슈퍼셋으로 묶고 풀 수 있다", async ({ page }) => 
 test("운동을 취소하거나 마치면 운동 탭으로 돌아간다 — 빈 세션 화면에 갇히지 않는다", async ({ page }) => {
   await 카탈로그_준비(page);
 
-  // ① 취소(⋯ → 운동 취소 → 삭제)
+  // ① 취소([원본] ⋯ → 운동 취소 → 삭제 · [개선] 머리 「취소」 → 삭제 — SPEC-055)
   await 운동_시작(page, "데드리프트");
-  await page.getByTestId("btn-session-menu").click();
+  // [원본] await page.getByTestId("btn-session-menu").click(); — ⋯ 없이 머리 「취소」를 바로 누른다(SPEC-055 Phase 2)
   await page.getByTestId("btn-discard").click();
   await page.getByTestId("dialog-confirm").click();
   await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });

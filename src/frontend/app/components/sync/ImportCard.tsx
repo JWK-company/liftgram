@@ -112,9 +112,10 @@ export function ImportCard() {
       <AppText variant="label" color="textMuted">
         {t("import.entry")}
       </AppText>
-      <AppText variant="caption" color="textMuted" className="mt-[2px] block">
+      {/* [원본] <AppText variant="caption" color="textMuted" className="mt-[2px] block">
         {t("import.entryCaption")}
-      </AppText>
+      </AppText> */}
+      {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
       <div className="mt-[var(--spacing-md)] [&>button]:whitespace-nowrap">
         <Button
           title={t("import.entryButton")}

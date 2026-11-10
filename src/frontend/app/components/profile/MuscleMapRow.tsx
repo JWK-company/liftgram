@@ -3,20 +3,20 @@
 //
 // EffortLoggingRow 와 같은 모양·같은 구조(줄 전체가 role="switch" 버튼 하나 · 보이는 스위치는 aria-hidden 모양 · QA CU-13).
 // ProfileClient 에는 이 줄을 끼우는 한 줄만 둔다(병렬 세션과 겹치는 파일 · 최소 diff).
-import { useId } from "react";
+// [원본] import { useId } from "react"; — 설명 줄을 없애 aria-describedby 가 가리킬 것이 없다(SPEC-055 Phase 4)
 import { t } from "@/lib/i18n";
 import { setMuscleMap, useMuscleMap } from "@/lib/muscleMapPref";
 
 export function MuscleMapRow() {
   const on = useMuscleMap();
-  const descId = useId();
+  // [원본] const descId = useId(); — 설명 줄 없앰(SPEC-055 Phase 4)
   return (
     <button
       type="button"
       role="switch"
       aria-checked={on}
       aria-label={t("muscleMap.settingTitle")}
-      aria-describedby={descId}
+      // [원본] aria-describedby={descId} — 설명 줄 없앰(SPEC-055 Phase 4)
       data-testid="switch-muscle-map"
       onClick={() => setMuscleMap(!on)}
       // ListRow(ui/rows.tsx)와 같은 줄 모양
@@ -26,9 +26,10 @@ export function MuscleMapRow() {
         <span className="truncate font-medium text-(--color-ink) text-[length:var(--text-md)]">
           {t("muscleMap.settingTitle")}
         </span>
-        <span id={descId} className="break-words text-(--color-ink2) text-[length:var(--text-sm)]">
+        {/* [원본] <span id={descId} className="break-words text-(--color-ink2) text-[length:var(--text-sm)]">
           {t("muscleMap.settingCaption")}
-        </span>
+        </span> */}
+        {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
       </span>
       <span aria-hidden className="flex h-[44px] w-[56px] shrink-0 items-center justify-center">
         <span

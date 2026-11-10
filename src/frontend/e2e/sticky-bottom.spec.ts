@@ -167,8 +167,10 @@ test.describe("360×560 · 짧은 화면(일부 시험은 화면 크기를 바�
       await pull.getByTestId("re-rest-input").fill("90");
       await pull.getByTestId("re-rest-input").press("Enter");
       await expect(pull.getByTestId("re-rest-value")).toHaveText("90");
-      // 「지난 기록이 있으면…」 안내는 종목 수와 상관없이 한 번
-      await expect(page.getByTestId("set-table-hint")).toHaveCount(1);
+      // [원본] 「지난 기록이 있으면…」 안내는 종목 수와 상관없이 한 번
+      // await expect(page.getByTestId("set-table-hint")).toHaveCount(1);
+      // [개선] 설명 줄 없앰(SPEC-055 Phase 4)
+      await expect(page.getByTestId("set-table-hint")).toHaveCount(0);
       // 「1. 3세트 · 휴식 120초」 요약 줄은 없다(세트 표·스테퍼와 겹치는 정보)
       await expect(page.getByTestId("routine-exercises")).not.toContainText("세트 · 휴식");
     }

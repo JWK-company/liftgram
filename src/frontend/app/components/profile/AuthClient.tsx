@@ -32,7 +32,7 @@ import { t, type TransKey } from "@/lib/i18n";
 import { useAuth } from "../AuthProvider";
 import { RouteLoading } from "../ui/LogoSpinner";
 import { Button } from "../ui/Button";
-import { Icon } from "../ui/Icon";
+// [원본] import { Icon } from "../ui/Icon"; — OfflineNote 상자 없앰(SPEC-055 Phase 4)
 import { TextField } from "../ui/inputs";
 import { AppText, Card } from "../ui/primitives";
 
@@ -71,9 +71,10 @@ function ServerSyncCard() {
       <AppText variant="label" color="textMuted">
         {t("serverSync.title")}
       </AppText>
-      <AppText variant="caption" color="textMuted" className="mt-[2px] block">
+      {/* [원본] <AppText variant="caption" color="textMuted" className="mt-[2px] block">
         {t("serverSync.connectedCaption")}
-      </AppText>
+      </AppText> */}
+      {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
       {/* 마지막 백업·남은 기록 — 동기가 조용히 실패해도 여기서는 보인다(2026-10-26). */}
       <AppText
         variant="caption"
@@ -342,11 +343,12 @@ export default function AuthClient({
       {/* [원본] <SocialButtons returnTo="/account" preview={preview} last={lastLogin} /> */}
       {/* [원본] returnTo={returnTo} — 의견 화면에서 온 사람이 소셜 로그인 뒤 /account 에 남았다(SPEC-032) */}
       <SocialButtons returnTo={nextHref ?? returnTo} preview={preview} last={lastLogin} />
-      {isSignup ? (
+      {/* [원본] {isSignup ? (
         <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-md)] block">
           {t("auth.signupEmailNote")}
         </AppText>
-      ) : null}
+      ) : null} */}
+      {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
 
       <div className="mb-[var(--spacing-lg)]">
         <TextField
@@ -358,7 +360,7 @@ export default function AuthClient({
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-        {!isSignup ? (
+        {/* [원본] {!isSignup ? (
           <AppText
             variant="caption"
             color="textFaint"
@@ -366,7 +368,8 @@ export default function AuthClient({
           >
             {t("auth.idHint")}
           </AppText>
-        ) : null}
+        ) : null} */}
+        {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
         <TextField
           testId="auth-password-input"
           label={t("auth.passwordLabel")}
@@ -386,13 +389,14 @@ export default function AuthClient({
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
             />
-            <AppText
+            {/* [원본] <AppText
               variant="caption"
               color="textFaint"
               className="-mt-[var(--spacing-xs)] mb-[var(--spacing-sm)] block"
             >
               {t("auth.nicknameHint")}
-            </AppText>
+            </AppText> */}
+            {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
           </>
         ) : null}
 
@@ -476,11 +480,11 @@ export default function AuthClient({
           <div id="import">
             <ImportCard />
           </div>
-          <OfflineNote />
+          {/* [원본] <OfflineNote /> */}
+          {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
         </div>
-      ) : (
-        <OfflineNote />
-      )}
+      ) : null}
+      {/* [원본] ) : (<OfflineNote />)} — 로그인 전 화면의 「로그인이 필수가 아니에요」 상자 · [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
       <AuthFooter />
     </div>
   );
@@ -499,14 +503,15 @@ function Header({ title }: { title: string }) {
       >
         {title}
       </h1>
-      <AppText variant="body" color="textMuted" className="mt-[var(--spacing-xs)] block">
+      {/* [원본] <AppText variant="body" color="textMuted" className="mt-[var(--spacing-xs)] block">
         로그인하면 기록이 서버에 백업되고 피드를 쓸 수 있어요
-      </AppText>
+      </AppText> */}
+      {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
     </div>
   );
 }
 
-/** 로그인이 **필수가 아니라는 것**을 말해 주는 자리. 이 앱의 성격 그 자체다. */
+/* [원본] 로그인이 **필수가 아니라는 것**을 말해 주는 자리. 이 앱의 성격 그 자체다.
 function OfflineNote() {
   return (
     <div className="flex items-start rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface) p-[var(--spacing-md)]">
@@ -517,6 +522,7 @@ function OfflineNote() {
     </div>
   );
 }
+[개선] 그리는 곳이 없어 함께 막음 — 설명 줄 없앰(SPEC-055 Phase 4) */
 
 /** 서버 코드를 사용자가 읽을 문구로. app이 쓰던 키를 그대로 쓴다. */
 function messageKeyFor(e: unknown): TransKey {

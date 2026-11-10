@@ -268,11 +268,12 @@ function CreatorVersionStep({
           {t("creator.basis", { label: routine.basis.labelKo })}
         </a>
       ) : null}
-      {lang === "ko" ? null : (
+      {/* [원본] {lang === "ko" ? null : (
         <AppText variant="label" color="textMuted" className="block">
           {t("creator.koreanContent")}
         </AppText>
-      )}
+      )} */}
+      {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
       <AppText variant="body" className="mt-[var(--spacing-sm)] block">
         {routine.summaryKo}
       </AppText>

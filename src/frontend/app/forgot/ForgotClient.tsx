@@ -48,9 +48,10 @@ export default function ForgotClient({ siteKey }: { siteKey: string }) {
 
   return (
     <AuthPage title={t("forgot.title")}>
-      <AppText variant="caption" color="textMuted" className="block">
+      {/* [원본] <AppText variant="caption" color="textMuted" className="block">
         {t("forgot.caption")}
-      </AppText>
+      </AppText> */}
+      {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
       <TextField
         testId="forgot-email"
         label={t("auth.emailLabel")}

@@ -240,7 +240,7 @@ test("운동 블록 — 부가 행동은 「더 보기」 안, 모든 블록이 
   expect(first, "새로고침 뒤 첫 그림의 「더 보기」 상태").toBe(true);
 
   // 운동을 버리고 새로 시작하면 접힌 채로(M-1 — 지난 운동의 펼침이 넘어오지 않는다)
-  await page.getByTestId("btn-session-menu").click();
+  // [원본] await page.getByTestId("btn-session-menu").click(); — ⋯ 없이 머리 「취소」를 바로 누른다(SPEC-055 Phase 2)
   await page.getByTestId("btn-discard").click();
   await page.getByTestId("dialog-confirm").click();
   await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });

@@ -13,8 +13,8 @@ export function HintsResetRow() {
       testId="row-hints-reset"
       icon="help-circle-outline"
       title={t("hint.resetTitle")}
-      subtitle={t("hint.resetCaption")}
-      wrapSubtitle
+      // [원본] subtitle={t("hint.resetCaption")}
+      // [원본] wrapSubtitle — 설명 줄 없앰(SPEC-055 Phase 4)
       onPress={() => {
         resetCoachMarks();
         toast(t("hint.resetDone"));

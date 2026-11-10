@@ -244,9 +244,10 @@ export function RecordSlotSelector({
                       <AppText variant="body" className="block">
                         {t("variant.plateOneSide")}
                       </AppText>
-                      <AppText variant="caption" color="textMuted" className="block">
+                      {/* [원본] <AppText variant="caption" color="textMuted" className="block">
                         {t("variant.plateOneSideHint")}
-                      </AppText>
+                      </AppText> */}
+                      {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
                     </span>
                   </label>
                 ) : null}
@@ -339,8 +340,9 @@ function BrandRow({
       <div className="mb-[var(--spacing-xs)]">
         <AppText variant="label" color="textMuted">
           {t("variant.machineBrand")}
-          {/* 위 줄이 왜 따로 있는지 — 최근에 쓴 브랜드(P3 QA L7) @plm SRS-071 */}
-          {top.length ? ` · ${t("variant.recentHint")}` : ""}
+          {/* [원본] {/* 위 줄이 왜 따로 있는지 — 최근에 쓴 브랜드(P3 QA L7) @plm SRS-071 * /}
+          {top.length ? ` · ${t("variant.recentHint")}` : ""} */}
+          {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
         </AppText>
       </div>
       <div className="flex flex-wrap gap-[var(--spacing-xs)]" data-testid="slot-brand-recent">

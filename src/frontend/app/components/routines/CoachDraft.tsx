@@ -74,6 +74,7 @@ export function CoachDraftBand({ member }: { member: DraftMember }) {
       >
         {t("coaching.draft.band", { name: member.name })}
       </p>
+      {/* [원본] 막히지 않았을 때도 t("coaching.draft.bandHint") 설명 줄을 그렸다
       <p
         data-testid="coach-draft-band-hint"
         className="mt-[2px] text-(--color-ink2) text-[length:var(--text-xs)]"
@@ -83,7 +84,16 @@ export function CoachDraftBand({ member }: { member: DraftMember }) {
           : blocked === "off"
             ? t("coaching.draft.routineOff")
             : t("coaching.draft.bandHint")}
-      </p>
+      </p> */}
+      {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) — 끝남·루틴 권한 꺼짐(상태)일 때만 그 줄을 그린다 */}
+      {blocked ? (
+        <p
+          data-testid="coach-draft-band-hint"
+          className="mt-[2px] text-(--color-ink2) text-[length:var(--text-xs)]"
+        >
+          {blocked === "ended" ? t("coaching.draft.ended") : t("coaching.draft.routineOff")}
+        </p>
+      ) : null}
     </div>
   );
 }

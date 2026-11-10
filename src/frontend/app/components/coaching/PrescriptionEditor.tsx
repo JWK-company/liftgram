@@ -25,7 +25,7 @@ import { useToast } from "../Toast";
 import { UserSettingsProvider } from "../UserSettingsProvider";
 import { Panel } from "./Panel";
 import { Button } from "../ui/Button";
-import { AppText } from "../ui/primitives";
+// [원본] import { AppText } from "../ui/primitives"; — 설명 줄 없앰(SPEC-055 Phase 4)
 
 /** 미지정 RIR. 계약에 "값 없음"이 없어 정한 약속이다(0은 "실패까지"라는 뜻이라 쓸 수 없다). */
 const RIR_UNSET = -1;
@@ -176,9 +176,10 @@ function PrescriptionEditorBody({ peer, routine, block, onClose, onSaved }: Pres
         </>
       }
     >
-      <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-sm)] block">
+      {/* [원본] <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-sm)] block">
         {t("coaching.rxEditorHint", { name: peer.displayName || "?" })}
-      </AppText>
+      </AppText> */}
+      {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
       {/* [원본] 단위 없이 그렸다 — lb 사용자의 135 가 135kg 으로 저장됐다(REV-028) */}
       <PrescriptionRows
         rows={rows}

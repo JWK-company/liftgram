@@ -1,7 +1,8 @@
 "use client";
 // 프로필 설정 한 줄 — 「내 글을 추천에 표시」(SPEC-030). 값은 서버에 있다: 다른 사람의 추천을 서버가 고른다.
 import { SwitchLook } from "./EffortLoggingRow";
-import { useEffect, useId, useState } from "react";
+// [원본] import { useEffect, useId, useState } from "react";
+import { useEffect, useState } from "react";
 import { feedClient } from "@/lib/feedClient";
 import { t } from "@/lib/i18n";
 import { useToast } from "../Toast";
@@ -10,7 +11,7 @@ export function RecommendOptOutRow() {
   const [on, setOn] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
   const toast = useToast();
-  const descId = useId();
+  // [원본] const descId = useId(); — 설명 줄 없앰(SPEC-055 Phase 4)
 
   useEffect(() => {
     let closed = false;
@@ -50,7 +51,7 @@ export function RecommendOptOutRow() {
       role="switch"
       aria-checked={on}
       aria-label={t("feed.recommendOptTitle")}
-      aria-describedby={descId}
+      // [원본] aria-describedby={descId} — 설명 줄 없앰(SPEC-055 Phase 4)
       data-testid="switch-recommend-opt"
       onClick={toggle}
       className="flex min-h-[52px] w-full items-center gap-[var(--spacing-md)] px-[var(--spacing-lg)] py-[var(--spacing-sm)] text-left"
@@ -59,9 +60,10 @@ export function RecommendOptOutRow() {
         <span className="truncate font-medium text-(--color-ink) text-[length:var(--text-md)]">
           {t("feed.recommendOptTitle")}
         </span>
-        <span id={descId} className="break-words text-(--color-ink2) text-[length:var(--text-sm)]">
+        {/* [원본] <span id={descId} className="break-words text-(--color-ink2) text-[length:var(--text-sm)]">
           {t("feed.recommendOptCaption")}
-        </span>
+        </span> */}
+        {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
       </span>
       <SwitchLook on={on} />
     </button>

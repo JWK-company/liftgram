@@ -219,8 +219,11 @@ test("요약 기본값 그대로 보냄 → 스냅샷에 체중 없음 → 트�
     expect(회원숫자.muscles.length).toBeGreaterThan(0);
     // 맨몸 종목은 추가 무게만 — 총 볼륨 600(벤치) · 풀업 0kg × 10 · 안내 한 줄(P4S-1)
     await expect(page.getByTestId("ps-volume")).toHaveText("600kg");
-    await expect(page.getByTestId("ps-bw-free")).toHaveText("맨몸 종목은 추가 무게만 셉니다");
-    await expect(page.getByTestId("ps-basis")).toContainText("통계 화면과 다를 수 있어요");
+    // [원본] await expect(page.getByTestId("ps-bw-free")).toHaveText("맨몸 종목은 추가 무게만 셉니다");
+    // [원본] await expect(page.getByTestId("ps-basis")).toContainText("통계 화면과 다를 수 있어요");
+    // [개선] 두 안내 줄 — 설명 줄 없앰(SPEC-055 Phase 4)
+    await expect(page.getByTestId("ps-bw-free")).toHaveCount(0);
+    await expect(page.getByTestId("ps-basis")).toHaveCount(0);
     await expect(
       page.getByTestId("ps-top-row").filter({ hasText: "풀업" }).getByTestId("ps-top-change"),
     ).toHaveText("0kg × 10 → 0kg × 10");

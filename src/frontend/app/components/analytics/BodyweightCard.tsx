@@ -292,7 +292,7 @@ export function BodyweightCard() {
                 <div className="mt-[var(--spacing-sm)]">
                   {mSeries.length >= 2 ? (
                     <LineChart
-                      hint={t("chip.chartHint")}
+                      // [원본] hint={t("chip.chartHint")} — 설명 줄 없앰(SPEC-055 Phase 4)
                       testId="bodyweight-metric-chart"
                       points={mSeries}
                       xDomain={[from, Math.max(nowMs, mSeries[mSeries.length - 1].x)]}
@@ -372,16 +372,17 @@ export function BodyweightCard() {
                       : needMoreText}
                   </p>
                 )}
-                {rate ? (
+                {/* [원본] {rate ? (
                   <p className="text-(--color-ink3) text-[length:var(--text-xs)]">
                     {t("bodyweight.weeklyCaption")}
                   </p>
-                ) : null}
+                ) : null} */}
+                {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
 
                 <div className="mt-[var(--spacing-sm)]">
                   {inRange.length >= 2 ? (
                     <LineChart
-                      hint={t("chip.chartHint")}
+                      // [원본] hint={t("chip.chartHint")} — 설명 줄 없앰(SPEC-055 Phase 4)
                       testId="bodyweight-chart"
                       points={inRange.map((l) => ({ x: l.measuredAt, y: shownBodyweight(l.weightKg, unit) }))}
                       xDomain={[from, Math.max(nowMs, end?.measuredAt ?? nowMs)]}

@@ -718,9 +718,10 @@ export default function RoutinesClient() {
         {tipTopics.length ? (
           <div data-testid="tip-section" className="mb-[var(--spacing-sm)]">
             <SectionLabel className="mt-[var(--spacing-xl)]" title={t("tips.sectionTitle")} />
-            <AppText variant="caption" color="textMuted" className="-mt-[2px] mb-[var(--spacing-sm)] block">
+            {/* [원본] <AppText variant="caption" color="textMuted" className="-mt-[2px] mb-[var(--spacing-sm)] block">
               {t("tips.sectionBlurb")}
-            </AppText>
+            </AppText> */}
+            {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
             <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-[var(--spacing-sm)]">
               {tipTopics.map((c) => (
                 <button
@@ -1015,9 +1016,10 @@ function TodayCard({
             <span className="mt-[2px] flex empty:hidden">
               <RoutineOriginChip routine={routine} />
             </span>
-            <AppText variant="caption" color="textMuted" className="mt-[2px] block">
+            {/* [원본] <AppText variant="caption" color="textMuted" className="mt-[2px] block">
               {t("schedule.todayHint")}
-            </AppText>
+            </AppText> */}
+            {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
             <RoutineMuscleFocus routineId={routine.id} />
           </div>
           {/* 오른쪽 열 = 「시작」 + 그 아래 근육 그림(이름 칸 폭을 지킨다 · P2 /qa P2-2) @plm SRS-075 */}
@@ -1079,18 +1081,25 @@ function NextCard({
       : source === "reco"
         ? t("routines.todayRecoLabel")
         : t("routines.nextLabel");
+  // [원본] const reason =
+  //   source === "schedule"
+  //     ? t("schedule.todayHint")
+  //     : source === "reco"
+  //       ? muscle
+  //         ? t("routines.todayRecoHint", {
+  //             muscle: muscleLabel(muscle as Parameters<typeof muscleLabel>[0], lang),
+  //           })
+  //         : null
+  //       : source === "recent"
+  //         ? t("routines.nextReasonRecent")
+  //         : t("routines.nextReasonFirst");
+  // [개선] 설명 줄 없앰(SPEC-055 Phase 4) — 스케줄·최근·첫 루틴은 머리말이 근거를 말한다 · 추천 근거 부위(내용)만 남김
   const reason =
-    source === "schedule"
-      ? t("schedule.todayHint")
-      : source === "reco"
-        ? muscle
-          ? t("routines.todayRecoHint", {
-              muscle: muscleLabel(muscle as Parameters<typeof muscleLabel>[0], lang),
-            })
-          : null
-        : source === "recent"
-          ? t("routines.nextReasonRecent")
-          : t("routines.nextReasonFirst");
+    source === "reco" && muscle
+      ? t("routines.todayRecoHint", {
+          muscle: muscleLabel(muscle as Parameters<typeof muscleLabel>[0], lang),
+        })
+      : null;
   return (
     <Card className="mb-[var(--spacing-sm)]" style={originStripeStyle(routine)}>
       <div className="flex items-center" data-testid="next-card">

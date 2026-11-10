@@ -1089,12 +1089,18 @@ export function ExerciseBlock({
               {/* 꺾쇠는 다른 ②(일자바▾ · 1▾)와 같은 회색 — 빨강은 이름 글자만(P1 코드 리뷰 시각 5) */}
               <Icon name="chevron-down" size={12} color="var(--color-ink3)" className="shrink-0" />
             </button>
-            <AppText variant="caption" color="textMuted" data-testid="we-scheme-guide">
+            {/* [원본] <AppText variant="caption" color="textMuted" data-testid="we-scheme-guide">
               {t(`scheme.guide.${blockScheme}` as Parameters<typeof t>[0])}
               {(we.prescription ?? []).some((r) => r.setType === "feeder")
                 ? ` · ${t("scheme.legendFeeder")}`
                 : ""}
-            </AppText>
+            </AppText> */}
+            {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) — 세트 줄 「P」 글자를 푸는 범례만 남긴다(피더가 있을 때 · 문구 리뷰 M4) */}
+            {(we.prescription ?? []).some((r) => r.setType === "feeder") ? (
+              <AppText variant="caption" color="textMuted" data-testid="we-scheme-legend">
+                {t("scheme.legendFeeder")}
+              </AppText>
+            ) : null}
           </div>
         ) : null}
 
@@ -1215,9 +1221,17 @@ export function ExerciseBlock({
 
         {/* 표 머리 — 「무게」 칸 안에 kg│lb(D2 · /qa spec Q8). 한쪽 입력이면 칸 위에 「한쪽」 */}
         {/* [원본] mt-[var(--spacing-sm)] — 메타 줄(32px 누르는 자리)이 이미 여백을 갖고 있어 반만 둔다 */}
-        <div className="mt-[var(--spacing-xs)] flex items-end gap-[4px] pb-[2px]">
+        {/* [원본] <div className="mt-[var(--spacing-xs)] flex items-end gap-[4px] pb-[2px]"> */}
+        {/* [개선] 근력 줄은 칸 사이 2px — SetRowEdit 줄과 같은 간격(REV H-1) · 유산소 줄(SetRowCardio)은 그대로 4px */}
+        <div
+          className={`mt-[var(--spacing-xs)] flex items-end pb-[2px] ${isCardio ? "gap-[4px]" : "gap-[2px]"}`}
+        >
           <HeadCell className="w-[34px]">{t("session.setColHeader")}</HeadCell>
-          <HeadCell className="w-[66px]">{t("session.prevColHeader")}</HeadCell>
+          {/* [원본] <HeadCell className="w-[66px]">{t("session.prevColHeader")}</HeadCell> */}
+          {/* [원본] 근력 줄은 이전 칸을 52px 로 줄여 여유 칸 자리를 낸다(SetRowEdit 과 같은 폭 · SPEC-055 Phase 3) — 유산소 줄은 그대로 */}
+          {/* [원본] <HeadCell className={isCardio ? "w-[66px]" : "w-[52px]"}>{t("session.prevColHeader")}</HeadCell> */}
+          {/* [개선] 근력 줄 이전 칸 64px(SetRowEdit 과 같은 폭 · 「102.5×12」 한 줄 · REV H-1) — 유산소 줄은 그대로 66px */}
+          <HeadCell className={isCardio ? "w-[66px]" : "w-[64px]"}>{t("session.prevColHeader")}</HeadCell>
           {isCardio ? (
             cardioMetrics.map((m) => (
               <HeadCell key={m} className="flex-1">
@@ -1232,7 +1246,9 @@ export function ExerciseBlock({
                   data-testid="head-weight"
                   data-unit={blockUnit}
                   data-one-side={oneSide ? "1" : "0"}
-                  className="flex min-w-0 flex-1 flex-col items-center"
+                  // [원본] className="flex min-w-0 flex-1 flex-col items-center"
+                  // [개선] 무게 3 : 횟수 2 — 세트 줄 입력칸과 같은 비율(SPEC-055 Phase 3)
+                  className="flex min-w-0 flex-[3] flex-col items-center"
                 >
                   {/* 읽어 주는 글 — 「무게 (kg)」·「한쪽(kg)」(보이는 글은 짧게) */}
                   <span className="sr-only">
@@ -1259,15 +1275,33 @@ export function ExerciseBlock({
                   </span>
                 </span>
               ) : (
-                <HeadCell className="flex-1">
+                // [원본] <HeadCell className="flex-1">
+                // [개선] 무게 3 : 횟수 2 — 세트 줄 입력칸과 같은 비율(SPEC-055 Phase 3)
+                <HeadCell className="min-w-0 flex-[3]">
                   {loadMode === "assisted" ? t("session.assistColHeader") : t("session.addedColHeader")}
                 </HeadCell>
               )}
-              <HeadCell className="flex-1">{t("session.repsLabel")}</HeadCell>
+              {/* [원본] <HeadCell className="flex-1">{t("session.repsLabel")}</HeadCell> */}
+              {/* [개선] 무게 3 : 횟수 2 — 세트 줄 회 칸과 같은 비율(SPEC-055 Phase 3) */}
+              <HeadCell className="min-w-0 flex-[2]">{t("session.repsLabel")}</HeadCell>
+              {/* [개선] 여유 칸 머리 — 세트 줄과 같은 폭(32 + ✓ 앞 4px · SPEC-055 Phase 3) */}
+              {/* [원본] <span data-testid="head-spare" className="mr-[4px] w-[32px] shrink-0 text-center"> */}
+              {/* [개선] ✓ 앞 8px(gap 2 + mr 6) — 세트 줄과 같은 여백(REV H-1) */}
+              <span data-testid="head-spare" className="mr-[6px] w-[32px] shrink-0 text-center">
+                <AppText variant="label" color="textFaint">
+                  {t("effort.spareHead")}
+                </AppText>
+              </span>
             </>
           )}
-          <span className="w-[38px] shrink-0" />
-          <span className="w-[34px] shrink-0" />
+          {/* [원본] <span className="w-[38px] shrink-0" />
+          <span className="w-[34px] shrink-0" /> */}
+          {/* [개선] 근력 줄은 ✓ 겉보기 32 · ⌄ 28(+ 앞 8px) — SetRowEdit 과 같은 자리(REV H-1) · 유산소 줄은 그대로 38 · 34 */}
+          <span data-testid="head-done" className={`shrink-0 ${isCardio ? "w-[38px]" : "w-[32px]"}`} />
+          <span
+            data-testid="head-more"
+            className={`shrink-0 ${isCardio ? "w-[34px]" : "ml-[8px] w-[28px]"}`}
+          />
         </div>
 
         {/* 다음 무게 제안(SPEC-043) — 근거(지난번 횟수)와 함께 · 누르면 안 한 작업 세트를 채운다 */}
@@ -1581,17 +1615,18 @@ export function ExerciseBlock({
                   {t("session.restKindReset")}
                 </button>
               ) : null}
-              <AppText
+              {/* [원본] <AppText
                 variant="caption"
                 color="textMuted"
                 className="mt-[4px] block"
                 data-testid="rest-kind-hint"
               >
                 {t("session.restKindHint")}
-              </AppText>
+              </AppText> */}
+              {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
             </div>
           )}
-          {/* 바뀐 동작을 알린다 — 이번 운동에 저장되고 루틴으로 저장·다시 하기에 이어진다(REV-005 화면 M-2) */}
+          {/* [원본] {/* 바뀐 동작을 알린다 — 이번 운동에 저장되고 루틴으로 저장·다시 하기에 이어진다(REV-005 화면 M-2) * /}
           <AppText
             variant="caption"
             color="textMuted"
@@ -1600,7 +1635,8 @@ export function ExerciseBlock({
             data-testid="rest-saved-hint"
           >
             {t("session.restSavedHint")}
-          </AppText>
+          </AppText> */}
+          {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
         </SheetShell>
       ) : null}
 

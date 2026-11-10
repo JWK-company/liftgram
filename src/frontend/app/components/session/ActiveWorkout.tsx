@@ -33,7 +33,7 @@ import { ErrorState } from "../States";
 import { useToast } from "../Toast";
 import { Button } from "../ui/Button";
 import { ActionSheet, ConfirmDialog, SheetShell } from "../ui/Dialog"; // Overlay — 옛 바닥 시트 피커(주석)만 썼다
-import { MoreMenu } from "../ui/MoreMenu";
+// [원본] import { MoreMenu } from "../ui/MoreMenu"; — 머리 ⋯ 를 없앴다(SPEC-055 Phase 2)
 import { Icon } from "../ui/Icon";
 import { IconButton } from "../ui/IconButton";
 import { TextField } from "../ui/inputs";
@@ -378,11 +378,14 @@ export default function ActiveWorkout() {
             <button
               type="button"
               data-testid="workout-name"
+              // [개선] ⋯ 메뉴가 없어져 이름 바꾸기는 이 버튼 하나 — 낭독 이름에 동작을 붙이고, 누르는 자리를 세로 44px 로(코드 리뷰 M4)
+              aria-label={`${paused ? t("session.paused") : (workout.name ?? t("session.inProgress"))} · ${t("session.renameTitle")}`}
               onClick={() => {
                 setNameDraft(workout.name ?? "");
                 setRenaming(true);
               }}
-              className="flex max-w-full min-w-0 items-center"
+              // [원본] className="flex max-w-full min-w-0 items-center"
+              className="relative flex max-w-full min-w-0 items-center before:absolute before:inset-x-0 before:top-1/2 before:h-11 before:-translate-y-1/2 before:content-['']"
             >
               <AppText variant="label" color={paused ? "warning" : "textMuted"} className="min-w-0 truncate">
                 {paused ? t("session.paused") : (workout.name ?? t("session.inProgress"))}
@@ -432,7 +435,7 @@ export default function ActiveWorkout() {
             }
           />
 
-          {/* 드문·위험 동작은 ⋯ 안으로(SRS-054) — 이름 바꾸기 · 운동 취소(삭제). 취소는 확인창을 그대로 거친다. */}
+          {/* [원본] 드문·위험 동작은 ⋯ 안으로(SRS-054) — 이름 바꾸기 · 운동 취소(삭제). 취소는 확인창을 그대로 거친다.
           <MoreMenu
             testId="btn-session-menu"
             options={[
@@ -451,7 +454,18 @@ export default function ActiveWorkout() {
                 onPress: () => setConfirmDiscard(true),
               },
             ]}
-          />
+          /> */}
+          {/* [개선] ⋯ 대신 늘 보이는 「취소」(SPEC-055 Phase 2 · S-70) — 테두리·회색 글자 · 44px · 「완료」와 8px 이상(머리 gap 4 + 6).
+              빨강 채움은 「완료」 하나뿐. 누르면 같은 확인창 · 이름 바꾸기는 위 운동 이름(✏) 탭(S-71) */}
+          <button
+            type="button"
+            data-testid="btn-discard"
+            aria-label={t("session.discardWorkoutButton")}
+            onClick={() => setConfirmDiscard(true)}
+            className="ml-[6px] h-[44px] shrink-0 rounded-[var(--radius-pill)] border border-(--color-line) px-[12px] font-semibold text-(--color-ink2) text-[length:var(--text-sm)] active:bg-(--color-surface-alt)"
+          >
+            {t("session.discardHeaderButton")}
+          </button>
         </div>
 
         <div className="flex-1 p-[var(--spacing-lg)]">
@@ -719,6 +733,8 @@ export default function ActiveWorkout() {
             title={t("session.discardWorkout.title")}
             message={t("session.discardWorkout.message")}
             confirmLabel={t("common.delete")}
+            // [개선] 닫기 단추 = 「계속하기」 — 머리 「취소」를 누른 뒤 「취소」를 또 보지 않게(REV-118 U1)
+            cancelLabel={t("session.discardWorkout.keepGoing")}
             destructive
             onCancel={() => setConfirmDiscard(false)}
             onConfirm={() => {

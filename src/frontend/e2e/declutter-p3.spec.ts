@@ -90,9 +90,11 @@ test("F7 음성 — 운동 중 바꾼 이름은 지킨다 · 1분 미만 운동�
   await 빠른_운동_시작(page);
   await 종목_추가(page, "바벨 스쿼트");
   await 세트_기록(page, 0, 0, 80, 5);
-  // 이름 바꾸기 — ⋯ → 이름 바꾸기 → 「하체 데이」
-  await page.getByTestId("btn-session-menu").click();
-  await page.getByTestId("btn-rename").click();
+  // [원본] 이름 바꾸기 — ⋯ → 이름 바꾸기 → 「하체 데이」
+  // await page.getByTestId("btn-session-menu").click();
+  // await page.getByTestId("btn-rename").click();
+  // [개선] ⋯ 를 없앴다 — 머리 운동 이름(✏)을 눌러 바꾼다(SPEC-055 Phase 2 · REV-118 U2)
+  await page.getByTestId("workout-name").click();
   await page.getByTestId("rename-input").fill("하체 데이");
   await page.getByTestId("rename-save").click();
   await page.getByTestId("btn-complete").click();

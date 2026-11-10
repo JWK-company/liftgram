@@ -111,10 +111,14 @@ for (const scheme of ["light", "dark"] as const)
     const name = (await prev.getAttribute("aria-label")) ?? "";
     expect(name).toMatch(/^이전 .*채우기$/);
     expect(name).not.toMatch(/[×↙]/);
-    // 누르는 자리 44px · 칸 너비 그대로(66px)
+    // [원본] 누르는 자리 44px · 칸 너비 그대로(66px)
+    // [개선] 칸 너비 52px — 여유 칸 자리를 이전 칸에서 냈다(SPEC-055 Phase 3)
     const box = await prev.boundingBox();
     expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
-    expect(Math.round(box?.width ?? 0)).toBe(66);
+    // [원본] expect(Math.round(box?.width ?? 0)).toBe(66);
+    // [원본] expect(Math.round(box?.width ?? 0)).toBe(52);
+    // [개선] 64px — 「102.5×12」 가 한 줄에 들어가게 ✓·⌄ 겉보기와 칸 사이를 줄여 냈다(REV H-1)
+    expect(Math.round(box?.width ?? 0)).toBe(64);
 
     // PR 칩 — 금색 옅은 바탕 · 테두리 없음
     const pr = page.getByTestId("pr-chip-both");
