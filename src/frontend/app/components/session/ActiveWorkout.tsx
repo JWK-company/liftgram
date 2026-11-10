@@ -473,7 +473,7 @@ export default function ActiveWorkout() {
 
         {/* [원본] <div className="flex-1 p-[var(--spacing-lg)]"> */}
         {/* [개선] 평평한 기록지 시험판 — 본문은 흰 종이 한 장, 종목은 상자 대신 구분선 구역 */}
-        <div className="flex-1 bg-(--color-card) px-[var(--spacing-lg)] pb-[var(--spacing-lg)]">
+        <div className="flex-1 bg-(--color-bg) px-[var(--spacing-lg)] pb-[var(--spacing-lg)]">
           {/* 오늘 체중 — 맨 위 한 줄 · 안 써도 그만(SPEC-049 · S-4). workout-exercises 밖(첫 종목 칸을 집는 시험이 그대로) */}
           {now != null ? <WeighInRow now={now} /> : null}
           {exercises.length === 0 ? (

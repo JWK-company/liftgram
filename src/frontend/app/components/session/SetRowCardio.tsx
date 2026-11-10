@@ -230,7 +230,7 @@ export function SetRowCardio({
           data-testid="cardio-done"
           // [원본] isDone ? "bg-(--color-ok)" : "bg-(--color-surface-alt)" — 채운 칸 + 흰 ✓
           // [개선] 근력 줄과 같게 — 미완료 = 빈 테두리 칸, 완료 = 판 없는 굵은 초록 ✓(SPEC-056 F6)
-          className={`flex h-[30px] w-[38px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] border focus-visible:outline-2 focus-visible:outline-(--color-brand) ${
+          className={`relative flex h-[30px] w-[38px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] border before:absolute before:-inset-x-[4px] before:-inset-y-[8px] before:content-[''] focus-visible:outline-2 focus-visible:outline-(--color-brand) ${
             isDone ? "border-transparent" : "border-(--color-line-strong)"
           }`}
         >

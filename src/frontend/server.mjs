@@ -202,7 +202,7 @@ function downloadMissingHtml(acceptLanguage) {
 <html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex"><title>${tx.title}</title>
 <style>
-:root{color-scheme:light dark;--bg:#F7F7F7;--ink:#141619;--ink3:#6A737B;--brand:#C8381C;--on:#FFFFFF;--line:#DBDBDB}
+:root{color-scheme:light dark;--bg:#FFFFFF;--ink:#141619;--ink3:#6A737B;--brand:#C8381C;--on:#FFFFFF;--line:#DBDBDB}
 @media (prefers-color-scheme:dark){:root{--bg:#161616;--ink:#F5F7F9;--ink3:#98A1AD;--brand:#FF7A57;--on:#161616;--line:#424242}}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--ink);
 font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;padding:24px 16px}

@@ -42,7 +42,7 @@
     <resources>
         <image name="SplashLogo" width="56" height="56"/>
         <namedColor name="SplashBackground">
-            <color red="0.96862745098039216" green="0.96862745098039216" blue="0.96862745098039216" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
     </resources>
 </document>

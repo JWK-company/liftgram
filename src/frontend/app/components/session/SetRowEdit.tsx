@@ -523,7 +523,7 @@ export function SetRowEdit({
           }}
           // [원본] className="flex h-10 w-[38px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] border"
           // [개선] 겉보기 32 × 40 · 누르는 자리는 ::before 로 44 × 44(좌우 6 · 위아래 2 — 여유 칸과 ⌄ 의 누르는 자리와 겹치지 않는다 · REV H-1)
-          className="relative flex h-10 w-[32px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] border before:absolute before:-inset-x-[6px] before:-inset-y-[2px] before:content-[''] focus-visible:outline-2 focus-visible:outline-(--color-brand)"
+          className="relative flex h-10 w-[32px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] border before:absolute before:-inset-x-[7px] before:-inset-y-[3px] before:content-[''] focus-visible:outline-2 focus-visible:outline-(--color-brand)"
         >
           {/* [원본] <Icon name="checkmark" size={16} color={isDone ? "var(--color-on-brand)" : "var(--color-ink3)"} /> */}
           {/* 미완료 = 빈 칸(✓ 없음) · 완료 = 굵은 초록 ✓(SPEC-056 F6) */}

@@ -1211,6 +1211,7 @@ function RecoCard({
 
   return (
     // [원본] <Card className="mb-[var(--spacing-sm)] border-(--color-brand)! bg-(--color-brand-muted)!">
+    // [개선] 분홍 판·빨강 테두리 대신 왼쪽 빨강 강조선(SPEC-056 REV-122)
     <Card accent="var(--color-brand)">
       <div className="flex items-center" data-testid="reco-card">
         <div className="mr-[var(--spacing-md)] min-w-0 flex-1">
