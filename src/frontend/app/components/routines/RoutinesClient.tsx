@@ -664,7 +664,11 @@ export default function RoutinesClient() {
           />
         ) : (
           // [원본] <ListGroup testId="routine-list"> · [개선] 폴더 묶음 바로 아래면 윗선이 겹치지 않게(SPEC-056 F1)
-          <ListGroup testId="routine-list" className={folderGroups.length ? "border-t-0!" : ""}>
+          <ListGroup
+            testId="routine-list"
+            // 루틴이 전부 폴더 안이면 빈 묶음의 아랫선이 겹선이 된다(P3 코드 리뷰 L-3)
+            className={`${folderGroups.length ? "border-t-0!" : ""} ${loose.length === 0 ? "border-b-0!" : ""}`}
+          >
             {loose.map((r) => (
               <RoutineRow
                 key={r.id}

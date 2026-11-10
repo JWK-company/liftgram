@@ -181,7 +181,7 @@ test("루틴이 있으면 오늘 할 루틴 「시작」이 주 행동, 빠른 �
   await 홈(page);
   await expect(page.getByTestId("next-card")).toContainText("주행동 루틴");
   expect(await filledBrand(page)).toEqual(["btn-start-next"]);
-  // 내 루틴 「▶ 시작」은 옅은 강조(연한 빨강 판 · 빨간 글자) — 빨강 채움 목록에는 들지 않는다(2026-11-09)
+  // 내 루틴 「▶ 시작」은 판 없는 빨간 글자(SPEC-056 · 2026-11-09 연한 빨강 판에서 바꿈) — 빨강 채움 목록에는 들지 않는다
   const tone = await page
     .getByTestId("btn-start-routine")
     .first()

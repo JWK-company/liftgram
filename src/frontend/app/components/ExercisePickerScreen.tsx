@@ -510,7 +510,8 @@ const PickRow = memo(function PickRow({
       // [개선] 고른 줄은 바탕 채움 대신 왼쪽 빨강 강조선 + 순서 번호(SPEC-056 F6) · 판 없는 목록이라 좌우 여백 없음
       style={selected ? { boxShadow: "inset 3px 0 0 var(--color-brand)" } : undefined}
       className={`flex min-h-[60px] w-full items-center gap-[var(--spacing-md)] py-[var(--spacing-sm)] text-left active:bg-(--color-surface-alt) ${
-        selected ? "pl-[var(--spacing-md)]" : ""
+        // 여러 개 고르기에서는 고른 줄만 여백을 더하면 누를 때마다 내용이 밀린다 → 모드 전체에 같은 여백(P3 코드 리뷰 M-1)
+        mode === "multi" ? "pl-[var(--spacing-md)]" : selected ? "pl-[var(--spacing-md)]" : ""
       }`}
     >
       {hasPictogram(e.id) ? (
