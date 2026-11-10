@@ -192,7 +192,7 @@ def sh(id,name,parent,label,ev,desc='',cond='',group=None,kind='sheet'):
 # 전역 가드
 for id,name,ev,desc,cond in [
  # [원본] ('s.onboard','온보딩','C/OnboardingOverlay.tsx:107','2장 첫 안내. 경력과 코치 의향 저장, 건너뛰기','첫 실행 1회'),
- ('s.onboard','온보딩','C/OnboardingOverlay.tsx:107','2장 첫 안내. 둘째 장은 운동 경력만 저장(트레이너·코치 질문 없음 · 켜 둔 코치 찾기 노출은 그대로), 건너뛰기','첫 실행 1회'),
+ # [원본] ('s.onboard','온보딩','C/OnboardingOverlay.tsx:107','2장 첫 안내. 둘째 장은 운동 경력만 저장(트레이너·코치 질문 없음 · 켜 둔 코치 찾기 노출은 그대로), 건너뛰기','첫 실행 1회'), — S-54 v0.95.0 에서 껐다(SPEC-055 · 첫 안내 말풍선은 그대로)
  ('s.schema','새 버전으로 새로고침해 주세요','C/SchemaGuard.tsx:86','뒤 화면을 막는 알림창','기기 DB 스키마가 번들보다 높을 때'),
  ('s.tabseal','다른 탭에서 열려 있어요','C/TabElsewhereOverlay.tsx:47','이 탭을 멈추고 「여기서 계속하기」','쓰기 주인을 빼앗겼거나 디스크가 바깥에서 바뀜'),
  ('s.tabold','옛 버전 탭 띠','C/TabElsewhereOverlay.tsx:83','상단 띠 안내','다른 탭에 옛 버전이 열려 있음'),
@@ -210,13 +210,16 @@ sh('s.finder','스무고개 찾기','/exercises','찾기 버튼','C/ExerciseFind
 e('s.picker','s.finder','찾기 버튼','C/ExercisePickerScreen.tsx:295','open')
 W='/workout'
 for id,name,label,ev,desc,cond in [
- ('s.pr','PR 축하','세트 체크','C/PrCelebration.tsx:83','터치를 막지 않고 2.4초 뒤 사라짐','최고 기록일 때'),
+ # [원본] ('s.pr','PR 축하','세트 체크','C/PrCelebration.tsx:83','터치를 막지 않고 2.4초 뒤 사라짐','최고 기록일 때'),
+ ('s.pr','PR 축하','세트 체크','C/PrCelebration.tsx:83 · core/src/data/workoutRepository.ts:3596','무게 PR만 · 종목마다 한 번(v0.95.0) — 그 종목 지난 완료 운동(변형 무관) 최고 무게를 넘을 때. 볼륨·횟수만 는 세트, 처음 하는 종목, 체중 모르는 보조 종목은 축하 없음 · 터치를 막지 않고 2.4초 뒤 사라짐','무게 최고 기록일 때'),
  ('s.lockcheck','잠금화면 기록 확인 중','앱 열기','C/session/LockNotices.tsx:85','잠금 화면 기록을 합치는 동안 막음','앱 안, 첫 합치기 전'),
  ('s.summary','운동 요약','운동 종료 확인 후','C/session/ActiveWorkout.tsx:293','주소는 그대로 두고 내용만 교체',''),
  ('s.finish','운동 종료','완료 버튼','C/session/ActiveWorkout.tsx:685','종료 확인창',''),
- ('s.discard','운동 취소','⋯ 메뉴','C/session/ActiveWorkout.tsx:737','기록을 지울지 묻는 확인창',''),
- ('s.wmenu','세션 ⋯ 메뉴','⋯ 탭','C/session/ActiveWorkout.tsx:430','이름 변경, 취소',''),
- ('s.rename','운동 이름 변경','이름 탭','C/session/ActiveWorkout.tsx:582','이름 입력',''),
+ # [원본] ('s.discard','운동 취소','⋯ 메뉴','C/session/ActiveWorkout.tsx:737','기록을 지울지 묻는 확인창',''),
+ ('s.discard','운동 취소','머리 「취소」','C/session/ActiveWorkout.tsx:462 · C/session/ActiveWorkout.tsx:737','기록을 지울지 묻는 확인창 · 닫기 단추 「계속하기」(v0.95.0)',''),
+ # [원본] ('s.wmenu','세션 ⋯ 메뉴','⋯ 탭','C/session/ActiveWorkout.tsx:430','이름 변경, 취소',''), — S-70 v0.95.0 에서 없앴다(머리 「취소」 상시 · 이름은 이름을 눌러)
+ # [원본] ('s.rename','운동 이름 변경','이름 탭','C/session/ActiveWorkout.tsx:582','이름 입력',''),
+ ('s.rename','운동 이름 변경','머리 운동 이름 누르기','C/session/ActiveWorkout.tsx:380 · C/session/ActiveWorkout.tsx:576','이름 입력 · 이름 칸 누르는 자리 44px · 접근 이름 「○○ · 이름 바꾸기」(v0.95.0 · ⋯ 메뉴 없음)',''),
  ('s.superset','슈퍼셋으로 묶을 종목 선택','종목 메뉴','C/session/ActiveWorkout.tsx:622','짝 고르기',''),
  ('s.swapscope','루틴도 바꿀까요?','종목 교체','C/session/ActiveWorkout.tsx:662','교체 범위 선택','루틴 운동에서 교체'),
  # [원본] ('s.weighin','오늘 체중','맨 위 「오늘 체중」 줄','C/session/WeighInSheet.tsx:696','체중 ± · 인바디(골격근량·체지방률) 펼쳐 적기 · 오늘 기록이 있으면 그 줄 고치기',''),
@@ -234,7 +237,7 @@ for id,name,label,ev,desc,cond in [
  ('s.variant','변형 선택','변형 칩','C/ui/RecordSlotSelector.tsx:183','기록 칸 변형',''),
  ('s.settype','세트 타입','세트 타입 탭','C/session/SetRowEdit.tsx:553','세트 종류 선택',''),
  ('s.setvar','세트 옵션(원암·원레그)','변형 칸 탭','C/session/SetRowEdit.tsx:594','원암·투암, 그립·부착물(종목 전체에 적용)',''),
- ('s.rir','몇 개 더 할 수 있었나요?','여유 칩','C/session/RirSheet.tsx:76','여유 입력','세트 힘든 정도 설정 켬'),
+ # [원본] ('s.rir','몇 개 더 할 수 있었나요?','여유 칩','C/session/RirSheet.tsx:76','여유 입력','세트 힘든 정도 설정 켬'), — S-86 v0.95.0 에서 시트 대신 세트 줄 「여유」 칸(누르면 비움→0→+1→+2→+3→4+ · 설정 없음)
 ]:
     sh(id,name,W,label,ev,desc,cond)
 e('g.bar','s.discard','취소','C/GlobalWorkoutBar.tsx:199','open')
@@ -248,7 +251,8 @@ for id,name,label,ev,desc,cond in [
 ]:
     sh(id,name,'s.summary',label,ev,desc,cond,'운동 중')
 e('/history/[id]','s.nameroutine','메뉴 「루틴 만들기」','C/analytics/WorkoutDetailClient.tsx:278','open')
-e('/calendar','s.share','이번 달 자랑하기','C/analytics/CalendarClient.tsx:212','open')
+# [원본] e('/calendar','s.share','이번 달 자랑하기','C/analytics/CalendarClient.tsx:212','open')
+e('/calendar','s.share','머리 「이번 달 / n월 자랑하기」','C/analytics/CalendarClient.tsx:323','open')
 H='/'
 for id,name,label,ev,desc in [
  ('s.ctopic','크리에이터 주제 시트','프로 루틴·초보자 루틴 카드','C/routines/CreatorRoutineSheet.tsx:55','주제 안내'),
@@ -277,7 +281,7 @@ for id,name,label,ev,desc in [
 e('/routines/new','s.rexit','뒤로','C/routines/RoutineEditor.tsx:718','open'); e('/routines/new','s.rxtype','처방 줄','C/routines/RoutineEditor.tsx:1138','open')
 for id,name,par,label,ev,desc in [
  ('s.goal','이번 주 목표','/calendar','목표 줄','C/analytics/CalendarClient.tsx:318','주간 목표 설정'),
- ('s.recmenu','기록 ⋯ 메뉴','/calendar','⋯ 탭','C/analytics/CalendarClient.tsx:255','이번 달 자랑하기'),
+ # [원본] ('s.recmenu','기록 ⋯ 메뉴','/calendar','⋯ 탭','C/analytics/CalendarClient.tsx:255','이번 달 자랑하기'), — S-110 v0.95.0 에서 없앴다(머리 자랑하기 버튼)
  ('s.dmenu','기록 상세 ⋯ 메뉴','/history/[id]','⋯ 탭','C/analytics/WorkoutDetailClient.tsx:125','다시 하기, 루틴 만들기, 삭제'),
  ('s.rmworkout','기록 삭제','/history/[id]','메뉴 삭제','C/analytics/WorkoutDetailClient.tsx:286','삭제 확인'),
  ('s.editset','N세트 고치기','/history/[id]','세트 줄','C/analytics/WorkoutDetailClient.tsx:555','끝난 세트 수정'),
@@ -432,7 +436,7 @@ AREAS={
  ('놓친 루틴 카드','놓친 루틴이 있고 오늘 운동 전일 때',RC+':526'),('버튼 줄','「새 루틴 만들기」 · 「빠른 운동 시작」',RC+':547'),
  ('「내 루틴」 머리 · 폴더','폴더 묶음 접기·펼치기',RC+':591'),('내 루틴 목록','줄마다 이름 · 종목 이름 한 줄 · 「오늘」 칩 · ▶ 시작 · ⋯. 줄을 누르면 루틴 미리보기',RC+':614'),
  ('프로·초보자 루틴','2열 카드',RC+':676'),('최근 운동','3줄 · 전체 ›',WS+':195')],
-'/workout':[('고정 머리','⌄ 닫기 · 경과 시간 · 운동 이름✎ · 실시간 볼륨 · 오늘 근육 · 일시정지 · 「완료」 · ⋯',AW+':361'),('운동 블록 목록','종목마다 블록(아래 「블록 ·」 구역). 비면 빈 안내',AW+':460'),
+'/workout':[('고정 머리','⌄ 닫기 · 경과 시간 · 운동 이름(누르면 이름 바꾸기) · 실시간 볼륨 · 오늘 근육 · 일시정지 · 「취소」(테두리 · 늘 보임 · 확인창) · 「완료」 — ⋯ 메뉴 없음(v0.95.0)',AW+':361 · '+AW+':462'),('운동 블록 목록','종목마다 블록(아래 「블록 ·」 구역). 비면 빈 안내',AW+':460'),
  ('슈퍼셋 묶음 틀','묶음 머리 ⌃⌄ · 묶음 풀기',AW+':471'),('「운동 추가」 버튼','종목 피커를 연다',AW+':500'),('휴식 막대','남은 시간 · +15초 · 건너뛰기','C/session/RestBar.tsx:16'),
  ('덮개','첫 안내 말풍선 · PR 축하',AW+':517'),('종목 피커','추가·교체 중 전체 화면',AW+':555'),
  ('블록 · 머리','그림 · 종목 이름 · 종목 볼륨 · ⋮ 메뉴',EB+':908'),('블록 · 세트 방식','방식 이름▾ + 한 줄 안내(일반이 아닐 때)',EB+':1015'),
@@ -441,7 +445,7 @@ AREAS={
  ('블록 · 다음 무게 제안','제안 줄 + 「적용」',EB+':1221'),('블록 · 세트 줄 목록','세트 줄(아래 「세트 줄 ·」 구역)',EB+':1256'),
  ('블록 · 「다른 세트도 똑같이」','방금 고친 값을 남은 세트에',EB+':1326'),('블록 · 원판 한쪽 질문','플레이트 머신에서 아직 안 정했을 때',EB+':1340'),
  ('블록 · 「세트 추가」','',EB+':1349'),('블록 · 도구 줄','⌃⌄ 순서 · 휴식 n초 칩 · 메모 칩','C/session/BlockTools.tsx:88'),('블록 · 메모','메모 입력 · 지난 메모',EB+':1371'),
- ('세트 줄 · 본 줄','세트 번호 · 「이전」 칩 · 무게 · 횟수 · ✓ · ⋯',SR+':324'),('세트 줄 · 변형 이름표','변형이 있을 때',SR+':494'),('세트 줄 · 확인 필요 칩','튀는 기록일 때 → 「이 기록이 맞나요?」',SR+':511'),
+ ('세트 줄 · 본 줄','세트 번호 · 「이전」 칩 · 무게 · 횟수 · 「여유」 칸(누르면 비움→0→+1→+2→+3→4+ · 길게 누르면 비움 · 워밍업은 빈 자리 · v0.95.0) · ✓ · ⌄ — 360px 폭 34·64·46·32·32·32·28',SR+':324 · C/session/SpareRepsCell.tsx:101'),('세트 줄 · 변형 이름표','변형이 있을 때',SR+':494'),('세트 줄 · 확인 필요 칩','튀는 기록일 때 → 「이 기록이 맞나요?」',SR+':511'),
  # [원본] … ('오늘 체중 줄','블록 목록 맨 위 한 줄 · 기록 전 「오늘 체중 기록 · 지난 72.5kg」 · 뒤 「오늘 체중 72.6kg ✓」 · 누르면 체중 시트',AW+':459')] — 아래 줄 끝에서 v0.93.0 으로 고침
  ('세트 줄 · 목표 줄','목표 횟수·RIR·결과',SR+':529'),('세트 줄 · 무게 근거·제안','',SR+':576'),('세트 줄 · ⋯ 펼침','부분 반복 · 변형 · 이 종목만 완료 · 삭제',SR+':606'),('오늘 체중 줄','블록 목록 맨 위 「오늘 체중」 카드(⌃⌄ 접기) · 값·✓ · 인바디 · 지난 기록 한 줄 · 머리 ⌄ 로 펼치면 카드 안에 바로 입력(「기록/고치기」 버튼 없음 · 바닥 시트 없음 · v0.93.1) — 맨 위 오늘 입력 · 「목표 · 지난 기록 ⌄」 아래 체중 패널',AW+':459 · C/session/WeighInSheet.tsx:972')],
 '/routines/[id]':[('하위 앱바','← · 루틴 이름 · ⋯ 삭제',RE+':342'),('루틴 이름','',RE+':373'),('폴더','입력칸 또는 폴더 칩 + 새 폴더',RE+':382'),('메모','',RE+':442'),
@@ -452,7 +456,7 @@ AREAS={
 's.routinepreview':[('시트 머리','루틴 이름','C/routines/RoutinePreviewSheet.tsx:158'),('종목 목록','번호 · 이름 · 「n세트 · 횟수」 · 슈퍼셋 묶음','C/routines/RoutinePreviewSheet.tsx:159'),('버튼 줄','편집 · ▶ 시작','C/routines/RoutinePreviewSheet.tsx:193')],
 '/history':[('앱바','「기록」','C/analytics/RecordsHeader.tsx:13'),('목록│달력 전환','','C/analytics/RecordsHeader.tsx:15'),('달별 머리','○월 · n회 · 볼륨','C/analytics/HistoryClient.tsx:86'),
  ('기록 줄','날짜 · 이름 · 시간·볼륨 · PR 금색','C/analytics/HistoryClient.tsx:115'),('광고 자리','','C/analytics/HistoryClient.tsx:100'),('빈 상태','기록이 없을 때','C/analytics/HistoryClient.tsx:76')],
-'/calendar':[('앱바·전환','「기록」 · ⋯ 이달 자랑하기 · 목록│달력',CA+':284'),('목표·연속일 줄','누르면 목표 시트',CA+':308'),('월 이동','‹ ○월 › · 이달 요약 · 「오늘」 칩',CA+':417'),
+'/calendar':[('앱바·전환','「기록」 · 「이번 달 자랑하기」 버튼(다른 달이면 「n월 자랑하기」 · 운동 0번 달은 숨김) · 목록│달력',CA+':323'),('목표·연속일 줄','누르면 목표 시트',CA+':308'),('월 이동','‹ ○월 › · 이달 요약 · 「오늘」 칩',CA+':417'),
  ('달력 칸','',CA+':472'),('고른 날 머리','날짜 + 「메모」',CA+':542'),('그날 메모','',CA+':559'),('그날 내용','운동 줄 · 수동 표시 · 「운동한 날로 표시」',CA+':579')],
 '/history/[id]':[('하위 앱바','「기록」 + ⋯ 다시 시작·루틴 만들기·삭제',WD+':141'),('이름·날짜','',WD+':192'),('숫자 카드','총 볼륨 · 소요시간',WD+':201'),
  ('「그대로 다시 시작」','',WD+':229'),('종목 카드 목록','머리(이름·추정 1RM·⋯) · 메타 줄 · 세트 줄(✎ 고치기 칩)',WD+':245'),('1RM 주석','',WD+':311'),('운동 총평','',WD+':319')],
