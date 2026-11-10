@@ -861,16 +861,20 @@ async function 운동_하나(page: Page, 종목: string, kg: number, reps: numbe
   await 마치기(page);
 }
 
-/** 프로필 「기록」 → 직접 입력 → 저장(체중) */
+/** 프로필 「체중」 → 시트 맨 위 바로 입력 → 저장(체중) */
 async function 체중_입력(page: Page, value: string) {
   await page.goto("/profile");
-  await page.getByTestId("btn-bodyweight-record").click({ timeout: 20_000 });
-  const sheet = page.getByTestId("bodyweight-record-sheet");
+  // [원본] btn-bodyweight-record → bodyweight-record-sheet → 저장하면 닫힘
+  // [개선] 체중 한 줄(2026-11-10) — 「체중」 줄 → 바로 입력(bodyweight-entry) · 저장해도 열린 채 → 알림을 보고 「확인」
+  await page.getByTestId("bodyweight").click({ timeout: 20_000 });
+  const sheet = page.getByTestId("bodyweight-entry");
   await sheet.getByTestId("weighin-type").click();
   await sheet.getByTestId("weighin-input").fill(value);
   await sheet.getByTestId("weighin-input").press("Enter");
   await sheet.getByTestId("weighin-save").click();
-  await expect(sheet).toHaveCount(0);
+  await expect(page.getByTestId("toast").filter({ hasText: "체중을 기록했어요" })).toBeVisible();
+  await page.getByTestId("bodyweight-history-close").click();
+  await expect(page.getByTestId("bodyweight-sheet")).toHaveCount(0);
 }
 
 /** 회원이 범위 스위치 하나를 뒤집고 저장 */

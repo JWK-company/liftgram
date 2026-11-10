@@ -93,6 +93,8 @@ export function WeighInSheet({
   compareKg,
   inbody,
   testId = "weighin-sheet",
+  inline = false,
+  onTypingChange,
 }: {
   title: string;
   unit: WeightUnit;
@@ -120,6 +122,13 @@ export function WeighInSheet({
   /** 인바디 두 칸의 출발값(SPEC-049 Phase 3) — 넘기면 「인바디 수치도 적기」 펼침이 생긴다. 목표 시트는 넘기지 않는다 */
   inbody?: InbodyValues;
   testId?: string;
+  /**
+   * 안에 끼우는 모양(프로필 「체중」 시트의 바로 입력) — 포탈·스크림·제목·둘째 버튼·Esc·Tab 가두기 없이 입력과 저장만.
+   * 저장해도 닫히지 않고 다음 기록을 받을 수 있게 남는다(인바디 칸은 비우고 접는다). 닫기는 바깥 시트가 맡는다.
+   */
+  inline?: boolean;
+  /** 직접 입력칸이 열리고 닫힐 때(inline) — 바깥 시트가 「입력 중 바깥 누름 = 입력 확정만」을 지키게(qa P3-7 · 리뷰 M-1) */
+  onTypingChange?: (typing: boolean) => void;
 }) {
   const [root, setRoot] = useState<HTMLElement | null>(null);
   const [kg, setKg] = useState(() => weighInStartKg(initialKg, unit));
@@ -145,11 +154,27 @@ export function WeighInSheet({
   const panelRef = useRef<HTMLDivElement | null>(null);
   const typingRef = useRef(false);
   typingRef.current = typing;
+  // [개선] inline 리뷰(M-1·M-2·M-3) — 입력 중 알림 · 저장 뒤 저장 버튼으로 포커스 · 방금 저장한 같은 값의 되누름 무시
+  const typingCb = useRef(onTypingChange);
+  typingCb.current = onTypingChange;
+  useEffect(() => typingCb.current?.(typing), [typing]);
+  const saveBtnRef = useRef<HTMLButtonElement | null>(null);
+  const refocusSave = useRef(false);
+  const lastSaved = useRef<{ kg: number; at: number } | null>(null);
+  useEffect(() => {
+    // 저장 중 disabled 가 된 버튼에서 포커스가 body 로 빠졌다 — 열린 채 남는 inline 은 저장 버튼으로 되돌린다
+    if (busy || !refocusSave.current) return;
+    refocusSave.current = false;
+    const a = document.activeElement;
+    if (!a || a === document.body) saveBtnRef.current?.focus({ preventScroll: true });
+  }, [busy]);
   /** 스크림을 누르기 시작할 때 입력 중이었나 — 누르는 순간 입력칸이 blur 되어 click 때는 이미 typing=false 다 */
   const scrimDownWhileTyping = useRef(false);
 
   // 연 곳(버튼)을 기억했다가 닫힐 때 돌려준다(qa P3-5 ③) — 포탈이 붙기 전 첫 effect 에서 잡는다
+  // biome-ignore lint/correctness/useExhaustiveDependencies: inline 은 연 뒤 바뀌지 않는 모양 — 처음 한 번만 판정한다
   useEffect(() => {
+    if (inline) return; // [개선] 안에 끼운 모양 — 포커스는 바깥 시트(Overlay)가 맡는다
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setRoot(document.getElementById("modal-root"));
     return () => {
@@ -158,7 +183,9 @@ export function WeighInSheet({
   }, []);
 
   // Esc = 닫기(공용 Overlay 와 같다)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: inline 은 연 뒤 바뀌지 않는 모양 — 처음 한 번만 판정한다
   useEffect(() => {
+    if (inline) return; // [개선] 안에 끼운 모양 — Esc·Tab 은 바깥 시트(Overlay)가 받는다
     const onKey = (e: KeyboardEvent) => {
       // Tab 은 패널 안에서 돈다(aria-modal · qa P3-5 ②)
       if (e.key === "Tab" && panelRef.current) {
@@ -255,6 +282,14 @@ export function WeighInSheet({
       if (smm === undefined || pbf === undefined) return;
       extras = { skeletalMuscleKg: smm, bodyFatPct: pbf };
     }
+    // [개선] inline — 저장 직후(2초 안) 같은 값을 또 누르면 같은 줄이 하나 더 쌓인다(두 번 누름 · 리뷰 M-3). 인바디를 펼쳤으면 새 값일 수 있어 받는다
+    if (
+      inline &&
+      extras === undefined &&
+      lastSaved.current?.kg === value &&
+      Date.now() - lastSaved.current.at < 2_000
+    )
+      return;
     // 지난 값과 ±30% 넘게 다르면 한 번 더 누르게 한다(같은 값일 때만 통과 · qa P3-6)
     if (isLargeBodyweightJump(value, refKg) && jumpAsk !== value) {
       setJumpAsk(value);
@@ -264,7 +299,19 @@ export function WeighInSheet({
     void (async () => {
       try {
         await onSave(value, extras);
-        closed.current = true;
+        // [원본] closed.current = true;
+        // [개선] 안에 끼운 모양은 닫히지 않는다 — 다음 기록을 받게 풀어 두고, 인바디 칸은 비우고 접는다(같은 값이 새 줄에 또 붙지 않게)
+        if (inline) {
+          lastSaved.current = { kg: value, at: Date.now() };
+          refocusSave.current = true;
+          setBusy(false);
+          setJumpAsk(null);
+          setInbodyOpen(false);
+          setSmmText("");
+          setPbfText("");
+          setSmmError(false);
+          setPbfError(false);
+        } else closed.current = true;
       } catch {
         setBusy(false);
       }
@@ -277,7 +324,7 @@ export function WeighInSheet({
     (onSecondary ?? onDismiss)();
   };
 
-  if (!root) return null;
+  // [원본] if (!root) return null; — 안에 끼우는 모양(inline)은 포탈 뿌리가 없어도 그린다 → 아래 inline 갈래 뒤로 옮겼다
   const stepBtn = (s: number) => {
     const label = String(Math.abs(s));
     return (
@@ -299,6 +346,277 @@ export function WeighInSheet({
       </button>
     );
   };
+
+  // [개선] 패널 안 내용을 한 덩어리로 — 포탈 시트와 안에 끼우는 모양(inline · 프로필 「체중」 시트)이 같은 입력·저장을 쓴다
+  const content = (
+    <>
+      {/* 제목 — 안에 끼울 때는 바깥 시트가 제목을 갖는다(이 덩어리는 fieldset 의 이름으로만) */}
+      {inline ? null : (
+        <h2
+          id={`${testId}-title`}
+          // 포탈이 붙는 순간 한 번 제목에 포커스 — 입력칸이 아니라(키보드가 뜨지 않게 · U-7 ③)
+          ref={(el) => {
+            if (el && !focused.current) {
+              focused.current = true;
+              el.focus();
+            }
+          }}
+          tabIndex={-1}
+          className="font-bold text-(--color-ink) text-[length:var(--text-lg)] outline-none"
+        >
+          {title}
+        </h2>
+      )}
+      {last !== undefined ? (
+        <p className="text-(--color-ink2) text-[length:var(--text-sm)]" data-testid="weighin-last">
+          {last
+            ? t("bodyweight.lastValue", {
+                value: `${formatBodyweight(last.kg, unit)}${unit}`,
+                date: formatBodyweightDate(last.measuredAt),
+              })
+            : t("bodyweight.noLast")}
+        </p>
+      ) : null}
+
+      <div className="mt-[var(--spacing-xs)] flex min-h-[48px] items-center justify-center gap-[var(--spacing-sm)]">
+        {typing ? (
+          <label className="flex items-baseline gap-[4px]">
+            <span className="sr-only">{t("bodyweight.inputLabel", { unit })}</span>
+            <input
+              data-testid="weighin-input"
+              inputMode="decimal"
+              // 눌러서 연 칸이라 여기서는 포커스한다(사람이 고른 동작) — 붙는 순간 한 번
+              ref={(el) => {
+                if (el && document.activeElement !== el && !el.dataset.focused) {
+                  el.dataset.focused = "1";
+                  el.focus();
+                  el.select();
+                }
+              }}
+              value={draft}
+              enterKeyHint="done"
+              onChange={(e) => {
+                setDraft(e.target.value);
+                setEntryError(false);
+              }}
+              onBlur={() => commitTyped()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  commitTyped();
+                }
+              }}
+              className="w-[120px] rounded-[var(--radius-md)] border border-(--color-line-strong) bg-(--color-surface) px-[var(--spacing-sm)] text-center font-bold text-(--color-ink) text-[32px] tabular-nums leading-tight"
+            />
+            <span className="text-(--color-ink2) text-[length:var(--text-md)]">{unit}</span>
+          </label>
+        ) : (
+          <button
+            type="button"
+            data-testid="weighin-value"
+            aria-label={`${t("bodyweight.directInput")} — ${shown}${unit}`}
+            onClick={() => {
+              setDraft(shown);
+              setEntryError(false);
+              setTyping(true);
+            }}
+            className="flex min-h-[44px] items-baseline gap-[4px] rounded-[var(--radius-md)] px-[var(--spacing-sm)]"
+          >
+            <span className="font-bold text-(--color-ink) text-[32px] tabular-nums leading-tight">
+              {shown}
+            </span>
+            <span className="text-(--color-ink2) text-[length:var(--text-md)]">{unit}</span>
+          </button>
+        )}
+        {typing ? (
+          // 숫자 키패드에 Enter 가 없는 기기(iOS)에서 입력을 확정하는 길(qa P3-7) — 누르기 시작할 때 blur 가 확정한다
+          <button
+            type="button"
+            data-testid="weighin-input-done"
+            onClick={() => commitTyped()}
+            className="flex h-[44px] min-w-[44px] items-center justify-center rounded-[var(--radius-pill)] border border-(--color-line-strong) px-[var(--spacing-sm)] font-medium text-(--color-ink) text-[length:var(--text-sm)]"
+          >
+            {t("bodyweight.done")}
+          </button>
+        ) : (
+          <button
+            type="button"
+            data-testid="weighin-type"
+            onClick={() => {
+              setDraft(shown);
+              setEntryError(false);
+              setTyping(true);
+            }}
+            className="flex h-[44px] items-center rounded-[var(--radius-pill)] px-[var(--spacing-sm)] text-(--color-ink2) text-[length:var(--text-sm)] underline underline-offset-2"
+          >
+            {t("bodyweight.directInput")}
+          </button>
+        )}
+      </div>
+
+      {entryError ? (
+        <p
+          role="alert"
+          data-testid="weighin-entry-error"
+          className="text-center text-(--color-bad) text-[length:var(--text-sm)]"
+        >
+          {t("bodyweight.entryOutOfRange", {
+            min: Math.ceil(fromKg(WEIGH_IN_MIN_ENTRY_KG, unit)),
+            max: Math.floor(fromKg(BODYWEIGHT_MAX_KG, unit)),
+            unit,
+          })}
+        </p>
+      ) : null}
+
+      <div className="mt-[var(--spacing-xs)] flex flex-col gap-[6px]" data-testid="weighin-steps">
+        <div className="flex gap-[6px]">{[-steps[2], -steps[1], -steps[0]].map(stepBtn)}</div>
+        <div className="flex gap-[6px]">{[steps[0], steps[1], steps[2]].map(stepBtn)}</div>
+      </div>
+
+      {inbody ? (
+        <div className="mt-[var(--spacing-sm)]" data-testid="weighin-inbody">
+          <button
+            type="button"
+            data-testid="weighin-inbody-toggle"
+            aria-expanded={inbodyOpen}
+            onClick={() => setInbodyOpen((o) => !o)}
+            className="flex min-h-11 w-full items-center gap-[var(--spacing-xs)] text-left text-(--color-ink) text-[length:var(--text-sm)]"
+          >
+            <Icon
+              name={inbodyOpen ? "chevron-down" : "chevron-forward"}
+              size={16}
+              color="var(--color-ink2)"
+            />
+            <span className="font-medium">
+              {t(inbodyOpen ? "bodyweight.inbodyHide" : "bodyweight.inbodyToggle")}
+            </span>
+          </button>
+          {inbodyOpen ? (
+            <div className="flex flex-col gap-[6px]">
+              <p className="text-(--color-ink2) text-[length:var(--text-xs)]">
+                {t("bodyweight.inbodyOptional")}
+              </p>
+              {(
+                [
+                  [
+                    "smm",
+                    "bodyweight.smmLabel",
+                    "kg",
+                    smmText,
+                    setSmmText,
+                    smmError,
+                    setSmmError,
+                    "bodyweight.smmRange",
+                    SMM_MIN_KG,
+                    SMM_MAX_KG,
+                  ],
+                  [
+                    "pbf",
+                    "bodyweight.pbfLabel",
+                    "%",
+                    pbfText,
+                    setPbfText,
+                    pbfError,
+                    setPbfError,
+                    "bodyweight.pbfRange",
+                    PBF_MIN,
+                    PBF_MAX,
+                  ],
+                ] as const
+              ).map(([key, label, suffix, text, setText, err, setErr, rangeKey, min, max]) => (
+                <div key={key}>
+                  <label className="flex min-h-11 items-center justify-between gap-[var(--spacing-sm)] text-(--color-ink) text-[length:var(--text-sm)]">
+                    <span>{t(label)}</span>
+                    <span className="flex items-baseline gap-[4px]">
+                      <input
+                        data-testid={`weighin-${key}`}
+                        inputMode="decimal"
+                        enterKeyHint="done"
+                        value={text}
+                        aria-invalid={err || undefined}
+                        aria-describedby={err ? `weighin-${key}-error` : undefined}
+                        onChange={(e) => {
+                          setText(e.target.value);
+                          setErr(false);
+                        }}
+                        className={`h-11 w-[96px] rounded-[var(--radius-md)] border bg-(--color-surface) px-[var(--spacing-sm)] text-right text-(--color-ink) text-[length:var(--text-md)] tabular-nums ${err ? "border-(--color-bad)" : "border-(--color-line-strong)"}`}
+                      />
+                      <span className="w-[20px] text-(--color-ink2)">{suffix}</span>
+                    </span>
+                  </label>
+                  {err ? (
+                    <p
+                      id={`weighin-${key}-error`}
+                      role="alert"
+                      data-testid={`weighin-${key}-error`}
+                      className="text-right text-(--color-bad) text-[length:var(--text-xs)]"
+                    >
+                      {t(rangeKey, { min, max })}
+                    </p>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {extra ? <div className="mt-[var(--spacing-sm)]">{extra}</div> : null}
+
+      {jumpAsk != null && jumpAsk === kg && refKg != null ? (
+        <p
+          role="alert"
+          data-testid="weighin-jump-confirm"
+          className="mt-[var(--spacing-sm)] text-(--color-ink) text-[length:var(--text-sm)]"
+        >
+          {t("bodyweight.jumpConfirm", { value: `${formatBodyweight(refKg, unit)}${unit}` })}
+        </p>
+      ) : null}
+
+      {/* [원본] mt-md flex gap-sm — 인바디 칸이 붙어 50dvh 를 넘으면 저장 줄이 아래로 숨었다 → 시트 바닥에 붙인다(REV-096 M-1) */}
+      {/* [원본] <div className="sticky bottom-0 mt-[var(--spacing-md)] flex gap-[var(--spacing-sm)] bg-(--color-surface) pt-[var(--spacing-xs)]"> */}
+      {/* [개선] 안에 끼울 때는 바닥에 붙이지 않는다(밑의 지난 기록 목록을 가리지 않게) · 둘째 버튼 없음 — 닫기는 바깥 시트가 */}
+      <div
+        className={
+          inline
+            ? "mt-[var(--spacing-sm)] flex gap-[var(--spacing-sm)]"
+            : "sticky bottom-0 mt-[var(--spacing-md)] flex gap-[var(--spacing-sm)] bg-(--color-surface) pt-[var(--spacing-xs)]"
+        }
+      >
+        {inline ? null : (
+          <button
+            type="button"
+            data-testid="weighin-secondary"
+            onClick={secondary}
+            disabled={busy}
+            className="h-[44px] flex-1 rounded-[var(--radius-md)] border border-(--color-line-strong) font-semibold text-(--color-ink) text-[length:var(--text-md)] disabled:opacity-60"
+          >
+            {secondaryLabel}
+          </button>
+        )}
+        <button
+          type="button"
+          ref={saveBtnRef}
+          data-testid="weighin-save"
+          onClick={save}
+          disabled={busy}
+          aria-busy={busy}
+          className="h-[44px] flex-1 rounded-[var(--radius-md)] bg-(--color-brand) font-semibold text-(--color-on-brand) text-[length:var(--text-md)] disabled:opacity-60"
+        >
+          {jumpAsk != null && jumpAsk === kg ? t("bodyweight.saveAnyway") : primaryLabel}
+        </button>
+      </div>
+    </>
+  );
+
+  if (inline)
+    return (
+      // 묶음 이름 = title(「체중 기록」) — fieldset 은 min-content 너비를 고집해 좁은 화면에서 넘치므로 min-w-0
+      <fieldset data-testid={testId} aria-label={title} className="m-0 min-w-0 border-0 p-0">
+        {content}
+      </fieldset>
+    );
+  if (!root) return null;
 
   return createPortal(
     <div data-testid={testId} className="fixed inset-0 z-50 flex items-end justify-center">
@@ -333,248 +651,7 @@ export function WeighInSheet({
         // 높이 ≤ 50dvh — 헤더 타이머가 시트 위로 보인다(U-7). 내용이 넘치면 시트 안에서 스크롤.
         className="relative max-h-[50dvh] w-full max-w-[560px] overflow-y-auto rounded-t-[var(--radius-lg)] bg-(--color-surface) px-[var(--spacing-lg)] pt-[var(--spacing-md)] pb-[calc(var(--spacing-md)+env(safe-area-inset-bottom))]"
       >
-        <h2
-          id={`${testId}-title`}
-          // 포탈이 붙는 순간 한 번 제목에 포커스 — 입력칸이 아니라(키보드가 뜨지 않게 · U-7 ③)
-          ref={(el) => {
-            if (el && !focused.current) {
-              focused.current = true;
-              el.focus();
-            }
-          }}
-          tabIndex={-1}
-          className="font-bold text-(--color-ink) text-[length:var(--text-lg)] outline-none"
-        >
-          {title}
-        </h2>
-        {last !== undefined ? (
-          <p className="text-(--color-ink2) text-[length:var(--text-sm)]" data-testid="weighin-last">
-            {last
-              ? t("bodyweight.lastValue", {
-                  value: `${formatBodyweight(last.kg, unit)}${unit}`,
-                  date: formatBodyweightDate(last.measuredAt),
-                })
-              : t("bodyweight.noLast")}
-          </p>
-        ) : null}
-
-        <div className="mt-[var(--spacing-xs)] flex min-h-[48px] items-center justify-center gap-[var(--spacing-sm)]">
-          {typing ? (
-            <label className="flex items-baseline gap-[4px]">
-              <span className="sr-only">{t("bodyweight.inputLabel", { unit })}</span>
-              <input
-                data-testid="weighin-input"
-                inputMode="decimal"
-                // 눌러서 연 칸이라 여기서는 포커스한다(사람이 고른 동작) — 붙는 순간 한 번
-                ref={(el) => {
-                  if (el && document.activeElement !== el && !el.dataset.focused) {
-                    el.dataset.focused = "1";
-                    el.focus();
-                    el.select();
-                  }
-                }}
-                value={draft}
-                enterKeyHint="done"
-                onChange={(e) => {
-                  setDraft(e.target.value);
-                  setEntryError(false);
-                }}
-                onBlur={() => commitTyped()}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    commitTyped();
-                  }
-                }}
-                className="w-[120px] rounded-[var(--radius-md)] border border-(--color-line-strong) bg-(--color-surface) px-[var(--spacing-sm)] text-center font-bold text-(--color-ink) text-[32px] tabular-nums leading-tight"
-              />
-              <span className="text-(--color-ink2) text-[length:var(--text-md)]">{unit}</span>
-            </label>
-          ) : (
-            <button
-              type="button"
-              data-testid="weighin-value"
-              aria-label={`${t("bodyweight.directInput")} — ${shown}${unit}`}
-              onClick={() => {
-                setDraft(shown);
-                setEntryError(false);
-                setTyping(true);
-              }}
-              className="flex min-h-[44px] items-baseline gap-[4px] rounded-[var(--radius-md)] px-[var(--spacing-sm)]"
-            >
-              <span className="font-bold text-(--color-ink) text-[32px] tabular-nums leading-tight">
-                {shown}
-              </span>
-              <span className="text-(--color-ink2) text-[length:var(--text-md)]">{unit}</span>
-            </button>
-          )}
-          {typing ? (
-            // 숫자 키패드에 Enter 가 없는 기기(iOS)에서 입력을 확정하는 길(qa P3-7) — 누르기 시작할 때 blur 가 확정한다
-            <button
-              type="button"
-              data-testid="weighin-input-done"
-              onClick={() => commitTyped()}
-              className="flex h-[44px] min-w-[44px] items-center justify-center rounded-[var(--radius-pill)] border border-(--color-line-strong) px-[var(--spacing-sm)] font-medium text-(--color-ink) text-[length:var(--text-sm)]"
-            >
-              {t("bodyweight.done")}
-            </button>
-          ) : (
-            <button
-              type="button"
-              data-testid="weighin-type"
-              onClick={() => {
-                setDraft(shown);
-                setEntryError(false);
-                setTyping(true);
-              }}
-              className="flex h-[44px] items-center rounded-[var(--radius-pill)] px-[var(--spacing-sm)] text-(--color-ink2) text-[length:var(--text-sm)] underline underline-offset-2"
-            >
-              {t("bodyweight.directInput")}
-            </button>
-          )}
-        </div>
-
-        {entryError ? (
-          <p
-            role="alert"
-            data-testid="weighin-entry-error"
-            className="text-center text-(--color-bad) text-[length:var(--text-sm)]"
-          >
-            {t("bodyweight.entryOutOfRange", {
-              min: Math.ceil(fromKg(WEIGH_IN_MIN_ENTRY_KG, unit)),
-              max: Math.floor(fromKg(BODYWEIGHT_MAX_KG, unit)),
-              unit,
-            })}
-          </p>
-        ) : null}
-
-        <div className="mt-[var(--spacing-xs)] flex flex-col gap-[6px]" data-testid="weighin-steps">
-          <div className="flex gap-[6px]">{[-steps[2], -steps[1], -steps[0]].map(stepBtn)}</div>
-          <div className="flex gap-[6px]">{[steps[0], steps[1], steps[2]].map(stepBtn)}</div>
-        </div>
-
-        {inbody ? (
-          <div className="mt-[var(--spacing-sm)]" data-testid="weighin-inbody">
-            <button
-              type="button"
-              data-testid="weighin-inbody-toggle"
-              aria-expanded={inbodyOpen}
-              onClick={() => setInbodyOpen((o) => !o)}
-              className="flex min-h-11 w-full items-center gap-[var(--spacing-xs)] text-left text-(--color-ink) text-[length:var(--text-sm)]"
-            >
-              <Icon
-                name={inbodyOpen ? "chevron-down" : "chevron-forward"}
-                size={16}
-                color="var(--color-ink2)"
-              />
-              <span className="font-medium">
-                {t(inbodyOpen ? "bodyweight.inbodyHide" : "bodyweight.inbodyToggle")}
-              </span>
-            </button>
-            {inbodyOpen ? (
-              <div className="flex flex-col gap-[6px]">
-                <p className="text-(--color-ink2) text-[length:var(--text-xs)]">
-                  {t("bodyweight.inbodyOptional")}
-                </p>
-                {(
-                  [
-                    [
-                      "smm",
-                      "bodyweight.smmLabel",
-                      "kg",
-                      smmText,
-                      setSmmText,
-                      smmError,
-                      setSmmError,
-                      "bodyweight.smmRange",
-                      SMM_MIN_KG,
-                      SMM_MAX_KG,
-                    ],
-                    [
-                      "pbf",
-                      "bodyweight.pbfLabel",
-                      "%",
-                      pbfText,
-                      setPbfText,
-                      pbfError,
-                      setPbfError,
-                      "bodyweight.pbfRange",
-                      PBF_MIN,
-                      PBF_MAX,
-                    ],
-                  ] as const
-                ).map(([key, label, suffix, text, setText, err, setErr, rangeKey, min, max]) => (
-                  <div key={key}>
-                    <label className="flex min-h-11 items-center justify-between gap-[var(--spacing-sm)] text-(--color-ink) text-[length:var(--text-sm)]">
-                      <span>{t(label)}</span>
-                      <span className="flex items-baseline gap-[4px]">
-                        <input
-                          data-testid={`weighin-${key}`}
-                          inputMode="decimal"
-                          enterKeyHint="done"
-                          value={text}
-                          aria-invalid={err || undefined}
-                          aria-describedby={err ? `weighin-${key}-error` : undefined}
-                          onChange={(e) => {
-                            setText(e.target.value);
-                            setErr(false);
-                          }}
-                          className={`h-11 w-[96px] rounded-[var(--radius-md)] border bg-(--color-surface) px-[var(--spacing-sm)] text-right text-(--color-ink) text-[length:var(--text-md)] tabular-nums ${err ? "border-(--color-bad)" : "border-(--color-line-strong)"}`}
-                        />
-                        <span className="w-[20px] text-(--color-ink2)">{suffix}</span>
-                      </span>
-                    </label>
-                    {err ? (
-                      <p
-                        id={`weighin-${key}-error`}
-                        role="alert"
-                        data-testid={`weighin-${key}-error`}
-                        className="text-right text-(--color-bad) text-[length:var(--text-xs)]"
-                      >
-                        {t(rangeKey, { min, max })}
-                      </p>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-
-        {extra ? <div className="mt-[var(--spacing-sm)]">{extra}</div> : null}
-
-        {jumpAsk != null && jumpAsk === kg && refKg != null ? (
-          <p
-            role="alert"
-            data-testid="weighin-jump-confirm"
-            className="mt-[var(--spacing-sm)] text-(--color-ink) text-[length:var(--text-sm)]"
-          >
-            {t("bodyweight.jumpConfirm", { value: `${formatBodyweight(refKg, unit)}${unit}` })}
-          </p>
-        ) : null}
-
-        {/* [원본] mt-md flex gap-sm — 인바디 칸이 붙어 50dvh 를 넘으면 저장 줄이 아래로 숨었다 → 시트 바닥에 붙인다(REV-096 M-1) */}
-        <div className="sticky bottom-0 mt-[var(--spacing-md)] flex gap-[var(--spacing-sm)] bg-(--color-surface) pt-[var(--spacing-xs)]">
-          <button
-            type="button"
-            data-testid="weighin-secondary"
-            onClick={secondary}
-            disabled={busy}
-            className="h-[44px] flex-1 rounded-[var(--radius-md)] border border-(--color-line-strong) font-semibold text-(--color-ink) text-[length:var(--text-md)] disabled:opacity-60"
-          >
-            {secondaryLabel}
-          </button>
-          <button
-            type="button"
-            data-testid="weighin-save"
-            onClick={save}
-            disabled={busy}
-            aria-busy={busy}
-            className="h-[44px] flex-1 rounded-[var(--radius-md)] bg-(--color-brand) font-semibold text-(--color-on-brand) text-[length:var(--text-md)] disabled:opacity-60"
-          >
-            {jumpAsk != null && jumpAsk === kg ? t("bodyweight.saveAnyway") : primaryLabel}
-          </button>
-        </div>
+        {content}
       </div>
     </div>,
     root,

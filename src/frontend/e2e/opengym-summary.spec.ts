@@ -64,13 +64,17 @@ async function 체중_입력(page: Page, kg: string) {
   // [원본] bodyweight-value 를 눌러 바로 고치던 칸 — P3(체중 기록 시트)로 바뀌었다(opengym-bodyweight 의 프로필_입력과 같은 길)
   await page.goto("/profile");
   await expect(page.getByTestId("bodyweight")).toBeVisible({ timeout: 20_000 });
-  await page.getByTestId("btn-bodyweight-record").click();
-  const sheet = page.getByTestId("bodyweight-record-sheet");
+  // [원본] btn-bodyweight-record → bodyweight-record-sheet → 저장하면 닫힘
+  // [개선] 체중 한 줄(2026-11-10) — 「체중」 줄 → 시트 맨 위 바로 입력(bodyweight-entry) · 저장해도 열린 채 → 알림을 보고 「확인」
+  await page.getByTestId("bodyweight").click();
+  const sheet = page.getByTestId("bodyweight-entry");
   await sheet.getByTestId("weighin-type").click();
   await sheet.getByTestId("weighin-input").fill(kg);
   await sheet.getByTestId("weighin-input").press("Enter");
   await sheet.getByTestId("weighin-save").click();
-  await expect(sheet).toHaveCount(0);
+  await expect(page.getByTestId("toast").filter({ hasText: "체중을 기록했어요" })).toBeVisible();
+  await page.getByTestId("bodyweight-history-close").click();
+  await expect(page.getByTestId("bodyweight-sheet")).toHaveCount(0);
   await expect(page.getByTestId("bodyweight-value")).toContainText(kg);
 }
 

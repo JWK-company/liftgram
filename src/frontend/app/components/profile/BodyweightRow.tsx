@@ -8,16 +8,20 @@
 //     updateUserSettings({ bodyweightKg: null }) → 같은 write 안에서 표식 + 미러 null. 다음 기록이 오면 다시 그 값이 내 체중이다.
 //     이력이 0 이고 프로필 값만 있는 기기(로그인 안 한 기기는 bw-init 을 심지 않는다 · CD-5)에서도 보인다(qa P3-8).
 // 표시 단위: kg 고정(SRS-067 · core bodyweightUnitOf) — 저장도 kg.
+// [개선] 체중 한 줄(2026-11-10) — 두 줄(「체중」+「기록」 버튼 · 「체중 기록 전체 n개 ›」)을 「체중 ‹최근 값› ›」 한 줄로 합쳤다.
+//   줄을 누르면 「체중」 시트 하나 — 맨 위 바로 입력(WeighInSheet inline · 저장해도 열린 채, 새 줄이 목록 맨 위에) → 지난 기록(고치기·지우기)
+//   → 「체중 미설정으로 두기」(설명은 확인 창에만) → 확인. 줄·시트의 부가 설명 두 줄은 지웠다(확인 창과 겹침).
+//   BodyweightRecordSheet(포탈 시트)는 통계 체중 카드가 그대로 쓴다.
 // 고치기 날짜: 날짜만 바꾸고 시각은 두되 **지금보다 뒤면 지금으로 자른다**(미래 측정은 뒤에 적은 기록을 가린다 · qa P3-1 · core 도 거부).
 import { errorText } from "@/lib/errorText";
 import {
-  isValidBodyweightLog,
+  // [원본] isValidBodyweightLog, — 「체중 기록 전체 n개」 줄과 함께 빠졌다(주석으로 남긴 옛 BodyweightRow 만 쓴다)
   sortBodyweightLogs,
   type ValidBodyweightLog,
 } from "@app/core/domain/bodyweight";
 import { bodyweightUnitOf, formatBodyweight, localDayRange } from "@app/core/domain/weighIn";
 import { useUser } from "@app/core/state/userContext";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { afterBodyweightWrite, useBodyweightLogs } from "@/lib/bodyweightLogs";
 import { t } from "@/lib/i18n";
 import { useToast } from "../Toast";
@@ -61,7 +65,7 @@ export function BodyweightRecordSheet({ onClose }: { onClose: () => void }) {
   );
 }
 
-/** 프로필 「설정」 묶음 안의 두 줄 — 체중(값 + 기록) · 체중 기록 전체 */
+/* [원본] 프로필 「설정」 묶음 안의 두 줄 — 체중(값 + 기록) · 체중 기록 전체
 export function BodyweightRow() {
   const { user, bodyweightKg } = useUser();
   const { logs } = useBodyweightLogs();
@@ -110,6 +114,34 @@ export function BodyweightRow() {
     </>
   );
 }
+*/
+
+/** [개선] 프로필 「설정」 묶음 안의 한 줄 — 「체중 ‹최근 값› ›」. 줄 전체가 누르는 자리(ListRow 52px) → 「체중」 시트 */
+export function BodyweightRow() {
+  const { user, bodyweightKg } = useUser();
+  const [open, setOpen] = useState(false);
+  const unit = bodyweightUnitOf(user?.weightUnit);
+  return (
+    <>
+      <ListRow
+        testId="bodyweight"
+        title={t("profile.bodyweight")}
+        value={
+          <span
+            data-testid="bodyweight-value"
+            className={`tabular-nums text-[length:var(--text-md)] ${
+              bodyweightKg != null ? "font-semibold text-(--color-ink)" : "text-(--color-ink2)"
+            }`}
+          >
+            {bodyweightKg != null ? `${formatBodyweight(bodyweightKg, unit)}${unit}` : t("bodyweight.unset")}
+          </span>
+        }
+        onPress={() => setOpen(true)}
+      />
+      {open ? <BodyweightHistorySheet onClose={() => setOpen(false)} /> : null}
+    </>
+  );
+}
 
 /** 같은 시각(시·분·초)을 유지한 채 날짜만 바꾼다 — 고치기의 날짜 칸 */
 function withDate(measuredAt: number, ymd: string): number | null {
@@ -125,7 +157,10 @@ function ymdOf(ms: number): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-/** 「체중 기록 전체」 — 최근 것이 위. 고치기(값·날짜) · 지우기(마지막이면 「미설정으로 돌아가요」 확인) · 미설정으로 두기 */
+/**
+ * 「체중」 시트 — 맨 위 바로 입력(새 줄 · source='manual') · 지난 기록(최근 것이 위 · 고치기(값·날짜) · 지우기(마지막이면 「미설정으로 돌아가요」 확인))
+ * · 미설정으로 두기. [원본] 제목 「체중 기록 전체」 · 바로 입력 없음(「기록」 버튼의 따로 시트)
+ */
 export function BodyweightHistorySheet({ onClose }: { onClose: () => void }) {
   const { user, bodyweightKg, refresh } = useUser();
   const userId = user?.id ?? null;
@@ -134,11 +169,32 @@ export function BodyweightHistorySheet({ onClose }: { onClose: () => void }) {
   const unit = bodyweightUnitOf(user?.weightUnit);
   // 유효 행만(「설정 안 함」 표식은 측정이 아니라 목록에 안 보인다 · qa1 CD-2 주의)
   const rows = sortBodyweightLogs(logs).reverse();
+  const last = lastEntryOf(logs); // [개선] 바로 입력의 출발값·±30% 기준
   const [editing, setEditing] = useState<ValidBodyweightLog | null>(null);
   const [editDate, setEditDate] = useState("");
   const [deleting, setDeleting] = useState<ValidBodyweightLog | null>(null);
   const [confirmUnset, setConfirmUnset] = useState(false);
   const todayEnd = localDayRange(Date.now()).endMs;
+
+  // [개선] 바로 입력 중 바깥(스크림) 누름 = 입력 확정만(닫지 않음 · qa P3-7 을 inline 에서도 · 리뷰 M-1).
+  //   누르기 시작하는 순간(capture pointerdown — 입력칸 blur 보다 먼저) 입력 중이었는지 적어 두고, Overlay 의 닫기에서 한 번 거른다.
+  //   Esc·뒤로·「확인」은 그대로 닫는다(누름 표식은 마지막 누름 때의 값이라 키보드 닫기엔 걸리지 않는다).
+  const typingRef = useRef(false);
+  const downWhileTyping = useRef(false);
+  useEffect(() => {
+    const onDown = () => {
+      downWhileTyping.current = typingRef.current;
+    };
+    document.addEventListener("pointerdown", onDown, true);
+    return () => document.removeEventListener("pointerdown", onDown, true);
+  }, []);
+  const closeFromOverlay = () => {
+    if (downWhileTyping.current) {
+      downWhileTyping.current = false;
+      return;
+    }
+    onClose();
+  };
 
   const run = async (fn: () => Promise<void>, done: string) => {
     try {
@@ -209,12 +265,42 @@ export function BodyweightHistorySheet({ onClose }: { onClose: () => void }) {
 
   return (
     <>
-      <SheetShell
-        title={t("bodyweight.historyTitle")}
-        onClose={onClose}
-        hideOk
-        testId="bodyweight-history-sheet"
-      >
+      {/* [원본] <SheetShell title={t("bodyweight.historyTitle")} onClose={onClose} hideOk testId="bodyweight-history-sheet"> */}
+      <SheetShell title={t("profile.bodyweight")} onClose={closeFromOverlay} hideOk testId="bodyweight-sheet">
+        {/* [개선] 바로 입력 — 기록 시트와 같은 입력·인바디 펼침·±30% 확인. 저장하면 아래 목록 맨 위에 새 줄, 시트는 열린 채.
+            「지난 기록 … · 날짜」 한 줄은 바로 아래 목록과 겹쳐 빼고(last 없음), ±30% 기준은 최근 기록으로 준다 */}
+        <div className="mt-[var(--spacing-sm)]">
+          <WeighInSheet
+            inline
+            testId="bodyweight-entry"
+            title={t("bodyweight.sheetRecordTitle")}
+            unit={unit}
+            initialKg={bodyweightKg ?? last?.kg ?? null}
+            // [원본] last 없음 — 기록이 하나도 없으면 「지난 기록이 없어요 — 값을 맞춰 주세요」를 보인다(출발값 70.0 이 진짜 값처럼 보이지 않게 · 리뷰 L-1)
+            last={last ? undefined : null}
+            compareKg={last?.kg ?? null}
+            onTypingChange={(v) => {
+              typingRef.current = v;
+            }}
+            primaryLabel={t("bodyweight.save")}
+            secondaryLabel={t("common.cancel")}
+            onDismiss={onClose}
+            inbody={{ skeletalMuscleKg: null, bodyFatPct: null }}
+            onSave={async (kg, extras) => {
+              await run(async () => {
+                const repo = await import("@app/core/data/bodyweightRepository");
+                await repo.addBodyweightLog({ weight: kg, unit: "kg", source: "manual", ...(extras ?? {}) });
+              }, t("bodyweight.saved"));
+            }}
+          />
+        </div>
+        {/* 소제목 — 시트 제목(AppText)은 제목 요소가 아니라 h2(리뷰 L-3: h3 하나만 있으면 제목 목록에서 단계가 빈다) */}
+        <h2
+          className="mt-[var(--spacing-lg)] font-semibold text-(--color-ink2) text-[length:var(--text-sm)]"
+          data-testid="bodyweight-history-heading"
+        >
+          {t("bodyweight.pastEntries")}
+        </h2>
         {loaded && rows.length === 0 ? (
           <p
             className="mt-[var(--spacing-sm)] text-(--color-ink2) text-[length:var(--text-sm)]"
@@ -223,7 +309,12 @@ export function BodyweightHistorySheet({ onClose }: { onClose: () => void }) {
             {t("bodyweight.historyEmpty")}
           </p>
         ) : (
-          <ul className="mt-[var(--spacing-sm)] flex flex-col" data-testid="bodyweight-history-list">
+          // data-loaded — 시험이 「다 읽은 목록」의 줄 수를 세게(읽기 전 빈 목록 ≠ 0개)
+          <ul
+            className="mt-[var(--spacing-sm)] flex flex-col"
+            data-testid="bodyweight-history-list"
+            data-loaded={loaded ? "1" : "0"}
+          >
             {rows.map((l, i) => {
               const entry = `${formatBodyweight(l.weightKg, unit)}${unit} · ${formatBodyweightDate(l.measuredAt, true)}`;
               return (
@@ -307,9 +398,8 @@ export function BodyweightHistorySheet({ onClose }: { onClose: () => void }) {
             >
               {t("bodyweight.unsetAction")}
             </button>
-            <p className="mt-[4px] text-(--color-ink2) text-[length:var(--text-sm)]">
-              {t("bodyweight.unsetCaption")}
-            </p>
+            {/* [원본] <p className="mt-[4px] text-(--color-ink2) text-[length:var(--text-sm)]">{t("bodyweight.unsetCaption")}</p>
+                [개선] 설명은 확인 창에만(같은 문장이 두 번 보였다) */}
           </div>
         ) : null}
         <div className="mt-[var(--spacing-md)]">

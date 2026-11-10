@@ -56,7 +56,8 @@ test("체중을 넣으면 세션의 '체중 미설정' 경고가 사라진다", 
   await page.goto("/profile");
   await expect(page.getByTestId("bodyweight")).toBeVisible({ timeout: 20_000 });
   // [원본] 스테퍼의 값을 눌러 직접 입력 — bodyweight-value 클릭 → bodyweight-input 70 → Enter
-  await page.getByTestId("btn-bodyweight-record").click();
+  // [원본] await page.getByTestId("btn-bodyweight-record").click(); — 체중 한 줄(2026-11-10): 「체중」 줄 → 시트 맨 위 바로 입력
+  await page.getByTestId("bodyweight").click();
   await page.getByTestId("weighin-type").click();
   await page.getByTestId("weighin-input").fill("70");
   await page.getByTestId("weighin-input").press("Enter");

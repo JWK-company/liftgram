@@ -1606,6 +1606,7 @@ export const en: Record<TransKey, string> = {
   "bodyweight.historyEntry": "All bodyweight entries",
   "bodyweight.historyTitle": "All bodyweight entries",
   "bodyweight.historyEmpty": "No entries yet",
+  "bodyweight.pastEntries": "Past entries",
   "bodyweight.historyCount": "{count} entries",
   "bodyweight.edit": "Edit",
   "bodyweight.delete": "Delete",

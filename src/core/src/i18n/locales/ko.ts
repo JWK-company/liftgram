@@ -1610,6 +1610,7 @@ export const ko = {
   "bodyweight.historyEntry": "체중 기록 전체",
   "bodyweight.historyTitle": "체중 기록 전체",
   "bodyweight.historyEmpty": "아직 기록이 없어요",
+  "bodyweight.pastEntries": "지난 기록",
   "bodyweight.historyCount": "{count}개",
   "bodyweight.edit": "고치기",
   "bodyweight.delete": "지우기",

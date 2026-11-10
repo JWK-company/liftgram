@@ -48,12 +48,14 @@ test.describe("체중 입력 되돌림 없음(CD-1·CD-2)", () => {
     await page.goto("/profile");
     await expect(page.getByTestId("bodyweight")).toBeVisible({ timeout: 20_000 });
     if (kg === "0") {
-      await page.getByTestId("row-bodyweight-history").click();
+      // [원본] row-bodyweight-history → 「체중 기록 전체」 시트 · [개선] 체중 한 줄 — 「체중」 줄 → 「체중」 시트(2026-11-10)
+      await page.getByTestId("bodyweight").click();
       await page.getByTestId("btn-bodyweight-unset").click();
       await page.getByTestId("dialog-confirm").click();
       await expect(page.getByTestId("bodyweight-value")).toHaveText("미설정");
     } else {
-      await page.getByTestId("btn-bodyweight-record").click();
+      // [원본] btn-bodyweight-record → 기록 시트 · [개선] 「체중」 줄 → 시트 맨 위 바로 입력(저장해도 열린 채)
+      await page.getByTestId("bodyweight").click();
       await page.getByTestId("weighin-type").click();
       await page.getByTestId("weighin-input").fill(kg);
       await page.getByTestId("weighin-input").press("Enter");

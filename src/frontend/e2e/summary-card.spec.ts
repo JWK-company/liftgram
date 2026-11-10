@@ -129,8 +129,13 @@ test("보낸 요약 카드는 DM·알림에서 열리고, 코치 리포트도 �
 
     // 옛 앱에서 쌓인 대기 항목은 앱을 열면 한 번만 간다(화면은 없어도 대기열은 돈다)
     await 대기_심기();
+    // [원본] 보낸 요청이 보이자마자 새로고침 — 부하 중엔 응답(대기열 비움) 전에 다시 열려 한 번 더 보냈다(전체 e2e 에서 2)
+    // [개선] 첫 보내기의 응답까지 기다린 뒤 새로고침 — 「한 번만 간다」는 의도는 그대로
+    const sent = page.waitForResponse((r) => r.url().includes("SendProgressSummary"), { timeout: 20_000 });
     await page.reload();
+    await sent;
     await expect.poll(() => sends, { timeout: 20_000 }).toBe(1);
+    await page.waitForTimeout(500);
     await page.reload();
     await page.waitForTimeout(2_000);
     expect(sends).toBe(1);

@@ -341,7 +341,7 @@ export default function ProfileClient() {
             }
           />
           */}
-          {/* [개선] 체중 = 이력의 최신값(읽기 전용) + 「기록」 · 「체중 기록 전체」 @plm SRS-077 */}
+          {/* [개선] 체중 = 이력의 최신값(읽기 전용) + 「기록」 · 「체중 기록 전체」 @plm SRS-077 → 「체중 ‹최근 값› ›」 한 줄 · 시트에 바로 입력과 지난 기록(2026-11-10) */}
           <BodyweightRow />
           <ListRow
             testId="row-rest-sound"

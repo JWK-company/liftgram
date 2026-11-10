@@ -15,6 +15,8 @@
 //   · (qa P3-2) 카드에서 막 적은 기록이 새로고침 없이 주간 변화에 들어간다
 //   · (qa P3-4·P3-6·P3-8) 고치기·지우기 접근 이름 · 직접 입력 오타 방지 · 이력 0 + 프로필 값만 있어도 미설정으로 두기
 //   · 백업 내보내기 → 새 계정 기기에서 가져오기 → 이력·미러 유지
+//   · [개선] 체중 한 줄(2026-11-10) — 프로필은 「체중 ‹최근 값› ›」 한 줄 · 누르면 「체중」 시트(맨 위 바로 입력 → 지난 기록 → 미설정으로 두기)
+//     저장해도 시트는 열린 채 새 줄이 맨 위 · 부가 설명 없음 · 360px 넘침 없음 · 다크
 import { expect, test } from "@playwright/test";
 import {
   가입,
@@ -56,33 +58,60 @@ async function 프로필_체중(page: Page): Promise<string> {
   return (await v.textContent()) ?? "";
 }
 
-/** 프로필 「기록」 → 시트에서 steps 를 누르고 저장 */
-async function 프로필_기록(page: Page, steps: string[] = []): Promise<void> {
-  await page.goto("/profile");
-  await page.getByTestId("btn-bodyweight-record").click();
-  const sheet = page.getByTestId("bodyweight-record-sheet");
-  await expect(sheet).toBeVisible();
-  for (const s of steps) await sheet.getByTestId(`weighin-step-${s}`).click();
-  await sheet.getByTestId("weighin-save").click();
-  await expect(sheet).toHaveCount(0);
+// [원본] 프로필_기록·프로필_입력 — 「기록」 버튼(btn-bodyweight-record) → 따로 뜨는 기록 시트(bodyweight-record-sheet) → 저장하면 닫힘
+//   기록_전체 — 「체중 기록 전체」 줄(row-bodyweight-history) → bodyweight-history-sheet
+// [개선] 체중 한 줄(2026-11-10) — 「체중」 줄 → 「체중」 시트(bodyweight-sheet) 맨 위 바로 입력(bodyweight-entry). 저장해도 열린 채
+
+/** 다 읽은 「체중」 시트 목록의 줄 수(읽기 전 빈 목록을 0개로 세지 않게) */
+async function 목록_줄수(page: Page): Promise<number> {
+  await expect(
+    page.locator(
+      '[data-testid="bodyweight-history-list"][data-loaded="1"], [data-testid="bodyweight-history-empty"]',
+    ),
+  ).toHaveCount(1);
+  return page.getByTestId("bodyweight-history-row").count();
 }
 
-/** 프로필 「기록」 → 직접 입력 → 저장 */
-async function 프로필_입력(page: Page, value: string): Promise<void> {
+/**
+ * 「체중」 시트 바로 입력의 저장 — 목록 줄이 하나 늘면 저장 끝(리뷰 M-3: 알림은 2.6초 남아 연속 저장의 신호로 못 쓴다).
+ * 시트가 열린 채인지 본 뒤 close 면 「확인」으로 닫는다
+ */
+async function 바로_저장(page: Page, close = true): Promise<void> {
+  const n = await 목록_줄수(page);
+  await page.getByTestId("bodyweight-entry").getByTestId("weighin-save").click();
+  await expect(page.getByTestId("bodyweight-history-row")).toHaveCount(n + 1);
+  await expect(page.getByTestId("bodyweight-sheet")).toBeVisible();
+  if (!close) return;
+  await page.getByTestId("bodyweight-history-close").click();
+  await expect(page.getByTestId("bodyweight-sheet")).toHaveCount(0);
+}
+
+/** 프로필 「체중」 줄 → 시트 · 바로 입력 묶음을 돌려준다 */
+async function 체중_시트(page: Page) {
   await page.goto("/profile");
-  await page.getByTestId("btn-bodyweight-record").click();
-  const sheet = page.getByTestId("bodyweight-record-sheet");
+  await page.getByTestId("bodyweight").click({ timeout: 20_000 });
+  await expect(page.getByTestId("bodyweight-sheet")).toBeVisible();
+  return page.getByTestId("bodyweight-entry");
+}
+
+/** 프로필 「체중」 → 바로 입력에서 steps 를 누르고 저장 */
+async function 프로필_기록(page: Page, steps: string[] = []): Promise<void> {
+  const sheet = await 체중_시트(page);
+  for (const s of steps) await sheet.getByTestId(`weighin-step-${s}`).click();
+  await 바로_저장(page);
+}
+
+/** 프로필 「체중」 → 바로 입력에서 직접 입력 → 저장 */
+async function 프로필_입력(page: Page, value: string): Promise<void> {
+  const sheet = await 체중_시트(page);
   await sheet.getByTestId("weighin-type").click();
   await sheet.getByTestId("weighin-input").fill(value);
   await sheet.getByTestId("weighin-input").press("Enter");
-  await sheet.getByTestId("weighin-save").click();
-  await expect(sheet).toHaveCount(0);
+  await 바로_저장(page);
 }
 
 async function 기록_전체(page: Page): Promise<void> {
-  await page.goto("/profile");
-  await page.getByTestId("row-bodyweight-history").click();
-  await expect(page.getByTestId("bodyweight-history-sheet")).toBeVisible();
+  await 체중_시트(page);
 }
 
 async function 이력_행(page: Page): Promise<Record<string, unknown>[]> {
@@ -265,7 +294,7 @@ test("통계 체중 카드 — 하나면 안내 · 불규칙 간격 3점 곡선 
     await ed.getByTestId("bodyweight-edit-date").fill(ago(days));
     await ed.getByTestId("weighin-save").click();
     await expect(ed).toHaveCount(0);
-    await expect(page.getByTestId("bodyweight-history-sheet")).toBeVisible();
+    await expect(page.getByTestId("bodyweight-sheet")).toBeVisible();
   }
   await page.getByTestId("bodyweight-history-close").click();
 
@@ -468,8 +497,9 @@ test("예전 프로필 단위가 lb 인 사용자도 체중은 kg(SRS-067) · �
   await idb_행_고치기(page, "user_profiles", [{ set: { weight_unit: "lb" } }]);
   expect(await 프로필_체중(page)).toBe("75.0kg");
 
-  await page.getByTestId("btn-bodyweight-record").click();
-  const sheet = page.getByTestId("bodyweight-record-sheet");
+  // [원본] btn-bodyweight-record → bodyweight-record-sheet
+  await page.getByTestId("bodyweight").click();
+  const sheet = page.getByTestId("bodyweight-entry");
   await expect(sheet.getByTestId("weighin-value")).toContainText("75.0");
   await expect(sheet.getByTestId("weighin-value")).toContainText("kg");
   await expect(sheet.getByTestId("weighin-value")).not.toContainText("lb");
@@ -478,8 +508,8 @@ test("예전 프로필 단위가 lb 인 사용자도 체중은 kg(SRS-067) · �
   await expect(sheet.getByTestId("weighin-step-p0_2")).toHaveCount(0);
   await sheet.getByTestId("weighin-type").click();
   await sheet.getByTestId("weighin-input").press("Enter");
-  await sheet.getByTestId("weighin-save").click();
-  await expect(sheet).toHaveCount(0);
+  // [원본] await sheet.getByTestId("weighin-save").click(); await expect(sheet).toHaveCount(0);
+  await 바로_저장(page);
   await 프로필_기록(page, ["p0_5"]);
   expect(await 프로필_체중(page)).toBe("75.5kg");
   await 기록_전체(page);
@@ -524,15 +554,16 @@ test("직접 입력 오타 방지 — 20kg 미만은 이유 한 줄 · 지난 �
   test.setTimeout(120_000);
   await 준비(page);
   await 프로필_입력(page, "72");
-  await page.getByTestId("btn-bodyweight-record").click();
-  const sheet = page.getByTestId("bodyweight-record-sheet");
+  // [원본] btn-bodyweight-record → bodyweight-record-sheet(저장하면 닫힘)
+  const sheet = await 체중_시트(page);
   await sheet.getByTestId("weighin-type").click();
   await sheet.getByTestId("weighin-input").fill("7");
   await sheet.getByTestId("weighin-input").press("Enter");
   await expect(sheet.getByTestId("weighin-entry-error")).toHaveText("20~300kg 사이 숫자를 적어 주세요");
   await expect(sheet.getByTestId("weighin-value")).toContainText("72.0");
   await sheet.getByTestId("weighin-save").click();
-  await expect(sheet).toBeVisible(); // 이유 줄이 보이는 동안은 저장하지 않는다
+  // [원본] await expect(sheet).toBeVisible(); — 바로 입력은 저장해도 남아 늘 통과했다(리뷰 M-2) → 줄 수로 본다
+  await expect(page.getByTestId("bodyweight-history-value")).toHaveText(["72.0kg"]); // 이유 줄이 보이는 동안은 저장하지 않는다
   await sheet.getByTestId("weighin-type").click();
   await sheet.getByTestId("weighin-input").fill("100");
   await sheet.getByTestId("weighin-input").press("Enter");
@@ -540,26 +571,45 @@ test("직접 입력 오타 방지 — 20kg 미만은 이유 한 줄 · 지난 �
   await sheet.getByTestId("weighin-save").click();
   await expect(sheet.getByTestId("weighin-jump-confirm")).toContainText("지난 기록 72.0kg");
   await expect(sheet.getByTestId("weighin-save")).toHaveText("그대로 저장");
-  await sheet.getByTestId("weighin-save").click();
-  await expect(sheet).toHaveCount(0);
-  expect(await 프로필_체중(page)).toBe("100.0kg");
-  // 입력 중 스크림 누르기 = 입력만 확정(닫지 않음 · qa P3-7)
-  await page.getByTestId("btn-bodyweight-record").click();
+  // [원본] await sheet.getByTestId("weighin-save").click(); await expect(sheet).toHaveCount(0);
+  await 바로_저장(page, false);
+  // 저장 뒤 바로 입력은 다음 기록을 받는다 — 확인 문구·「그대로 저장」은 걷힌다 · 새 줄이 맨 위
+  await expect(sheet.getByTestId("weighin-jump-confirm")).toHaveCount(0);
+  await expect(sheet.getByTestId("weighin-save")).toHaveText("저장");
+  await expect(page.getByTestId("bodyweight-history-value")).toHaveText(["100.0kg", "72.0kg"]);
+  // 프로필 바로 입력도 입력 중 바깥(스크림) 누르기 = 입력만 확정(닫지 않음 · qa P3-7 · 리뷰 M-1) · 다음 누름에 닫는다
   await sheet.getByTestId("weighin-type").click();
   await sheet.getByTestId("weighin-input").fill("99.5");
   await page.mouse.click(20, 20);
-  await expect(sheet).toBeVisible();
+  await expect(page.getByTestId("bodyweight-sheet")).toBeVisible();
   await expect(sheet.getByTestId("weighin-value")).toContainText("99.5");
+  await expect(page.getByTestId("bodyweight-history-value")).toHaveText(["100.0kg", "72.0kg"]); // 확정만 · 저장 아님
   await page.mouse.click(20, 20);
-  await expect(sheet).toHaveCount(0);
-  // 닫으면 연 버튼으로 포커스가 돌아간다(qa P3-5 ③)
-  await page.getByTestId("btn-bodyweight-record").click();
-  await expect(sheet).toBeVisible();
+  await expect(page.getByTestId("bodyweight-sheet")).toHaveCount(0);
+  expect(await 프로필_체중(page)).toBe("100.0kg");
+  // [원본] 입력 중 스크림 누르기 = 입력만 확정 — 프로필 「기록」 시트로 쟀다. 그 포탈 시트는 이제 통계 카드 「기록」만 연다 → 거기서 잰다(qa P3-7)
+  await page.goto("/stats");
+  await page.getByTestId("btn-bodyweight-card-record").click({ timeout: 20_000 });
+  const rec = page.getByTestId("bodyweight-record-sheet");
+  await rec.getByTestId("weighin-type").click();
+  await rec.getByTestId("weighin-input").fill("99.5");
+  await page.mouse.click(20, 20);
+  await expect(rec).toBeVisible();
+  await expect(rec.getByTestId("weighin-value")).toContainText("99.5");
+  await page.mouse.click(20, 20);
+  await expect(rec).toHaveCount(0);
+  // 닫으면 연 버튼으로 포커스가 돌아간다(qa P3-5 ③) — 카드 「기록」 · 프로필 「체중」 줄 둘 다
+  await page.getByTestId("btn-bodyweight-card-record").click();
+  await expect(rec).toBeVisible();
   await page.keyboard.press("Escape");
-  await expect(sheet).toHaveCount(0);
+  await expect(rec).toHaveCount(0);
   expect(await page.evaluate(() => document.activeElement?.getAttribute("data-testid"))).toBe(
-    "btn-bodyweight-record",
+    "btn-bodyweight-card-record",
   );
+  await 체중_시트(page);
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("bodyweight-sheet")).toHaveCount(0);
+  expect(await page.evaluate(() => document.activeElement?.getAttribute("data-testid"))).toBe("bodyweight");
 });
 
 test("이력 0 · 프로필 값만 있는 사람도 「체중 미설정으로 두기」 — 통계 빈 안내도 그 값(qa P3-8)", async ({
@@ -645,9 +695,8 @@ test("인바디 — 기록 시트에서 골격근량·체지방률 · 범위 밖
   await 준비(page);
 
   // ① 범위 밖 — 이유 한 줄 · 시트 남음 · 기록 없음
-  await page.goto("/profile");
-  await page.getByTestId("btn-bodyweight-record").click();
-  const rec = page.getByTestId("bodyweight-record-sheet");
+  // [원본] /profile → btn-bodyweight-record → bodyweight-record-sheet
+  const rec = await 체중_시트(page);
   await expect(rec.getByTestId("weighin-smm")).toHaveCount(0); // 접혀서 시작
   await rec.getByTestId("weighin-inbody-toggle").click();
   await rec.getByTestId("weighin-smm").fill("120");
@@ -655,26 +704,35 @@ test("인바디 — 기록 시트에서 골격근량·체지방률 · 범위 밖
   await rec.getByTestId("weighin-save").click();
   await expect(rec.getByTestId("weighin-smm-error")).toHaveText("골격근량은 5~100kg 로 적어 주세요");
   await expect(rec.getByTestId("weighin-pbf-error")).toHaveText("체지방률은 2~70% 로 적어 주세요");
-  await expect(rec).toBeVisible();
-  // (이력_행 은 빈 문서로 옮겨 시트를 닫는다 — 기록 없음은 끝의 「두 줄뿐」으로 확인)
+  // [원본] await expect(rec).toBeVisible(); — 바로 입력은 저장해도 남아 늘 통과했다(리뷰 L-1) → 목록이 빈 채인지 본다
+  await expect(page.getByTestId("bodyweight-history-empty")).toBeVisible();
+  // (이력_행 은 빈 문서로 옮겨 시트를 닫는다 — 기록 없음은 끝의 「두 줄뿐」으로도 확인)
 
   // ② 고쳐서 저장 → 이력 행에 두 칸
   await rec.getByTestId("weighin-smm").fill("33.1");
   await rec.getByTestId("weighin-pbf").fill("18.5");
-  await rec.getByTestId("weighin-save").click();
-  await expect(rec).toHaveCount(0);
+  // [원본] await rec.getByTestId("weighin-save").click(); await expect(rec).toHaveCount(0);
+  await 바로_저장(page, false);
+  // 저장 뒤 바로 입력은 인바디 칸을 비우고 접는다(같은 값이 다음 줄에 또 붙지 않게) · 새 줄이 목록 맨 위
+  await expect(rec.getByTestId("weighin-smm")).toHaveCount(0);
+  await expect(page.getByTestId("bodyweight-history-inbody").first()).toHaveText(
+    "골격근량 33.1kg · 체지방률 18.5%",
+  );
+  await rec.getByTestId("weighin-inbody-toggle").click();
+  await expect(rec.getByTestId("weighin-smm")).toHaveValue("");
+  await expect(rec.getByTestId("weighin-pbf")).toHaveValue("");
   let rows = await 이력_행(page);
   expect(rows.map((r) => [r.weight_kg, r.skeletal_muscle_kg, r.body_fat_pct])).toEqual([[70, 33.1, 18.5]]);
 
   // ③ 둘째 기록(체지방률만) → 첫 기록을 10일 전으로
-  await page.goto("/profile");
-  await page.getByTestId("btn-bodyweight-record").click();
+  // [원본] /profile → btn-bodyweight-record
+  await 체중_시트(page);
   await rec.getByTestId("weighin-step-p1").click();
   await rec.getByTestId("weighin-inbody-toggle").click();
   await rec.getByTestId("weighin-smm").fill("33.8");
   await rec.getByTestId("weighin-pbf").fill("17.9");
-  await rec.getByTestId("weighin-save").click();
-  await expect(rec).toHaveCount(0);
+  // [원본] await rec.getByTestId("weighin-save").click(); await expect(rec).toHaveCount(0);
+  await 바로_저장(page);
   await 기록_전체(page);
   const first = page.getByTestId("bodyweight-history-row").filter({ hasText: "70.0kg" });
   await expect(first.getByTestId("bodyweight-history-inbody")).toHaveText("골격근량 33.1kg · 체지방률 18.5%");
@@ -758,15 +816,13 @@ test("인바디 — 한 수치만 · 접고 고치면 값 유지 · 비우면 �
   await 준비(page);
 
   // 체지방률만 적는다
-  await page.goto("/profile");
-  await page.getByTestId("btn-bodyweight-record").click();
-  const rec = page.getByTestId("bodyweight-record-sheet");
+  // [원본] /profile → btn-bodyweight-record → bodyweight-record-sheet(저장하면 닫힘)
+  const rec = await 체중_시트(page);
   await rec.getByTestId("weighin-inbody-toggle").click();
   await rec.getByTestId("weighin-pbf").fill("20");
   const save = await rec.getByTestId("weighin-save").boundingBox();
   expect(save && save.y + save.height <= 640, "펼쳐도 저장 버튼이 보인다").toBe(true);
-  await rec.getByTestId("weighin-save").click();
-  await expect(rec).toHaveCount(0);
+  await 바로_저장(page);
 
   // 카드 — 체지방률 탭만 생긴다 · 하나뿐이면 곡선 안내
   await page.goto("/stats");
@@ -799,4 +855,140 @@ test("인바디 — 한 수치만 · 접고 고치면 값 유지 · 비우면 �
   expect(rows.map((r) => [r.weight_kg, r.skeletal_muscle_kg ?? null, r.body_fat_pct ?? null])).toEqual([
     [71, null, null],
   ]);
+
+  // 바닥에 붙는 저장 줄(REV-096 M-1)은 포탈 기록 시트의 것 — 프로필은 바로 입력으로 바뀌어 통계 카드 「기록」에서 잰다(리뷰 L-3)
+  await page.goto("/stats");
+  await page.getByTestId("btn-bodyweight-card-record").click({ timeout: 20_000 });
+  const card = page.getByTestId("bodyweight-record-sheet");
+  await card.getByTestId("weighin-inbody-toggle").click();
+  await card.getByTestId("weighin-pbf").fill("20");
+  const cs = await card.getByTestId("weighin-save").boundingBox();
+  expect(cs && cs.y + cs.height <= 640, "카드 기록 시트도 펼쳐서 저장 버튼이 보인다").toBe(true);
+  await card.getByTestId("weighin-secondary").click();
+  await expect(card).toHaveCount(0);
+});
+
+// 체중 한 줄(2026-11-10 사용자 요청) — 두 줄(「체중」+「기록」 버튼 · 「체중 기록 전체 n개 ›」)을 「체중 ‹최근 값› ›」 한 줄로.
+//   시트 = 맨 위 바로 입력 → 지난 기록 → 미설정으로 두기. 줄·시트의 부가 설명은 없고 미설정 설명은 확인 창에만.
+test("체중 한 줄 — 줄 하나 · 최근 값 · › 로 시트 · 바로 입력하면 목록·줄 값이 바로 · 설명 문구 없음 · 360px 넘침 없음 · 다크", async ({
+  page,
+}) => {
+  test.setTimeout(150_000);
+  await page.setViewportSize({ width: 360, height: 740 });
+  await 준비(page);
+  await page.goto("/profile");
+  const row = page.getByTestId("bodyweight");
+  await expect(row).toBeVisible({ timeout: 20_000 });
+  const value = page.getByTestId("bodyweight-value");
+
+  // 줄 하나 — 옛 「기록」 버튼·「체중 기록 전체」 줄·부가 설명 없음 · 줄 전체가 누르는 자리(≥44px · ›)
+  await expect(page.getByTestId("btn-bodyweight-record")).toHaveCount(0);
+  await expect(page.getByTestId("row-bodyweight-history")).toHaveCount(0);
+  await expect(page.locator("main")).not.toContainText("체중 기록 전체");
+  await expect(page.locator("main")).not.toContainText("볼륨 계산 기준");
+  await expect(value).toHaveText("미설정");
+  expect(await row.evaluate((el) => el.tagName)).toBe("BUTTON");
+  await expect(row).toHaveAccessibleName(/^체중\s*미설정$/);
+  await expect(row.locator("svg")).toHaveCount(1); // ›
+  const rb = await row.boundingBox();
+  expect(rb && rb.height >= 44).toBe(true);
+  // 값과 › 가 제목과 한 줄
+  const vb = await value.boundingBox();
+  expect(rb && vb && vb.y >= rb.y && vb.y + vb.height <= rb.y + rb.height).toBe(true);
+
+  // › → 「체중」 시트 — 기록이 없으면 바로 입력 + 「아직 기록이 없어요」 · 미설정으로 두기 없음
+  await row.click();
+  const sheet = page.getByTestId("bodyweight-sheet");
+  await expect(sheet).toBeVisible();
+  await expect(sheet.getByRole("dialog")).toHaveAccessibleName("체중");
+  const entry = sheet.getByTestId("bodyweight-entry");
+  await expect(entry.getByTestId("weighin-value")).toBeVisible();
+  // 기록이 없으면 「지난 기록이 없어요 — 값을 맞춰 주세요」(출발값이 진짜 값처럼 보이지 않게 · 리뷰 L-1) — 기록이 생기면 줄이 빠진다(목록과 겹침)
+  await expect(entry.getByTestId("weighin-last")).toHaveText("지난 기록이 없어요 — 값을 맞춰 주세요");
+  await expect(entry.getByTestId("weighin-secondary")).toHaveCount(0); // 닫기는 시트의 「확인」 하나
+  await expect(sheet.getByTestId("bodyweight-history-heading")).toHaveText("지난 기록");
+  await expect(sheet.getByTestId("bodyweight-history-empty")).toHaveText("아직 기록이 없어요");
+  await expect(sheet.getByTestId("btn-bodyweight-unset")).toHaveCount(0);
+
+  // 바로 입력 → 저장 — 시트는 열린 채 · 목록 맨 위 · 뒤의 줄 값도 바로
+  await entry.getByTestId("weighin-type").click();
+  await entry.getByTestId("weighin-input").fill("71");
+  await entry.getByTestId("weighin-input").press("Enter");
+  await 바로_저장(page, false);
+  // 방금 저장한 같은 값을 곧바로(2초 안) 또 누르면 줄이 늘지 않는다(두 번 누름 · 리뷰 M-3)
+  await entry.getByTestId("weighin-save").click();
+  await page.waitForTimeout(500);
+  await expect(sheet.getByTestId("bodyweight-history-value")).toHaveText(["71.0kg"]);
+  await expect(value).toHaveText("71.0kg");
+  await expect(entry.getByTestId("weighin-last")).toHaveCount(0);
+  // 저장 뒤 포커스는 저장 버튼(disabled 동안 body 로 빠지지 않게 · 리뷰 M-2)
+  expect(await page.evaluate(() => document.activeElement?.getAttribute("data-testid"))).toBe("weighin-save");
+  await entry.getByTestId("weighin-step-p0_5").click();
+  await 바로_저장(page, false);
+  await expect(sheet.getByTestId("bodyweight-history-value")).toHaveText(["71.5kg", "71.0kg"]);
+  await expect(value).toHaveText("71.5kg");
+  // 미설정으로 두기 — 버튼 아래 설명은 없고 확인 창에만
+  await expect(sheet.getByTestId("btn-bodyweight-unset")).toBeVisible();
+  await expect(sheet).not.toContainText("기록은 남아요");
+  await sheet.getByTestId("btn-bodyweight-unset").click();
+  await expect(page.getByTestId("bodyweight-unset-confirm")).toContainText(
+    "기록은 남아요. 맨몸·어시스트 볼륨은 체중 없이 계산해요",
+  );
+  await page.getByTestId("dialog-cancel").click();
+  await expect(value).toHaveText("71.5kg");
+  // 미설정으로 둔 뒤 바로 입력으로 저장하면 다시 내 체중(리뷰 L-2) · 미설정 버튼이 다시 생긴다
+  await sheet.getByTestId("btn-bodyweight-unset").click();
+  await page.getByTestId("dialog-confirm").click();
+  await expect(value).toHaveText("미설정");
+  await expect(sheet.getByTestId("btn-bodyweight-unset")).toHaveCount(0);
+  await expect(sheet.getByTestId("bodyweight-history-value")).toHaveText(["71.5kg", "71.0kg"]); // 기록은 남는다
+  await entry.getByTestId("weighin-step-m0_5").click();
+  await 바로_저장(page, false);
+  await expect(value).toHaveText("71.0kg");
+  await expect(sheet.getByTestId("btn-bodyweight-unset")).toBeVisible();
+
+  // 360px — 문서·시트 모두 가로로 넘치지 않는다
+  const over = await page.evaluate(() => {
+    const dlg = document.querySelector('[data-testid="bodyweight-sheet"] [role="dialog"]') as HTMLElement;
+    return {
+      doc: document.documentElement.scrollWidth - window.innerWidth,
+      sheet: dlg.scrollWidth - dlg.clientWidth,
+      wide: [...dlg.querySelectorAll<HTMLElement>("*")]
+        .filter((e) => e.getBoundingClientRect().right > window.innerWidth + 0.5)
+        .map((e) => e.getAttribute("data-testid") ?? e.tagName),
+    };
+  });
+  expect(over).toEqual({ doc: 0, sheet: 0, wide: [] });
+  await page.screenshot({ path: test.info().outputPath("light.png") });
+
+  // 다크 — 시트 바탕이 어둡고 값 글자는 밝다(대비)
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.evaluate(() => document.documentElement.setAttribute("data-theme", "dark"));
+  const lum = await page.evaluate(() => {
+    const L = (c: string) => {
+      const m = c.match(/[\d.]+/g)?.map(Number) ?? [0, 0, 0];
+      return (0.2126 * m[0] + 0.7152 * m[1] + 0.0722 * m[2]) / 255;
+    };
+    const dlg = document.querySelector('[data-testid="bodyweight-sheet"] [role="dialog"]') as HTMLElement;
+    const v = document.querySelector('[data-testid="bodyweight-history-value"]') as HTMLElement;
+    const big = document.querySelector(
+      '[data-testid="bodyweight-entry"] [data-testid="weighin-value"] span',
+    ) as HTMLElement;
+    return {
+      bg: L(getComputedStyle(dlg).backgroundColor),
+      v: L(getComputedStyle(v).color),
+      big: L(getComputedStyle(big).color),
+    };
+  });
+  expect(lum.bg).toBeLessThan(0.3);
+  expect(lum.v).toBeGreaterThan(0.6);
+  expect(lum.big).toBeGreaterThan(0.6);
+  await page.screenshot({ path: test.info().outputPath("dark.png") });
+  await page.emulateMedia({ colorScheme: "light" });
+
+  // 「확인」으로 닫고 다시 열면 그대로 · 새로고침해도 최근 값
+  await page.getByTestId("bodyweight-history-close").click();
+  await expect(sheet).toHaveCount(0);
+  await page.reload();
+  await expect(value).toHaveText("71.0kg", { timeout: 20_000 }); // 미설정 뒤 마지막으로 적은 71.0
 });

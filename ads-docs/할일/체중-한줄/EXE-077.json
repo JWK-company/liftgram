@@ -1,0 +1,1024 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "요약",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "프로필의 두 줄 「체중」(부가 설명 + 값 + 「기록」 버튼)과 「체중 기록 전체 n개 ›」를 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "「체중 ‹최근 값› ›」 한 줄",
+            "type": "text"
+          },
+          {
+            "text": "로 합쳤다. 줄 전체(52px)가 누르는 자리이고, 누르면 「체중」 시트 하나가 열린다: 맨 위 바로 입력(기존 기록 시트의 ±·직접 입력·인바디 펼침·±30% 확인·저장을 그대로 씀) → 「지난 기록」 목록(고치기·지우기 그대로) → 「체중 미설정으로 두기」(설명은 확인 창에만) → 「확인」. 저장하면 시트는 열린 채 새 줄이 목록 맨 위에, 뒤의 줄 값도 바로 바뀐다. 줄의 「어시스트(체중−보조)·맨몸±가중 볼륨 계산 기준 · 가장 최근 기록」과 미설정 버튼 아래 「기록은 남아요. …」는 지웠다. 공용 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "WeighInSheet",
+            "type": "text"
+          },
+          {
+            "text": " 에 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "inline",
+            "type": "text"
+          },
+          {
+            "text": " 모양(포탈·스크림·제목·둘째 버튼 없이 입력과 저장만 · 저장해도 닫히지 않음)을 더했다. 포탈 쪽(운동 화면 「오늘 체중」·통계 카드 「기록」·목표 체중·고치기)은 내용 덩어리를 변수로 옮긴 것뿐이라 그대로다. 스펙 없는 패치이며 worktree 에서만 고쳤다(커밋·배포·버전 올림 없음).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "바꾼 파일",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "파일",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "무엇",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/profile/BodyweightRow.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "줄 하나(ListRow onPress · 값 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "bodyweight-value",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ›) · 시트 제목 「체중」·testid ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "bodyweight-sheet",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · 맨 위 바로 입력(",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "bodyweight-entry",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · 기록 없을 때만 「지난 기록이 없어요」) · 소제목 h2 「지난 기록」 · 미설정 설명 줄 삭제 · 입력 중 바깥 누름은 닫지 않음 · 목록 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "data-loaded",
+                        "type": "text"
+                      },
+                      {
+                        "text": " — 옛 두 줄·옛 시트 머리는 [원본] 주석",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/session/WeighInSheet.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "inline",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "onTypingChange",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 속성 · 패널 내용을 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "content",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 로 묶어 포탈/inline 이 같이 씀 · inline 은 Esc·Tab·포커스 복귀 효과를 끄고, 저장 뒤 busy·확인 문구·인바디 칸 초기화 · 저장 버튼으로 포커스 · 2초 안 같은 값 되누름 무시",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/profile/ProfileClient.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "체중 줄 주석만",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/i18n/locales/ko.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/i18n/locales/en.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "새 키 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "bodyweight.pastEntries",
+                        "type": "text"
+                      },
+                      {
+                        "text": "(「지난 기록」·Past entries) — 안 쓰게 된 키는 그대로 둠",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/opengym-bodyweight.spec.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "도우미를 새 흐름으로(",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "체중_시트",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "바로_저장",
+                        "type": "text"
+                      },
+                      {
+                        "text": " = 목록 줄 +1 대기) · P3-6 단언을 줄 수로 · P3-7 은 프로필 바로 입력과 통계 카드 기록 시트 둘 다 · P3-5 ③ 포커스 복귀는 카드 「기록」·프로필 「체중」 줄 · 바닥 고정 저장 줄은 카드 기록 시트로 · 새 시험 「체중 한 줄 …」",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/opengym-qa1.spec.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/profile.spec.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/opengym-summary.spec.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/coaching-v2.spec.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "체중 입력 도우미를 「체중」 줄 → 바로 입력으로(검증 의도 그대로)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "시험 결과",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "명령",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "결과",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "node_modules/.bin/tsc --noEmit -p frontend",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "오류 0",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "bun run test:core",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "831 통과 · 0 실패",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "biome check",
+                        "type": "text"
+                      },
+                      {
+                        "text": "(고친 파일만)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "오류 0(기존 경고 1 — ProfileClient barWeightKg 미사용)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "e2e 체중 묶음(opengym-bodyweight·opengym-qa1·profile·opengym-summary·declutter-p4·coaching-v2·summary-card, 웹 3210·API 3211 · 리뷰 반영 뒤 재빌드)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "48 통과 · 1 실패(새 시험 마지막 단언의 기대값 실수 → 고쳐 단독 통과) · 6 건너뜀(기존 skip)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "e2e 전체(",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "ls e2e/*.spec.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 89개, WORKERS=4)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "456 통과 · 13 실패 · 49 건너뜀 — 8개는 알려진 기준선(motion-video 4 · opengym-import 196/269/576 · declutter-block:139) · 나머지 5개(app-distribution:398 · discovery:26 · feed:279 · moderation:66 · summary-card:36)는 체중과 무관하고 다시 돌려 통과(discovery 는 피드 묶음과 같이 돌면 1회 실패 · 단독 통과)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "새 시험이 보는 것",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "프로필에 「기록」 버튼·「체중 기록 전체」 줄·「볼륨 계산 기준」 설명이 없고, 「체중」 줄 하나가 버튼(이름 「체중 미설정」 · ≥44px · › 하나 · 값이 줄 안)이다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "› → 시트 이름 「체중」 · 기록이 없으면 「지난 기록이 없어요 — 값을 맞춰 주세요」·「아직 기록이 없어요」 · 미설정 버튼 없음 · 둘째 버튼 없음.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "직접 입력 71 저장 → 시트 열린 채 목록 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "71.0kg",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · 줄 값 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "71.0kg",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · 2초 안 되누름은 줄이 늘지 않음 · 포커스는 저장 버튼 · +0.5 저장 → ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "71.5kg, 71.0kg",
+                    "type": "text"
+                  },
+                  {
+                    "text": ".",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "미설정 버튼 아래 설명 없음 · 확인 창에 설명 · 취소 → 그대로 · 확인 → 「미설정」(기록 남음) → 바로 입력 저장 → 다시 내 체중.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "360px 문서·시트 가로 넘침 0 · 다크에서 시트 바탕 어둡고 글자 밝음 · 닫고 새로고침해도 최근 값.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "ordered_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "리뷰",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "코드 리뷰 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "REV-107",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(화면·접근성 / 데이터·시험 두 명): 채택 11 · 보류 4 · 기각 1 — 반영 뒤 tsc·core·체중 e2e·전체 e2e 다시 돌림.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "남은 일",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "화면 지도 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "ads-docs/liftgram/wireframe/.screen-map/data.py",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 갱신(목록만 보고 · 파일은 고치지 않음): /profile 설정 구역의 체중 두 줄 → 한 줄 · s.p.bwall(「체중 기록 전체」 → 「체중」 시트: 바로 입력 + 지난 기록) · s.p.bwedit(고치기 — 진입이 「체중」 시트) · s.p.bwnone(빈 상태에 바로 입력·「지난 기록이 없어요」) · s.p.bwrm(진입 경로) · 미설정 확인 창 · 프로필 「기록」 시트 화면은 없어짐(통계 카드 「기록」 시트는 남음).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "보류: 고치기를 누르면 바로 입력 값·스크롤이 사라짐 · 확인 창 위 Esc 가 시트까지 닫을 수 있음(기존) · 저장 중 미설정·고치기 누름.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "버전 올림(patch)·배포는 사용자가.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "할일/체중-한줄",
+  "id": "EXE-077",
+  "meta": {
+    "phase": "1",
+    "result": "done"
+  },
+  "relations": {},
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "체중 한 줄 — 프로필 「체중 ‹최근 값› ›」 한 줄 · 바로 입력과 지난 기록이 같이 있는 시트",
+  "type": "Execution",
+  "updated": "2026-11-10T02:30:49Z"
+}
