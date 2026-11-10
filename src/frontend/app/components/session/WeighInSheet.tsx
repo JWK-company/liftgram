@@ -836,8 +836,9 @@ export function WeighInCheckin({ workoutId, startedAt }: { workoutId: string; st
  * 모양은 SPEC-046 「다른 창을 여는 줄」 — 바탕 없는 줄 + 아이콘 + › · 누르는 자리 44px.
  * [개선] 2026-11-10 사용자 요청 — 운동 중에는 밑에서 올라오는 시트를 띄우지 않는다. 「기록/고치기 ⌄」를 누르면 같은 입력
  *   (WeighInSheet inline · ±·직접 입력·인바디 칸·±30% 확인·저장)이 카드 안에 펼쳐지고, 저장하면 접히며 값·✓ 가 반영된다. 다시 누르면 접힘.
+ * [개선] 2026-11-10 사용자 지시 — 「기록/고치기」 버튼을 없애고 카드 머리 ⌄/⌃ 하나로: 펼치면 입력이 열리고, 접거나 저장·Esc 면 닫힌다.
  */
-const WEIGHIN_CARD_KEY = "liftgram.weighinCardCollapsed";
+// [원본] const WEIGHIN_CARD_KEY = "liftgram.weighinCardCollapsed"; — 접힘 기억을 쓰지 않는다(2026-11-10 · 아래 [원본] 참고)
 
 export function WeighInRow({ now }: { now: number }) {
   const { user, bodyweightKg, refresh } = useUser();
@@ -867,7 +868,7 @@ export function WeighInRow({ now }: { now: number }) {
     smm: row?.skeletalMuscleKg ?? null,
     pbf: row?.bodyFatPct ?? null,
   });
-  // 접기 — 기기에 기억(운동마다 다시 펼치지 않게). 저장소가 막혀도 펼친 채로 동작
+  /* [원본] 접기 — 기기에 기억(운동마다 다시 펼치지 않게). 저장소가 막혀도 펼친 채로 동작
   const [collapsed, setCollapsed] = useState(() => {
     try {
       return localStorage.getItem(WEIGHIN_CARD_KEY) === "1";
@@ -875,11 +876,7 @@ export function WeighInRow({ now }: { now: number }) {
       return false;
     }
   });
-  // [원본] const toggleCollapsed = () => setCollapsed(…) — [개선] 카드를 접으면 펼친 입력도 닫는다(접힌 카드 밑에 입력이 남지 않게)
-  const toggleCollapsed = () => {
-    setTarget(null);
-    setCollapsedStored();
-  };
+  const toggleCollapsed = () => { setTarget(null); setCollapsedStored(); };
   const setCollapsedStored = () =>
     setCollapsed((c) => {
       try {
@@ -887,6 +884,21 @@ export function WeighInRow({ now }: { now: number }) {
       } catch {}
       return !c;
     });
+  */
+  // [개선] 펼침 = 입력이 열림(2026-11-10 「기록/고치기」 버튼 없앰 — 머리 ⌄/⌃ 하나). 운동마다 접힌 채로 시작한다
+  //   (펼친 기억을 따르면 입력칸이 매번 열린다) — 옛 기억 키(liftgram.weighinCardCollapsed)는 읽지도 쓰지도 않는다
+  const [collapsed, setCollapsed] = useState(true);
+  // 펼치면 바로 입력(오늘 줄이 있으면 그 줄 고치기), 접으면 닫는다 — 두 값을 같은 근거(지금 collapsed)로 함께 정한다
+  const toggleCollapsed = () => {
+    const opening = collapsed;
+    setTarget(opening ? openTarget(today) : null);
+    setCollapsed(!opening);
+  };
+  // 저장·Esc — 입력과 카드를 함께 접는다. 뒤집지 않고 「접힘」으로 정한다(저장 중에 머리를 눌러 이미 접혔어도 다시 펼치지 않게 · 리뷰 M-1)
+  const closeEditor = () => {
+    setTarget(null);
+    setCollapsed(true);
+  };
   const unit = bodyweightUnitOf(user?.weightUnit);
   // [개선] 펼친 입력을 닫으면(저장·다시 누름) 포커스를 「기록/고치기」 버튼으로 — 저장 버튼이 사라져 body 로 빠지지 않게
   const editBtnRef = useRef<HTMLButtonElement | null>(null);
@@ -956,7 +968,8 @@ export function WeighInRow({ now }: { now: number }) {
         });
       await afterBodyweightWrite(refresh);
       toast(t("bodyweight.saved"));
-      setTarget(null);
+      // [원본] setTarget(null);
+      closeEditor();
     } catch (e) {
       toast(errorText(e, t("bodyweight.saveFailed")), "error");
       throw e;
@@ -973,8 +986,10 @@ export function WeighInRow({ now }: { now: number }) {
         <button
           type="button"
           data-testid="weighin-card-toggle"
+          ref={editBtnRef}
           aria-expanded={!collapsed}
-          aria-controls="weighin-card-body"
+          // [원본] aria-controls="weighin-card-body" — [개선] 펼치면 본문과 입력이 함께 나타난다(리뷰 L-1)
+          aria-controls="weighin-card-body weighin-card-editor"
           onClick={() => toggleCollapsed()}
           className="flex min-h-11 w-full items-center gap-[var(--spacing-sm)] rounded-[var(--radius-md)] text-left focus-visible:outline-2 focus-visible:outline-(--color-brand)"
         >
@@ -1028,24 +1043,27 @@ export function WeighInRow({ now }: { now: number }) {
             {/* [원본] <Button title={today ? 고치기 : 기록} variant="outline" size="sm" fullWidth={false} testId="weighin-row"
                   className="min-h-11 shrink-0 self-center! px-[var(--spacing-lg)]!" onPress={() => setTarget({ id: today?.id ?? null })} />
                   — 누르면 바닥 시트(weighin-sheet)가 올라왔다 */}
-            {/* [개선] 같은 모양(outline sm · 카드 판 + 빨간 테두리·글자) + ⌄/⌃ — 카드 안 입력을 펼치고 접는다(aria-expanded) */}
-            <button
-              type="button"
-              ref={editBtnRef}
-              data-testid="weighin-row"
-              aria-expanded={target != null}
-              aria-controls={target ? "weighin-card-editor" : undefined}
-              // [원본] onClick={() => setTarget((cur) => (cur ? null : { id: today?.id ?? null }))}
-              onClick={() => setTarget((cur) => (cur ? null : openTarget(today)))}
-              className="relative inline-flex min-h-11 shrink-0 items-center justify-center gap-[4px] self-center rounded-[var(--radius-sm)] border border-(--color-brand) border-solid bg-(--color-card) px-[var(--spacing-md)] font-semibold text-(--color-brand) text-[length:var(--text-sm)] focus-visible:outline-2 focus-visible:outline-(--color-brand) focus-visible:outline-offset-2 active:opacity-85"
-            >
-              {today ? t("bodyweight.edit") : t("bodyweight.record")}
-              <Icon name={target ? "chevron-up" : "chevron-down"} size={16} color="var(--color-brand)" />
-            </button>
+            {/* [원본] 「기록/고치기 ⌄」 버튼(data-testid="weighin-row") — 머리 ⌄/⌃ 와 둘이라 하나로 합쳤다(2026-11-10 사용자 지시)
+                            {/* [개선] 같은 모양(outline sm · 카드 판 + 빨간 테두리·글자) + ⌄/⌃ — 카드 안 입력을 펼치고 접는다(aria-expanded) * /}
+                            <button
+                              type="button"
+                              ref={editBtnRef}
+                              data-testid="weighin-row"
+                              aria-expanded={target != null}
+                              aria-controls={target ? "weighin-card-editor" : undefined}
+                              // [원본] onClick={() => setTarget((cur) => (cur ? null : { id: today?.id ?? null }))}
+                              onClick={() => setTarget((cur) => (cur ? null : openTarget(today)))}
+                              className="relative inline-flex min-h-11 shrink-0 items-center justify-center gap-[4px] self-center rounded-[var(--radius-sm)] border border-(--color-brand) border-solid bg-(--color-card) px-[var(--spacing-md)] font-semibold text-(--color-brand) text-[length:var(--text-sm)] focus-visible:outline-2 focus-visible:outline-(--color-brand) focus-visible:outline-offset-2 active:opacity-85"
+                            >
+                              {today ? t("bodyweight.edit") : t("bodyweight.record")}
+                              <Icon name={target ? "chevron-up" : "chevron-down"} size={16} color="var(--color-brand)" />
+                            </button>
+            */}
           </div>
         )}
         {/* [개선] 카드 안 입력(운동 화면엔 시트를 띄우지 않는다) — 프로필 「체중」 시트의 바로 입력과 같은 inline 모양 */}
-        {target && !collapsed ? (
+        {/* [원본] {target && !collapsed ? ( — [개선] 펼침 = 입력 열림 */}
+        {!collapsed && target ? (
           // biome-ignore lint/a11y/noStaticElementInteractions: 안의 입력에서 올라온 Esc 만 받아 접는다 — 누르는 자리가 아니다
           <div
             id="weighin-card-editor"
@@ -1055,7 +1073,8 @@ export function WeighInRow({ now }: { now: number }) {
             onKeyDown={(e) => {
               if (e.key === "Escape" && e.currentTarget.contains(e.target as Node)) {
                 e.stopPropagation();
-                setTarget(null);
+                // [원본] setTarget(null);
+                closeEditor();
               }
             }}
             className="mt-[var(--spacing-md)] border-(--color-line) border-t pt-[var(--spacing-sm)]"
@@ -1084,7 +1103,8 @@ export function WeighInRow({ now }: { now: number }) {
                   }}
                   primaryLabel={t("bodyweight.save")}
                   secondaryLabel={t("common.cancel")}
-                  onDismiss={() => setTarget(null)}
+                  // [원본] onDismiss={() => setTarget(null)}
+                  onDismiss={closeEditor}
                   onSave={saveToday}
                 />
               }

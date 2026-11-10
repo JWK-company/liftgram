@@ -69,7 +69,7 @@ test("세 곳 모두 열자마자 인바디 칸 · 토글 없음 · 비워 두�
 
   // ① 운동 화면 「오늘 체중」 카드(새 줄)
   await 빠른_운동_시작(page);
-  const row = page.getByTestId("weighin-row");
+  const row = page.getByTestId("weighin-card-toggle");
   await row.click({ timeout: 20_000 });
   const editor = page.getByTestId("weighin-card-editor");
   await expect(editor).toBeVisible();
@@ -159,32 +159,36 @@ test("고치기 — 적어 둔 인바디 값이 칸에 · 그대로 저장하면
 
   // ② 운동 카드 「고치기」 — 오늘 그 줄을 고친다 · 칸에 채워져 펼침 · 체중만 바꿔 저장 → 인바디 유지
   await 빠른_운동_시작(page);
-  const row = page.getByTestId("weighin-row");
-  await expect(row).toHaveText("고치기", { timeout: 20_000 });
-  await expect(page.getByTestId("weighin-card")).toContainText("골격근량 33.1kg · 체지방률 18.5%");
+  const row = page.getByTestId("weighin-card-toggle");
+  await expect(page.getByTestId("weighin-card")).toHaveAttribute("data-done", "1", { timeout: 20_000 });
   await row.click();
+  await expect(page.getByTestId("weighin-card-body")).toContainText("골격근량 33.1kg · 체지방률 18.5%");
   const editor = page.getByTestId("weighin-card-editor");
   await expect(editor.getByTestId("weighin-smm")).toHaveValue("33.1");
   await expect(editor.getByTestId("weighin-pbf")).toHaveValue("18.5");
   await editor.getByTestId("weighin-step-p0_1").click();
   await editor.getByTestId("weighin-save").click();
   await expect(editor).toHaveCount(0);
-  await expect(page.getByTestId("weighin-card-value")).toHaveText("70.2kg");
-  await expect(page.getByTestId("weighin-card")).toContainText("골격근량 33.1kg · 체지방률 18.5%");
+  await expect(page.getByTestId("weighin-card-summary")).toHaveText("70.2kg");
 
   let rows = await 이력_행(page);
   expect(rows.map((r) => [r.weight_kg, r.skeletal_muscle_kg, r.body_fat_pct])).toEqual([[70.2, 33.1, 18.5]]);
 
   // ③ 운동 카드 고치기에서 채워진 체지방률을 지우고 저장 → 그 값만 지움(골격근량 유지 · 리뷰 L-7)
   await page.goto("/workout");
-  await expect(row).toHaveText("고치기", { timeout: 20_000 });
+  await expect(page.getByTestId("weighin-card")).toHaveAttribute("data-done", "1", { timeout: 20_000 });
   await row.click();
+  await expect(page.getByTestId("weighin-card-body")).toContainText("골격근량 33.1kg · 체지방률 18.5%");
   await expect(editor.getByTestId("weighin-pbf")).toHaveValue("18.5");
   await editor.getByTestId("weighin-pbf").fill("");
   await editor.getByTestId("weighin-save").click();
   await expect(editor).toHaveCount(0);
-  await expect(page.getByTestId("weighin-card")).toContainText("골격근량 33.1kg");
-  await expect(page.getByTestId("weighin-card")).not.toContainText("체지방률");
+  // 저장하면 접힌다 — 펼쳐 본문 한 줄 확인 뒤 다시 접기
+  await row.click();
+  await expect(page.getByTestId("weighin-card-body")).toContainText("골격근량 33.1kg");
+  await expect(page.getByTestId("weighin-card-body")).not.toContainText("체지방률");
+  await row.click();
+  await expect(editor).toHaveCount(0);
   rows = await 이력_행(page);
   expect(rows.map((r) => [r.weight_kg, r.skeletal_muscle_kg, r.body_fat_pct ?? null])).toEqual([
     [70.2, 33.1, null],
@@ -203,7 +207,7 @@ test("운동 카드 — 「기록 ⌄」 누르면 카드 안 펼침(시트 없�
   await expect(page.getByTestId("rest-bar")).toBeVisible({ timeout: 10_000 });
 
   await page.evaluate(() => window.scrollTo(0, 0));
-  const row = page.getByTestId("weighin-row");
+  const row = page.getByTestId("weighin-card-toggle");
   const editor = page.getByTestId("weighin-card-editor");
   await expect(row).toHaveAttribute("aria-expanded", "false");
   await row.click();
@@ -238,10 +242,10 @@ test("운동 카드 — 「기록 ⌄」 누르면 카드 안 펼침(시트 없�
   await expect(editor).toHaveCount(0);
   await expect(row).toHaveAttribute("aria-expanded", "false");
   await expect(page.getByTestId("weighin-card")).toHaveAttribute("data-done", "1");
-  await expect(page.getByTestId("weighin-card-value")).toHaveText("70.0kg");
-  await expect(page.getByTestId("weighin-card")).toContainText("체지방률 21.3%");
-  // 다시 누르면 펼침(고치기 · 값 채워짐) → 또 누르면 접힘
+  await expect(page.getByTestId("weighin-card-summary")).toHaveText("70.0kg");
+  // 다시 누르면 펼침(고치기 · 값 채워짐 · 본문에 인바디 한 줄) → 또 누르면 접힘
   await row.click();
+  await expect(page.getByTestId("weighin-card-body")).toContainText("체지방률 21.3%");
   await expect(editor.getByTestId("weighin-pbf")).toHaveValue("21.3");
   await row.click();
   await expect(editor).toHaveCount(0);
@@ -334,7 +338,7 @@ test("체중 패널 하나 — 운동 카드·프로필·통계가 같은 구역
 
   // 운동 카드 — 맨 위 입력, 나머지는 「목표 · 지난 기록 ⌄」 아래(접힌 채 시작) → 펼치면 같은 구역
   await 빠른_운동_시작(page);
-  await page.getByTestId("weighin-row").click({ timeout: 20_000 });
+  await page.getByTestId("weighin-card-toggle").click({ timeout: 20_000 });
   const panel = page.getByTestId("weighin-card-editor").getByTestId("bodyweight-panel");
   await expect(panel).toHaveAttribute("data-compact", "1");
   expect(await 패널_구역(panel)).toEqual(["bodyweight-entry", "weighin-smm", "weighin-pbf"]);
@@ -417,9 +421,16 @@ test("목표 체중 — 패널 안에서 정하기 2번 · 바꾸기 2번 · 지
 
   // 운동 카드 패널에서 정하기 → 통계에 반영 · 새로고침 유지
   await 빠른_운동_시작(page);
-  await page.getByTestId("weighin-row").click({ timeout: 20_000 });
+  await page.getByTestId("weighin-card-toggle").click({ timeout: 20_000 });
   const panel = page.getByTestId("weighin-card-editor").getByTestId("bodyweight-panel");
   await panel.getByTestId("bodyweight-panel-more").click();
+  // 목표 입력의 Esc 는 목표만 닫는다 — 카드·오늘 입력은 펼친 채(리뷰 M-2)
+  await panel.getByTestId("btn-bodyweight-goal").click();
+  await panel.getByTestId("bodyweight-goal-sheet").getByTestId("weighin-step-p1").focus();
+  await page.keyboard.press("Escape");
+  await expect(panel.getByTestId("bodyweight-goal-sheet")).toHaveCount(0);
+  await expect(page.getByTestId("weighin-card-editor")).toBeVisible();
+  await expect(page.getByTestId("weighin-card-toggle")).toHaveAttribute("aria-expanded", "true");
   await panel.getByTestId("btn-bodyweight-goal").click();
   await panel.getByTestId("bodyweight-goal-sheet").getByTestId("weighin-step-p1").click();
   await panel.getByTestId("bodyweight-goal-sheet").getByTestId("weighin-save").click();
@@ -513,8 +524,8 @@ test("겹친 편집 — 운동 카드 맨 위 「고치기」를 연 채 아래 
 
   // ① 맨 위 「고치기」 열기 → 아래 목록에서 같은 줄을 71.0kg · 체지방률 25 로 → 맨 위 그대로 저장 → 71.0 · 25 유지
   await 빠른_운동_시작(page);
-  const row = page.getByTestId("weighin-row");
-  await expect(row).toHaveText("고치기", { timeout: 20_000 });
+  const row = page.getByTestId("weighin-card-toggle");
+  await expect(page.getByTestId("weighin-card")).toHaveAttribute("data-done", "1", { timeout: 20_000 });
   await row.click();
   const editor = page.getByTestId("weighin-card-editor");
   const top = editor.getByTestId("bodyweight-entry");
@@ -529,11 +540,11 @@ test("겹친 편집 — 운동 카드 맨 위 「고치기」를 연 채 아래 
   await expect(editor.getByTestId("bodyweight-history-value").first()).toContainText("71.0kg");
   await top.getByTestId("weighin-save").click();
   await expect(editor).toHaveCount(0);
-  await expect(page.getByTestId("weighin-card-value")).toHaveText("71.0kg");
-  await expect(page.getByTestId("weighin-card")).toContainText("체지방률 25.0%");
+  await expect(page.getByTestId("weighin-card-summary")).toHaveText("71.0kg");
 
   // ② 맨 위 「고치기」 열기 → 아래 목록에서 그 줄을 지움 → 맨 위 저장 = 보이던 체지방률 25 로 새 줄
   await row.click();
+  await expect(page.getByTestId("weighin-card-body")).toContainText("체지방률 25.0%");
   await expect(top.getByTestId("weighin-pbf")).toHaveValue("25");
   await editor.getByTestId("bodyweight-panel-more").click();
   await editor.getByTestId("bodyweight-history-delete").first().click();
@@ -541,7 +552,9 @@ test("겹친 편집 — 운동 카드 맨 위 「고치기」를 연 채 아래 
   await expect(editor.getByTestId("bodyweight-history-empty")).toBeVisible();
   await top.getByTestId("weighin-save").click();
   await expect(editor).toHaveCount(0);
-  await expect(page.getByTestId("weighin-card")).toContainText("체지방률 25.0%");
+  await row.click();
+  await expect(page.getByTestId("weighin-card-body")).toContainText("체지방률 25.0%");
+  await row.click();
 
   const rows = await 이력_행(page);
   expect(rows.map((r) => [r.weight_kg, r.source, r.skeletal_muscle_kg ?? null, r.body_fat_pct])).toEqual([
