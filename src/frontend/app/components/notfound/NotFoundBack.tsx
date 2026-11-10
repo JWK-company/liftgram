@@ -25,7 +25,8 @@ export function NotFoundBack() {
         if (canBack) window.history.back();
         else window.location.assign("/");
       }}
-      className="inline-flex min-h-[44px] items-center rounded-[var(--radius-md)] border border-(--color-line) px-[var(--spacing-lg)] font-semibold text-(--color-ink)"
+      // [원본] border-(--color-line) · [개선] 누르는 것의 경계는 --color-line-strong(SPEC-056 F7 · secondary 와 같은 모양)
+      className="inline-flex min-h-[44px] items-center rounded-[var(--radius-md)] border border-(--color-line-strong) px-[var(--spacing-lg)] font-semibold text-(--color-ink)"
     >
       {t("notFound.back")}
     </button>

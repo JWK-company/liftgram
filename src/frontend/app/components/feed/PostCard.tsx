@@ -169,7 +169,9 @@ export function PostCard({
   }
 
   return (
-    <Card className="mb-[var(--spacing-md)]" data-testid="post-card">
+    // [원본] <Card className="mb-[var(--spacing-md)]" data-testid="post-card">
+    // [개선] 평평한 기록지(SPEC-056 F1) — 상자 없는 글 목록 · 글 사이는 Card 아래 가는 선 하나(아래 여백은 띄우지 않는다)
+    <Card data-testid="post-card">
       <div className="flex items-center gap-[var(--spacing-sm)]">
         <a
           href={routes.userProfile(post.author?.id ?? "")}

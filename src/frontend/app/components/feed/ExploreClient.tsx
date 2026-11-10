@@ -335,7 +335,9 @@ function SearchResults({
 
 function PersonRow({ user, onFollow }: { user: UserResult; onFollow: () => void }) {
   return (
-    <Card className="mb-[var(--spacing-sm)]">
+    // [원본] <Card className="mb-[var(--spacing-sm)]"> — 상자 사이를 띄워 쌓았다
+    // [개선] 평평한 기록지(SPEC-056 F1) — 줄 사이 가는 선(Card 기본) · 위아래 여백을 줄여 목록답게
+    <Card className="py-[var(--spacing-sm)]!">
       <div className="flex items-center gap-[var(--spacing-sm)]">
         <a
           href={routes.userProfile(user.author?.id ?? "")}
@@ -349,7 +351,9 @@ function PersonRow({ user, onFollow }: { user: UserResult; onFollow: () => void 
         </a>
         <Button
           title={user.following ? t("discover.following") : t("discover.follow")}
-          variant={user.following ? "secondary" : "primary"}
+          // [원본] variant={user.following ? "secondary" : "primary"} — 줄마다 빨강 채움이 되풀이됐다
+          // [개선] SPEC-056 F4 — 되풀이되는 「팔로우」는 빨강 테두리(outline) · 채움은 화면의 주 행동에만
+          variant={user.following ? "secondary" : "outline"}
           size="sm"
           fullWidth={false}
           onPress={onFollow}

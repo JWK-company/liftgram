@@ -82,7 +82,8 @@ export default function ConversationsClient() {
           <a
             href="/messages/new"
             data-testid="dm-new"
-            className="flex min-h-11 shrink-0 items-center gap-[2px] whitespace-nowrap rounded-[var(--radius-pill)] border border-(--color-line-strong) px-[var(--spacing-md)] font-medium text-(--color-ink) text-[length:var(--text-sm)] active:bg-(--color-surface-alt)"
+            // [원본] rounded-[var(--radius-pill)] — 버튼 알약(SPEC-056 F2 금지) · [개선] 모서리 토큰 md
+            className="flex min-h-11 shrink-0 items-center gap-[2px] whitespace-nowrap rounded-[var(--radius-md)] border border-(--color-line-strong) px-[var(--spacing-md)] font-medium text-(--color-ink) text-[length:var(--text-sm)] active:bg-(--color-surface-alt)"
           >
             <Icon name="add" size={18} color="var(--color-ink)" />
             {t("dm.newMessage")}
@@ -116,7 +117,11 @@ export default function ConversationsClient() {
           />
         ) : (
           // 줄 목록(SRS-054 · 29개 표): 아바타 · 이름 · 미리보기 · 안 읽음 수. 카드 더미 대신 한 판에 줄을 겹친다.
-          <div className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t">
+          <div
+            // [원본] className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t"
+            // [개선] 평평한 기록지(SPEC-056 F1) — 판 없이 위·아래 가는 선과 줄 사이 선만(ListGroup 과 같은 모양)
+            className="overflow-hidden border-(--color-line) border-y [&>*+*]:border-(--color-line) [&>*+*]:border-t"
+          >
             {convs.map((c) => {
               const title = conversationTitle(c, meId);
               // [원본] const preview = c.lastMessage ? c.lastMessage.body || t("dm.imageMessage") : "";
@@ -131,7 +136,9 @@ export default function ConversationsClient() {
                   key={c.id}
                   href={routes.conversation(c.id)}
                   data-testid="dm-row"
-                  className="block px-[var(--spacing-md)] py-[var(--spacing-md)] active:bg-(--color-surface-alt)"
+                  // [원본] className="block px-[var(--spacing-md)] py-[var(--spacing-md)] active:bg-(--color-surface-alt)"
+                  // [개선] SPEC-056 — 판이 없으니 줄 안쪽 좌우는 화면 여백에 맞춰 좁게(ListRow 와 같은 px-xs)
+                  className="block px-[var(--spacing-xs)] py-[var(--spacing-md)] active:bg-(--color-surface-alt)"
                 >
                   <div className="flex items-center gap-[var(--spacing-md)]">
                     <Avatar name={title} size={44} />

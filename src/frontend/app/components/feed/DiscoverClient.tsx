@@ -102,11 +102,17 @@ export default function DiscoverClient({ embedded = false }: { embedded?: boolea
             />
           ) : null
         ) : (
-          <div className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t">
+          <div
+            // [원본] className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t"
+            // [개선] 평평한 기록지(SPEC-056 F1) — 판 없이 위·아래 가는 선과 줄 사이 선만(ListGroup 과 같은 모양)
+            className="overflow-hidden border-(--color-line) border-y [&>*+*]:border-(--color-line) [&>*+*]:border-t"
+          >
             {users.map((u) => (
               <div
                 key={u.author?.id}
-                className="flex items-center gap-[var(--spacing-sm)] px-[var(--spacing-md)] py-[var(--spacing-sm)]"
+                // [원본] className="flex items-center gap-[var(--spacing-sm)] px-[var(--spacing-md)] py-[var(--spacing-sm)]"
+                // [개선] SPEC-056 — 판이 없으니 줄 안쪽 좌우는 화면 여백에 맞춰 좁게(ListRow 와 같은 px-xs)
+                className="flex items-center gap-[var(--spacing-sm)] px-[var(--spacing-xs)] py-[var(--spacing-sm)]"
               >
                 <a
                   href={routes.userProfile(u.author?.id ?? "")}
@@ -120,7 +126,9 @@ export default function DiscoverClient({ embedded = false }: { embedded?: boolea
                 </a>
                 <Button
                   title={u.following ? t("discover.following") : t("discover.follow")}
-                  variant={u.following ? "secondary" : "primary"}
+                  // [원본] variant={u.following ? "secondary" : "primary"} — 줄마다 빨강 채움이 되풀이됐다
+                  // [개선] SPEC-056 F4 — 되풀이되는 「팔로우」는 빨강 테두리(outline) · 채움은 화면의 주 행동에만
+                  variant={u.following ? "secondary" : "outline"}
                   size="sm"
                   fullWidth={false}
                   onPress={() => toggleFollow(u)}

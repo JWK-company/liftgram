@@ -157,7 +157,11 @@ export default function NewGroupClient() {
             emptyTitle="group.noFollowees"
           />
         ) : (
-          <div className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t">
+          <div
+            // [원본] className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t"
+            // [개선] 평평한 기록지(SPEC-056 F1) — 판 없이 위·아래 가는 선과 줄 사이 선만(ListGroup 과 같은 모양)
+            className="overflow-hidden border-(--color-line) border-y [&>*+*]:border-(--color-line) [&>*+*]:border-t"
+          >
             {users.map((u) => {
               const id = u.author?.id ?? "";
               const on = picked.has(id);
@@ -168,7 +172,9 @@ export default function NewGroupClient() {
                   onClick={() => toggle(u)}
                   data-testid="group-user"
                   aria-pressed={on}
-                  className="flex min-h-[52px] w-full items-center gap-[var(--spacing-sm)] px-[var(--spacing-md)] text-left"
+                  // [원본] className="flex min-h-[52px] w-full items-center gap-[var(--spacing-sm)] px-[var(--spacing-md)] text-left"
+                  // [개선] SPEC-056 — 판이 없으니 줄 안쪽 좌우는 화면 여백에 맞춰 좁게(ListRow 와 같은 px-xs)
+                  className="flex min-h-[52px] w-full items-center gap-[var(--spacing-sm)] px-[var(--spacing-xs)] text-left"
                 >
                   <Avatar name={u.author?.displayName} url={u.author?.avatarUrl} size={36} />
                   <AppText variant="body" className="block min-w-0 flex-1 truncate font-medium!">

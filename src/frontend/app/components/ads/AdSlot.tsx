@@ -32,9 +32,14 @@ export function AdSlot({ placement, className = "" }: { placement: AdPlacement; 
       data-testid={`ad-slot-${placement}`}
       aria-label={t("ads.label")}
       // 큰 배너(320×100) 크기로 위치를 본다 · 위아래를 띄워 버튼과 붙지 않게 한다
-      className={`mx-auto my-[var(--spacing-xl)] flex h-[100px] w-full max-w-[320px] flex-col items-center justify-center rounded-[var(--radius-md)] border border-(--color-line) border-dashed text-(--color-ink3) text-[length:var(--text-sm)] ${className}`}
+      // [원본] className={`… rounded-[var(--radius-md)] border border-(--color-line) border-dashed … ${className}`} — 화면 안 점선 상자
+      // [개선] 평평한 기록지(SPEC-056 F1) — 상자를 걷고 위·아래 점선으로 자리만 · 「광고」 는 테두리 꼬리표로 남겨 글과 구분이 분명하게
+      className={`mx-auto my-[var(--spacing-xl)] flex h-[100px] w-full max-w-[320px] flex-col items-center justify-center gap-[4px] border-(--color-line-strong) border-y border-dashed text-(--color-ink3) text-[length:var(--text-sm)] ${className}`}
     >
-      <span className="font-semibold">{t("ads.label")}</span>
+      {/* [원본] <span className="font-semibold">{t("ads.label")}</span> */}
+      <span className="rounded-[var(--radius-sm)] border border-(--color-ink3) px-[6px] py-[1px] font-semibold text-(--color-ink2) text-[11px]">
+        {t("ads.label")}
+      </span>
       <span>{t("ads.previewHint")}</span>
     </aside>
   );

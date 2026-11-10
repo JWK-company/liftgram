@@ -201,7 +201,11 @@ export default function NotificationsClient() {
                   >
                     {t(key === "new" ? "notif.sectionNew" : "notif.sectionEarlier")}
                   </AppText>
-                  <div className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t">
+                  <div
+                    // [원본] className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t"
+                    // [개선] 평평한 기록지(SPEC-056 F1) — 판 없이 위·아래 가는 선과 줄 사이 선만(ListGroup 과 같은 모양)
+                    className="overflow-hidden border-(--color-line) border-y [&>*+*]:border-(--color-line) [&>*+*]:border-t"
+                  >
                     {rows.map((n) => (
                       <a
                         key={n.id}
@@ -227,8 +231,11 @@ export default function NotificationsClient() {
                         data-testid="notif-row"
                         data-read={n.read ? "1" : "0"}
                         aria-busy={opening === n.id || undefined}
-                        className={`block px-[var(--spacing-md)] py-[var(--spacing-md)] active:bg-(--color-surface-alt) ${
-                          n.read ? "" : "bg-(--color-brand-muted)"
+                        // [원본] className={`block px-[var(--spacing-md)] … ${n.read ? "" : "bg-(--color-brand-muted)"}`}
+                        // [개선] SPEC-056 F6 — 안 읽음을 줄 배경 채움 대신 왼쪽 강조선 + 굵은 글자 + 점으로 · 좌우는 화면 여백에 맞춰 좁게
+                        style={n.read ? undefined : { boxShadow: "inset 3px 0 0 var(--color-brand)" }}
+                        className={`block py-[var(--spacing-md)] pr-[var(--spacing-xs)] active:bg-(--color-surface-alt) ${
+                          n.read ? "pl-[var(--spacing-xs)]" : "pl-[var(--spacing-md)]"
                         }`}
                       >
                         <div className="flex items-center gap-[var(--spacing-md)]">

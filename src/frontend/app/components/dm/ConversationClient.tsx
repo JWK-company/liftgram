@@ -378,7 +378,8 @@ export default function ConversationClient({ conversationId }: { conversationId:
         className="sticky bottom-[calc(56px+var(--shell-workout-bar,0px)+env(safe-area-inset-bottom))] z-20 flex items-end gap-[var(--spacing-sm)] border-(--color-line) border-t bg-(--color-surface) px-[var(--spacing-md)] py-[var(--spacing-sm)] lg:bottom-[var(--shell-workout-bar,0px)]"
       >
         <label
-          className="flex h-[44px] w-[44px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-(--color-surface-alt) focus-within:outline-2 focus-within:outline-(--color-brand) has-[:disabled]:cursor-default has-[:disabled]:opacity-50"
+          // [원본] "… rounded-full bg-(--color-surface-alt) …" — 아이콘을 담은 회색 원 · [개선] 판 없이 아이콘만(SPEC-056 F5)
+          className="flex h-[44px] w-[44px] shrink-0 cursor-pointer items-center justify-center rounded-full focus-within:outline-2 focus-within:outline-(--color-brand) has-[:disabled]:cursor-default has-[:disabled]:opacity-50"
           data-testid="conv-image"
         >
           <input
@@ -412,7 +413,8 @@ export default function ConversationClient({ conversationId }: { conversationId:
           ref={inputRef}
           data-testid="conv-input"
           aria-label={t("dm.messagePlaceholder")}
-          className="block max-h-[110px] min-h-[44px] min-w-0 flex-1 resize-none rounded-[22px] border border-(--color-line-strong) bg-(--color-card) px-[var(--spacing-lg)] py-[10px] text-[length:var(--text-md)] text-(--color-ink) leading-[22px] outline-none placeholder:text-(--color-ink3) focus:border-(--color-brand)"
+          // [원본] rounded-[22px] — 토큰 밖 둥근 값 · [개선] 입력칸은 모서리 토큰(SPEC-056 F2)
+          className="block max-h-[110px] min-h-[44px] min-w-0 flex-1 resize-none rounded-[var(--radius-md)] border border-(--color-line-strong) bg-(--color-card) px-[var(--spacing-lg)] py-[10px] text-[length:var(--text-md)] text-(--color-ink) leading-[22px] outline-none placeholder:text-(--color-ink3) focus:border-(--color-brand)"
         />
         <button
           type="button"

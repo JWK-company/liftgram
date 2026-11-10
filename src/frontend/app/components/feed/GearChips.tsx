@@ -75,7 +75,10 @@ export function GearDisclosure() {
   return (
     <div
       data-testid="gear-disclosure"
-      className="mt-[var(--spacing-sm)] rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[var(--spacing-xs)]"
+      // [원본] className="mt-[var(--spacing-sm)] rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[var(--spacing-xs)]"
+      // [개선] SPEC-056 F1 — 회색 판 대신 왼쪽 경고색 3px 선 · 고지 글자(경고색)는 그대로 첫 부분에 보인다
+      style={{ boxShadow: "inset 3px 0 0 var(--color-warn)" }}
+      className="mt-[var(--spacing-sm)] py-[2px] pl-[var(--spacing-sm)]"
     >
       <AppText variant="caption" color="warning" className="font-medium!">
         {AFFILIATE_DISCLOSURE_KO}
