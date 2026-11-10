@@ -109,7 +109,9 @@ export function WeekSummary() {
   return (
     <section
       data-testid="week-summary"
-      className="mb-[var(--spacing-lg)] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) px-[var(--spacing-lg)] py-[var(--spacing-md)]"
+      // [원본] className="mb-[var(--spacing-lg)] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) px-[var(--spacing-lg)] py-[var(--spacing-md)]"
+      // [개선] 평평한 기록지(SPEC-056 F1) — 상자 없이 아래 가는 선으로 나뉜 구역
+      className="mb-[var(--spacing-lg)] border-(--color-line) border-b py-[var(--spacing-md)]"
     >
       <a
         href="/calendar"
@@ -128,9 +130,10 @@ export function WeekSummary() {
         </span>
         <Icon name="chevron-forward" size={16} color="var(--color-ink3)" />
       </a>
-      <div className="mt-[6px] h-1.5 overflow-hidden rounded-full bg-(--color-surface-alt)">
+      {/* [원본] 막대 rounded-full · [개선] 둥근 정도는 토큰만(SPEC-056 F2) */}
+      <div className="mt-[6px] h-1.5 overflow-hidden rounded-[var(--radius-pill)] bg-(--color-surface-alt)">
         <div
-          className="h-full rounded-full bg-(--color-brand) transition-[width] duration-500"
+          className="h-full rounded-[var(--radius-pill)] bg-(--color-brand) transition-[width] duration-500"
           style={{ width: `${pct}%` }}
         />
       </div>

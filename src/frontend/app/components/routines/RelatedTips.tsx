@@ -18,7 +18,8 @@ export function RelatedTips({ tipIds }: { tipIds: string[] }) {
     <Card>
       <div data-testid="related-tips">
         <SectionHeader title={t("tips.relatedTitle")} />
-        <div className="flex flex-col gap-[var(--spacing-sm)]">
+        {/* [원본] <div className="flex flex-col gap-[var(--spacing-sm)]"> · [개선] 구분선 목록 — 마지막 줄 선은 Card 아래 선과 겹쳐 뺀다(SPEC-056 F1) */}
+        <div className="flex flex-col border-(--color-line) border-t [&>*:last-child]:border-b-0">
           {tips.map((tip) => (
             <TipRow key={tip.id} tip={tip} testId="related-tip" onPress={() => setOpen(tip)} />
           ))}

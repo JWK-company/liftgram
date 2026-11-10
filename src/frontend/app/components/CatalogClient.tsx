@@ -344,7 +344,9 @@ export default function CatalogClient() {
       ) : (
         <ul
           data-testid="exercise-list"
-          className="mt-[var(--spacing-xs)] overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>li+li]:border-(--color-line) [&>li+li]:border-t"
+          // [원본] className="mt-[var(--spacing-xs)] overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>li+li]:border-(--color-line) [&>li+li]:border-t"
+          // [개선] 평평한 기록지(SPEC-056 F1) — 큰 상자 대신 위아래·줄 사이 가는 선만
+          className="mt-[var(--spacing-xs)] overflow-hidden border-(--color-line) border-y [&>li+li]:border-(--color-line) [&>li+li]:border-t"
         >
           {rows.map((r) => (
             <ExerciseRow key={r.id} row={r} />
@@ -385,7 +387,8 @@ function ExerciseRow({ row }: { row: Row }) {
   // [개선] 내가 올린 사진이 있으면 그것, 아니면 픽토그램(시드 종목 전부) — 사진 CDN 을 목록에서 부르지 않는다
   const thumb = row.imageUrl || null;
   const fallbackIcon = (
-    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-(--color-surface-alt)">
+    // [원본] <span className="flex h-10 w-10 … rounded-[var(--radius-sm)] bg-(--color-surface-alt)"> · [개선] 아이콘만(SPEC-056 F5)
+    <span className="flex h-10 w-10 shrink-0 items-center justify-center">
       <Icon name="barbell-outline" size={18} color="var(--color-ink3)" />
     </span>
   );
@@ -399,7 +402,9 @@ function ExerciseRow({ row }: { row: Row }) {
           href={`/exercises/${encodeURIComponent(row.id)}/edit`}
           data-testid={`edit-${row.id}`}
           aria-label={t("common.edit")}
-          className="absolute top-1/2 right-[var(--spacing-xl)] z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-[var(--radius-sm)] bg-(--color-surface-alt)"
+          // [원본] className="absolute top-1/2 right-[var(--spacing-xl)] z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-[var(--radius-sm)] bg-(--color-surface-alt)"
+          // [개선] 회색 판 없이 아이콘만 · 누르는 자리는 ::before 로 44px(SPEC-056 F5·F7) · 줄 좌우 여백이 없어져 오른쪽 끝을 맞춘다
+          className="absolute top-1/2 right-[var(--spacing-xl)] z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-[var(--radius-sm)] before:absolute before:-inset-[6px] before:content-['']"
         >
           <Icon name="create-outline" size={16} color="var(--color-ink2)" />
         </a>
@@ -409,7 +414,9 @@ function ExerciseRow({ row }: { row: Row }) {
         // [개선] 내 종목 줄은 고치기 화면으로 — 만든 사람이 내용을 보고 손볼 수 있는 자리
         href={row.isCustom ? `/exercises/${encodeURIComponent(row.id)}/edit` : routes.exercise(row.id)}
         data-testid={`exercise-${row.id}`}
-        className="flex min-h-[60px] items-center gap-[var(--spacing-md)] px-[var(--spacing-md)] py-[var(--spacing-sm)] active:bg-(--color-surface-alt)"
+        // [원본] className="flex min-h-[60px] items-center gap-[var(--spacing-md)] px-[var(--spacing-md)] py-[var(--spacing-sm)] active:bg-(--color-surface-alt)"
+        // [개선] 판 없는 목록이라 좌우 여백 없이 화면 여백에 맞춘다(SPEC-056 F1)
+        className="flex min-h-[60px] items-center gap-[var(--spacing-md)] py-[var(--spacing-sm)] active:bg-(--color-surface-alt)"
       >
         {thumb ? (
           // eslint 규칙이 아니라 의도다 — CDN 원본을 그대로 쓴다(next/image 최적화 서버 불필요).
@@ -421,7 +428,8 @@ function ExerciseRow({ row }: { row: Row }) {
             className="h-10 w-10 shrink-0 rounded-[var(--radius-sm)] object-cover"
           />
         ) : hasPictogram(row.id) ? (
-          <span className="h-10 w-12 shrink-0 overflow-hidden rounded-[var(--radius-sm)] bg-(--color-surface-alt)">
+          // [원본] <span className="h-10 w-12 shrink-0 overflow-hidden rounded-[var(--radius-sm)] bg-(--color-surface-alt)"> · [개선] 그림만(SPEC-056 F5)
+          <span className="h-10 w-12 shrink-0 overflow-hidden">
             <Pictogram
               exerciseId={row.id}
               className="h-full w-full"

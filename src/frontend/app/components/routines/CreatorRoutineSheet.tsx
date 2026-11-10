@@ -59,14 +59,17 @@ export function CreatorTopicSheet({
       <AppText variant="body" color="textMuted" className="mt-[4px] block">
         {lang === "ko" ? topic.blurbKo : topic.blurbEn}
       </AppText>
-      <div className="mt-[var(--spacing-sm)] flex flex-col gap-[var(--spacing-sm)]">
+      {/* [원본] <div className="mt-[var(--spacing-sm)] flex flex-col gap-[var(--spacing-sm)]"> · [개선] 구분선 목록(SPEC-056 F1) */}
+      <div className="mt-[var(--spacing-sm)] flex flex-col border-(--color-line) border-t">
         {versions.map((r) => (
           <button
             key={r.id}
             type="button"
             data-testid={`creator-version-${r.id}`}
             onClick={() => setPicked(r)}
-            className="flex min-w-0 flex-col gap-[2px] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface) p-[var(--spacing-md)] text-left"
+            // [원본] className="flex min-w-0 flex-col gap-[2px] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface) p-[var(--spacing-md)] text-left"
+            // [개선] 시트 안 상자 대신 아래 가는 선으로 나뉜 줄(SPEC-056 F1 · 상자 안 상자 금지)
+            className="flex min-h-[44px] min-w-0 flex-col gap-[2px] border-(--color-line) border-b py-[var(--spacing-md)] text-left active:opacity-70"
           >
             <AppText variant="body" className="block truncate font-bold">
               {r.labelKo}
@@ -281,7 +284,9 @@ function CreatorVersionStep({
       {routine.days.map((d) => (
         <div
           key={d.nameKo}
-          className="mt-[var(--spacing-sm)] rounded-[var(--radius-sm)] bg-(--color-surface-alt) p-[var(--spacing-sm)]"
+          // [원본] className="mt-[var(--spacing-sm)] rounded-[var(--radius-sm)] bg-(--color-surface-alt) p-[var(--spacing-sm)]" — 시트 안 회색 판
+          // [개선] 날마다 아래 가는 선으로 나뉜 구역(SPEC-056 F1)
+          className="border-(--color-line) border-b py-[var(--spacing-sm)]"
         >
           {routine.days.length > 1 ? (
             <AppText variant="caption" color="primary" className="font-bold">
