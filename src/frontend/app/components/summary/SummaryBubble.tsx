@@ -61,7 +61,9 @@ export function SummaryBubble({
           highlight ? "border-2" : ""
         } ${mine ? "rounded-br-[var(--radius-sm)]" : "rounded-bl-[var(--radius-sm)]"}`}
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-(--color-surface-alt)">
+        {/* [원본] <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-(--color-surface-alt)"> */}
+        {/* [개선] 아이콘을 담은 회색 판 걷기 — 아이콘만(SPEC-056 F5). 말풍선 자체는 대화 칸이라 유지 */}
+        <span className="flex h-9 w-6 shrink-0 items-center justify-center">
           <Icon name="stats-chart" size={18} color="var(--color-ink2)" />
         </span>
         <AppText variant="body" className="min-w-0 flex-1 font-medium!">

@@ -90,7 +90,9 @@ export default function HistoryClient() {
                     {`${g.rows.length}회 · ${formatWeight(g.volume, weightUnit)}`}
                   </span>
                 </div>
-                <div className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t">
+                {/* [원본] <div className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t"> */}
+                {/* [개선] 판 없이 위·아래 가는 선과 줄 사이 선만(SPEC-056 F1 · ListGroup 과 같다) */}
+                <div className="overflow-hidden border-(--color-line) border-y [&>*+*]:border-(--color-line) [&>*+*]:border-t">
                   {g.rows.map((w) => (
                     <HistoryRow key={w.id} w={w} unit={weightUnit} />
                   ))}
@@ -116,7 +118,9 @@ function HistoryRow({ w, unit }: { w: WorkoutRow; unit: Parameters<typeof format
     <a
       href={`/history/${w.id}`}
       data-testid={`history-${w.id}`}
-      className="flex min-h-[60px] items-center gap-[var(--spacing-md)] px-[var(--spacing-md)] py-[var(--spacing-sm)] active:bg-(--color-surface-alt)"
+      // [원본] className="flex min-h-[60px] items-center gap-[var(--spacing-md)] px-[var(--spacing-md)] py-[var(--spacing-sm)] active:bg-(--color-surface-alt)"
+      // [개선] 상자가 없어졌으니 줄 좌우 여백 없이 화면 여백에 맞춘다(SPEC-056 F1)
+      className="flex min-h-[60px] items-center gap-[var(--spacing-md)] py-[var(--spacing-sm)] active:bg-(--color-surface-alt)"
     >
       <span className="flex w-10 shrink-0 flex-col items-center leading-tight">
         <span className="font-bold text-(--color-ink) text-[length:var(--text-lg)] tabular-nums">

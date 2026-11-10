@@ -63,7 +63,9 @@ export function formatSummaryDate(ms: number, tz = ""): string {
 
 function Kpi({ label, value, testId }: { label: string; value: string; testId: string }) {
   return (
-    <div className="flex min-w-0 flex-col rounded-[var(--radius-md)] bg-(--color-surface-alt) px-[var(--spacing-md)] py-[var(--spacing-sm)]">
+    // [원본] <div className="flex min-w-0 flex-col rounded-[var(--radius-md)] bg-(--color-surface-alt) px-[var(--spacing-md)] py-[var(--spacing-sm)]">
+    // [개선] 회색 판 없이 값만(SPEC-056 F1·F5) — 칸 사이 선은 감싸는 격자가 그린다
+    <div className="flex min-w-0 flex-col py-[var(--spacing-sm)]">
       <span className="text-(--color-ink2) text-[length:var(--text-xs)]">{label}</span>
       <span
         data-testid={testId}
@@ -127,7 +129,9 @@ export function SummaryView({
       </AppText> */}
       {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
 
-      <div className="mt-[var(--spacing-sm)] grid grid-cols-2 gap-[var(--spacing-sm)]">
+      {/* [원본] <div className="mt-[var(--spacing-sm)] grid grid-cols-2 gap-[var(--spacing-sm)]"> — 회색 판 네 개 */}
+      {/* [개선] 평평한 2×2(SPEC-056 F1) — 위·아래 가는 선 · 나란한 값은 세로선 · 두 줄 사이 가는 선 */}
+      <div className="mt-[var(--spacing-sm)] grid grid-cols-2 border-(--color-line) border-y [&>*:nth-child(even)]:border-(--color-line) [&>*:nth-child(even)]:border-l [&>*:nth-child(even)]:pl-[var(--spacing-md)] [&>*:nth-child(n+3)]:border-(--color-line) [&>*:nth-child(n+3)]:border-t">
         <Kpi
           label={t("progressSummary.workouts")}
           value={t("progressSummary.workoutsValue", { count: s.counts.workouts })}

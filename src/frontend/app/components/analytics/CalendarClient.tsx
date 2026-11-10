@@ -322,7 +322,9 @@ export default function CalendarClient() {
                 if (!account) toast(t("session.shareLoginRequired"), "error");
                 else setBragSheet(true);
               }}
-              className="h-[44px] shrink-0 rounded-[var(--radius-pill)] border border-(--color-line) px-[12px] font-semibold text-(--color-ink2) text-[length:var(--text-sm)] active:bg-(--color-surface-alt) disabled:opacity-45"
+              // [원본] className="h-[44px] shrink-0 rounded-[var(--radius-pill)] border border-(--color-line) px-[12px] font-semibold text-(--color-ink2) text-[length:var(--text-sm)] active:bg-(--color-surface-alt) disabled:opacity-45"
+              // [개선] 큰 버튼 알약 금지·누르는 것 경계는 line-strong(SPEC-056 F2·F7) — 보조 버튼(secondary)과 같은 모양
+              className="h-[44px] shrink-0 rounded-[var(--radius-md)] border border-(--color-line-strong) bg-transparent px-[12px] font-semibold text-(--color-ink2) text-[length:var(--text-sm)] active:bg-(--color-surface-alt) disabled:opacity-45"
             >
               {bragging ? t("calendar.bragPosting") : bragLabel}
             </button>
@@ -336,7 +338,9 @@ export default function CalendarClient() {
           type="button"
           data-testid="goal-row"
           onClick={() => setGoalSheet(true)}
-          className="mb-[var(--spacing-md)] flex w-full items-center gap-[var(--spacing-md)] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) px-[var(--spacing-lg)] py-[var(--spacing-md)] text-left active:bg-(--color-surface-alt)"
+          // [원본] className="mb-[var(--spacing-md)] flex w-full items-center gap-[var(--spacing-md)] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) px-[var(--spacing-lg)] py-[var(--spacing-md)] text-left active:bg-(--color-surface-alt)"
+          // [개선] 평평한 구역(SPEC-056 F1) — 상자 없이 아래 가는 선 · 좌우 여백은 화면 여백에 맞춘다. 목표|연속은 세로선으로 나란히(그대로)
+          className="mb-[var(--spacing-md)] flex w-full items-center gap-[var(--spacing-md)] border-(--color-line) border-b bg-transparent py-[var(--spacing-md)] text-left active:bg-(--color-surface-alt)"
         >
           <span className="flex min-w-0 flex-1 flex-col">
             <span className="text-(--color-ink2) text-[length:var(--text-xs)]">
@@ -538,7 +542,9 @@ export default function CalendarClient() {
                             : undefined,
                       borderColor: isToday && !isSelected ? "var(--color-brand)" : "transparent",
                     }}
-                    className="mx-auto flex h-10 w-10 flex-col items-center justify-center rounded-[10px] border-2"
+                    // [원본] className="mx-auto flex h-10 w-10 flex-col items-center justify-center rounded-[10px] border-2"
+                    // [개선] 고르는 칸이라 채움·테두리는 유지, 둥근 정도만 토큰(SPEC-056 F2)
+                    className="mx-auto flex h-10 w-10 flex-col items-center justify-center rounded-[var(--radius-md)] border-2"
                   >
                     <AppText
                       variant="caption"
@@ -598,7 +604,9 @@ export default function CalendarClient() {
               else delete next[String(selectedDayNum)];
               void saveSetting({ calendarNotes: next });
             }}
-            className="mb-[var(--spacing-sm)] w-full rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface-alt) p-[var(--spacing-md)] text-[length:var(--text-md)] text-(--color-ink) placeholder:text-(--color-ink3)"
+            // [원본] className="mb-[var(--spacing-sm)] w-full rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface-alt) p-[var(--spacing-md)] text-[length:var(--text-md)] text-(--color-ink) placeholder:text-(--color-ink3)"
+            // [개선] 입력칸은 흰 바탕 + line-strong 경계(SPEC-056 F7 · 운동 중 입력칸과 같다)
+            className="mb-[var(--spacing-sm)] w-full rounded-[var(--radius-md)] border border-(--color-line-strong) bg-(--color-card) p-[var(--spacing-md)] text-[length:var(--text-md)] text-(--color-ink) placeholder:text-(--color-ink3)"
           />
         ) : null}
 
@@ -650,12 +658,15 @@ export default function CalendarClient() {
             </div>
           )
         ) : (
-          <div className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t">
+          // [원본] <div className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t">
+          // [개선] 판 없이 위·아래 가는 선과 줄 사이 선만(SPEC-056 F1 · ListGroup 과 같다) — 줄 좌우 여백은 화면 여백에 맞춘다
+          <div className="overflow-hidden border-(--color-line) border-y [&>*+*]:border-(--color-line) [&>*+*]:border-t">
             {selectedWorkouts.map((w) => (
               <a
                 key={w.id}
                 href={`/history/${w.id}`}
-                className="flex min-h-[56px] items-center gap-[var(--spacing-md)] px-[var(--spacing-lg)] py-[var(--spacing-sm)] active:bg-(--color-surface-alt)"
+                // [원본] className="flex min-h-[56px] items-center gap-[var(--spacing-md)] px-[var(--spacing-lg)] py-[var(--spacing-sm)] active:bg-(--color-surface-alt)"
+                className="flex min-h-[56px] items-center gap-[var(--spacing-md)] py-[var(--spacing-sm)] active:bg-(--color-surface-alt)"
               >
                 <span className="flex min-w-0 flex-1 flex-col">
                   <span className="truncate font-medium text-(--color-ink) text-[length:var(--text-md)]">

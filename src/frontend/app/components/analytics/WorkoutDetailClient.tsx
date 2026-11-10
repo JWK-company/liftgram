@@ -21,7 +21,8 @@ import { ConfirmDialog, SheetShell } from "../ui/Dialog";
 import { Button } from "../ui/Button";
 import { MoreMenu } from "../ui/MoreMenu";
 import { KpiRow } from "../ui/rows";
-import { AppText, Card, Divider, EmptyState } from "../ui/primitives";
+// [원본] import { AppText, Card, Divider, EmptyState } from "../ui/primitives";
+import { AppText, Card, EmptyState } from "../ui/primitives";
 import { MetaLine } from "../ui/quiet";
 import { LogoSpinner } from "../ui/LogoSpinner";
 import { NameRoutine } from "../session/FinishRoutineSheets";
@@ -587,7 +588,9 @@ function ExerciseCard({
       </MetaLine>
 
       {ex.note ? (
-        <div className="mt-[var(--spacing-xs)] rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[var(--spacing-xs)]">
+        // [원본] <div className="mt-[var(--spacing-xs)] rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[var(--spacing-xs)]">
+        // [개선] 회색 판 없이 글자만(SPEC-056 F1 · 구역 안 판 금지)
+        <div className="mt-[var(--spacing-xs)]">
           <AppText variant="caption" color="textMuted">
             {t("analytics.exerciseNote", { note: ex.note })}
           </AppText>
@@ -614,93 +617,100 @@ function ExerciseCard({
           </span>
         ) : null}
       </div>
-      <Divider className="my-[var(--spacing-xs)]!" />
-
-      {ex.sets.map((s) => (
-        // 세트 줄을 누르면 고치기·지우기 시트(#51) @plm SRS-061
-        <button
-          type="button"
-          key={s.setNumber}
-          data-testid="detail-set"
-          data-set-id={s.id}
-          disabled={!s.id || !onEditSet}
-          onClick={() => onEditSet?.(s)}
-          aria-label={
-            s.id && onEditSet
-              ? `${t("history.rowEditAria", { n: s.setNumber, weight: formatEnteredWeight(s.weightKg, unit), reps: s.reps })}${
-                  s.checkState === "suspect" ? ` · ${t("check.chip")}` : ""
-                }`
-              : undefined
-          }
-          data-check-state={s.checkState ?? undefined}
-          style={{ backgroundColor: focusSet && s.id === focusSet ? "var(--color-brand-muted)" : undefined }}
-          className="flex w-full items-center rounded-[var(--radius-sm)] py-[var(--spacing-xs)] text-left"
-        >
-          <span className="w-10">
-            <AppText variant="body" color="textMuted">
-              {String(s.setNumber)}
-            </AppText>
-          </span>
-          <div className="min-w-0 flex-1">
-            <AppText variant="body">
-              {`${formatEnteredWeight(s.weightKg, unit)} × ${s.reps}`}
-              {s.partialReps ? (
-                <AppText variant="body" color="textFaint">{` +${s.partialReps}`}</AppText>
-              ) : null}
-            </AppText>
-            {/* 세트 표시 — 태그 상자 대신 회색 한 줄(워밍업·실패·원암·옛 손 그립) · 한쪽 입력은 머리에 한 번(D6)
-                [원본] Tag(muted·danger·primary) 여러 개 + 세트마다 「한쪽 40kg ×2」 빨간 배지 */}
-            <MetaLine className="text-[length:var(--text-xs)]">
-              {s.checkState === "suspect" ? (
-                // 확인 필요 — 계산에서 빠진 세트(SPEC-044 · 눌러서 고치기 시트 위 확인 패널)
-                <span key="c" data-testid="detail-set-check" className="font-semibold text-(--color-ink)">
-                  <span aria-hidden="true">? </span>
-                  {t("check.chip")}
-                </span>
-              ) : null}
-              {s.isWarmup ? <span key="w">{t("analytics.warmupTag")}</span> : null}
-              {/* [원본] text-(--color-warn) — 다크에서 PR 금색과 거의 같았다(금색 = PR 만 · P2 /qa code M-4).
-                  「실패」는 오류가 아니라 기록 속성이라 진한 회색 + 굵게 */}
-              {s.isFailed ? (
-                <span key="f" className="font-semibold text-(--color-ink)">
-                  {t("analytics.failedTag")}
-                </span>
-              ) : null}
-              {mixedOneSide && (s.loadMultiplier ?? 1) > 1 ? (
-                <span key="o" data-testid="detail-set-oneside-row">
-                  {t("analytics.oneSideSet")}
-                </span>
-              ) : null}
-              {s.arm === "uni" ? <span key="a">{t("session.armUni")}</span> : null}
-              {s.grip ? (
-                <span key="g" data-testid="detail-set-grip">
-                  {gripLabel(s.grip as GripKey, lang) || s.grip}
-                </span>
-              ) : null}
-            </MetaLine>
-          </div>
-          {hasRpe ? (
-            <span className="w-16 text-right" data-testid="detail-set-rir">
-              {/* [원본] {s.rpe != null ? String(s.rpe) : "-"} */}
-              <DetailRir set={s} />
+      {/* [원본] <Divider className="my-[var(--spacing-xs)]!" /> — 머리 아래 선 + 세트 줄 사이 선 없음 */}
+      {/* [개선] 운동 중 세트 표와 같은 원칙(SPEC-056 F1·F6) — 줄 채움 없이 머리 아래·줄 사이 가는 선 */}
+      <div className="mt-[var(--spacing-xs)] border-(--color-line) border-t [&>*+*]:border-(--color-line) [&>*+*]:border-t">
+        {ex.sets.map((s) => (
+          // 세트 줄을 누르면 고치기·지우기 시트(#51) @plm SRS-061
+          <button
+            type="button"
+            key={s.setNumber}
+            data-testid="detail-set"
+            data-set-id={s.id}
+            disabled={!s.id || !onEditSet}
+            onClick={() => onEditSet?.(s)}
+            aria-label={
+              s.id && onEditSet
+                ? `${t("history.rowEditAria", { n: s.setNumber, weight: formatEnteredWeight(s.weightKg, unit), reps: s.reps })}${
+                    s.checkState === "suspect" ? ` · ${t("check.chip")}` : ""
+                  }`
+                : undefined
+            }
+            data-check-state={s.checkState ?? undefined}
+            // [원본] style={{ backgroundColor: focusSet && s.id === focusSet ? "var(--color-brand-muted)" : undefined }}
+            // [개선] 알림으로 온 세트는 줄 채움 대신 왼쪽 3px 강조선(SPEC-056 F6)
+            style={
+              focusSet && s.id === focusSet ? { boxShadow: "inset 3px 0 0 var(--color-brand)" } : undefined
+            }
+            // [원본] className="flex w-full items-center rounded-[var(--radius-sm)] py-[var(--spacing-xs)] text-left"
+            className={`flex min-h-[44px] w-full items-center py-[var(--spacing-xs)] text-left ${focusSet && s.id === focusSet ? "pl-[var(--spacing-sm)]" : ""}`}
+          >
+            <span className="w-10">
+              <AppText variant="body" color="textMuted">
+                {String(s.setNumber)}
+              </AppText>
             </span>
-          ) : null}
-          {/* 고칠 수 있는 줄이라는 표시(누르는 곳은 줄 전체 · SPEC-044) */}
-          {s.id && onEditSet ? (
-            // [원본] 맨 연필 아이콘 <span className="ml-[xs] inline-flex w-5 justify-end"><Icon create-outline 14 /></span>
-            // [개선] 고치기 칩(장식형 · 바탕 + 연필) — 줄 전체가 버튼이라 버튼 안 버튼을 만들지 않는다(SPEC-046 · REV-084 10)
-            <ValueChip
-              as="span"
-              icon="edit"
-              testId="detail-set-edit-chip"
-              className="ml-[var(--spacing-xs)]"
-              faceClassName="py-[4px]!"
-            >
-              {null}
-            </ValueChip>
-          ) : null}
-        </button>
-      ))}
+            <div className="min-w-0 flex-1">
+              <AppText variant="body">
+                {`${formatEnteredWeight(s.weightKg, unit)} × ${s.reps}`}
+                {s.partialReps ? (
+                  <AppText variant="body" color="textFaint">{` +${s.partialReps}`}</AppText>
+                ) : null}
+              </AppText>
+              {/* 세트 표시 — 태그 상자 대신 회색 한 줄(워밍업·실패·원암·옛 손 그립) · 한쪽 입력은 머리에 한 번(D6)
+                [원본] Tag(muted·danger·primary) 여러 개 + 세트마다 「한쪽 40kg ×2」 빨간 배지 */}
+              <MetaLine className="text-[length:var(--text-xs)]">
+                {s.checkState === "suspect" ? (
+                  // 확인 필요 — 계산에서 빠진 세트(SPEC-044 · 눌러서 고치기 시트 위 확인 패널)
+                  <span key="c" data-testid="detail-set-check" className="font-semibold text-(--color-ink)">
+                    <span aria-hidden="true">? </span>
+                    {t("check.chip")}
+                  </span>
+                ) : null}
+                {s.isWarmup ? <span key="w">{t("analytics.warmupTag")}</span> : null}
+                {/* [원본] text-(--color-warn) — 다크에서 PR 금색과 거의 같았다(금색 = PR 만 · P2 /qa code M-4).
+                  「실패」는 오류가 아니라 기록 속성이라 진한 회색 + 굵게 */}
+                {s.isFailed ? (
+                  <span key="f" className="font-semibold text-(--color-ink)">
+                    {t("analytics.failedTag")}
+                  </span>
+                ) : null}
+                {mixedOneSide && (s.loadMultiplier ?? 1) > 1 ? (
+                  <span key="o" data-testid="detail-set-oneside-row">
+                    {t("analytics.oneSideSet")}
+                  </span>
+                ) : null}
+                {s.arm === "uni" ? <span key="a">{t("session.armUni")}</span> : null}
+                {s.grip ? (
+                  <span key="g" data-testid="detail-set-grip">
+                    {gripLabel(s.grip as GripKey, lang) || s.grip}
+                  </span>
+                ) : null}
+              </MetaLine>
+            </div>
+            {hasRpe ? (
+              <span className="w-16 text-right" data-testid="detail-set-rir">
+                {/* [원본] {s.rpe != null ? String(s.rpe) : "-"} */}
+                <DetailRir set={s} />
+              </span>
+            ) : null}
+            {/* 고칠 수 있는 줄이라는 표시(누르는 곳은 줄 전체 · SPEC-044) */}
+            {s.id && onEditSet ? (
+              // [원본] 맨 연필 아이콘 <span className="ml-[xs] inline-flex w-5 justify-end"><Icon create-outline 14 /></span>
+              // [개선] 고치기 칩(장식형 · 바탕 + 연필) — 줄 전체가 버튼이라 버튼 안 버튼을 만들지 않는다(SPEC-046 · REV-084 10)
+              <ValueChip
+                as="span"
+                icon="edit"
+                testId="detail-set-edit-chip"
+                className="ml-[var(--spacing-xs)]"
+                faceClassName="py-[4px]!"
+              >
+                {null}
+              </ValueChip>
+            ) : null}
+          </button>
+        ))}
+      </div>
       {/* [원본] 카드 끝 「볼륨」·「추정 1RM」 두 줄 + Epley 주석 — 볼륨은 메타 줄, 1RM 은 머리 오른쪽, 주석은 화면 끝 한 번(D6) */}
     </Card>
   );
@@ -868,7 +878,9 @@ function EditSetSheet({
               inputMode="decimal"
               value={w}
               onChange={(e) => setW(e.target.value)}
-              className="h-11 w-full rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center font-semibold text-(--color-ink)"
+              // [원본] className="h-11 w-full rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center font-semibold text-(--color-ink)"
+              // [개선] 입력칸 흰 바탕 + line-strong 경계(SPEC-056 F7 · 운동 중 입력칸과 같다)
+              className="h-11 w-full rounded-[var(--radius-sm)] border border-(--color-line-strong) bg-(--color-card) text-center font-semibold text-(--color-ink)"
             />
           </label>
           <label className="flex-1">
@@ -880,7 +892,9 @@ function EditSetSheet({
               inputMode="numeric"
               value={r}
               onChange={(e) => setR(e.target.value)}
-              className="h-11 w-full rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center font-semibold text-(--color-ink)"
+              // [원본] className="h-11 w-full rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center font-semibold text-(--color-ink)"
+              // [개선] 입력칸 흰 바탕 + line-strong 경계(SPEC-056 F7 · 운동 중 입력칸과 같다)
+              className="h-11 w-full rounded-[var(--radius-sm)] border border-(--color-line-strong) bg-(--color-card) text-center font-semibold text-(--color-ink)"
             />
           </label>
         </div>

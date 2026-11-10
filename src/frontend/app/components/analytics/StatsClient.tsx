@@ -503,7 +503,9 @@ function TrendBars({ data }: { data: { label: string; value: number; current: bo
                   ? "color-mix(in srgb, var(--color-brand) 35%, transparent)"
                   : "var(--color-line)",
             }}
-            className="flex-1 rounded-[4px]"
+            // [원본] className="flex-1 rounded-[4px]"
+            // [개선] 둥근 정도는 토큰만(SPEC-056 F2 · 같은 4px)
+            className="flex-1 rounded-[var(--radius-sm)]"
           />
         ))}
       </div>
