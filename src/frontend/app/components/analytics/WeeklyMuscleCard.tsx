@@ -77,7 +77,9 @@ export function WeeklyMuscleCard({ data }: { data: WeeklyMuscleSets }) {
                   <td
                     key={data.weeks[i]}
                     data-testid="weekly-cell"
-                    className="h-[28px] rounded-[4px] p-0 text-center text-(--color-ink)"
+                    // [원본] className="h-[28px] rounded-[4px] p-0 text-center text-(--color-ink)"
+                    // [개선] 둥근 정도는 토큰만(SPEC-056 F2 · 같은 4px)
+                    className="h-[28px] rounded-[var(--radius-sm)] p-0 text-center text-(--color-ink)"
                     style={{
                       backgroundColor:
                         n > 0

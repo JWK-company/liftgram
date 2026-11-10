@@ -160,10 +160,10 @@ export function MuscleBalanceCard({ days }: { /** 위쪽 기간의 일수(null =
                       }
                       onClick={() => setSelected(isSel ? null : r.muscle)}
                       // 선택 줄: 바탕(대비 약함)에 더해 왼쪽 2px brand-vivid 막대(빨강 = 선택 규칙 안 · /qa P2-8)
-                      className={`flex min-h-[44px] w-full items-center gap-[var(--spacing-sm)] rounded-[var(--radius-sm)] px-[var(--spacing-sm)] text-left ${
-                        isSel
-                          ? "bg-(--color-surface-alt) shadow-[inset_2px_0_0_var(--color-brand-vivid)]"
-                          : ""
+                      // [원본] isSel ? "bg-(--color-surface-alt) shadow-[inset_2px_0_0_var(--color-brand-vivid)]" : "" · rounded-[var(--radius-sm)]
+                      // [개선] 줄 채움 없이 왼쪽 3px 강조선 + 빨강 점·진한 글자로(SPEC-056 F6)
+                      className={`flex min-h-[44px] w-full items-center gap-[var(--spacing-sm)] px-[var(--spacing-sm)] text-left ${
+                        isSel ? "shadow-[inset_3px_0_0_var(--color-brand-vivid)]" : ""
                       }`}
                     >
                       <span
