@@ -183,5 +183,18 @@
  "i.perm": "S-182",
  "s.comments": "S-183",
  "s.exdel": "S-184",
- "/people": "S-185"
+ "/people": "S-185",
+ "/coaching/join": "S-186",
+ "/coaching/m/[memberId]": "S-187",
+ "s.cscope": "S-188",
+ "s.cgrant": "S-189",
+ "s.crevoke": "S-190",
+ "s.invrenew": "S-191",
+ "s.cinvite": "S-192",
+ "s.homemembers": "S-193",
+ "s.sent": "S-194",
+ "s.cdraft": "S-195",
+ "s.planactual": "S-196",
+ "s.coachroutine": "S-197",
+ "s.ccomment": "S-198"
 }

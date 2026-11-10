@@ -34,7 +34,10 @@ pg('/messages/new','새 메시지','page','소셜','사람 고르기 — 한 명
 pg('/people','사람','page','소셜','이름 찾기 · 팔로잉/팔로워 탭 · 줄마다 팔로우·메시지','로그인 필요')
 pg('/notifications','알림','page','소셜','알림 목록, 열면 모두 읽음','로그인 필요')
 pg('/bookmarks','저장한 게시물','page','소셜','저장한 글 목록','로그인 필요')
-pg('/coaching','코칭','page','코칭','코치·회원 관계와 요청','로그인 필요')
+# [원본] pg('/coaching','코칭','page','코칭','코치·회원 관계와 요청','로그인 필요')
+pg('/coaching','코칭','page','코칭','자격 아님 고지 · (코치만) 초대 코드 카드(코드 만들기·링크 복사·공유·새로 만들기) · 내 코치 · 코드로 연결(8자리 → 범위 시트) · 담당 회원(줄마다 이번 주 n회·마지막 운동·코치 루틴 n회 · 3일 이상 쉬면 「n일째 쉬는 중」, 쉰 회원이 위로 · 줄을 누르면 회원 화면) · 트레이너 찾기(「코칭 요청」 → 범위 시트). 줄 버튼은 「수락」 하나, 나머지는 ⋯ 시트(v0.87.0~0.90.0 · SPEC-050)','로그인 필요(비로그인은 로그인 안내) · 초대 카드는 코칭 의향을 켠 사람만')
+pg('/coaching/join','코치와 연결(초대 링크)','page','코칭','코치 카드(이름·코치 배지·소개·태그) · 코드 4-4 · 「연결하기」 → 범위 시트 → 연결 뒤 /coaching. 범위 시트는 처음 한 번 저절로 열린다(v0.87.0 · SPEC-050 P1b)','코드 없음·엉터리 → 「초대 코드가 없어요」 · 비로그인 → 「로그인하고 연결해요」(로그인 뒤 이 화면으로) · 못 쓰는 코드 → 오류 + 「코칭 화면으로」')
+pg('/coaching/m/[memberId]','회원 화면(코치용)','page','코칭','청록 띠 「○○님 기록 · 코칭 중」+「나가기」 · 기록│분석│루틴 탭(?tab=). 기록 = 날짜별 운동(코치 루틴 칩·코멘트 수 · 펼치면 세트·처방 대 실제·코멘트) · 분석 = 기간 고르기·요약(체중 카드는 체중 공개 때만) · 루틴 = 보낸 루틴 + 「새 루틴 짜 주기」 + 회원이 만든 루틴(처방 고치기). 읽기만, 오프라인 캐시 안 함(v0.88.0~0.90.0 · SPEC-050 P2~P4)','코치 쪽 활성 연결만 · 기록 보기 꺼짐 → 「회원이 기록 보기를 꺼 두었어요」 · 루틴 받기 꺼짐 → 「회원이 루틴 처방을 꺼 두었어요」(이 기기 초안은 보임) · 지난 기록 꺼짐 → 「연결한 날 뒤 기록만 보여요」 · 해지·연결 없음 → 「코칭이 끝났어요」 · 읽기 실패 → 다시 시도')
 pg('/offline','오프라인이에요','page','시스템','받아 두지 못한 화면의 대체 화면','서비스 워커가 보여 줌')
 pg('/gear','내 장비함','page','프로필','보유 장비 관리','누구나')
 pg('/blocked','차단 목록','page','프로필','차단한 사람과 해제','로그인 필요')
@@ -65,7 +68,9 @@ n('g.boot','앱 시작(모든 화면 위)','global','전역','첫 실행과 저�
 for i,nm,d in [('x.url','주소 직접 입력·PWA 시작','start_url은 /. 모든 주소는 입력으로도 열 수 있다'),('x.mail','메일 링크','인증 메일 5종. 링크는 APP_URL 고정'),('x.oauth','소셜 로그인 복귀','Google·Kakao·Naver·Apple 동의 화면에서 복귀'),('x.applink','앱 링크·유니버설 링크','/feed/, /u/, /hashtag/ 대상. 공유 링크를 만드는 코드는 없음'),('x.scheme','liftgram:// 스킴','workout·auth·start 세 갈래'),('x.sw','서비스 워커','네트워크 실패 때 대체 화면'),('x.play','Play 제출 정보','스토어 계정 삭제 안내로 제출하는 공개 주소'),('x.notif','앱 내 알림 탭','서버 푸시는 없음. 앱 안 알림 목록의 이동'),('x.nat','앱 자체 화면','Android 잠금 화면, 알림 카드')]:
     n(i,nm,'entry','앱 밖',d)
 # 탭바
-for u,l,ev in [('/','운동','C/ui/TabBar.tsx:36'),('/history','기록','C/ui/TabBar.tsx:43'),('/feed','피드','C/ui/TabBar.tsx:50'),('/stats','분석','C/ui/TabBar.tsx:67'),('/profile','프로필','C/ui/TabBar.tsx:70')]:
+# [원본] for u,l,ev in [('/','운동','C/ui/TabBar.tsx:36'),('/history','기록','C/ui/TabBar.tsx:43'),('/feed','피드','C/ui/TabBar.tsx:50'),('/stats','분석','C/ui/TabBar.tsx:67'),('/profile','프로필','C/ui/TabBar.tsx:70')]:
+# [개선] 탭 순서 피드·운동·기록·분석·프로필(2026-11-10)
+for u,l,ev in [('/feed','피드','C/ui/TabBar.tsx:51'),('/','운동','C/ui/TabBar.tsx:36'),('/history','기록','C/ui/TabBar.tsx:44'),('/stats','분석','C/ui/TabBar.tsx:68'),('/profile','프로필','C/ui/TabBar.tsx:71')]:
     e('g.tabbar',u,l,ev)
 e('x.url','/','PWA start_url','F/public/manifest.json','ext')
 # 운동 흐름
@@ -139,13 +144,13 @@ e('/feed/[postId]','/account','비로그인 안내 「로그인 / 가입」(로�
 e('x.applink','/u/[userId]','앱 링크','src/mobile/android/app/src/main/AndroidManifest.xml:48','ext')
 e('x.applink','/hashtag/[tag]','앱 링크','src/mobile/android/app/src/main/AndroidManifest.xml:49','ext')
 # 프로필·계정
-for u,l,ev in [('/account','계정 줄·백업 파일','C/profile/ProfileClient.tsx:358'),('/gear','내 장비함 줄','C/profile/ProfileClient.tsx:367'),('/coaching','코칭 줄(로그인 시)','C/profile/ProfileClient.tsx:374'),('/bookmarks','저장한 게시물 줄(로그인 시)','C/profile/ProfileClient.tsx:380'),('/blocked','차단 목록 줄(로그인 시)','C/profile/ProfileClient.tsx:386'),('/terms','맨 아래 약관','C/profile/ProfileClient.tsx:450'),('/privacy','맨 아래 처리방침','C/profile/ProfileClient.tsx:453'),('/licenses','맨 아래 오픈소스','C/profile/ProfileClient.tsx:457')]:
+for u,l,ev in [('/account','계정 줄·백업 파일','C/profile/ProfileClient.tsx:358'),('/gear','내 장비함 줄','C/profile/ProfileClient.tsx:367'),('/coaching','코칭 줄(로그인 시)','C/profile/ProfileClient.tsx:392'),('/bookmarks','저장한 게시물 줄(로그인 시)','C/profile/ProfileClient.tsx:380'),('/blocked','차단 목록 줄(로그인 시)','C/profile/ProfileClient.tsx:386'),('/terms','맨 아래 약관','C/profile/ProfileClient.tsx:450'),('/privacy','맨 아래 처리방침','C/profile/ProfileClient.tsx:453'),('/licenses','맨 아래 오픈소스','C/profile/ProfileClient.tsx:457')]:
     e('/profile',u,l,ev)
 e('g.sync','/account','경고 띠','C/sync/SyncHealthBanner.tsx:68')
 e('s.nudge','/account','로그인하고 보관하기','C/session/LoginNudgeSheet.tsx:35')
 e('/feed','/account','비로그인 안내 「로그인 / 가입」','C/feed/FeedClient.tsx:381')
 e('/explore','/account','비로그인 안내 「로그인 / 가입」','C/feed/ExploreClient.tsx:150')
-e('/coaching','/account','비로그인 안내','C/coaching/CoachingClient.tsx:146')
+e('/coaching','/account','비로그인 안내','C/coaching/CoachingClient.tsx:270')
 e('s.switch','/account','앱 바꾸기 시트','C/appdist/SwitchToAppSheet.tsx:177')
 e('/auth/complete','/account','실패 때','F/app/auth/complete/CompleteClient.tsx:73')
 e('/verify-email','/account','무효 토큰 안내','F/app/verify-email/VerifyClient.tsx:43')
@@ -216,7 +221,8 @@ for id,name,label,ev,desc,cond in [
  ('s.rest','휴식 막대','세트 완료','C/session/ActiveWorkout.tsx:508','고정 휴식 타이머','휴식 중'),
  ('s.emenu','종목 ⋯ 메뉴','종목 ⋯ 탭','C/session/ExerciseBlock.tsx:724','운동 정보, 슈퍼셋, 교체, 삭제',''),
  ('s.slots','조합별 기록','칸 전환','C/session/ExerciseBlock.tsx:1078','칸별 기록 보기','유산소 아님, 다른 칸 있음'),
- ('s.resttime','휴식 시간','휴식 설정','C/session/ExerciseBlock.tsx:1153','휴식 길이 설정',''),
+ # [원본] ('s.resttime','휴식 시간','휴식 설정','C/session/ExerciseBlock.tsx:1153','휴식 길이 설정',''),
+ ('s.resttime','휴식 시간','블록 도구 줄 ⏱ 휴식 칩','C/session/BlockTools.tsx:109 · C/session/ExerciseBlock.tsx:1534','일반 세트는 한 줄(15초 단위). 세트 방식 블록은 「기본 세트」 + 그 블록에 나오는 종류만 한 줄씩(웜업 사이·피더 전·탑 직전·탑 뒤·백오프 사이·첫 본세트 직전·본세트 사이·세트 사이(점점 늘림)) · 바꾼 줄은 점 · 「권장값으로」 · 종류별 값은 이 종목에 계속 쓰인다(칩에도 점) · 이번 운동에 저장(v0.88.0 · SPEC-051)',''),
  ('s.rmex','운동 삭제','종목 메뉴','C/session/ExerciseBlock.tsx:1186','종목 삭제 확인',''),
  ('s.variant','변형 선택','변형 칩','C/ui/RecordSlotSelector.tsx:183','기록 칸 변형',''),
  ('s.settype','세트 타입','세트 타입 탭','C/session/SetRowEdit.tsx:553','세트 종류 선택',''),
@@ -290,10 +296,15 @@ for id,name,par,label,ev,desc,g in [
  ('s.pmenu','프로필 메뉴(차단)','/u/[userId]','⋯ 탭','C/feed/UserProfileClient.tsx:148','차단','피드'),
  ('s.leave','그룹 나가기','/messages/[id]','그룹 메뉴','C/dm/ConversationClient.tsx:260','나가기 확인','피드'),
  ('s.sumopen','성과 요약','/messages/[id]','요약 카드','C/summary/SummaryOpen.tsx:129','DM 카드에서 요약 열기','코칭'),
- ('s.chist','코칭 이력','/coaching','이력 버튼','C/coaching/CoachingClient.tsx:279','이력 판','코칭'),
- ('s.mreport','회원 리포트','/coaching','리포트 버튼','C/summary/MemberReportDialog.tsx:118','회원 리포트','코칭'),
- ('s.mrx','회원 루틴 처방','/coaching','처방 버튼','C/coaching/CoachingClient.tsx:276','처방 관리','코칭'),
- ('s.rxed','처방 편집기','s.mrx','종목 탭','C/coaching/PrescriptionEditor.tsx:168','세트 처방 편집','코칭'),
+ # [원본] ('s.chist','코칭 이력','/coaching','이력 버튼','C/coaching/CoachingClient.tsx:279','이력 판','코칭'),
+ # [원본] ('s.mreport','회원 리포트','/coaching','리포트 버튼','C/summary/MemberReportDialog.tsx:118','회원 리포트','코칭'),
+ # [원본] ('s.mrx','회원 루틴 처방','/coaching','처방 버튼','C/coaching/CoachingClient.tsx:276','처방 관리','코칭'),
+ # [원본] ('s.rxed','처방 편집기','s.mrx','종목 탭','C/coaching/PrescriptionEditor.tsx:168','세트 처방 편집','코칭'),
+ # [개선 11-10] 네 판은 그대로 있다 — 줄 버튼이 ⋯ 연결 시트(s.cgrant)로 옮겨 갔다(아래 코칭 v2 묶음)
+ ('s.chist','코칭 이력','s.cgrant','⋯ 「이력」','C/coaching/CoachingClient.tsx:324 · C/coaching/CoachingClient.tsx:504','요청·수락·범위 바꿈·루틴 보냄·코멘트 등 최근 30줄','코칭'),
+ ('s.mreport','기록 요약(회원 리포트)','s.cgrant','⋯ 「기록 요약」','C/coaching/CoachingClient.tsx:306 · C/summary/MemberReportDialog.tsx:72','빠른 보기 판 · 회원 화면 분석 탭과 같은 부품','코칭'),
+ ('s.mrx','회원 루틴 처방','s.cgrant','⋯ 「루틴」','C/coaching/CoachingClient.tsx:311 · C/coaching/CoachingClient.tsx:785','회원 루틴 목록 · 종목을 누르면 처방 편집기 · 회원 화면 루틴 탭 아래 「회원이 만든 루틴」과 같은 부품','코칭'),
+ ('s.rxed','처방 편집기','s.mrx','종목 탭','C/coaching/PrescriptionEditor.tsx:168','세트 처방(무게·횟수 범위·RIR) 편집 · 저장하면 회원 루틴에 들어가고 이력에 남는다','코칭'),
  # [원본] ('s.archive','운동 보관','/exercise/[id]','보관 버튼','C/ExerciseAdminBar.tsx:68','종목 보관 확인','운동'), — S-145 v0.84.6 에서 없앴다
  ('s.exdel','이 종목을 지울까요?','/exercises/[id]/edit','「종목 삭제」','C/ExerciseFormClient.tsx:286','직접 만든 종목 삭제 확인 · 지난 기록은 남는다','운동'),
  # [원본] ('s.alias','이 종목을 무엇이라 부를까요?','/exercise/[id]','이름 탭','C/ExerciseNameHeader.tsx:67','별칭 고르기','운동'), — S-146 v0.84.6 에서 ✎ 그 자리 입력으로
@@ -435,3 +446,68 @@ AREAS={
 
 # 11-09 — 루틴 편집에서는 줄 ⋯ 이 없다(SPEC-041 · 세트 번호 시트가 대신). 처방 줄 ⋯ 은 코칭 처방 편집에만 남았다.
 sh('s.rxmenu','세트 설정','s.rxed','처방 줄 ⋯','C/routines/PrescriptionRows.tsx:597','처방 세트 메뉴(무게 기준 · 삭제). 코칭 처방 편집에서만',group='코칭')
+
+# ── 코칭 v2(2026-11-10 · 웹 0.87.0~0.90.0 · SPEC-050 P1~P4) — 초대 코드·범위·회원 화면·코치 루틴·코멘트·점검
+CO='C/coaching/'; CCL=CO+'CoachingClient.tsx'; MC=CO+'MemberClient.tsx'; JC=CO+'JoinClient.tsx'; UP='C/feed/UserProfileClient.tsx'
+sh('s.cscope','범위 고르기 시트','/coaching','「확인」(코드) · 「코칭 요청」 · 「수락」(회원 쪽)',CCL+':392 · '+CCL+':481 · '+CCL+':525',
+   '제목은 코칭 요청 / 코칭 수락 / 코치와 연결 / 범위 바꾸기 · 코치 카드 · 「무엇을 보여 줄까요」 스위치 넷(운동 기록·분석 · 코치가 짠 루틴 받기·처방 고치기 · 체중·인바디 · 지난 기록도) · 요청 때만 「코치에게 한 줄」(100자) · 주 버튼 「요청 보내기/수락하기/연결하기/저장」',
+   '기본값 = 기록·루틴 켬, 체중·지난 기록 꺼짐 · 코치가 수락할 때는 묻지 않는다(회원이 고른 범위 그대로)','코칭')
+e('/coaching/join','s.cscope','「연결하기」(처음 한 번은 저절로)',JC+':164 · '+JC+':77','open')
+e('/u/[userId]','s.cscope','「코칭 요청」(상대가 코치)',UP+':457 · '+UP+':364','open')
+sh('s.cgrant','연결 ⋯ 시트','/coaching','줄 끝 ⋯',CCL+':710',
+   '제목 = 상대 이름. 코치 쪽 활성: 기록 요약 · 루틴 · 이력 · 연결 끊기 / 회원 쪽 활성: 범위 바꾸기 · 이력 · 연결 끊기 / 대기: 이력 · 요청 취소','','코칭')
+e('s.cgrant','s.cscope','범위 바꾸기(회원 쪽)',CCL+':319','open')
+sh('s.crevoke','연결을 끊을까요?','s.cgrant','연결 끊기 · 요청 취소',CCL+':329 · '+CCL+':537',
+   '확인창 · 회원 쪽 「코치가 더는 기록을 볼 수 없어요」 / 코치 쪽 「회원 기록을 더는 볼 수 없어요」 · 「연결 끊기」(빨강)','','코칭')
+sh('s.invrenew','새 코드를 만들까요?','/coaching','초대 카드 「새로 만들기」',CO+'InviteCard.tsx:184 · '+CO+'InviteCard.tsx:191',
+   '확인창 · 「지금 코드와 링크는 더 쓸 수 없어요」','코치만 · 코드가 있을 때','코칭')
+sh('s.cinvite','코칭 초대를 보낼까요?','/u/[userId]','「코칭 초대」(내가 코치)',UP+':466 · '+UP+':382',
+   '확인창 · 「○○님이 수락하면 연결돼요. 보여 줄 범위는 ○○님이 골라요」','내가 코치이고 상대와 연결이 없을 때 · 상대가 이미 코치가 있으면 버튼 대신 안내 줄','코칭')
+sh('s.homemembers','홈 「담당 회원」 카드','/','운동 탭 맨 아래(저절로)','C/routines/RoutinesClient.tsx:725',
+   '「담당 회원 n명」 + 「n명이 3일 이상 쉬는 중이에요」 또는 「회원 기록·루틴은 코칭 화면에서」 · 왼쪽 청록 띠 · 누르면 /coaching',
+   '코칭 의향을 켠 사람 · 활성 회원 1명 이상 · 60초 메모리','코칭')
+sh('s.sent','보낸 루틴 목록','/coaching/m/[memberId]','루틴 탭',MC+':222 · '+CO+'SentRoutines.tsx:101',
+   '「새 루틴 짜 주기」 · 줄마다 루틴 이름 + 「○월 ○일 보냄 / 아직 보내지 않음 / 보내지 않은 변경 있음 / 코칭 끝남 / 이 기기에만 있는 초안」 · 줄을 누르면 초안 편집기 · 아래 「회원이 만든 루틴」(처방 고치기)',
+   '루틴 받기 꺼짐이면 「이 기기의 초안」만 · 못 읽으면 「보낸 루틴을 불러오지 못했어요」','코칭')
+sh('s.cdraft','코치 루틴 초안 편집기','s.sent','「새 루틴 짜 주기」 · 보낸 루틴 줄',CO+'SentRoutines.tsx:108 · '+CO+'SentRoutines.tsx:186',
+   '평소 루틴 편집기(/routines/[초안 id])에 청록 띠 「○○님께 보낼 루틴」 + 안내 · 폴더·시작 없음 · 하단 「나중에 보내기」·「○○님께 보내기」 · 맨 아래 「초안 지우기 — 회원 루틴은 그대로 남아요」 · 다시 보내면 같은 회원 루틴이 바뀐다',
+   '주소는 /routines/[id] 그대로 · 직접 만든 종목은 보낼 수 없음 · 코칭 끝남·루틴 받기 꺼짐이면 보내기 막힘(지우기는 남음)','코칭')
+e('s.cdraft','/coaching/m/[memberId]','보내기 · 나중에 보내기 · ←(빈 초안은 치움)','C/routines/RoutineEditor.tsx:780 · C/routines/RoutineEditor.tsx:764 · C/routines/RoutineEditor.tsx:420','redir')
+sh('s.planactual','처방 대 실제·코멘트 쓰기','/coaching/m/[memberId]','기록 탭 운동 줄 펼치기',MC+':927 · '+MC+':971 · '+MC+':999',
+   '종목·세트 · 코치 루틴 운동이면 「처방 대 실제」 표(계획 n세트 중 n세트 · 범위 안 n · 줄마다 처방│실제│범위 안/적게/많이/안 함/계획 밖) · 「코치 코멘트」 말풍선(숨기기) + 입력칸(300자 · 「남기기」)',
+   '처방 대 실제는 코치 루틴으로 한 운동만 · 코멘트는 한 회원에게 하루 20개 · 기록 보기 꺼짐이면 쓰기 막힘','코칭')
+e('/coaching/m/[memberId]','s.rxed','루틴 탭 「회원이 만든 루틴」 종목',CCL+':886 · '+CCL+':841','open')
+sh('s.coachroutine','회원 쪽 코치 루틴(보기 화면)','s.routine-actions','코치 루틴 ⋯ 「보기」','C/routines/RoutinesClient.tsx:788 · C/routines/RoutineEditor.tsx:1042',
+   '같은 주소 /routines/[id] 를 편집기 대신 읽기 보기로 · 청록 안내 「코치 ○○님이 짠 루틴이에요」 · 이름·메모·종목 줄(n세트 · 횟수) · 폴더만 고침 · 「루틴 삭제」 · 하단 「내 루틴으로 복사」·「이 루틴으로 시작」. 홈 줄은 왼쪽 청록 띠 + 「코치 ○○」 칩 + 새로 받음 점, 미리보기는 「편집」 대신 「내 루틴으로 복사」, ⋯ 맨 위도 「내 루틴으로 복사」',
+   '코치가 보낸 루틴(origin coach)만 · 코칭이 끝나면 회색 「코칭 끝남」 칩·편집 가능','코칭')
+e('s.routinepreview','s.coachroutine','코치 루틴 미리보기 「내 루틴으로 복사」 → 복사본','C/routines/RoutinePreviewSheet.tsx:366')
+sh('s.ccomment','기록 상세 코치 코멘트','/history/[id]','운동 상세 아래(저절로)','C/analytics/WorkoutDetailClient.tsx:325 · '+CO+'CoachComments.tsx:334',
+   '「코치 코멘트」 · 청록 말풍선(○○ 코치 · 날짜 · 본문) · 회원도 「숨기기」(확인창) · 코치가 탈퇴하면 「탈퇴한 코치」',
+   '코멘트가 있을 때 · 코멘트 알림(?comments=1)으로 오면 그 자리로 · 코칭을 안 하는 사람은 묻지 않음','코칭')
+# 들어가는 길·나가는 길
+e('/coaching','/coaching/m/[memberId]','담당 회원 줄(아바타·이름)',CCL+':666 · '+CCL+':600')
+e('/coaching/m/[memberId]','/coaching','띠 「나가기」 · 「코칭 화면으로」(끝남)',MC+':271 · '+MC+':301')
+e('/messages/[id]','/coaching/m/[memberId]','머리 「코칭 중」 배지(내가 코치일 때)','C/dm/ConversationClient.tsx:298')
+e('s.homemembers','/coaching','카드 누르기',CO+'HomeMembersCard.tsx:90')
+e('/coaching/join','/coaching','← · 연결 뒤 · 「코칭 화면으로」',JC+':174 · '+JC+':98 · '+JC+':220')
+e('/coaching/join','/account','「로그인」(로그인 뒤 이 화면으로)',JC+':135')
+e('/account','/coaching/join','로그인 뒤 next(초대 링크)','C/profile/AuthClient.tsx:175','redir')
+e('x.url','/coaching/join','코치가 복사·공유한 초대 링크 /coaching/join?code=',CO+'InviteCard.tsx:172','ext')
+e('/u/[userId]','/coaching','「코칭 중」·「코칭 수락 대기」·「이미 코치가 있어요」 줄',UP+':425 · '+UP+':443')
+e('/notifications','/coaching','코칭 요청·수락·해지 알림','C/dm/NotificationsClient.tsx:73')
+e('/notifications','/','코치 루틴 받음·바뀜 알림(동기 뒤)','C/dm/NotificationsClient.tsx:76')
+e('/notifications','/history/[id]','코치 코멘트 알림(동기 뒤 · 코멘트 자리로)','C/dm/NotificationsClient.tsx:79')
+# 구역
+AREAS['/coaching']=[('하위 앱바','← 프로필 · 「코칭」',CCL+':612'),('자격 아님 고지','',CCL+':352'),
+ ('초대 코드 카드','코치만 · 코드 4-4 · ○월 ○일까지 · 링크 복사·공유 · 링크 · 「새로 만들기」(없으면 「코드 만들기」)',CO+'InviteCard.tsx:86'),
+ ('내 코치','줄 = 아바타 · 이름 · 코치 배지 · 상태(코칭 중 청록) · ⋯',CCL+':359'),('코드로 연결','8자리 입력 + 「확인」 → 범위 시트 · 오류 한 줄',CCL+':375'),
+ ('담당 회원','줄 = 이름 · 상태 · 점검(이번 주 n회 · 마지막 ○ · 코치 루틴 n회 · 「n일째 쉬는 중」) · 요청 한 줄 메시지 · 「수락」 · ⋯ · 줄을 누르면 회원 화면',CCL+':414'),
+ ('트레이너 찾기','이름 검색 · 결과 줄 「코칭 요청」/「요청됨」',CCL+':437')]
+AREAS['/coaching/join']=[('하위 앱바','← 코칭 · 「코치와 연결」',JC+':172'),('코치 카드','이름 · 코치 배지 · 소개 · 태그',JC+':160'),('코드','4-4',JC+':161'),('「연결하기」','범위 시트를 연다',JC+':164'),
+ ('상태별 안내','코드 없음 · 로그인 필요 · 못 쓰는 코드',JC+':111')]
+AREAS['/coaching/m/[memberId]']=[('청록 띠','「○○님 기록 · 코칭 중」 · 「나가기」',MC+':258'),('탭','기록 · 분석 · 루틴',MC+':171'),
+ ('기록 탭','날짜별 운동 줄(코치 루틴 칩 · 시간·세트·볼륨·코멘트 n) · 펼치면 세트·처방 대 실제·코멘트',MC+':750'),
+ ('기록 탭 · 아래','「연결한 날 뒤 기록만 보여요」 · 「더 보기」 · 「더 이전 기록이 없어요」',MC+':823'),
+ ('분석 탭','보는 기간 · 요약 숫자·부위별 볼륨·최근 세션 · 체중·인바디 카드(체중 공개 때만)',MC+':244'),
+ ('루틴 탭','보낸 루틴(「새 루틴 짜 주기」) · 회원이 만든 루틴',MC+':216'),('범위 꺼짐 안내','기록 보기 꺼짐 · 루틴 받기 꺼짐',MC+':340'),('끝남','「코칭이 끝났어요」 · 「코칭 화면으로」',MC+':291')]
+AREAS['/']=AREAS['/']+[('담당 회원 카드','코치만 · 맨 아래 · 「담당 회원 n명」 · 쉬는 회원 수','C/routines/RoutinesClient.tsx:725')]
