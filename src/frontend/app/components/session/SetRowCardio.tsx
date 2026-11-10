@@ -225,10 +225,12 @@ export function SetRowCardio({
           type="button"
           onClick={onToggleDone}
           aria-pressed={isDone}
+          // 미완료 칸은 아이콘이 없어 이름이 꼭 필요하다(SPEC-056 코드 리뷰 H-2)
+          aria-label="세트 완료"
           data-testid="cardio-done"
           // [원본] isDone ? "bg-(--color-ok)" : "bg-(--color-surface-alt)" — 채운 칸 + 흰 ✓
           // [개선] 근력 줄과 같게 — 미완료 = 빈 테두리 칸, 완료 = 판 없는 굵은 초록 ✓(SPEC-056 F6)
-          className={`flex h-[30px] w-[38px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] border ${
+          className={`flex h-[30px] w-[38px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] border focus-visible:outline-2 focus-visible:outline-(--color-brand) ${
             isDone ? "border-transparent" : "border-(--color-line-strong)"
           }`}
         >
