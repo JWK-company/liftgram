@@ -598,6 +598,8 @@ export function lockNeedsOpenApp(s: { userEdited?: boolean | null; valueSource?:
 // ── 스냅샷 조립(§3 · §9) ────────────────────────────────────────────────────
 
 export interface LockSnapshotSet extends SimSet {
+  /** 세트 속성 변형(원암·세트 그립 …) 짧은 글 — 카드의 운동 이름 뒤에 「 · 」로 붙는다(id=1730) */
+  tags?: (string | null)[];
   userEdited?: boolean | null;
   valueSource?: string | null;
   /** 유산소 — 거리·시간이 지표면 둘 다 카드에 보일 수 있어야 한다(REV-003 도메인 L-7).
@@ -608,6 +610,33 @@ export interface LockSnapshotBlock extends SimBlock {
   exerciseName: string;
   restSec: number; // 블록 휴식(초)
   sets: LockSnapshotSet[];
+}
+
+/** 카드 이름 뒤에 붙이는 변형 글 합계 상한(글자) */
+export const LOCK_TAG_MAX_CHARS = 14;
+
+/** 카드에 그릴 운동 이름 — 「이름 · 태그 · 태그」(빈 태그·중복은 뺀다 · 상한을 넘으면 「…」) */
+export function lockNameWithTags(
+  name: string,
+  tags: readonly (string | null | undefined)[] | null | undefined,
+  maxTagChars = LOCK_TAG_MAX_CHARS,
+): string {
+  const parts = [name];
+  const seen = new Set(name.split(' · ')); // 이름에 이미 붙은 칸 글(블록 그립 = 세트 그립)은 다시 붙이지 않는다
+  // 한 줄 자리(Live Activity 제목·접힌 알림)에서 세트 번호·값이 잘리지 않게 붙이는 글 합계에 상한(코드 리뷰 M-1)
+  let used = name.split(' · ').slice(1).join('').length;
+  for (const t of tags ?? []) {
+    const v = (t ?? '').trim();
+    if (!v || seen.has(v)) continue;
+    if (used + v.length > maxTagChars) {
+      parts.push('…');
+      break;
+    }
+    seen.add(v);
+    used += v.length;
+    parts.push(v);
+  }
+  return parts.filter(Boolean).join(' · ');
 }
 
 /** 이 세트가 처방 채우기 대상인가(prescription.planPrescribedLoadFills 와 같은 조건 · 세트 번호 순 자리의 처방) */
@@ -688,7 +717,9 @@ export function buildLockSnapshot(input: {
       if (cardio && ((wantsDistance && cardio.distance == null) || (wantsDuration && cardio.seconds == null))) openApp = true;
       members.push({
         setId: id,
-        exerciseName: b.exerciseName,
+        // [원본] exerciseName: b.exerciseName,
+        // [개선] 블록 칸(브랜드·부착물…)은 b.exerciseName 에 이미 붙어 오고, 세트 속성(원암·그립)을 더 붙인다 — 네이티브는 이 글을 그대로 그린다(id=1730)
+        exerciseName: lockNameWithTags(b.exerciseName, s.tags),
         setNo: n.no,
         setTotal: n.total,
         label: n.label,
