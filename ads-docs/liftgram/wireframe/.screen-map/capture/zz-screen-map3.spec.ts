@@ -55,8 +55,10 @@ test("남은 시트", async ({ page, browser, context }) => {
   await s(page,"/_home_sched","/");
   await s(page,"s.schedrm","/",/스케줄/,/삭제/);
   // 프로필·종목
-  await page.goto("/profile"); await page.getByTestId("btn-bodyweight-record").click(); await page.waitForTimeout(400); await page.getByRole("button",{name:"저장"}).first().click().catch(()=>{}); await page.waitForTimeout(800);
-  await s(page,"s.p.bwnone","/profile","row-bodyweight-history",/미설정/);
+  // [원본] await page.goto("/profile"); await page.getByTestId("btn-bodyweight-record").click(); await page.waitForTimeout(400); await page.getByRole("button",{name:"저장"}).first().click().catch(()=>{}); await page.waitForTimeout(800);
+  // [개선] 0.97.0 프로필은 「체중 ›」 한 줄 → 패널 · 실패해도 다음 화면은 찍는다
+  await (async () => { await page.goto("/profile"); await page.getByTestId("bodyweight").first().click({timeout:5000}); await page.waitForTimeout(400); await page.getByRole("button",{name:"저장"}).first().click().catch(()=>{}); await page.waitForTimeout(800); })().catch(() => {});
+  await s(page,"s.p.bwnone","/profile","bodyweight",/미설정/);
   await page.goto("/exercises/new"); await page.locator("input").first().fill("내 케이블 푸시다운2"); await page.getByRole("button",{name:/저장|만들기|추가/}).last().click().catch(()=>{}); await page.waitForTimeout(800);
   await page.goto("/exercises"); await page.getByTestId("search-input").fill("내 케이블");await page.waitForTimeout(800);
   const eh = await page.locator('a[data-testid^="edit-"]').first().getAttribute("href").catch(()=>null);

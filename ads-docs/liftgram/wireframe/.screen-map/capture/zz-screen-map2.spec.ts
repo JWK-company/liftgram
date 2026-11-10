@@ -76,11 +76,13 @@ test("시트 캡처", async ({ page, browser }) => {
   await s(page,"s.bw","/stats","btn-bodyweight-card-record");
   await s(page,"s.bwgoal","/stats","btn-bodyweight-goal");
   // 프로필
-  for (const [id,t] of [["s.p.exp","btn-edit-experience"],["s.p.theme","theme"],["s.p.lang","language"],["s.p.sound","row-rest-sound"],["s.p.equip","row-equipment"],["s.p.custom","row-machine-labels"],["s.p.bwall","row-bodyweight-history"]] as const) await s(page,id,"/profile",t);
-  await page.goto("/profile"); await page.getByTestId("btn-bodyweight-record").click(); await page.waitForTimeout(400); await page.locator('input').last().fill("75").catch(()=>{}); await page.getByRole("button",{name:/저장|기록/}).last().click().catch(()=>{}); await page.waitForTimeout(800);
-  await s(page,"s.p.bwedit","/profile","row-bodyweight-history","bodyweight-history-edit");
-  await s(page,"s.p.bwrm","/profile","row-bodyweight-history","bodyweight-history-delete");
-  await s(page,"s.p.bwnone","/profile","btn-bodyweight-record","btn-bodyweight-unset");
+  for (const [id,t] of [["s.p.exp","btn-edit-experience"],["s.p.theme","theme"],["s.p.lang","language"],["s.p.sound","row-rest-sound"],["s.p.equip","row-equipment"],["s.p.custom","row-machine-labels"],["s.p.bwall","bodyweight"]] as const) await s(page,id,"/profile",t);
+  // [원본] await page.goto("/profile"); await page.getByTestId("btn-bodyweight-record").click(); …
+  // [개선] 0.97.0 프로필은 「체중 ›」 한 줄 → 패널(btn-bodyweight-record 없음) · 실패해도 다음 화면은 찍는다
+  await (async () => { await page.goto("/profile"); await page.getByTestId("bodyweight").first().click({timeout:5000}); await page.waitForTimeout(400); await page.locator('input').last().fill("75").catch(()=>{}); await page.getByRole("button",{name:/저장|기록/}).last().click().catch(()=>{}); await page.waitForTimeout(800); })().catch(() => {});
+  await s(page,"s.p.bwedit","/profile","bodyweight","bodyweight-history-edit");
+  await s(page,"s.p.bwrm","/profile","bodyweight","bodyweight-history-delete");
+  await s(page,"s.p.bwnone","/profile","bodyweight","btn-bodyweight-unset");
   // 피드
   await s(page,"s.compose","/feed","feed-compose");
   await s(page,"s.geartag",null,"gear-open");
