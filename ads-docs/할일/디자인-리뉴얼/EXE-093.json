@@ -1,0 +1,550 @@
+{
+  "schemaVersion": 1,
+  "id": "EXE-093",
+  "type": "Execution",
+  "title": "SPEC-056 Phase 3 — 운동 홈·루틴·종목 구현",
+  "group": "할일/디자인-리뉴얼",
+  "meta": {
+    "phase": "3",
+    "result": "done"
+  },
+  "relations": {
+    "executes": [
+      "SPEC-056"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요약"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "SPEC-056 Phase 3(운동 홈·루틴·종목)을 「평평한 기록지」 규칙 F1~F7로 바꿨다 — 상자는 떠 있는 것만, 강조는 왼쪽 선, 빨강 채움은 화면에 하나. worktree 브랜치 "
+          },
+          {
+            "type": "text",
+            "text": "design/flat",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "(커밋 "
+          },
+          {
+            "type": "text",
+            "text": "46f59a0",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": " · "
+          },
+          {
+            "type": "text",
+            "text": "806f90c",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": ")에서 단계별로 만들고 합친 뒤 작업 브랜치에 합쳐 v0.97.0으로 배포."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "바꾼 파일"
+          }
+        ]
+      },
+      {
+        "type": "table",
+        "content": [
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_header",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "파일"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_header",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "무엇을"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "src/frontend/app/components/routines/RoutinesClient.tsx · WeekSummary.tsx · ScheduleEditor.tsx"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "스케줄·목표 상자 걷음 · 루틴 줄 구분선 · 「▶ 시작」 판 없는 빨강 글자 · 오늘/추천 카드 강조선"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "src/frontend/app/components/routines/RoutineEditor.tsx · PrescriptionRows.tsx"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "편집기 평평 · 슈퍼셋·디로드 강조선"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "src/frontend/app/components/CatalogClient.tsx · ExercisePicker.tsx · ExercisePickerScreen.tsx"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "종목 탭·피커 구분선 목록 · 고르는 칸만 boxed · 폴더 칩 aria-pressed·44px"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "src/frontend/app/components/routines/CreatorRoutineSheet.tsx · CreatorTipSheet.tsx · RelatedTips.tsx · RoutineImport.tsx · NearbyGymsClient.tsx · States.tsx"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "판 걷음 · 추천 헬스장만 boxed"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "src/frontend/e2e/home-primary.spec.ts"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "「▶ 시작」 바탕 투명 기대"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "테스트 결과"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "전체 e2e(합친 빌드 · "
+                  },
+                  {
+                    "type": "text",
+                    "text": "src/frontend/e2e/",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "text": " 전부, 4 workers): 491 통과 · 66 건너뜀 · 12 실패 — 실패 10은 기존부터(auth-formal ×2 · motion-video ×4 · opengym-import ×3 · declutter-block:139), 2(discovery:26 · opengym-bodyweight:945)는 단독 재실행에서 통과(부하로 흔들림 · 기준 빌드도 통과)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "평평 가드 "
+                  },
+                  {
+                    "type": "text",
+                    "text": "src/frontend/e2e/flat-design.spec.ts",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "text": " 라이트·다크 통과(상자·빨강 채움·완료 줄·360px 넘침)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "리뷰 반영 뒤 관련 9개 spec(flat-design · home-primary · feed · people · dm · ad-slots · discovery · app-distribution · opengym-bodyweight) 59 통과 → 흔들린 2개 단독 18 통과."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "tsc --noEmit",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "text": "·biome(바꾼 파일) 통과."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준 확인"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "SPEC-056 Phase 3 완료 기준 — 화면 안 상자 0 · 빨강 채움 ≤1 · 완료 줄 투명 + inset 선 · 360px 넘침 없음: 가드로 확인."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "기능·testid·문구 변경 없음(단계 리뷰에서 확인)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "코드 위치 등록: SPEC-056 은 implements 대상 SRS 가 없다(디자인 규칙 스펙) — 등록 없음."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "코드 리뷰"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "REV-124 — 채택 항목 반영, 보류는 REV 문서에."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "범위 밖 변경"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "없음."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "남은 일·다음 단계"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "보류: ValueChip·kg/lb 토글·PR 태그 판 유지, 스위치 손잡이, HomeMembersCard 경사, 코치 루틴 초안 편집기, Button sm 36px(REV-127 M-5), 접근성 일괄 점검(L-6)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "화면 지도 보고서 사진 갱신(0.97.0)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
