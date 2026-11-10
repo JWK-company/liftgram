@@ -1088,6 +1088,7 @@ export const ko = {
   "variant.equipment": "기구",
   "variant.recentHint": "윗줄은 최근 쓴 것",
   "variant.machineBrand": "머신 브랜드",
+  "variant.brand": "브랜드", // 케이블 종목 브랜드 줄 제목(id=1723)
   "variant.changeEquipment": "기구 바꾸기",
   "variant.attachment": "부착물",
   "variant.grip": "손 그립",

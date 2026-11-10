@@ -106,6 +106,8 @@ export function RecordSlotSelector({
   const [axes, setAxes] = useState<Axes>({ attachments: [], grips: [], load: false });
   /** 이 종목을 할 때 최근 쓴 브랜드(≤3, 최신순) — 칸 시트 위 줄(화면 정리 D9) @plm SRS-071 */
   const [recentBrands, setRecentBrands] = useState<string[]>([]);
+  /** 창을 연 순간의 브랜드 — 비머신에서 「기본」으로 지워도 열린 창의 브랜드 줄이 사라지지 않게(코드 리뷰 L-2) */
+  const [brandAtOpen, setBrandAtOpen] = useState<string | null>(null);
   useEffect(() => setRoot(document.getElementById("modal-root")), []);
 
   useEffect(() => {
@@ -149,7 +151,11 @@ export function RecordSlotSelector({
   const hasAttach = axes.attachments.length > 0;
   const hasGrip = axes.grips.length > 0;
   // 고를 것이 아무것도 없는 종목(맨몸 고유 동작 등)은 칩 자체를 두지 않는다.
-  if (!canSwap && !isMachine && !hasAttach && !hasGrip) return null; // hasLoad ⊂ isMachine
+  // [원본] if (!canSwap && !isMachine && !hasAttach && !hasGrip) return null; // hasLoad ⊂ isMachine
+  // [개선] 브랜드는 머신·케이블(케이블 로우 머신·크로스오버 기구도 브랜드마다 무게감이 다르다 · 사용자 2026-11-10 id=1723)에서 고른다.
+  //   그 밖의 종목도 옛 기록의 브랜드가 남아 있으면 지울 수 있게 보인다(롱풀 케이블에 「포커스」 · id=1718)
+  const showBrand = isMachine || baseEquipment === "cable" || !!brand;
+  if (!canSwap && !showBrand && !hasAttach && !hasGrip) return null; // hasLoad ⊂ isMachine
 
   // 칩에 보이는 요약 — 고른 조건들, 없으면 종목의 기구.
   const parts = [
@@ -176,7 +182,10 @@ export function RecordSlotSelector({
       {/* [개선] 회색 메타 조각(점선 밑줄 = 누를 수 있음) — 조합은 「무엇인지」를 알리는 정보라 빨강을 쓰지 않는다 @plm SRS-069 */}
       <MetaAction
         testId="variant-trigger"
-        onPress={() => setOpen(true)}
+        onPress={() => {
+          setBrandAtOpen(brand);
+          setOpen(true);
+        }}
         trailingIcon="chevron-down"
         ariaLabel={`${t("variant.selectTitle")} — ${summary}`}
       >
@@ -206,8 +215,10 @@ export function RecordSlotSelector({
                     label={(k) => equipmentVariantLabel(k, lang, machineVariantLabels)} onPick={(k) => onChange({ ...value, equipment: k })} />
                 ) : null} */}
                 {/* [개선] 최근 쓴 브랜드(≤3)는 위 줄 보통 칩, 나머지는 작은 무채 칩 · 이름 없는 커스텀은 숨김(고른 칸이면 보임) @plm SRS-071 */}
-                {isMachine ? (
+                {/* [원본] {isMachine ? ( — 케이블 등에 남은 브랜드는 보이기만 하고 지울 곳이 없었다 */}
+                {showBrand || brandAtOpen ? (
                   <BrandRow
+                    title={isMachine ? t("variant.machineBrand") : t("variant.brand")}
                     value={brand}
                     recent={recentBrands}
                     customLabels={machineVariantLabels}
@@ -315,11 +326,14 @@ export function RecordSlotSelector({
  * 칩마다 testId 는 하나(`slot-brand-<키>`) — 위 줄에 오른 브랜드는 아래 목록에서 뺀다.
  */
 function BrandRow({
+  title,
   value,
   recent,
   customLabels,
   onPick,
 }: {
+  /** 줄 제목 — 머신은 「머신 브랜드」, 케이블 등은 「브랜드」(머신 종목으로 바뀐다고 오해하지 않게 · 코드 리뷰 L-2) */
+  title: string;
   value: string | null;
   recent: string[];
   customLabels: string[];
@@ -339,7 +353,8 @@ function BrandRow({
     <div className="mt-[var(--spacing-md)]" data-testid="slot-brand">
       <div className="mb-[var(--spacing-xs)]">
         <AppText variant="label" color="textMuted">
-          {t("variant.machineBrand")}
+          {/* [원본] {t("variant.machineBrand")} */}
+          {title}
           {/* [원본] {/* 위 줄이 왜 따로 있는지 — 최근에 쓴 브랜드(P3 QA L7) @plm SRS-071 * /}
           {top.length ? ` · ${t("variant.recentHint")}` : ""} */}
           {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}

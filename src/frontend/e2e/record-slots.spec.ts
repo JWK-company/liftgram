@@ -447,3 +447,25 @@ test("세트 그립 — 기구를 바꾸면 바꾸기 전 세트 그립은 남�
   await expect(page.getByTestId("we-name").first()).toHaveText("덤벨 벤치프레스", { timeout: 15_000 });
   await expect(첫세트(page).getByTestId("set-variant-badge")).toHaveCount(0);
 });
+
+test("케이블 브랜드(id=1723·1718) — 롱풀(케이블 시티드 로우)에서 종목을 바꾸지 않고 브랜드를 고르고, 「기본」으로 지운다", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await 카탈로그_준비(page);
+  await 운동_시작(page, "케이블 시티드 로우");
+  await 칸_시트(page);
+  await expect(page.getByTestId("slot-brand")).toBeVisible();
+  await page.getByTestId("slot-brand-hammer").click();
+  // 브랜드만 바뀌고 종목은 그대로(머신 로우로 넘어가지 않는다)
+  await expect(page.getByTestId("variant-sheet").getByTestId("slot-brand")).toBeVisible();
+  await 시트_닫기(page);
+  await expect(page.getByTestId("we-name").first()).toHaveText("케이블 시티드 로우");
+  await expect(page.getByTestId("variant-trigger").first()).toContainText("해머");
+  // 「기본」으로 지우면 요약은 기구 이름으로 돌아온다
+  await 칸_시트(page);
+  await page.getByTestId("slot-brand").getByRole("button", { name: "기본", exact: true }).click();
+  await expect(page.getByTestId("slot-brand")).toBeVisible(); // 열린 창의 줄은 그대로(코드 리뷰 L-2)
+  await 시트_닫기(page);
+  await expect(page.getByTestId("variant-trigger").first()).not.toContainText("해머");
+});

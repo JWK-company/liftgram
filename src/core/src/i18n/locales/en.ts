@@ -1084,6 +1084,7 @@ export const en: Record<TransKey, string> = {
   "variant.equipment": "Equipment",
   "variant.recentHint": "top row: recently used",
   "variant.machineBrand": "Machine brand",
+  "variant.brand": "Brand", // 케이블 종목 브랜드 줄 제목(id=1723)
   "variant.changeEquipment": "Change equipment",
   "variant.attachment": "Attachment",
   "variant.grip": "Hand grip",
