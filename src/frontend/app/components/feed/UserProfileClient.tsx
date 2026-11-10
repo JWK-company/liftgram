@@ -506,7 +506,9 @@ function CoachingLine({
       <a
         href="/coaching"
         data-testid="profile-coaching-state"
-        className="mt-[var(--spacing-sm)] flex min-h-12 items-center justify-center gap-[var(--spacing-xs)] rounded-[var(--radius-sm)] bg-(--color-surface-alt)"
+        // [원본] className="… rounded-[var(--radius-sm)] bg-(--color-surface-alt)" — 회색 채움 막대
+        // [개선] SPEC-056 F4 — 회색 채움 대신 secondary 와 같은 테두리(--color-line-strong) 버튼
+        className="mt-[var(--spacing-sm)] flex min-h-12 items-center justify-center gap-[var(--spacing-xs)] rounded-[var(--radius-md)] border border-(--color-line-strong)"
       >
         {active ? (
           <CoachingActiveBadge testId="profile-coaching-active" />
@@ -552,7 +554,9 @@ function CoachingLine({
         <a
           href="/coaching"
           data-testid="profile-coaching-has-coach"
-          className="mt-[var(--spacing-xs)] flex min-h-11 items-center justify-center rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[var(--spacing-md)] py-[var(--spacing-xs)] text-center"
+          // [원본] className="… rounded-[var(--radius-sm)] bg-(--color-surface-alt) …" — 회색 판 안내
+          // [개선] SPEC-056 F4 — 판 없이 회색 안내 글자 한 줄(누르면 코칭 화면 · 누르는 자리 44px 그대로)
+          className="mt-[var(--spacing-xs)] flex min-h-11 items-center justify-center px-[var(--spacing-md)] py-[var(--spacing-xs)] text-center underline decoration-(--color-line-strong) underline-offset-4"
         >
           <AppText variant="caption" color="textMuted">
             {t("coaching.profile.hasCoach")}

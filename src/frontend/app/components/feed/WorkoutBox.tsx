@@ -212,7 +212,10 @@ export function WorkoutBox({
 
   return (
     <div
-      className="mt-[var(--spacing-sm)] rounded-[var(--radius-md)] bg-(--color-surface-alt) p-[var(--spacing-md)]"
+      // [원본] className="mt-[var(--spacing-sm)] rounded-[var(--radius-md)] bg-(--color-surface-alt) p-[var(--spacing-md)]"
+      // [개선] 평평한 기록지(SPEC-056 F1·F5) — 글 안의 회색 판을 걷고 왼쪽 3px 선으로 「운동 기록」 덩어리만 묶는다
+      style={{ boxShadow: "inset 3px 0 0 var(--color-line-strong)" }}
+      className="mt-[var(--spacing-sm)] py-[2px] pl-[var(--spacing-md)]"
       data-testid="post-workout"
     >
       {workout.workoutName ? (
@@ -353,6 +356,9 @@ export function WorkoutBox({
               testId="post-start-now"
               title={t("feed.startNow")}
               icon="play"
+              // [원본] variant 없음(primary 빨강 채움) — 피드에 글마다 하나씩 되풀이돼 화면에 빨강 채움이 여럿이었다
+              // [개선] SPEC-056 F4 — 되풀이되는 행동이라 빨강 테두리(outline) · 채움은 화면의 주 행동(✎ 글쓰기)에만
+              variant="outline"
               size="sm"
               onPress={startNow}
               disabled={starter.busy}
@@ -366,7 +372,9 @@ export function WorkoutBox({
               onPress={() => setConfirm(true)}
               disabled={importing}
               // 상자 바탕(surface-alt)과 secondary 버튼 바탕이 같아 글자만 떠 보였다 — 외곽선·카드 바탕으로 버튼임을 보인다
-              className="min-w-0 whitespace-nowrap border! border-(--color-line)! bg-(--color-card)! px-[var(--spacing-sm)]!"
+              // [원본] className="min-w-0 whitespace-nowrap border! border-(--color-line)! bg-(--color-card)! px-[var(--spacing-sm)]!"
+              // [개선] SPEC-056 — 회색 판을 걷었고 secondary 가 이미 테두리(--color-line-strong) 버튼이라 덮어쓰기를 뺀다
+              className="min-w-0 whitespace-nowrap px-[var(--spacing-sm)]!"
             />
           </div>
         </>

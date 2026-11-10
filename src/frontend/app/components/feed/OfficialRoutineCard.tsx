@@ -39,7 +39,10 @@ export function OfficialRoutineCard({ routineId }: { routineId: string }) {
 
   return (
     <div
-      className="mt-[var(--spacing-sm)] rounded-[var(--radius-md)] border border-(--color-line) p-[var(--spacing-md)]"
+      // [원본] className="mt-[var(--spacing-sm)] rounded-[var(--radius-md)] border border-(--color-line) p-[var(--spacing-md)]"
+      // [개선] 평평한 기록지(SPEC-056 F1) — 글 안 상자를 걷고 운동 기록과 같은 왼쪽 3px 선으로 묶는다
+      style={{ boxShadow: "inset 3px 0 0 var(--color-line-strong)" }}
+      className="mt-[var(--spacing-sm)] py-[2px] pl-[var(--spacing-md)]"
       data-testid="post-routine"
     >
       <div className="flex items-center justify-between gap-[var(--spacing-sm)]">
@@ -56,6 +59,8 @@ export function OfficialRoutineCard({ routineId }: { routineId: string }) {
         <span className="shrink-0">
           <Button
             title={t("feed.importRoutine")}
+            // [원본] variant 없음(primary) — 공식 글마다 되풀이되는 빨강 채움(SPEC-056 F4) · [개선] 빨강 테두리
+            variant="outline"
             onPress={() => void open()}
             loading={opening}
             testId="post-routine-import"

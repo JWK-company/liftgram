@@ -73,7 +73,9 @@ export default function BlockedUsersClient() {
           />
         ) : (
           users.map((u) => (
-            <Card key={u.id} className="mb-[var(--spacing-sm)]">
+            // [원본] <Card key={u.id} className="mb-[var(--spacing-sm)]"> — 상자 사이를 띄워 쌓았다
+            // [개선] 평평한 기록지(SPEC-056 F1) — 줄 사이 가는 선(Card 기본) · 줄 높이는 위아래 여백을 줄여 목록답게
+            <Card key={u.id} className="py-[var(--spacing-sm)]!">
               <div className="flex items-center gap-[var(--spacing-md)]">
                 <Avatar name={u.displayName} url={u.avatarUrl} size={40} />
                 <AppText variant="body" className="min-w-0 flex-1 truncate font-medium!">

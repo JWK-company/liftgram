@@ -29,10 +29,12 @@ export function VisibilityPicker({
           <label
             key={o.value}
             data-testid={o.testId}
+            // [원본] 고른 칸 = "border-(--color-brand) bg-(--color-brand-muted) …" · 안 고른 칸 = "border-(--color-line) …"
+            // [개선] SPEC-056 F6·F7 — 고른 칸은 바탕 채움 없이 빨강 테두리 + 굵은 글자 · 누르는 칸 경계는 --color-line-strong
             className={`flex min-h-[44px] flex-1 cursor-pointer items-center justify-center rounded-[var(--radius-md)] border px-[var(--spacing-xs)] text-[length:var(--text-sm)] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-(--color-brand) has-[:focus-visible]:outline-offset-2 has-[:disabled]:cursor-default has-[:disabled]:opacity-60 ${
               on
-                ? "border-(--color-brand) bg-(--color-brand-muted) font-semibold text-(--color-ink)"
-                : "border-(--color-line) text-(--color-ink2)"
+                ? "border-(--color-brand) font-semibold text-(--color-ink)"
+                : "border-(--color-line-strong) text-(--color-ink2)"
             }`}
           >
             <input

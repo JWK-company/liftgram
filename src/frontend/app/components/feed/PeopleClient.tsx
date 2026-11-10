@@ -198,14 +198,20 @@ export default function PeopleClient() {
           />
         ) : (
           <>
-            <div className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t">
+            <div
+              // [원본] className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t"
+              // [개선] 평평한 기록지(SPEC-056 F1) — 판 없이 위·아래 가는 선과 줄 사이 선만(ListGroup 과 같은 모양)
+              className="overflow-hidden border-(--color-line) border-y [&>*+*]:border-(--color-line) [&>*+*]:border-t"
+            >
               {users.map((u) => {
                 const id = u.author?.id ?? "";
                 return (
                   <div
                     key={id}
                     data-testid="people-row"
-                    className="flex items-center gap-[var(--spacing-sm)] px-[var(--spacing-md)] py-[var(--spacing-sm)]"
+                    // [원본] className="flex items-center gap-[var(--spacing-sm)] px-[var(--spacing-md)] py-[var(--spacing-sm)]"
+                    // [개선] SPEC-056 — 판이 없으니 줄 안쪽 좌우는 화면 여백에 맞춰 좁게(ListRow 와 같은 px-xs)
+                    className="flex items-center gap-[var(--spacing-sm)] px-[var(--spacing-xs)] py-[var(--spacing-sm)]"
                   >
                     <a
                       href={routes.userProfile(id)}
@@ -228,14 +234,17 @@ export default function PeopleClient() {
                         title={t("discover.follow")}
                         data-testid="people-follow"
                         onClick={() => void toggleFollow(u)}
-                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-(--color-brand) active:opacity-80"
+                        // [원본] className="… rounded-full bg-(--color-brand) …" + 흰 아이콘 — 줄마다 빨강 채움 원이 되풀이됐다
+                        // [개선] SPEC-056 F4·F5 — 판 없이 빨강 아이콘만(누르는 자리 44px 그대로)
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full active:opacity-60"
                       >
-                        <Icon name="person-add-outline" size={20} color="var(--color-on-brand)" />
+                        <Icon name="person-add-outline" size={22} color="var(--color-brand)" />
                       </button>
                     )}
                     <Button
                       title={t("people.message")}
-                      variant="outline"
+                      // [원본] variant="outline" — 줄마다 빨강 테두리가 되풀이됐다 · [개선] 중립 테두리(SPEC-056 F4)
+                      variant="secondary"
                       size="sm"
                       fullWidth={false}
                       loading={opening === id}

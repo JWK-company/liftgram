@@ -84,7 +84,9 @@ export default function FollowListClient({
           />
         ) : (
           users.map((u) => (
-            <Card key={u.author?.id} className="mb-[var(--spacing-sm)]">
+            // [원본] <Card key={u.author?.id} className="mb-[var(--spacing-sm)]"> — 상자 사이를 띄워 쌓았다
+            // [개선] 평평한 기록지(SPEC-056 F1) — 줄 사이 가는 선(Card 기본) · 줄 높이는 위아래 여백을 줄여 목록답게
+            <Card key={u.author?.id} className="py-[var(--spacing-sm)]!">
               <div className="flex items-center gap-[var(--spacing-sm)]">
                 <a
                   href={routes.userProfile(u.author?.id ?? "")}
@@ -98,7 +100,9 @@ export default function FollowListClient({
                 </a>
                 <Button
                   title={u.following ? t("discover.following") : t("discover.follow")}
-                  variant={u.following ? "secondary" : "primary"}
+                  // [원본] variant={u.following ? "secondary" : "primary"} — 줄마다 빨강 채움이 되풀이됐다
+                  // [개선] SPEC-056 F4 — 되풀이되는 「팔로우」는 빨강 테두리(outline) · 채움은 화면의 주 행동에만
+                  variant={u.following ? "secondary" : "outline"}
                   size="sm"
                   fullWidth={false}
                   onPress={() => toggleFollow(u)}
