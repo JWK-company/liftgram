@@ -119,7 +119,9 @@ export function ListRow({
     </>
   );
   const cls =
-    "flex min-h-[52px] w-full items-center gap-[var(--spacing-md)] px-[var(--spacing-lg)] py-[var(--spacing-md)] text-left";
+    // [원본] "… px-[var(--spacing-lg)] …" — 둥근 판 안쪽 여백
+    // [개선] 판이 없어졌으니 구역 제목(SectionLabel px-xs)과 같은 왼쪽 선에 맞춘다(SPEC-056 · P4 보고)
+    "flex min-h-[52px] w-full items-center gap-[var(--spacing-md)] px-[var(--spacing-xs)] py-[var(--spacing-md)] text-left";
   if (href)
     return (
       <a href={href} data-testid={testId} className={`${cls} active:bg-(--color-surface-alt)`}>

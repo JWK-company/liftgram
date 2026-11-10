@@ -151,10 +151,16 @@ export function SetRowCardio({
   };
 
   return (
-    <div className={isDone ? "bg-(--color-ok-muted)" : ""} data-testid="cardio-row">
+    <div
+      // [원본] className={isDone ? "bg-(--color-ok-muted)" : ""} — 채운 줄
+      // [개선] 근력 줄과 같게 — 줄 채움 없이 왼쪽 3px 초록 강조선 + 굵은 ✓(SPEC-056 F6)
+      style={isDone ? { boxShadow: "inset 3px 0 0 var(--color-ok)" } : undefined}
+      data-testid="cardio-row"
+    >
       <div className="flex items-center gap-[4px] py-[3px]">
         <span className="flex w-[34px] shrink-0 justify-center">
-          <span className="rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[6px] py-[3px]">
+          {/* [원본] rounded-[var(--radius-sm)] bg-(--color-surface-alt) 판 · [개선] 글자만(SPEC-056 F5) */}
+          <span className="px-[6px] py-[3px]">
             <AppText variant="caption" color="textMuted" className="font-bold!">
               {label}
             </AppText>
@@ -210,7 +216,7 @@ export function SetRowCardio({
               // "50"이 되는 식으로 중간값이 기록에 남는다.
               onBlur={cell.commit}
               onKeyDown={(e) => e.key === "Enter" && cell.commit()}
-              className="h-[38px] min-w-0 flex-1 rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center text-[length:var(--text-md)] text-(--color-ink) placeholder:text-(--color-ink3)"
+              className="h-[38px] min-w-0 flex-1 rounded-[var(--radius-sm)] border border-(--color-line-strong) bg-(--color-card) text-center text-[length:var(--text-md)] text-(--color-ink) placeholder:text-(--color-ink3)"
             />
           );
         })}
@@ -220,11 +226,13 @@ export function SetRowCardio({
           onClick={onToggleDone}
           aria-pressed={isDone}
           data-testid="cardio-done"
-          className={`flex h-[30px] w-[38px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] ${
-            isDone ? "bg-(--color-ok)" : "bg-(--color-surface-alt)"
+          // [원본] isDone ? "bg-(--color-ok)" : "bg-(--color-surface-alt)" — 채운 칸 + 흰 ✓
+          // [개선] 근력 줄과 같게 — 미완료 = 빈 테두리 칸, 완료 = 판 없는 굵은 초록 ✓(SPEC-056 F6)
+          className={`flex h-[30px] w-[38px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] border ${
+            isDone ? "border-transparent" : "border-(--color-line-strong)"
           }`}
         >
-          <Icon name="checkmark" size={16} color={isDone ? "var(--color-on-brand)" : "var(--color-ink3)"} />
+          {isDone ? <Icon name="checkmark-bold" size={22} color="var(--color-ok)" /> : null}
         </button>
 
         <button

@@ -128,7 +128,9 @@ function PickChanges({
           <li key={c.id}>
             <label
               data-testid={`finish-change-${c.kind}`}
-              className="flex cursor-pointer items-center gap-[var(--spacing-sm)] rounded-[var(--radius-md)] bg-(--color-surface-alt) p-[var(--spacing-md)]"
+              // [원본] className="… rounded-[var(--radius-md)] bg-(--color-surface-alt) p-[var(--spacing-md)]" — 회색 판 줄
+              // [개선] 판 없이 줄 사이 선(SPEC-056 F1)
+              className="flex min-h-[44px] cursor-pointer items-center gap-[var(--spacing-sm)] border-(--color-line) border-b py-[var(--spacing-md)]"
             >
               <input
                 type="checkbox"

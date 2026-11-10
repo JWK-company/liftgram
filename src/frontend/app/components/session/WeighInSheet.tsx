@@ -1000,7 +1000,8 @@ export function WeighInRow({ now }: { now: number }) {
           onClick={() => toggleCollapsed()}
           className="flex min-h-11 w-full items-center gap-[var(--spacing-sm)] rounded-[var(--radius-md)] text-left focus-visible:outline-2 focus-visible:outline-(--color-brand)"
         >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-(--color-surface-alt)">
+          {/* [원본] … rounded-[var(--radius-md)] bg-(--color-surface-alt) 판 · [개선] 아이콘만(SPEC-056 F5) */}
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center">
             <Icon name="scale-outline" size={22} color={today ? "var(--color-brand)" : "var(--color-ink2)"} />
           </span>
           <span className="min-w-0 flex-1 truncate whitespace-nowrap font-bold text-(--color-ink) text-[length:var(--text-lg)]">

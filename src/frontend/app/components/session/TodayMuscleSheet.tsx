@@ -51,7 +51,7 @@ export function TodayMuscleButton({ workoutId }: { workoutId: string }) {
         //   그 위에 그려져(쌓임 순서) 넓힌 자리가 눌리지 않았다(e2e elementFromPoint 로 확인).
         // [원본] 가이드 줄의 글자 버튼 — 헤더로 옮겨 아이콘만 둔다. 보이는 40px, 누르는 자리는 ::before 로 44px(SPEC-023)
         aria-label={t("muscleMap.todayButton")}
-        className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-(--color-surface-alt) before:absolute before:-inset-[2px] before:content-[''] active:opacity-70"
+        className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-pill)] before:absolute before:-inset-[2px] before:content-[''] active:bg-(--color-surface-alt)" // SPEC-056 F5 회색 원 판 걷음(누를 때만)
       >
         <Icon name="body-outline" size={20} color="var(--color-ink)" />
       </button>

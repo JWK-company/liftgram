@@ -121,7 +121,8 @@ export function WorkoutSummary({
         </div>
 
         {/* 숫자 셋 — 볼륨·시간·세트(PR 수는 위 금색 글자 한 줄 · 4칸이면 360 폭에서 다섯 자리 볼륨이 넘친다). */}
-        <div className="mt-[var(--spacing-lg)] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) py-[var(--spacing-lg)]">
+        {/* [원본] mt-lg rounded-md border border-line bg-card py-lg — 상자 · [개선] 위아래 가는 선만(SPEC-056 F1) */}
+        <div className="mt-[var(--spacing-lg)] border-(--color-line) border-y py-[var(--spacing-lg)]">
           <KpiRow
             items={[
               {
