@@ -26,17 +26,21 @@ pg('/feed/[postId]','게시물(글 보기)','page','소셜','글 카드 하나. 
 pg('/explore','발견','page','소셜','검색, 인기 태그, 추천, 인기 글','로그인 필요. 비로그인은 로그인 안내')
 pg('/discover','사람 찾기','page','소셜','사용자 검색, 팔로우. 시행 전까지 피드 「발견」 탭에 같은 내용, 시행 뒤에는 팔로잉이 빌 때 피드에 함께 나옴','로그인 필요')
 pg('/hashtag/[tag]','#태그','page','소셜','태그가 달린 공개 글','로그인 필요')
-pg('/u/[userId]','공개 프로필','page','소셜','다른 사람의 프로필','로그인 필요')
+# [원본] pg('/u/[userId]','공개 프로필','page','소셜','다른 사람의 프로필','로그인 필요')
+pg('/u/[userId]','공개 프로필','page','소셜','다른 사람의 프로필 · 이름 옆 「코치」 배지(활성 회원이 있을 때만) · 버튼 줄 아래 코칭 줄 — 연결이 없으면 누구에게나 두 버튼 「코치로 요청」(범위 시트)·「내 회원으로 초대」(확인창) · 내게 이미 코치가 있으면 요청 버튼 대신 「이미 코치가 있어요」 안내(누르면 /coaching) · 연결돼 있으면 「코칭 중」/「코칭 수락 대기」(v0.91.0 · SPEC-052)','로그인 필요 · 코칭 줄은 관계 목록을 다 읽은 뒤 그린다(그 전에는 자리만)')
 pg('/u/[userId]/follows','팔로워·팔로잉','page','소셜','팔로우 목록','로그인 필요')
 pg('/messages','메시지','page','소셜','대화 목록','로그인 필요')
 pg('/messages/[id]','대화방','page','소셜','대화, 요약 카드','로그인·참여자')
 pg('/messages/new','새 메시지','page','소셜','사람 고르기 — 한 명이면 1:1 대화, 여럿이면 단체 대화(이름 칸)','로그인 필요')
-pg('/people','사람','page','소셜','이름 찾기 · 팔로잉/팔로워 탭 · 줄마다 팔로우·메시지','로그인 필요')
+# [원본] pg('/people','사람','page','소셜','이름 찾기 · 팔로잉/팔로워 탭 · 줄마다 팔로우·메시지','로그인 필요')
+pg('/people','사람','page','소셜','이름 찾기 · 팔로잉/팔로워 탭 · 줄마다 팔로우·메시지 · 이름 옆 「코치」 배지(활성 회원이 있을 때만 · v0.91.0)','로그인 필요')
 pg('/notifications','알림','page','소셜','알림 목록, 열면 모두 읽음','로그인 필요')
 pg('/bookmarks','저장한 게시물','page','소셜','저장한 글 목록','로그인 필요')
 # [원본] pg('/coaching','코칭','page','코칭','코치·회원 관계와 요청','로그인 필요')
-pg('/coaching','코칭','page','코칭','자격 아님 고지 · (코치만) 초대 코드 카드(코드 만들기·링크 복사·공유·새로 만들기) · 내 코치 · 코드로 연결(8자리 → 범위 시트) · 담당 회원(줄마다 이번 주 n회·마지막 운동·코치 루틴 n회 · 3일 이상 쉬면 「n일째 쉬는 중」, 쉰 회원이 위로 · 줄을 누르면 회원 화면) · 트레이너 찾기(「코칭 요청」 → 범위 시트). 줄 버튼은 「수락」 하나, 나머지는 ⋯ 시트(v0.87.0~0.90.0 · SPEC-050)','로그인 필요(비로그인은 로그인 안내) · 초대 카드는 코칭 의향을 켠 사람만')
-pg('/coaching/join','코치와 연결(초대 링크)','page','코칭','코치 카드(이름·코치 배지·소개·태그) · 코드 4-4 · 「연결하기」 → 범위 시트 → 연결 뒤 /coaching. 범위 시트는 처음 한 번 저절로 열린다(v0.87.0 · SPEC-050 P1b)','코드 없음·엉터리 → 「초대 코드가 없어요」 · 비로그인 → 「로그인하고 연결해요」(로그인 뒤 이 화면으로) · 못 쓰는 코드 → 오류 + 「코칭 화면으로」')
+# [원본] pg('/coaching','코칭','page','코칭','자격 아님 고지 · (코치만) 초대 코드 카드(코드 만들기·링크 복사·공유·새로 만들기) · 내 코치 · 코드로 연결(8자리 → 범위 시트) · 담당 회원(줄마다 이번 주 n회·마지막 운동·코치 루틴 n회 · 3일 이상 쉬면 「n일째 쉬는 중」, 쉰 회원이 위로 · 줄을 누르면 회원 화면) · 트레이너 찾기(「코칭 요청」 → 범위 시트). 줄 버튼은 「수락」 하나, 나머지는 ⋯ 시트(v0.87.0~0.90.0 · SPEC-050)','로그인 필요(비로그인은 로그인 안내) · 초대 카드는 코칭 의향을 켠 사람만')
+pg('/coaching','코칭','page','코칭','자격 아님 고지(「코치」 표시는 코칭 연결 뜻) · 내 코치 · 코드로 연결(8자리 → 범위 시트) · 담당 회원(줄마다 이번 주 n회·마지막 운동·코치 루틴 n회 · 3일 이상 쉬면 「n일째 쉬는 중」, 쉰 회원이 위로 · 줄을 누르면 회원 화면) · 초대 코드 카드(누구나 · 담당 회원 목록 아래 · 코드 만들기·링크 복사·공유·새로 만들기 · 코치가 아니면 「코드 만들기」는 보조 버튼) · 코치 찾기(결과 줄 「코치」 배지 · 「코치로 요청」 → 범위 시트). 줄 버튼은 「수락」 하나, 나머지는 ⋯ 시트(v0.87.0~0.91.0 · SPEC-050 · SPEC-052)','로그인 필요(비로그인은 로그인 안내)')
+# [원본] pg('/coaching/join','코치와 연결(초대 링크)','page','코칭','코치 카드(이름·코치 배지·소개·태그) · 코드 4-4 · 「연결하기」 → 범위 시트 → 연결 뒤 /coaching. 범위 시트는 처음 한 번 저절로 열린다(v0.87.0 · SPEC-050 P1b)','코드 없음·엉터리 → 「초대 코드가 없어요」 · 비로그인 → 「로그인하고 연결해요」(로그인 뒤 이 화면으로) · 못 쓰는 코드 → 오류 + 「코칭 화면으로」')
+pg('/coaching/join','코치와 연결(초대 링크)','page','코칭','코치 카드(이름 · 「코치」 배지는 활성 회원이 있을 때만 · 소개·태그는 코치 찾기 노출을 켰을 때만) · 코드 4-4 · 「연결하기」 → 범위 시트 → 연결 뒤 /coaching. 범위 시트는 처음 한 번 저절로 열린다(v0.87.0 · SPEC-050 P1b · v0.91.0 SPEC-052)','코드 없음·엉터리 → 「초대 코드가 없어요」 · 비로그인 → 「로그인하고 연결해요」(로그인 뒤 이 화면으로) · 못 쓰는 코드 → 오류 + 「코칭 화면으로」')
 pg('/coaching/m/[memberId]','회원 화면(코치용)','page','코칭','청록 띠 「○○님 기록 · 코칭 중」+「나가기」 · 기록│분석│루틴 탭(?tab=). 기록 = 날짜별 운동(코치 루틴 칩·코멘트 수 · 펼치면 세트·처방 대 실제·코멘트) · 분석 = 기간 고르기·요약(체중 카드는 체중 공개 때만) · 루틴 = 보낸 루틴 + 「새 루틴 짜 주기」 + 회원이 만든 루틴(처방 고치기). 읽기만, 오프라인 캐시 안 함(v0.88.0~0.90.0 · SPEC-050 P2~P4)','코치 쪽 활성 연결만 · 기록 보기 꺼짐 → 「회원이 기록 보기를 꺼 두었어요」 · 루틴 받기 꺼짐 → 「회원이 루틴 처방을 꺼 두었어요」(이 기기 초안은 보임) · 지난 기록 꺼짐 → 「연결한 날 뒤 기록만 보여요」 · 해지·연결 없음 → 「코칭이 끝났어요」 · 읽기 실패 → 다시 시도')
 pg('/offline','오프라인이에요','page','시스템','받아 두지 못한 화면의 대체 화면','서비스 워커가 보여 줌')
 pg('/gear','내 장비함','page','프로필','보유 장비 관리','누구나')
@@ -126,9 +130,9 @@ e('/explore','/hashtag/[tag]','태그','C/feed/ExploreClient.tsx:165')
 e('/explore','/u/[userId]','추천·검색 결과','C/feed/ExploreClient.tsx:295')
 e('/messages','/people','빈 목록 버튼','C/dm/ConversationsClient.tsx:109')
 e('/discover','/u/[userId]','사람 줄','C/feed/DiscoverClient.tsx:112')
-e('/u/[userId]','/u/[userId]/follows','팔로워·팔로잉 숫자','C/feed/UserProfileClient.tsx:180')
+e('/u/[userId]','/u/[userId]/follows','팔로워·팔로잉 숫자','C/feed/UserProfileClient.tsx:182')
 e('/u/[userId]/follows','/u/[userId]','사람 줄','C/feed/FollowListClient.tsx:90')
-e('/u/[userId]','/messages/[id]','메시지 버튼','C/feed/UserProfileClient.tsx:218')
+e('/u/[userId]','/messages/[id]','메시지 버튼','C/feed/UserProfileClient.tsx:220')
 e('/messages','/messages/[id]','대화 줄','C/dm/ConversationsClient.tsx:122')
 e('/messages','/messages/new','머리 ✎ 새 메시지','C/dm/ConversationsClient.tsx:81')
 e('/messages/new','/messages/[id]','대화 시작·단체 대화 만들기 후','C/dm/NewGroupClient.tsx:94','redir')
@@ -144,13 +148,13 @@ e('/feed/[postId]','/account','비로그인 안내 「로그인 / 가입」(로�
 e('x.applink','/u/[userId]','앱 링크','src/mobile/android/app/src/main/AndroidManifest.xml:48','ext')
 e('x.applink','/hashtag/[tag]','앱 링크','src/mobile/android/app/src/main/AndroidManifest.xml:49','ext')
 # 프로필·계정
-for u,l,ev in [('/account','계정 줄·백업 파일','C/profile/ProfileClient.tsx:358'),('/gear','내 장비함 줄','C/profile/ProfileClient.tsx:367'),('/coaching','코칭 줄(로그인 시)','C/profile/ProfileClient.tsx:392'),('/bookmarks','저장한 게시물 줄(로그인 시)','C/profile/ProfileClient.tsx:380'),('/blocked','차단 목록 줄(로그인 시)','C/profile/ProfileClient.tsx:386'),('/terms','맨 아래 약관','C/profile/ProfileClient.tsx:450'),('/privacy','맨 아래 처리방침','C/profile/ProfileClient.tsx:453'),('/licenses','맨 아래 오픈소스','C/profile/ProfileClient.tsx:457')]:
+for u,l,ev in [('/account','계정 줄·백업 파일','C/profile/ProfileClient.tsx:363'),('/gear','내 장비함 줄','C/profile/ProfileClient.tsx:372'),('/coaching','코칭 줄(로그인 시)','C/profile/ProfileClient.tsx:397'),('/bookmarks','저장한 게시물 줄(로그인 시)','C/profile/ProfileClient.tsx:385'),('/blocked','차단 목록 줄(로그인 시)','C/profile/ProfileClient.tsx:391'),('/terms','맨 아래 약관','C/profile/ProfileClient.tsx:455'),('/privacy','맨 아래 처리방침','C/profile/ProfileClient.tsx:458'),('/licenses','맨 아래 오픈소스','C/profile/ProfileClient.tsx:462')]:
     e('/profile',u,l,ev)
 e('g.sync','/account','경고 띠','C/sync/SyncHealthBanner.tsx:68')
 e('s.nudge','/account','로그인하고 보관하기','C/session/LoginNudgeSheet.tsx:35')
 e('/feed','/account','비로그인 안내 「로그인 / 가입」','C/feed/FeedClient.tsx:381')
 e('/explore','/account','비로그인 안내 「로그인 / 가입」','C/feed/ExploreClient.tsx:150')
-e('/coaching','/account','비로그인 안내','C/coaching/CoachingClient.tsx:270')
+e('/coaching','/account','비로그인 안내','C/coaching/CoachingClient.tsx:289')
 e('s.switch','/account','앱 바꾸기 시트','C/appdist/SwitchToAppSheet.tsx:177')
 e('/auth/complete','/account','실패 때','F/app/auth/complete/CompleteClient.tsx:73')
 e('/verify-email','/account','무효 토큰 안내','F/app/verify-email/VerifyClient.tsx:43')
@@ -177,9 +181,9 @@ e('/stats/summary','/stats','넘김','F/app/stats/summary/page.tsx:11','redir')
 e('x.nat','/workout','잠금 화면 「앱에서 하기」','src/mobile/android/app/src/main/java/org/tarae/liftgram/LockWorkoutActivity.java:1082','ext')
 # 운영 화면은 앱에 없다(SPEC-033). 운영 웹 liftgram-admin.tarae.org 로 옮겼다.
 n('x.admin','운영 웹(별도 사이트)','entry','앱 밖','요약·통계·신고 검토·사용자 의견·운영 피드백·운영 상태·설정. 앱에서 들어가는 입구는 없다','운영진만(Cloudflare Access + 비밀번호)','https://liftgram-admin.tarae.org')
-e('/profile','/profile/feedback','의견 보내기 줄','C/profile/ProfileClient.tsx:316')
+e('/profile','/profile/feedback','의견 보내기 줄','C/profile/ProfileClient.tsx:321')
 # 뒤로 가기
-for a,b,ev in [('/feed/[postId]','/feed','C/feed/CommentsClient.tsx:73'),('/explore','/feed','C/feed/ExploreClient.tsx:131'),('/discover','/feed','C/feed/DiscoverClient.tsx:78'),('/hashtag/[tag]','/feed','C/feed/PostListScreen.tsx:80'),('/bookmarks','/profile','C/feed/BookmarksClient.tsx:25'),('/u/[userId]','/feed','C/feed/UserProfileClient.tsx:260'),('/messages','/feed','C/dm/ConversationsClient.tsx:73'),('/notifications','/feed','C/dm/NotificationsClient.tsx:86'),('/messages/[id]','/messages','C/dm/ConversationClient.tsx:239'),('/messages/new','/messages','C/dm/NewGroupClient.tsx:107'),('/terms','/profile','C/legal/LegalPage.tsx:20'),('/privacy','/profile','C/legal/LegalPage.tsx:20'),('/licenses','/profile','C/legal/LegalPage.tsx:20'),('/coaching','/profile','C/coaching/CoachingClient.tsx:308'),('/gear','/profile','C/profile/MyGearClient.tsx:62'),('/blocked','/profile','C/moderation/BlockedUsersClient.tsx:58'),('/account','/profile','C/profile/AuthClient.tsx:190'),('/account/import','/account','C/sync/ImportFlow.tsx:652'),('/exercises','/','F/app/exercises/page.tsx:31'),('/program','/','C/routines/ProgramGeneratorClient.tsx:251'),('/exercise/[id]','/exercises','F/app/exercise/[id]/page.tsx:119'),('/exercises/new','/exercises','C/ExerciseFormClient.tsx:133'),('/exercises/[id]/edit','/exercises','C/ExerciseFormClient.tsx:133'),('/history/[id]','/history','C/analytics/WorkoutDetailClient.tsx:122')]:
+for a,b,ev in [('/feed/[postId]','/feed','C/feed/CommentsClient.tsx:73'),('/explore','/feed','C/feed/ExploreClient.tsx:131'),('/discover','/feed','C/feed/DiscoverClient.tsx:78'),('/hashtag/[tag]','/feed','C/feed/PostListScreen.tsx:80'),('/bookmarks','/profile','C/feed/BookmarksClient.tsx:25'),('/u/[userId]','/feed','C/feed/UserProfileClient.tsx:263'),('/messages','/feed','C/dm/ConversationsClient.tsx:73'),('/notifications','/feed','C/dm/NotificationsClient.tsx:86'),('/messages/[id]','/messages','C/dm/ConversationClient.tsx:239'),('/messages/new','/messages','C/dm/NewGroupClient.tsx:107'),('/terms','/profile','C/legal/LegalPage.tsx:20'),('/privacy','/profile','C/legal/LegalPage.tsx:20'),('/licenses','/profile','C/legal/LegalPage.tsx:20'),('/coaching','/profile','C/coaching/CoachingClient.tsx:327'),('/gear','/profile','C/profile/MyGearClient.tsx:62'),('/blocked','/profile','C/moderation/BlockedUsersClient.tsx:58'),('/account','/profile','C/profile/AuthClient.tsx:190'),('/account/import','/account','C/sync/ImportFlow.tsx:652'),('/exercises','/','F/app/exercises/page.tsx:31'),('/program','/','C/routines/ProgramGeneratorClient.tsx:251'),('/exercise/[id]','/exercises','F/app/exercise/[id]/page.tsx:119'),('/exercises/new','/exercises','C/ExerciseFormClient.tsx:133'),('/exercises/[id]/edit','/exercises','C/ExerciseFormClient.tsx:133'),('/history/[id]','/history','C/analytics/WorkoutDetailClient.tsx:122')]:
     e(a,b,'뒤로',ev,'back')
 # ── 시트 도우미: 표 그대로
 def sh(id,name,parent,label,ev,desc='',cond='',group=None,kind='sheet'):
@@ -187,7 +191,8 @@ def sh(id,name,parent,label,ev,desc='',cond='',group=None,kind='sheet'):
     n(id,name,kind,gp,desc,cond); e(parent,id,label,ev,'open')
 # 전역 가드
 for id,name,ev,desc,cond in [
- ('s.onboard','온보딩','C/OnboardingOverlay.tsx:106','2장 첫 안내. 경력과 코치 의향 저장, 건너뛰기','첫 실행 1회'),
+ # [원본] ('s.onboard','온보딩','C/OnboardingOverlay.tsx:107','2장 첫 안내. 경력과 코치 의향 저장, 건너뛰기','첫 실행 1회'),
+ ('s.onboard','온보딩','C/OnboardingOverlay.tsx:107','2장 첫 안내. 둘째 장은 운동 경력만 저장(트레이너·코치 질문 없음 · 켜 둔 코치 찾기 노출은 그대로), 건너뛰기','첫 실행 1회'),
  ('s.schema','새 버전으로 새로고침해 주세요','C/SchemaGuard.tsx:86','뒤 화면을 막는 알림창','기기 DB 스키마가 번들보다 높을 때'),
  ('s.tabseal','다른 탭에서 열려 있어요','C/TabElsewhereOverlay.tsx:47','이 탭을 멈추고 「여기서 계속하기」','쓰기 주인을 빼앗겼거나 디스크가 바깥에서 바뀜'),
  ('s.tabold','옛 버전 탭 띠','C/TabElsewhereOverlay.tsx:83','상단 띠 안내','다른 탭에 옛 버전이 열려 있음'),
@@ -280,8 +285,10 @@ for id,name,par,label,ev,desc in [
     sh(id,name,par,label,ev,desc,'','기록·분석')
 e('/profile','s.bw','체중 줄','C/profile/BodyweightRow.tsx:91','open')
 P='/profile'
-for id,name,label,ev in [('s.p.exp','운동 경력·코칭 의향','경력 줄','C/profile/ProfileClient.tsx:603'),('s.p.unit','단위','단위 줄','C/profile/ProfileClient.tsx:467'),('s.p.theme','화면 테마','테마 줄','C/profile/ProfileClient.tsx:480'),('s.p.lang','언어','언어 줄','C/profile/ProfileClient.tsx:496'),('s.p.sound','휴식 알림음','알림음 줄','C/profile/ProfileClient.tsx:509'),('s.p.equip','내 가용 기구','기구 줄','C/profile/ProfileClient.tsx:547'),('s.p.custom','커스텀 기구 이름','기구 이름 줄','C/profile/ProfileClient.tsx:575'),('s.p.bwall','체중 기록 전체','전체 기록','C/profile/BodyweightRow.tsx:199'),('s.p.bwedit','기록 고치기','기록 항목','C/profile/BodyweightRow.tsx:154'),('s.p.bwrm','이 기록을 지울까요?','삭제 탭','C/profile/BodyweightRow.tsx:297'),('s.p.bwnone','체중 미설정으로 두기','미설정','C/profile/BodyweightRow.tsx:320')]:
+# [원본] for id,name,label,ev in [('s.p.exp','운동 경력·코칭 의향','경력 줄','C/profile/ProfileClient.tsx:608'),('s.p.unit','단위','단위 줄','C/profile/ProfileClient.tsx:472'),('s.p.theme','화면 테마','테마 줄','C/profile/ProfileClient.tsx:485'),('s.p.lang','언어','언어 줄','C/profile/ProfileClient.tsx:501'),('s.p.sound','휴식 알림음','알림음 줄','C/profile/ProfileClient.tsx:514'),('s.p.equip','내 가용 기구','기구 줄','C/profile/ProfileClient.tsx:552'),('s.p.custom','커스텀 기구 이름','기구 이름 줄','C/profile/ProfileClient.tsx:580'),('s.p.bwall','체중 기록 전체','전체 기록','C/profile/BodyweightRow.tsx:199'),('s.p.bwedit','기록 고치기','기록 항목','C/profile/BodyweightRow.tsx:154'),('s.p.bwrm','이 기록을 지울까요?','삭제 탭','C/profile/BodyweightRow.tsx:297'),('s.p.bwnone','체중 미설정으로 두기','미설정','C/profile/BodyweightRow.tsx:320')]:
+for id,name,label,ev in [('s.p.exp','운동 경력·코치 찾기 노출','경력 줄','C/profile/ProfileClient.tsx:283 · C/profile/ProfileClient.tsx:592'),('s.p.unit','단위','단위 줄','C/profile/ProfileClient.tsx:472'),('s.p.theme','화면 테마','테마 줄','C/profile/ProfileClient.tsx:485'),('s.p.lang','언어','언어 줄','C/profile/ProfileClient.tsx:501'),('s.p.sound','휴식 알림음','알림음 줄','C/profile/ProfileClient.tsx:514'),('s.p.equip','내 가용 기구','기구 줄','C/profile/ProfileClient.tsx:552'),('s.p.custom','커스텀 기구 이름','기구 이름 줄','C/profile/ProfileClient.tsx:580'),('s.p.bwall','체중 기록 전체','전체 기록','C/profile/BodyweightRow.tsx:199'),('s.p.bwedit','기록 고치기','기록 항목','C/profile/BodyweightRow.tsx:154'),('s.p.bwrm','이 기록을 지울까요?','삭제 탭','C/profile/BodyweightRow.tsx:297'),('s.p.bwnone','체중 미설정으로 두기','미설정','C/profile/BodyweightRow.tsx:320')]:
     sh(id,name,P,label,ev,'','','프로필')
+[x for x in N if x['id']=='s.p.exp'][0].update(desc='경력 칩(초보·중급·상급) · 「코치 찾기에 나를 보여 주기」 스위치(기본 꺼짐 · 켜면 코치 찾기 검색에 이름·소개·태그가 보임, 꺼 두어도 초대 코드로 연결 가능) · 켜면 코치 소개·태그 칸 · 프로필 요약 줄 「코치 찾기에 보임」(v0.91.0 · SPEC-052)',cond='로그인했으면 서버 계정 값을 보인다')
 sh('s.updatecard','프로필 앱 업데이트 카드',P,'앱 업데이트 카드','C/appdist/AppUpdateCard.tsx:74','시트를 띄우는 카드와 뱃지','','앱 배포')
 n('s.apksheet','앱 설치 파일 업데이트','sheet','앱 배포','다운로드, 설치 단계'); e('g.dist','s.apksheet','띠 누르기','C/appdist/AppUpdateSheet.tsx:381','open'); e('s.updatecard','s.apksheet','카드 누르기','C/appdist/AppUpdateSheet.tsx:381','open')
 n('s.switch','전용 앱으로 바꾸기','sheet','앱 배포','확인, 내려받기, 열기, 완료'); e('g.dist','s.switch','띠 누르기','C/appdist/SwitchToAppSheet.tsx:114','open'); e('s.updatecard','s.switch','카드 누르기','C/appdist/SwitchToAppSheet.tsx:114','open')
@@ -293,7 +300,7 @@ for id,name,par,label,ev,desc,g in [
  ('s.geartag','오늘의 착용장비','s.compose','장비 태그','C/feed/GearTagPicker.tsx:99','장비 태그 고르기','피드'),
  ('s.importroutine','루틴 가져오기','/feed','루틴 가져오기 버튼','C/feed/WorkoutBox.tsx:376','글의 운동을 내 루틴으로','피드'),
  ('s.officialroutine','공식 글의 루틴','/feed','공식 글 루틴 가져오기','C/feed/OfficialRoutineCard.tsx:61','출처·제휴 아님 고지를 보고 영상 루틴을 내 루틴에 저장','피드'),
- ('s.pmenu','프로필 메뉴(차단)','/u/[userId]','⋯ 탭','C/feed/UserProfileClient.tsx:148','차단','피드'),
+ ('s.pmenu','프로필 메뉴(차단)','/u/[userId]','⋯ 탭','C/feed/UserProfileClient.tsx:150','차단','피드'),
  ('s.leave','그룹 나가기','/messages/[id]','그룹 메뉴','C/dm/ConversationClient.tsx:260','나가기 확인','피드'),
  ('s.sumopen','성과 요약','/messages/[id]','요약 카드','C/summary/SummaryOpen.tsx:129','DM 카드에서 요약 열기','코칭'),
  # [원본] ('s.chist','코칭 이력','/coaching','이력 버튼','C/coaching/CoachingClient.tsx:279','이력 판','코칭'),
@@ -301,9 +308,9 @@ for id,name,par,label,ev,desc,g in [
  # [원본] ('s.mrx','회원 루틴 처방','/coaching','처방 버튼','C/coaching/CoachingClient.tsx:276','처방 관리','코칭'),
  # [원본] ('s.rxed','처방 편집기','s.mrx','종목 탭','C/coaching/PrescriptionEditor.tsx:168','세트 처방 편집','코칭'),
  # [개선 11-10] 네 판은 그대로 있다 — 줄 버튼이 ⋯ 연결 시트(s.cgrant)로 옮겨 갔다(아래 코칭 v2 묶음)
- ('s.chist','코칭 이력','s.cgrant','⋯ 「이력」','C/coaching/CoachingClient.tsx:324 · C/coaching/CoachingClient.tsx:504','요청·수락·범위 바꿈·루틴 보냄·코멘트 등 최근 30줄','코칭'),
- ('s.mreport','기록 요약(회원 리포트)','s.cgrant','⋯ 「기록 요약」','C/coaching/CoachingClient.tsx:306 · C/summary/MemberReportDialog.tsx:72','빠른 보기 판 · 회원 화면 분석 탭과 같은 부품','코칭'),
- ('s.mrx','회원 루틴 처방','s.cgrant','⋯ 「루틴」','C/coaching/CoachingClient.tsx:311 · C/coaching/CoachingClient.tsx:785','회원 루틴 목록 · 종목을 누르면 처방 편집기 · 회원 화면 루틴 탭 아래 「회원이 만든 루틴」과 같은 부품','코칭'),
+ ('s.chist','코칭 이력','s.cgrant','⋯ 「이력」','C/coaching/CoachingClient.tsx:343 · C/coaching/CoachingClient.tsx:530','요청·수락·범위 바꿈·루틴 보냄·코멘트 등 최근 30줄','코칭'),
+ ('s.mreport','기록 요약(회원 리포트)','s.cgrant','⋯ 「기록 요약」','C/coaching/CoachingClient.tsx:325 · C/summary/MemberReportDialog.tsx:72','빠른 보기 판 · 회원 화면 분석 탭과 같은 부품','코칭'),
+ ('s.mrx','회원 루틴 처방','s.cgrant','⋯ 「루틴」','C/coaching/CoachingClient.tsx:330 · C/coaching/CoachingClient.tsx:814','회원 루틴 목록 · 종목을 누르면 처방 편집기 · 회원 화면 루틴 탭 아래 「회원이 만든 루틴」과 같은 부품','코칭'),
  ('s.rxed','처방 편집기','s.mrx','종목 탭','C/coaching/PrescriptionEditor.tsx:168','세트 처방(무게·횟수 범위·RIR) 편집 · 저장하면 회원 루틴에 들어가고 이력에 남는다','코칭'),
  # [원본] ('s.archive','운동 보관','/exercise/[id]','보관 버튼','C/ExerciseAdminBar.tsx:68','종목 보관 확인','운동'), — S-145 v0.84.6 에서 없앴다
  ('s.exdel','이 종목을 지울까요?','/exercises/[id]/edit','「종목 삭제」','C/ExerciseFormClient.tsx:286','직접 만든 종목 삭제 확인 · 지난 기록은 남는다','운동'),
@@ -449,23 +456,34 @@ sh('s.rxmenu','세트 설정','s.rxed','처방 줄 ⋯','C/routines/Prescription
 
 # ── 코칭 v2(2026-11-10 · 웹 0.87.0~0.90.0 · SPEC-050 P1~P4) — 초대 코드·범위·회원 화면·코치 루틴·코멘트·점검
 CO='C/coaching/'; CCL=CO+'CoachingClient.tsx'; MC=CO+'MemberClient.tsx'; JC=CO+'JoinClient.tsx'; UP='C/feed/UserProfileClient.tsx'
-sh('s.cscope','범위 고르기 시트','/coaching','「확인」(코드) · 「코칭 요청」 · 「수락」(회원 쪽)',CCL+':392 · '+CCL+':481 · '+CCL+':525',
-   '제목은 코칭 요청 / 코칭 수락 / 코치와 연결 / 범위 바꾸기 · 코치 카드 · 「무엇을 보여 줄까요」 스위치 넷(운동 기록·분석 · 코치가 짠 루틴 받기·처방 고치기 · 체중·인바디 · 지난 기록도) · 요청 때만 「코치에게 한 줄」(100자) · 주 버튼 「요청 보내기/수락하기/연결하기/저장」',
+# [원본] sh('s.cscope','범위 고르기 시트','/coaching','「확인」(코드) · 「코칭 요청」 · 「수락」(회원 쪽)',CCL+':412 · '+CCL+':507 · '+CCL+':551',
+# [원본]    '제목은 코칭 요청 / 코칭 수락 / 코치와 연결 / 범위 바꾸기 · 코치 카드 · 「무엇을 보여 줄까요」 스위치 넷(운동 기록·분석 · 코치가 짠 루틴 받기·처방 고치기 · 체중·인바디 · 지난 기록도) · 요청 때만 「코치에게 한 줄」(100자) · 주 버튼 「요청 보내기/수락하기/연결하기/저장」',
+# [원본]    '기본값 = 기록·루틴 켬, 체중·지난 기록 꺼짐 · 코치가 수락할 때는 묻지 않는다(회원이 고른 범위 그대로)','코칭')
+sh('s.cscope','범위 고르기 시트','/coaching','「확인」(코드) · 「코치로 요청」 · 「수락」(회원 쪽)',CCL+':412 · '+CCL+':507 · '+CCL+':551',
+   '제목은 코치로 요청 / 코칭 수락 / 코치와 연결 / 범위 바꾸기 · 코치 카드 · 「무엇을 보여 줄까요」 스위치 넷(운동 기록·분석 · 코치가 짠 루틴 받기·처방 고치기 · 체중·인바디 · 지난 기록도) · 요청 때만 「코치에게 한 줄」(100자) · 주 버튼 「요청 보내기/수락하기/연결하기/저장」',
    '기본값 = 기록·루틴 켬, 체중·지난 기록 꺼짐 · 코치가 수락할 때는 묻지 않는다(회원이 고른 범위 그대로)','코칭')
-e('/coaching/join','s.cscope','「연결하기」(처음 한 번은 저절로)',JC+':164 · '+JC+':77','open')
-e('/u/[userId]','s.cscope','「코칭 요청」(상대가 코치)',UP+':457 · '+UP+':364','open')
-sh('s.cgrant','연결 ⋯ 시트','/coaching','줄 끝 ⋯',CCL+':710',
+e('/coaching/join','s.cscope','「연결하기」(처음 한 번은 저절로)',JC+':171 · '+JC+':77','open')
+# [원본] e('/u/[userId]','s.cscope','「코칭 요청」(상대가 코치)',UP+':531 · '+UP+':366','open')
+e('/u/[userId]','s.cscope','「코치로 요청」',UP+':531 · '+UP+':366','open')
+sh('s.cgrant','연결 ⋯ 시트','/coaching','줄 끝 ⋯',CCL+':739',
    '제목 = 상대 이름. 코치 쪽 활성: 기록 요약 · 루틴 · 이력 · 연결 끊기 / 회원 쪽 활성: 범위 바꾸기 · 이력 · 연결 끊기 / 대기: 이력 · 요청 취소','','코칭')
-e('s.cgrant','s.cscope','범위 바꾸기(회원 쪽)',CCL+':319','open')
-sh('s.crevoke','연결을 끊을까요?','s.cgrant','연결 끊기 · 요청 취소',CCL+':329 · '+CCL+':537',
+e('s.cgrant','s.cscope','범위 바꾸기(회원 쪽)',CCL+':338','open')
+sh('s.crevoke','연결을 끊을까요?','s.cgrant','연결 끊기 · 요청 취소',CCL+':348 · '+CCL+':563',
    '확인창 · 회원 쪽 「코치가 더는 기록을 볼 수 없어요」 / 코치 쪽 「회원 기록을 더는 볼 수 없어요」 · 「연결 끊기」(빨강)','','코칭')
-sh('s.invrenew','새 코드를 만들까요?','/coaching','초대 카드 「새로 만들기」',CO+'InviteCard.tsx:184 · '+CO+'InviteCard.tsx:191',
-   '확인창 · 「지금 코드와 링크는 더 쓸 수 없어요」','코치만 · 코드가 있을 때','코칭')
-sh('s.cinvite','코칭 초대를 보낼까요?','/u/[userId]','「코칭 초대」(내가 코치)',UP+':466 · '+UP+':382',
-   '확인창 · 「○○님이 수락하면 연결돼요. 보여 줄 범위는 ○○님이 골라요」','내가 코치이고 상대와 연결이 없을 때 · 상대가 이미 코치가 있으면 버튼 대신 안내 줄','코칭')
+# [원본] sh('s.invrenew','새 코드를 만들까요?','/coaching','초대 카드 「새로 만들기」',CO+'InviteCard.tsx:189 · '+CO+'InviteCard.tsx:196',
+# [원본]    '확인창 · 「지금 코드와 링크는 더 쓸 수 없어요」','코치만 · 코드가 있을 때','코칭')
+sh('s.invrenew','새 코드를 만들까요?','/coaching','초대 카드 「새로 만들기」',CO+'InviteCard.tsx:189 · '+CO+'InviteCard.tsx:196',
+   '확인창 · 「지금 코드와 링크는 더 쓸 수 없어요」','코드가 있을 때(누구나 · v0.91.0)','코칭')
+# [원본] sh('s.cinvite','코칭 초대를 보낼까요?','/u/[userId]','「코칭 초대」(내가 코치)',UP+':543 · '+UP+':387',
+# [원본]    '확인창 · 「○○님이 수락하면 연결돼요. 보여 줄 범위는 ○○님이 골라요」','내가 코치이고 상대와 연결이 없을 때 · 상대가 이미 코치가 있으면 버튼 대신 안내 줄','코칭')
+sh('s.cinvite','○○님을 내 회원으로 초대할까요?','/u/[userId]','「내 회원으로 초대」',UP+':543 · '+UP+':387',
+   '확인창 · 「수락하면 내가 ○○님의 코치가 돼요. 보여 줄 범위는 ○○님이 골라요」 · 주 버튼 「내 회원으로 초대」 · 보내면 「회원 초대를 보냈어요」','상대와 연결이 없으면 누구나(v0.91.0 · SPEC-052)','코칭')
+# [원본] sh('s.homemembers','홈 「담당 회원」 카드','/','운동 탭 맨 아래(저절로)','C/routines/RoutinesClient.tsx:725',
+# [원본]    '「담당 회원 n명」 + 「n명이 3일 이상 쉬는 중이에요」 또는 「회원 기록·루틴은 코칭 화면에서」 · 왼쪽 청록 띠 · 누르면 /coaching',
+# [원본]    '코칭 의향을 켠 사람 · 활성 회원 1명 이상 · 60초 메모리','코칭')
 sh('s.homemembers','홈 「담당 회원」 카드','/','운동 탭 맨 아래(저절로)','C/routines/RoutinesClient.tsx:725',
    '「담당 회원 n명」 + 「n명이 3일 이상 쉬는 중이에요」 또는 「회원 기록·루틴은 코칭 화면에서」 · 왼쪽 청록 띠 · 누르면 /coaching',
-   '코칭 의향을 켠 사람 · 활성 회원 1명 이상 · 60초 메모리','코칭')
+   '코치로서 활성 연결이 있는 사람(활성 회원 1명 이상 · 다른 기기에서 회원이 연결되면 홈을 열 때·앱이 다시 보일 때 계정을 다시 받아 나타남) · 60초 메모리','코칭')
 sh('s.sent','보낸 루틴 목록','/coaching/m/[memberId]','루틴 탭',MC+':222 · '+CO+'SentRoutines.tsx:101',
    '「새 루틴 짜 주기」 · 줄마다 루틴 이름 + 「○월 ○일 보냄 / 아직 보내지 않음 / 보내지 않은 변경 있음 / 코칭 끝남 / 이 기기에만 있는 초안」 · 줄을 누르면 초안 편집기 · 아래 「회원이 만든 루틴」(처방 고치기)',
    '루틴 받기 꺼짐이면 「이 기기의 초안」만 · 못 읽으면 「보낸 루틴을 불러오지 못했어요」','코칭')
@@ -476,7 +494,7 @@ e('s.cdraft','/coaching/m/[memberId]','보내기 · 나중에 보내기 · ←(�
 sh('s.planactual','처방 대 실제·코멘트 쓰기','/coaching/m/[memberId]','기록 탭 운동 줄 펼치기',MC+':927 · '+MC+':971 · '+MC+':999',
    '종목·세트 · 코치 루틴 운동이면 「처방 대 실제」 표(계획 n세트 중 n세트 · 범위 안 n · 줄마다 처방│실제│범위 안/적게/많이/안 함/계획 밖) · 「코치 코멘트」 말풍선(숨기기) + 입력칸(300자 · 「남기기」)',
    '처방 대 실제는 코치 루틴으로 한 운동만 · 코멘트는 한 회원에게 하루 20개 · 기록 보기 꺼짐이면 쓰기 막힘','코칭')
-e('/coaching/m/[memberId]','s.rxed','루틴 탭 「회원이 만든 루틴」 종목',CCL+':886 · '+CCL+':841','open')
+e('/coaching/m/[memberId]','s.rxed','루틴 탭 「회원이 만든 루틴」 종목',CCL+':915 · '+CCL+':870','open')
 sh('s.coachroutine','회원 쪽 코치 루틴(보기 화면)','s.routine-actions','코치 루틴 ⋯ 「보기」','C/routines/RoutinesClient.tsx:788 · C/routines/RoutineEditor.tsx:1042',
    '같은 주소 /routines/[id] 를 편집기 대신 읽기 보기로 · 청록 안내 「코치 ○○님이 짠 루틴이에요」 · 이름·메모·종목 줄(n세트 · 횟수) · 폴더만 고침 · 「루틴 삭제」 · 하단 「내 루틴으로 복사」·「이 루틴으로 시작」. 홈 줄은 왼쪽 청록 띠 + 「코치 ○○」 칩 + 새로 받음 점, 미리보기는 「편집」 대신 「내 루틴으로 복사」, ⋯ 맨 위도 「내 루틴으로 복사」',
    '코치가 보낸 루틴(origin coach)만 · 코칭이 끝나면 회색 「코칭 끝남」 칩·편집 가능','코칭')
@@ -485,25 +503,31 @@ sh('s.ccomment','기록 상세 코치 코멘트','/history/[id]','운동 상세 
    '「코치 코멘트」 · 청록 말풍선(○○ 코치 · 날짜 · 본문) · 회원도 「숨기기」(확인창) · 코치가 탈퇴하면 「탈퇴한 코치」',
    '코멘트가 있을 때 · 코멘트 알림(?comments=1)으로 오면 그 자리로 · 코칭을 안 하는 사람은 묻지 않음','코칭')
 # 들어가는 길·나가는 길
-e('/coaching','/coaching/m/[memberId]','담당 회원 줄(아바타·이름)',CCL+':666 · '+CCL+':600')
+e('/coaching','/coaching/m/[memberId]','담당 회원 줄(아바타·이름)',CCL+':695 · '+CCL+':627')
 e('/coaching/m/[memberId]','/coaching','띠 「나가기」 · 「코칭 화면으로」(끝남)',MC+':271 · '+MC+':301')
 e('/messages/[id]','/coaching/m/[memberId]','머리 「코칭 중」 배지(내가 코치일 때)','C/dm/ConversationClient.tsx:298')
-e('s.homemembers','/coaching','카드 누르기',CO+'HomeMembersCard.tsx:90')
-e('/coaching/join','/coaching','← · 연결 뒤 · 「코칭 화면으로」',JC+':174 · '+JC+':98 · '+JC+':220')
+e('s.homemembers','/coaching','카드 누르기',CO+'HomeMembersCard.tsx:114')
+e('/coaching/join','/coaching','← · 연결 뒤 · 「코칭 화면으로」',JC+':181 · '+JC+':98 · '+JC+':228')
 e('/coaching/join','/account','「로그인」(로그인 뒤 이 화면으로)',JC+':135')
 e('/account','/coaching/join','로그인 뒤 next(초대 링크)','C/profile/AuthClient.tsx:175','redir')
-e('x.url','/coaching/join','코치가 복사·공유한 초대 링크 /coaching/join?code=',CO+'InviteCard.tsx:172','ext')
-e('/u/[userId]','/coaching','「코칭 중」·「코칭 수락 대기」·「이미 코치가 있어요」 줄',UP+':425 · '+UP+':443')
+e('x.url','/coaching/join','코치가 복사·공유한 초대 링크 /coaching/join?code=',CO+'InviteCard.tsx:177','ext')
+e('/u/[userId]','/coaching','「코칭 중」·「코칭 수락 대기」·「이미 코치가 있어요」 줄',UP+':507 · '+UP+':554')
 e('/notifications','/coaching','코칭 요청·수락·해지 알림','C/dm/NotificationsClient.tsx:73')
 e('/notifications','/','코치 루틴 받음·바뀜 알림(동기 뒤)','C/dm/NotificationsClient.tsx:76')
 e('/notifications','/history/[id]','코치 코멘트 알림(동기 뒤 · 코멘트 자리로)','C/dm/NotificationsClient.tsx:79')
 # 구역
-AREAS['/coaching']=[('하위 앱바','← 프로필 · 「코칭」',CCL+':612'),('자격 아님 고지','',CCL+':352'),
- ('초대 코드 카드','코치만 · 코드 4-4 · ○월 ○일까지 · 링크 복사·공유 · 링크 · 「새로 만들기」(없으면 「코드 만들기」)',CO+'InviteCard.tsx:86'),
- ('내 코치','줄 = 아바타 · 이름 · 코치 배지 · 상태(코칭 중 청록) · ⋯',CCL+':359'),('코드로 연결','8자리 입력 + 「확인」 → 범위 시트 · 오류 한 줄',CCL+':375'),
- ('담당 회원','줄 = 이름 · 상태 · 점검(이번 주 n회 · 마지막 ○ · 코치 루틴 n회 · 「n일째 쉬는 중」) · 요청 한 줄 메시지 · 「수락」 · ⋯ · 줄을 누르면 회원 화면',CCL+':414'),
- ('트레이너 찾기','이름 검색 · 결과 줄 「코칭 요청」/「요청됨」',CCL+':437')]
-AREAS['/coaching/join']=[('하위 앱바','← 코칭 · 「코치와 연결」',JC+':172'),('코치 카드','이름 · 코치 배지 · 소개 · 태그',JC+':160'),('코드','4-4',JC+':161'),('「연결하기」','범위 시트를 연다',JC+':164'),
+# [원본] AREAS['/coaching']=[('하위 앱바','← 프로필 · 「코칭」',CCL+':639'),('자격 아님 고지','',CCL+':371'),
+# [원본]  ('초대 코드 카드','코치만 · 코드 4-4 · ○월 ○일까지 · 링크 복사·공유 · 링크 · 「새로 만들기」(없으면 「코드 만들기」)',CO+'InviteCard.tsx:89'),
+# [원본]  ('내 코치','줄 = 아바타 · 이름 · 코치 배지 · 상태(코칭 중 청록) · ⋯',CCL+':379'),('코드로 연결','8자리 입력 + 「확인」 → 범위 시트 · 오류 한 줄',CCL+':395'),
+# [원본]  ('담당 회원','줄 = 이름 · 상태 · 점검(이번 주 n회 · 마지막 ○ · 코치 루틴 n회 · 「n일째 쉬는 중」) · 요청 한 줄 메시지 · 「수락」 · ⋯ · 줄을 누르면 회원 화면',CCL+':434'),
+# [원본]  ('트레이너 찾기','이름 검색 · 결과 줄 「코칭 요청」/「요청됨」',CCL+':459')]
+AREAS['/coaching']=[('하위 앱바','← 프로필 · 「코칭」',CCL+':639'),('자격 아님 고지','',CCL+':371'),
+ ('초대 코드 카드','누구나 · 자리는 담당 회원 목록 아래 · 코드 4-4 · ○월 ○일까지 · 링크 복사·공유 · 링크 · 「새로 만들기」(없으면 「코드 만들기」 — 코치가 아니면 보조 버튼)',CO+'InviteCard.tsx:89 · '+CCL+':457'),
+ ('내 코치','줄 = 아바타 · 이름 · 코치 배지 · 상태(코칭 중 청록) · ⋯',CCL+':379'),('코드로 연결','8자리 입력 + 「확인」 → 범위 시트 · 오류 한 줄',CCL+':395'),
+ ('담당 회원','줄 = 이름 · 상태 · 점검(이번 주 n회 · 마지막 ○ · 코치 루틴 n회 · 「n일째 쉬는 중」) · 요청 한 줄 메시지 · 「수락」 · ⋯ · 줄을 누르면 회원 화면',CCL+':434'),
+ ('코치 찾기','이름 검색(코치 찾기 노출을 켠 사람만) · 결과 줄 「코치」 배지(활성 회원이 있을 때) · 「코치로 요청」/「요청됨」',CCL+':459 · '+CCL+':497')]
+# [원본] AREAS['/coaching/join']=[('하위 앱바','← 코칭 · 「코치와 연결」',JC+':179'),('코치 카드','이름 · 코치 배지 · 소개 · 태그',JC+':161'),('코드','4-4',JC+':168'),('「연결하기」','범위 시트를 연다',JC+':171'),
+AREAS['/coaching/join']=[('하위 앱바','← 코칭 · 「코치와 연결」',JC+':179'),('코치 카드','이름 · 코치 배지(활성 회원이 있을 때만) · 소개·태그(코치 찾기 노출을 켰을 때만)',JC+':161 · '+JC+':166'),('코드','4-4',JC+':168'),('「연결하기」','범위 시트를 연다',JC+':171'),
  ('상태별 안내','코드 없음 · 로그인 필요 · 못 쓰는 코드',JC+':111')]
 AREAS['/coaching/m/[memberId]']=[('청록 띠','「○○님 기록 · 코칭 중」 · 「나가기」',MC+':258'),('탭','기록 · 분석 · 루틴',MC+':171'),
  ('기록 탭','날짜별 운동 줄(코치 루틴 칩 · 시간·세트·볼륨·코멘트 n) · 펼치면 세트·처방 대 실제·코멘트',MC+':750'),
