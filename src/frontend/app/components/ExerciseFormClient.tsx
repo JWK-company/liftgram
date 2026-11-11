@@ -195,7 +195,8 @@ export default function ExerciseFormClient({ exerciseId }: { exerciseId?: string
                     e.target.value = "";
                   }}
                 />
-                <span className="flex h-[46px] items-center justify-center rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface-alt)">
+                {/* [원본] <span className="flex h-[46px] items-center justify-center rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface-alt)"> — 동작 버튼은 4px line-strong 테두리(SPEC-057 R1a) */}
+                <span className="flex h-[46px] items-center justify-center rounded-[var(--radius-sm)] border border-(--color-line-strong)">
                   <AppText variant="body" color={uploading ? "textMuted" : "text"}>
                     {uploading
                       ? t("feed.uploading")

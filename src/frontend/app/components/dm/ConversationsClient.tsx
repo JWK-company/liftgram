@@ -156,6 +156,7 @@ export default function ConversationsClient() {
                     {c.unreadCount > 0 ? (
                       <span
                         data-testid="dm-unread"
+                        data-shape="badge" // 숫자 배지(SPEC-057 R3)
                         className="flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-(--color-brand) px-[6px]"
                       >
                         <AppText variant="label" style={{ color: "var(--color-on-brand)" }}>

@@ -11,8 +11,10 @@ export function CoachBadge({ testId }: { testId?: string }) {
   return (
     <span
       data-testid={testId}
-      className="inline-flex shrink-0 items-center rounded-[var(--radius-pill)] border border-(--color-coaching) bg-(--color-coaching-soft) px-[var(--spacing-sm)] py-[1px] font-semibold text-(--color-coaching-ink) text-[length:var(--text-xs)]"
+      // [원본] className="inline-flex shrink-0 items-center rounded-[var(--radius-pill)] border border-(--color-coaching) bg-(--color-coaching-soft) px-[var(--spacing-sm)] py-[1px] font-semibold text-(--color-coaching-ink) text-[length:var(--text-xs)]" — 판·테두리 없이 coaching-ink 글자 + 점(SPEC-057 R2)
+      className="inline-flex shrink-0 items-center gap-[4px] font-semibold text-(--color-coaching-ink) text-[length:var(--text-xs)]"
     >
+      <span aria-hidden className="h-[6px] w-[6px] shrink-0 rounded-full bg-(--color-coaching)" />
       {t("coaching.coachBadge")}
     </span>
   );
@@ -23,8 +25,10 @@ export function CoachingActiveBadge({ testId, label }: { testId?: string; label?
   return (
     <span
       data-testid={testId}
-      className="inline-flex shrink-0 items-center whitespace-nowrap rounded-[var(--radius-pill)] bg-(--color-coaching-soft) px-[var(--spacing-sm)] py-[3px] font-semibold text-(--color-coaching-ink) text-[length:var(--text-xs)]"
+      // [원본] className="inline-flex shrink-0 items-center whitespace-nowrap rounded-[var(--radius-pill)] bg-(--color-coaching-soft) px-[var(--spacing-sm)] py-[3px] font-semibold text-(--color-coaching-ink) text-[length:var(--text-xs)]" — 판 없이 글자 + 점(SPEC-057 R2)
+      className="inline-flex shrink-0 items-center gap-[4px] whitespace-nowrap font-semibold text-(--color-coaching-ink) text-[length:var(--text-xs)]"
     >
+      <span aria-hidden className="h-[6px] w-[6px] shrink-0 rounded-full bg-(--color-coaching)" />
       {label ?? t("coaching.activeBadge")}
     </span>
   );
@@ -35,11 +39,12 @@ export function CoachTags({ tags, testId }: { tags: readonly string[]; testId?: 
   const known = tags.filter((x) => KNOWN.has(x));
   if (known.length === 0) return null;
   return (
-    <div data-testid={testId} className="flex flex-wrap gap-[var(--spacing-xs)]">
+    <div data-testid={testId} className="flex flex-wrap gap-x-[var(--spacing-md)] gap-y-[2px]">
       {known.map((tag) => (
         <span
           key={tag}
-          className="rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[2px] text-(--color-ink2) text-[length:var(--text-xs)]"
+          // [원본] className="rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[2px] text-(--color-ink2) text-[length:var(--text-xs)]" — 태그는 판 없이 글자만(SPEC-057 R2)
+          className="text-(--color-ink2) text-[length:var(--text-xs)]"
         >
           {t(`coaching.tag.${tag}` as TransKey)}
         </span>

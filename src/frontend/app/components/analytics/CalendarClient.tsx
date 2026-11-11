@@ -324,7 +324,8 @@ export default function CalendarClient() {
               }}
               // [원본] className="h-[44px] shrink-0 rounded-[var(--radius-pill)] border border-(--color-line) px-[12px] font-semibold text-(--color-ink2) text-[length:var(--text-sm)] active:bg-(--color-surface-alt) disabled:opacity-45"
               // [개선] 큰 버튼 알약 금지·누르는 것 경계는 line-strong(SPEC-056 F2·F7) — 보조 버튼(secondary)과 같은 모양
-              className="h-[44px] shrink-0 rounded-[var(--radius-md)] border border-(--color-line-strong) bg-transparent px-[12px] font-semibold text-(--color-ink2) text-[length:var(--text-sm)] active:bg-(--color-surface-alt) disabled:opacity-45"
+              // [원본] className="h-[44px] shrink-0 rounded-[var(--radius-md)] border border-(--color-line-strong) bg-transparent px-[12px] font-semibold text-(--color-ink2) text-[length:var(--text-sm)] active:bg-(--color-surface-alt) disabled:opacity-45" — 누르는 것 4px(SPEC-057 R1a)
+              className="h-[44px] shrink-0 rounded-[var(--radius-sm)] border border-(--color-line-strong) bg-transparent px-[12px] font-semibold text-(--color-ink2) text-[length:var(--text-sm)] active:bg-(--color-surface-alt) disabled:opacity-45"
             >
               {bragging ? t("calendar.bragPosting") : bragLabel}
             </button>
@@ -544,7 +545,8 @@ export default function CalendarClient() {
                     }}
                     // [원본] className="mx-auto flex h-10 w-10 flex-col items-center justify-center rounded-[10px] border-2"
                     // [개선] 고르는 칸이라 채움·테두리는 유지, 둥근 정도만 토큰(SPEC-056 F2)
-                    className="mx-auto flex h-10 w-10 flex-col items-center justify-center rounded-[var(--radius-md)] border-2"
+                    // [원본] className="mx-auto flex h-10 w-10 flex-col items-center justify-center rounded-[var(--radius-md)] border-2" — 고르는 날짜 칸도 4px(SPEC-057 R1)
+                    className="mx-auto flex h-10 w-10 flex-col items-center justify-center rounded-[var(--radius-sm)] border-2"
                   >
                     <AppText
                       variant="caption"
@@ -606,7 +608,8 @@ export default function CalendarClient() {
             }}
             // [원본] className="mb-[var(--spacing-sm)] w-full rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface-alt) p-[var(--spacing-md)] text-[length:var(--text-md)] text-(--color-ink) placeholder:text-(--color-ink3)"
             // [개선] 입력칸은 흰 바탕 + line-strong 경계(SPEC-056 F7 · 운동 중 입력칸과 같다)
-            className="mb-[var(--spacing-sm)] w-full rounded-[var(--radius-md)] border border-(--color-line-strong) bg-(--color-card) p-[var(--spacing-md)] text-[length:var(--text-md)] text-(--color-ink) placeholder:text-(--color-ink3)"
+            // [원본] className="mb-[var(--spacing-sm)] w-full rounded-[var(--radius-md)] border border-(--color-line-strong) bg-(--color-card) p-[var(--spacing-md)] text-[length:var(--text-md)] text-(--color-ink) placeholder:text-(--color-ink3)" — 누르는 것 4px(R1a)
+            className="mb-[var(--spacing-sm)] w-full rounded-[var(--radius-sm)] border border-(--color-line-strong) bg-(--color-card) p-[var(--spacing-md)] text-[length:var(--text-md)] text-(--color-ink) placeholder:text-(--color-ink3)"
           />
         ) : null}
 

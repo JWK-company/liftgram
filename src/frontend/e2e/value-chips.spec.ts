@@ -300,7 +300,7 @@ for (const scheme of ["light", "dark"] as const)
   });
 
 for (const scheme of ["light", "dark"] as const)
-  test(`kg│lb — 옅은 트랙 + 고른 쪽 알약(${scheme}) · 누르는 자리 그대로`, async ({ page }) => {
+  test(`kg│lb — 옅은 트랙 + 고른 쪽 흰 칸(4px · SPEC-057 R1d)(${scheme}) · 누르는 자리 그대로`, async ({ page }) => {
     test.setTimeout(120_000);
     await page.emulateMedia({ colorScheme: scheme });
     await 카탈로그_준비(page);

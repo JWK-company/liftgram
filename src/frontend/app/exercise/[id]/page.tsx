@@ -195,9 +195,10 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
               {instructions.map((step, i) => (
                 <li key={step} className="flex gap-[var(--spacing-sm)]">
                   {/* [원본] <span className="flex h-6 w-6 … rounded-[var(--radius-pill)] bg-(--color-surface-alt)"> — 회색 원 · [개선] 번호 글자만(SPEC-056 F5) */}
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center">
-                    <AppText variant="caption" color="primary" className="font-bold">
-                      {String(i + 1)}
+                  {/* [원본] h-6 w-6 가운데 빨강 숫자 — 운동 중 팁(ExerciseTipPanel)과 같은 꼴로(오른쪽 맞춘 「1.」 · ink2 · REV-131) */}
+                  <span className="mt-[2px] w-[20px] shrink-0 text-right tabular-nums">
+                    <AppText variant="caption" color="textMuted" className="font-bold!">
+                      {`${i + 1}.`}
                     </AppText>
                   </span>
                   <AppText variant="body" color="textMuted" className="flex-1">
@@ -216,7 +217,8 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
           <AppText variant="label" color="textMuted">
             {t("exercises.primaryMuscles")}
           </AppText>
-          <div className="mt-[var(--spacing-sm)] flex flex-wrap gap-[var(--spacing-xs)]">
+          {/* [원본] gap-[var(--spacing-xs)] — 판을 걷은 태그가 4px 로 붙어 한 낱말처럼 읽혔다(REV-129 H1) */}
+          <div className="mt-[var(--spacing-sm)] flex flex-wrap gap-x-[var(--spacing-md)] gap-y-[2px]">
             {exercise.primaryMuscles.length ? (
               // [원본] exercise.primaryMuscles.map((m) => <Tag key={m} label={muscleLabel(m)} tone="primary" />) — 빨강 칩
               // [개선] 주동근은 굵은 진한 글자 칩, 보조근은 그대로 — 빨강은 행동에만(화면 정리 P4) @plm SRS-072
@@ -224,7 +226,8 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
                 <span
                   key={m}
                   data-testid="detail-primary-muscle"
-                  className="rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[2px] font-semibold text-(--color-ink) text-[length:var(--text-sm)]"
+                  // [원본] className="rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[2px] font-semibold text-(--color-ink) text-[length:var(--text-sm)]" — 근육은 판 없이 글자만(SPEC-057 R2)
+                  className="font-semibold text-(--color-ink) text-[length:var(--text-sm)]"
                 >
                   {muscleLabel(m)}
                 </span>
@@ -243,7 +246,8 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
                   {t("exercises.secondaryMuscles")}
                 </AppText>
               </div>
-              <div className="mt-[var(--spacing-sm)] flex flex-wrap gap-[var(--spacing-xs)]">
+              {/* [원본] gap-[var(--spacing-xs)] — 판을 걷은 태그가 4px 로 붙어 한 낱말처럼 읽혔다(REV-129 H1) */}
+              <div className="mt-[var(--spacing-sm)] flex flex-wrap gap-x-[var(--spacing-md)] gap-y-[2px]">
                 {exercise.secondaryMuscles.map((m) => (
                   <Tag key={m} label={muscleLabel(m)} />
                 ))}
@@ -256,7 +260,8 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
               {t("exercises.equipment")}
             </AppText>
           </div>
-          <div className="mt-[var(--spacing-sm)] flex flex-wrap items-center gap-[var(--spacing-xs)]">
+          {/* [원본] gap-[var(--spacing-xs)] — 위와 같다(REV-129 H1) */}
+          <div className="mt-[var(--spacing-sm)] flex flex-wrap items-center gap-x-[var(--spacing-md)] gap-y-[2px]">
             <Tag label={equipmentLabel(exercise.equipment)} />
             {exercise.kind === ExerciseKind.CARDIO ? (
               <Tag label={kindLabel(exercise.kind)} tone="success" />

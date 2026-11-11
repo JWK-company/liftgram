@@ -33,11 +33,13 @@ function sourceLine(tip: CreatorTip): string {
 /** 부위 칩(무채) — 일반 팁(fullBody)은 「전신」 */
 function MuscleChips({ tip }: { tip: CreatorTip }) {
   return (
-    <div className="flex flex-wrap gap-[4px]">
+    // [원본] <div className="flex flex-wrap gap-[4px]"> — 판을 걷은 태그가 붙어 한 낱말로 읽혔다(REV-131)
+    <div className="flex flex-wrap gap-x-[var(--spacing-md)] gap-y-[2px]">
       {tip.muscles.map((m) => (
         <span
           key={m}
-          className="rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[8px] py-[2px] text-(--color-ink2) text-[length:var(--text-xs)]"
+          // [원본] className="rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[8px] py-[2px] text-(--color-ink2) text-[length:var(--text-xs)]" — 근육 태그는 판 없이 글자만(SPEC-057 R2)
+          className="text-(--color-ink2) text-[length:var(--text-xs)]"
         >
           {muscleLabel(m, lang === "ko" ? "ko" : "en")}
         </span>
@@ -191,7 +193,8 @@ export function TipDetail({
         rel="noopener noreferrer"
         data-testid="tip-open-video"
         aria-label={t("creator.openVideoAria")}
-        className="mt-[var(--spacing-sm)] flex min-h-[44px] items-center justify-center rounded-[var(--radius-md)] border border-(--color-line-strong) font-medium text-(--color-ink) text-[length:var(--text-md)]"
+        // [원본] className="mt-[var(--spacing-sm)] flex min-h-[44px] items-center justify-center rounded-[var(--radius-md)] border border-(--color-line-strong) font-medium text-(--color-ink) text-[length:var(--text-md)]" — 4px(R1a)
+        className="mt-[var(--spacing-sm)] flex min-h-[44px] items-center justify-center rounded-[var(--radius-sm)] border border-(--color-line-strong) font-medium text-(--color-ink) text-[length:var(--text-md)]"
       >
         {t("creator.openVideo")} ↗
       </a>

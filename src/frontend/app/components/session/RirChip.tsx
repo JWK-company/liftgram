@@ -105,7 +105,8 @@ export function RirChip({
       >
         {/* QuietChip 모양(quiet.tsx) — 무테·무채, 글자 ink2(값이 있으면 ink · 굵게) */}
         <span
-          className={`inline-flex min-h-[32px] items-center rounded-[var(--radius-pill)] border border-transparent bg-(--color-surface-alt) px-[var(--spacing-md)] text-[length:var(--text-sm)] tabular-nums ${
+          // [원본] className={`inline-flex min-h-[32px] items-center rounded-[var(--radius-pill)] border border-transparent bg-(--color-surface-alt) px-[var(--spacing-md)] text-[length:var(--text-sm)] tabular-nums ${ — 알약 → 4px(R1b)
+          className={`inline-flex min-h-[32px] items-center rounded-[var(--radius-sm)] border border-transparent bg-(--color-surface-alt) px-[var(--spacing-md)] text-[length:var(--text-sm)] tabular-nums ${
             shown == null ? "text-(--color-ink2)" : "font-semibold text-(--color-ink)"
           }`}
         >

@@ -9,7 +9,8 @@
 //
 // 구조: 바깥 button 이 testid · 이름 · 44px 누르는 자리를 갖고, 칩 바탕은 안쪽 span 에 그린다
 // (의사 요소로 넓히면 boundingBox 로 잴 수 없고 이웃 줄과 겹친다 · REV-084 3).
-// 모양은 알약(rounded-full) — 입력칸(네모 · 테두리)과 윤곽부터 다르다(P1 코드 리뷰 시각 1).
+// [원본] 모양은 알약(rounded-full) — 입력칸(네모 · 테두리)과 윤곽부터 다르다(P1 코드 리뷰 시각 1).
+// [개선] 모양은 앱 공통 4px(SPEC-057 R1c) — 입력칸과는 면(옅은 판 · 테두리 없음 대 흰 바탕 · 테두리)으로 갈린다.
 // compact(메타 줄)는 줄 높이 32px 그대로 두고 누르는 자리만 위아래로 44px(-my-[6px]).
 // 아이콘은 SVG(aria-hidden) — testid 요소의 글자가 바뀌지 않게(REV-084 2). 새 색 토큰은 만들지 않는다.
 import type { ReactNode } from "react";
@@ -79,7 +80,7 @@ export function ValueChip({
             ? // 메타 줄 — PR 두 조각이 360px 한 줄에 들어가게 좁게(declutter-block 머리 높이 ≤ 170)
               "inline-flex items-center gap-[2px] px-[4px] py-[1px]"
             : "inline-flex items-center gap-[3px] px-[6px] py-[2px]"
-      } min-w-0 rounded-full ${chipFaceClass(tone, off)} ${faceClassName}`}
+      } min-w-0 rounded-[var(--radius-sm)] ${chipFaceClass(tone, off)} ${faceClassName}`} // [원본] rounded-full(SPEC-057 R1c)
     >
       {children}
       {/* 메타 줄(compact)은 아이콘 없이 바탕만 — PR 두 조각이 360px 한 줄에 들어가야 한다(declutter-block 머리 높이) */}

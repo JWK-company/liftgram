@@ -178,7 +178,8 @@ export function GlobalWorkoutBar() {
                   : t("session.elapsedBar", { time: clock(elapsed) })}
               </AppText>
             </span>
-            <span className="rounded-full bg-(--color-brand) px-[var(--spacing-md)] py-[6px] font-semibold text-(--color-on-brand) text-[length:var(--text-sm)]">
+            {/* [원본] <span className="rounded-full bg-(--color-brand) px-[var(--spacing-md)] py-[6px] font-semibold text-(--color-on-brand) text-[length:var(--text-sm)]"> — 알약 → 4px(R1a) */}
+            <span className="rounded-[var(--radius-sm)] bg-(--color-brand) px-[var(--spacing-md)] py-[6px] font-semibold text-(--color-on-brand) text-[length:var(--text-sm)]">
               {t("session.openBar")}
             </span>
           </a>
@@ -187,7 +188,8 @@ export function GlobalWorkoutBar() {
             data-testid="global-workout-cancel"
             aria-label={t("session.cancelBarLabel")}
             onClick={() => setConfirmDiscard(true)}
-            className="ml-[var(--spacing-xs)] shrink-0 rounded-full border border-(--color-line) px-[var(--spacing-md)] py-[5px] font-semibold text-(--color-ink2) text-[length:var(--text-sm)] active:bg-(--color-surface-alt)"
+            // [원본] className="ml-[var(--spacing-xs)] shrink-0 rounded-full border border-(--color-line) px-[var(--spacing-md)] py-[5px] font-semibold text-(--color-ink2) text-[length:var(--text-sm)] active:bg-(--color-surface-alt)" — 알약 → 4px line-strong(R1a)
+            className="ml-[var(--spacing-xs)] shrink-0 rounded-[var(--radius-sm)] border border-(--color-line-strong) px-[var(--spacing-md)] py-[5px] font-semibold text-(--color-ink) text-[length:var(--text-sm)] active:bg-(--color-surface-alt)"
           >
             {t("session.cancelBar")}
           </button>

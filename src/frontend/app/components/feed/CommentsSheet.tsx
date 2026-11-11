@@ -267,9 +267,10 @@ export function CommentsSheet({
                         <Icon
                           name={expanded.has(c.id) ? "chevron-up" : "chevron-down"}
                           size={14}
-                          color="var(--color-brand)"
+                          // [원본] color="var(--color-brand)" · AppText color="primary" — 그 자리 펼침은 ▾/▴ + 진한 굵은 글자(SPEC-057 R5·R6 · REV-132)
+                          color="var(--color-ink2)"
                         />
-                        <AppText variant="label" color="primary">
+                        <AppText variant="label" color="text" className="font-semibold!">
                           {expanded.has(c.id)
                             ? t("comments.hideReplies")
                             : t("comments.viewReplies", { count: c.replyCount })}

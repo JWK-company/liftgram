@@ -7,7 +7,7 @@
 //   · 플레이트 「한쪽 무게로 입력」 — 입력은 한쪽, 볼륨은 ×2
 //   · 루틴 편집의 대체가 한 번에 바뀐다(#47) · 운동 중 기구 바꾸기를 「루틴에도」 반영한다
 import { expect, test } from "@playwright/test";
-import { 블록_더보기 } from "./helpers/block";
+import { 블록_행동_보임 } from "./helpers/block";
 
 type Page = import("@playwright/test").Page;
 
@@ -112,8 +112,8 @@ test("케이블 부착물 — 로프와 일자바 기록이 섞이지 않고, �
   // [원본] prev-slot(읽어 주는 글) — 화면에서 지웠다(/qa code L-4). 이전 기록은 늘 지금 칸에서 읽으므로 트리거로 본다.
   await expect(page.getByTestId("variant-trigger").first()).toContainText("일자바");
   await expect(첫세트(page).getByTestId("set-prev")).not.toContainText("25×12");
-  // 이번 칸(일자바)에 기록이 없으면 「다른 조합 기록 보기」는 접지 않고 메타 줄에 꺼내 둔다(/qa code M-4)
-  await expect(page.getByTestId("block-more-panel")).toHaveCount(0);
+  // [원본] 이번 칸(일자바)에 기록이 없으면 「다른 조합 기록 보기」는 접지 않고 메타 줄에 꺼내 둔다(/qa code M-4) — block-more-panel 0개
+  // [개선 SPEC-057] 「더 보기」가 없어 늘 보인다
   await expect(page.getByTestId("btn-other-slots")).toBeVisible();
   await 세트_기록(page, 35, 10);
   await 마치기(page);
@@ -122,7 +122,7 @@ test("케이블 부착물 — 로프와 일자바 기록이 섞이지 않고, �
   await 운동_시작(page, "케이블 푸시다운");
   await expect(page.getByTestId("variant-trigger").first()).toContainText("일자바", { timeout: 15_000 });
   await expect(첫세트(page).getByTestId("set-prev")).toContainText("35×10");
-  await 블록_더보기(page.getByTestId("workout-exercises").locator("> div").first()); // 기록이 있는 칸이면 「더 보기」 안
+  await 블록_행동_보임(page.getByTestId("workout-exercises").locator("> div").first()); // [원본] 블록_더보기 — 늘 보인다(SPEC-057)
   await page.getByTestId("btn-other-slots").click();
   const rope = page.getByTestId("slots-sheet").getByTestId("slot-attach:rope");
   await expect(rope).toContainText("25");

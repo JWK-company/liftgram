@@ -17,7 +17,8 @@ export function RestBar() {
     <div
       data-testid="rest-bar"
       style={{ backgroundColor: "var(--color-pr)" }}
-      className="sticky bottom-[calc(var(--spacing-lg)+env(safe-area-inset-bottom))] z-40 mx-[var(--spacing-lg)] flex items-center gap-[var(--spacing-sm)] rounded-[var(--radius-pill)] px-[var(--spacing-lg)] py-[var(--spacing-sm)] shadow-lg"
+      // [원본] className="sticky bottom-[calc(var(--spacing-lg)+env(safe-area-inset-bottom))] z-40 mx-[var(--spacing-lg)] flex items-center gap-[var(--spacing-sm)] rounded-[var(--radius-pill)] px-[var(--spacing-lg)] py-[var(--spacing-sm)] shadow-lg" — 떠 있는 띠는 8px(SPEC-057 R4)
+      className="sticky bottom-[calc(var(--spacing-lg)+env(safe-area-inset-bottom))] z-40 mx-[var(--spacing-lg)] flex items-center gap-[var(--spacing-sm)] rounded-[var(--radius-lg)] px-[var(--spacing-lg)] py-[var(--spacing-sm)] shadow-lg"
     >
       <Icon name="timer-outline" size={18} color="var(--color-bg)" />
       <AppText variant="body" className="flex-1 font-bold" style={{ color: "var(--color-bg)" }}>
@@ -27,13 +28,20 @@ export function RestBar() {
         type="button"
         data-testid="rest-plus"
         onClick={() => startRest(restRemaining + 15)}
-        className="px-[4px] py-[2px]"
+        // [원본] className="px-[4px] py-[2px]" — 누르는 자리 24px(REV-131) → 위아래 늘려 44px
+        className="relative px-[4px] py-[2px] before:absolute before:inset-x-0 before:-inset-y-[10px] before:content-['']"
       >
         <AppText variant="caption" className="font-bold" style={{ color: "var(--color-bg)" }}>
           +15s
         </AppText>
       </button>
-      <button type="button" data-testid="rest-skip" onClick={clearRest} className="px-[4px] py-[2px]">
+      {/* [원본] className="px-[4px] py-[2px]" — 위와 같다 */}
+      <button
+        type="button"
+        data-testid="rest-skip"
+        onClick={clearRest}
+        className="relative px-[4px] py-[2px] before:absolute before:inset-x-0 before:-inset-y-[10px] before:content-['']"
+      >
         <AppText variant="caption" className="font-bold" style={{ color: "var(--color-bg)" }}>
           {t("session.skip")}
         </AppText>

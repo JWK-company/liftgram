@@ -222,17 +222,14 @@ function Option({
       onClick={onPress}
       aria-pressed={active}
       data-testid={testId}
-      className={`rounded-[var(--radius-md)] border p-[var(--spacing-sm)] text-left ${
-        active
-          ? "border-(--color-brand) bg-(--color-brand-muted)"
-          : "border-(--color-line) bg-(--color-surface-alt)"
+      // [원본] rounded-[var(--radius-md)] · 고르면 border-brand bg-brand-muted · 아니면 border-line bg-surface-alt · 제목 primary
+      // [개선] R1b — 4px 옅은 판, 고르면 brand 테두리 + 진한 글자(SPEC-057)
+      // [개선 REV-132] 키보드 포커스 링
+      className={`rounded-[var(--radius-sm)] border bg-(--color-surface-alt) p-[var(--spacing-sm)] text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-brand) ${
+        active ? "border-(--color-brand)" : "border-transparent"
       }`}
     >
-      <AppText
-        variant="body"
-        color={active ? "primary" : "text"}
-        className={active ? "block font-bold!" : "block"}
-      >
+      <AppText variant="body" color="text" className={active ? "block font-semibold!" : "block"}>
         {title}
       </AppText>
       <AppText variant="caption" color="textMuted" className="block">

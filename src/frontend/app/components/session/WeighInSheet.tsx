@@ -376,7 +376,8 @@ export function WeighInSheet({
           setEntryError(false);
           setKg(stepBodyweightKg(base, s, unit));
         }}
-        className="flex h-[44px] min-w-[44px] flex-1 items-center justify-center rounded-[var(--radius-md)] bg-(--color-surface-alt) font-semibold text-(--color-ink) text-[length:var(--text-md)] tabular-nums active:bg-(--color-line) disabled:opacity-60"
+        // [원본] className="flex h-[44px] min-w-[44px] flex-1 items-center justify-center rounded-[var(--radius-md)] bg-(--color-surface-alt) font-semibold text-(--color-ink) text-[length:var(--text-md)] tabular-nums active:bg-(--color-line) disabled:opacity-60" — 4px(R1a)
+        className="flex h-[44px] min-w-[44px] flex-1 items-center justify-center rounded-[var(--radius-sm)] bg-(--color-surface-alt) font-semibold text-(--color-ink) text-[length:var(--text-md)] tabular-nums active:bg-(--color-line) disabled:opacity-60"
       >
         {s > 0 ? "+" : "−"}
         {label}
@@ -452,7 +453,8 @@ export function WeighInSheet({
                   commitTyped();
                 }
               }}
-              className="w-[120px] rounded-[var(--radius-md)] border border-(--color-line-strong) bg-(--color-surface) px-[var(--spacing-sm)] text-center font-bold text-(--color-ink) text-[32px] tabular-nums leading-tight"
+              // [원본] className="w-[120px] rounded-[var(--radius-md)] border border-(--color-line-strong) bg-(--color-surface) px-[var(--spacing-sm)] text-center font-bold text-(--color-ink) text-[32px] tabular-nums leading-tight" — 입력칸 4px(SPEC-057)
+              className="w-[120px] rounded-[var(--radius-sm)] border border-(--color-line-strong) bg-(--color-surface) px-[var(--spacing-sm)] text-center font-bold text-(--color-ink) text-[32px] tabular-nums leading-tight"
             />
             <span className="text-(--color-ink2) text-[length:var(--text-md)]">{unit}</span>
           </label>
@@ -466,7 +468,8 @@ export function WeighInSheet({
               setEntryError(false);
               setTyping(true);
             }}
-            className="flex min-h-[44px] items-baseline gap-[4px] rounded-[var(--radius-md)] px-[var(--spacing-sm)]"
+            // [원본] className="flex min-h-[44px] items-baseline gap-[4px] rounded-[var(--radius-md)] px-[var(--spacing-sm)]" — 4px(R1)
+            className="flex min-h-[44px] items-baseline gap-[4px] rounded-[var(--radius-sm)] px-[var(--spacing-sm)]"
           >
             <span className="font-bold text-(--color-ink) text-[32px] tabular-nums leading-tight">
               {shown}
@@ -480,7 +483,8 @@ export function WeighInSheet({
             type="button"
             data-testid="weighin-input-done"
             onClick={() => commitTyped()}
-            className="flex h-[44px] min-w-[44px] items-center justify-center rounded-[var(--radius-pill)] border border-(--color-line-strong) px-[var(--spacing-sm)] font-medium text-(--color-ink) text-[length:var(--text-sm)]"
+            // [원본] className="flex h-[44px] min-w-[44px] items-center justify-center rounded-[var(--radius-pill)] border border-(--color-line-strong) px-[var(--spacing-sm)] font-medium text-(--color-ink) text-[length:var(--text-sm)]" — 알약 → 4px(R1a)
+            className="flex h-[44px] min-w-[44px] items-center justify-center rounded-[var(--radius-sm)] border border-(--color-line-strong) px-[var(--spacing-sm)] font-medium text-(--color-ink) text-[length:var(--text-sm)]"
           >
             {t("bodyweight.done")}
           </button>
@@ -493,7 +497,8 @@ export function WeighInSheet({
               setEntryError(false);
               setTyping(true);
             }}
-            className="flex h-[44px] items-center rounded-[var(--radius-pill)] px-[var(--spacing-sm)] text-(--color-ink2) text-[length:var(--text-sm)] underline underline-offset-2"
+            // [원본] className="flex h-[44px] items-center rounded-[var(--radius-pill)] px-[var(--spacing-sm)] text-(--color-ink2) text-[length:var(--text-sm)] underline underline-offset-2" — 4px(R1)
+            className="flex h-[44px] items-center rounded-[var(--radius-sm)] px-[var(--spacing-sm)] text-(--color-ink2) text-[length:var(--text-sm)] underline underline-offset-2"
           >
             {t("bodyweight.directInput")}
           </button>
@@ -595,7 +600,8 @@ export function WeighInSheet({
                           setText(e.target.value);
                           setErr(false);
                         }}
-                        className={`h-11 w-[96px] rounded-[var(--radius-md)] border bg-(--color-surface) px-[var(--spacing-sm)] text-right text-(--color-ink) text-[length:var(--text-md)] tabular-nums ${err ? "border-(--color-bad)" : "border-(--color-line-strong)"}`}
+                        // [원본] className={`h-11 w-[96px] rounded-[var(--radius-md)] border bg-(--color-surface) px-[var(--spacing-sm)] text-right text-(--color-ink) text-[length:var(--text-md)] tabular-nums ${err ? "border-(--color-bad)" : "border-(--color-line-strong)"}`} — 입력칸 4px
+                        className={`h-11 w-[96px] rounded-[var(--radius-sm)] border bg-(--color-surface) px-[var(--spacing-sm)] text-right text-(--color-ink) text-[length:var(--text-md)] tabular-nums ${err ? "border-(--color-bad)" : "border-(--color-line-strong)"}`}
                       />
                       <span className="w-[20px] text-(--color-ink2)">{suffix}</span>
                     </span>
@@ -646,7 +652,8 @@ export function WeighInSheet({
             data-testid="weighin-secondary"
             onClick={secondary}
             disabled={busy}
-            className="h-[44px] flex-1 rounded-[var(--radius-md)] border border-(--color-line-strong) font-semibold text-(--color-ink) text-[length:var(--text-md)] disabled:opacity-60"
+            // [원본] className="h-[44px] flex-1 rounded-[var(--radius-md)] border border-(--color-line-strong) font-semibold text-(--color-ink) text-[length:var(--text-md)] disabled:opacity-60" — 4px(R1a)
+            className="h-[44px] flex-1 rounded-[var(--radius-sm)] border border-(--color-line-strong) font-semibold text-(--color-ink) text-[length:var(--text-md)] disabled:opacity-60"
           >
             {secondaryLabel}
           </button>
@@ -659,7 +666,8 @@ export function WeighInSheet({
           disabled={busy}
           aria-busy={busy}
           // [원본] className="h-[44px] flex-1 rounded-[var(--radius-md)] bg-(--color-brand) font-semibold text-(--color-on-brand) …"
-          className={`h-[44px] flex-1 rounded-[var(--radius-md)] font-semibold text-[length:var(--text-md)] disabled:opacity-60 ${
+          // [원본] className={`h-[44px] flex-1 rounded-[var(--radius-md)] font-semibold text-[length:var(--text-md)] disabled:opacity-60 ${ — 4px(R1a)
+          className={`h-[44px] flex-1 rounded-[var(--radius-sm)] font-semibold text-[length:var(--text-md)] disabled:opacity-60 ${
             primaryVariant === "outline"
               ? "border border-(--color-brand) bg-(--color-card) text-(--color-brand)"
               : "bg-(--color-brand) text-(--color-on-brand)"
@@ -998,7 +1006,8 @@ export function WeighInRow({ now }: { now: number }) {
           // [원본] aria-controls="weighin-card-body" — [개선] 펼치면 본문과 입력이 함께 나타난다(리뷰 L-1)
           aria-controls="weighin-card-body weighin-card-editor"
           onClick={() => toggleCollapsed()}
-          className="flex min-h-11 w-full items-center gap-[var(--spacing-sm)] rounded-[var(--radius-md)] text-left focus-visible:outline-2 focus-visible:outline-(--color-brand)"
+          // [원본] className="flex min-h-11 w-full items-center gap-[var(--spacing-sm)] rounded-[var(--radius-md)] text-left focus-visible:outline-2 focus-visible:outline-(--color-brand)" — 4px(R1)
+          className="flex min-h-11 w-full items-center gap-[var(--spacing-sm)] rounded-[var(--radius-sm)] text-left focus-visible:outline-2 focus-visible:outline-(--color-brand)"
         >
           {/* [원본] … rounded-[var(--radius-md)] bg-(--color-surface-alt) 판 · [개선] 아이콘만(SPEC-056 F5) */}
           <span className="flex h-11 w-11 shrink-0 items-center justify-center">

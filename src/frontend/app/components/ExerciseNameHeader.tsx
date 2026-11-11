@@ -98,17 +98,28 @@ export function ExerciseNameHeader({ exerciseId, fallback }: { exerciseId: strin
         <div className="flex items-start gap-[var(--spacing-sm)]">
           {/* 별칭 칩 — 누르면 입력칸을 채운다(흔히 부르는 이름을 다시 칠 필요 없게) */}
           {choices.aliases.length ? (
-            <div className="flex min-w-0 flex-1 flex-wrap gap-[6px]" data-testid="rename-aliases">
+            // [원본] <div className="flex min-w-0 flex-1 flex-wrap gap-[6px]" data-testid="rename-aliases"> — 하나를 고르는 묶음(REV-131)
+            <div
+              role="radiogroup"
+              aria-label={t("exercises.renameAliasesLabel")}
+              className="flex min-w-0 flex-1 flex-wrap gap-[6px]"
+              data-testid="rename-aliases"
+            >
               {choices.aliases.map((a, i) => (
+                // biome-ignore lint/a11y/useSemanticElements: 칩 모양 버튼에 radio 역할 — 누르면 바로 값이 되는 칩(ImportRowSheet 와 같다 · REV-131)
                 <button
                   key={a}
                   type="button"
                   data-testid={`name-choice-${i}`}
                   onClick={() => setDraft(a)}
-                  className={`min-h-[36px] rounded-full border px-[12px] text-[length:var(--text-sm)] ${
+                  // [원본] aria-pressed={draft.trim() === a} — 입력칸을 채우는 제안이라 토글이 아니다(REV-131)
+                  role="radio"
+                  aria-checked={draft.trim() === a}
+                  // [원본] rounded-full · 고르면 border-brand bg-brand-muted text-brand · 아니면 border-line-strong text-ink2 — 알약·brand-muted → 4px 옅은 판, 고르면 brand 테두리 + 진한 굵은 글자(SPEC-057 R1b)
+                  className={`min-h-[36px] rounded-[var(--radius-sm)] border bg-(--color-surface-alt) px-[12px] text-[length:var(--text-sm)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-brand) ${
                     draft.trim() === a
-                      ? "border-(--color-brand) bg-(--color-brand-muted) text-(--color-brand)"
-                      : "border-(--color-line-strong) text-(--color-ink2)"
+                      ? "border-(--color-brand) font-semibold text-(--color-ink)"
+                      : "border-transparent text-(--color-ink2)"
                   }`}
                 >
                   {a}

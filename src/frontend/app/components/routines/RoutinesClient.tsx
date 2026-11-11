@@ -466,24 +466,23 @@ export default function RoutinesClient() {
           <Card
             // [원본] className={`mb-[var(--spacing-sm)] ${block?.isDeload ? "border-(--color-pr)!" : ""}`}
             // [개선] 평평한 구역 — 디로드는 테두리 색 대신 왼쪽 금색 강조선(SPEC-056 REV-122)
-            accent={block?.isDeload ? "var(--color-pr)" : undefined}
+            // [원본] accent={block?.isDeload ? "var(--color-pr)" : undefined} — 금색은 PR 전용(SPEC-057 R2 · REV-131)
+            accent={block?.isDeload ? "var(--color-warn)" : undefined}
           >
             {/* 첫 줄은 꺾이지 않게 — 좁거나 글자를 키우면 편집 단추가 오른쪽 위에 남고 나머지가 다음 줄로(REV S-96 3) */}
             <div className="flex flex-wrap items-center gap-x-[var(--spacing-sm)] gap-y-[2px] whitespace-nowrap">
-              <AppText variant="label" color="primary">
+              {/* [원본] <AppText variant="label" color="primary"> — 누를 수 없는 머리글은 빨강 대신 회색 굵은 글자(SRS-069 · SPEC-057 REV-131 H1 — 「다음 운동」 머리글과 같은 꼴) */}
+              <AppText variant="label" color="textMuted" className="font-semibold">
                 {t("schedule.title")}
               </AppText>
               {block ? (
-                <span
-                  style={{
-                    backgroundColor: block.isDeload ? "var(--color-surface-alt)" : "var(--color-brand-muted)",
-                  }}
-                  className="rounded-[var(--radius-pill)] px-[var(--spacing-sm)] py-[2px]"
-                >
+                // [원본] 판 있는 알약(디로드 surface-alt · 주차 brand-muted) + 주차 빨강 글자
+                // [개선] 누를 수 없는 정보는 판 없이 글자만 — 주차 ink2 · 디로드 warn(SPEC-057 R2 색 표)
+                <span data-testid="schedule-week-badge">
                   <AppText
                     variant="label"
-                    color={block.isDeload ? "warning" : "primary"}
-                    className="font-bold"
+                    color={block.isDeload ? "warning" : "textMuted"}
+                    className="font-bold!"
                   >
                     {block.isDeload ? t("schedule.deloadWeek") : t("schedule.weekN", { week: block.week })}
                   </AppText>
@@ -499,12 +498,15 @@ export default function RoutinesClient() {
                 type="button"
                 onClick={() => setEditingSchedule(true)}
                 data-testid="btn-edit-schedule"
-                className="-my-[8px] -mr-[var(--spacing-xs)] ml-auto flex min-h-[44px] shrink-0 items-center gap-[4px] rounded-[var(--radius-pill)] px-[var(--spacing-sm)] focus-visible:outline-2 focus-visible:outline-(--color-brand) focus-visible:outline-offset-2"
+                // [원본] className="-my-[8px] -mr-[var(--spacing-xs)] ml-auto flex min-h-[44px] shrink-0 items-center gap-[4px] rounded-[var(--radius-pill)] px-[var(--spacing-sm)] focus-visible:outline-2 focus-visible:outline-(--color-brand) focus-visible:outline-offset-2" — 4px(R1)
+                className="-my-[8px] -mr-[var(--spacing-xs)] ml-auto flex min-h-[44px] shrink-0 items-center gap-[4px] rounded-[var(--radius-sm)] px-[var(--spacing-sm)] focus-visible:outline-2 focus-visible:outline-(--color-brand) focus-visible:outline-offset-2"
               >
                 {/* 누를 수 있는 값은 옅은 칩(v0.82.0 규칙) — 제목·배지와 같은 글자로만 두면 단추로 안 보인다 */}
-                <span className="flex items-center gap-[4px] rounded-[var(--radius-pill)] border border-(--color-line) bg-(--color-surface-alt) px-[10px] py-[4px]">
-                  <Icon name="calendar-outline" size={16} color="var(--color-brand)" />
-                  <AppText variant="label" color="primary">
+                {/* [원본] <span className="flex items-center gap-[4px] rounded-[var(--radius-pill)] border border-(--color-line) bg-(--color-surface-alt) px-[10px] py-[4px]"> — 누를 수 있는 값 판 4px · 테두리 없음(SPEC-057 R1c) */}
+                <span className="flex items-center gap-[4px] rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[10px] py-[4px]">
+                  {/* [원본] Icon color brand · AppText color primary — 누를 수 있는 값은 판이 말한다, 빨강은 주 행동에만(SRS-069 · REV-131) */}
+                  <Icon name="calendar-outline" size={16} color="var(--color-ink2)" />
+                  <AppText variant="label" color="text" className="font-semibold">
                     <span className="sr-only">{t("schedule.title")} </span>
                     {t("schedule.editShort")}
                   </AppText>
@@ -1019,7 +1021,8 @@ function TodayCard({
       <Card accent={isFromCoach(routine) ? "var(--color-coaching)" : "var(--color-brand)"}>
         <div className="flex items-center" data-testid="today-card">
           <div className="mr-[var(--spacing-md)] min-w-0 flex-1">
-            <AppText variant="label" color="primary">
+            {/* [원본] <AppText variant="label" color="primary"> — 누를 수 없는 머리글은 빨강 대신 회색 굵은 글자(SRS-069 · SPEC-057 REV-131 H1 — 「다음 운동」 머리글과 같은 꼴) */}
+            <AppText variant="label" color="textMuted" className="font-semibold">
               {t("schedule.todayLabel")}
             </AppText>
             <span className="mt-[2px] flex items-center gap-[6px]">
@@ -1179,7 +1182,8 @@ function TodayChip() {
   return (
     <span
       data-testid="today-chip"
-      className="ml-[6px] shrink-0 rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[8px] py-[1px] text-[length:var(--text-xs)] font-semibold text-(--color-ink2)"
+      // [원본] className="ml-[6px] shrink-0 rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[8px] py-[1px] text-[length:var(--text-xs)] font-semibold text-(--color-ink2)" — 정보는 판 없이 글자만(SPEC-057 R2)
+      className="ml-[6px] shrink-0 text-[length:var(--text-xs)] font-semibold text-(--color-ink2)"
     >
       {t("routines.todayChip")}
     </span>
@@ -1219,7 +1223,8 @@ function RecoCard({
     <Card accent="var(--color-brand)">
       <div className="flex items-center" data-testid="reco-card">
         <div className="mr-[var(--spacing-md)] min-w-0 flex-1">
-          <AppText variant="label" color="primary">
+          {/* [원본] <AppText variant="label" color="primary"> — 누를 수 없는 머리글은 빨강 대신 회색 굵은 글자(SRS-069 · SPEC-057 REV-131 H1 — 「다음 운동」 머리글과 같은 꼴) */}
+          <AppText variant="label" color="textMuted" className="font-semibold">
             {t("routines.todayRecoLabel")}
           </AppText>
           <AppText variant="heading" className="mt-[2px] block truncate">

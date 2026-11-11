@@ -345,7 +345,8 @@ export function RoutinePreviewSheet({
           type="button"
           data-testid="routine-preview-tip"
           onClick={() => setTipOpen(tip)}
-          className="mb-[var(--spacing-md)] flex min-h-[44px] w-full min-w-0 items-center gap-[var(--spacing-sm)] rounded-[var(--radius-md)] bg-(--color-surface-alt) px-[var(--spacing-md)] text-left"
+          // [원본] className="mb-[var(--spacing-md)] flex min-h-[44px] w-full min-w-0 items-center gap-[var(--spacing-sm)] rounded-[var(--radius-md)] bg-(--color-surface-alt) px-[var(--spacing-md)] text-left" — 누르는 것 4px(R1)
+          className="mb-[var(--spacing-md)] flex min-h-[44px] w-full min-w-0 items-center gap-[var(--spacing-sm)] rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[var(--spacing-md)] text-left"
         >
           <span className="shrink-0 text-(--color-ink3) text-[length:var(--text-xs)]">
             {t("tips.preWorkout")}

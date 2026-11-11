@@ -6,7 +6,8 @@
 //     · 「선택 · 비워 두면 적지 않아요」 안내는 남는다 · 비워 두고 저장하면 인바디 없음(DB null)
 //   · 고치기(프로필 고치기 · 운동 카드 「고치기」) — 적어 둔 인바디 값이 칸에 채워져 있고 그대로 저장하면 유지
 //   · 체중 패널 하나(2026-11-10) — 세 곳이 같은 구역(바로 입력·목표 체중·지난 기록)·같은 testid · 목표 정하기/바꾸기 = 2번 · 지우기 = 1번
-//     · 통계 카드 머리 「기록 ›」는 다른 카드 머리처럼 회색 글자(빨강 채움·테두리 없음) · ⋯ 없음
+//     · [원본] 통계 카드 머리 「기록 ›」는 다른 카드 머리처럼 회색 글자(빨강 채움·테두리 없음) · ⋯ 없음
+//     · [개선 SPEC-057] 「기록」 — 시트를 여는 버튼이라 쐐기 없이 진한 굵은 글자(R5·R6) · 빨강 채움·테두리 없음 · ⋯ 없음
 //   · 운동 화면 — 「기록 ⌄」를 누르면 바닥 시트가 아니라 카드 안에 펼침(aria-expanded) · 저장하면 접히고 값·✓ · 다시 누르면 접힘
 //     · 360×560 · 휴식 막대가 떠 있어도 저장 버튼·입력칸이 가리지 않음 · 가로 넘침 없음 · 다크
 //     (가상 키보드는 흉내 내지 않는다 — 칸을 화면 가운데로 올린 자리에서 elementFromPoint 로 잰다 · 실기기 확인은 따로)
@@ -446,7 +447,8 @@ test("목표 체중 — 패널 안에서 정하기 2번 · 바꾸기 2번 · 지
   });
 });
 
-test("통계 체중 카드 머리 「기록 ›」 — 다른 카드 머리처럼 회색 글자 · 강조색 채움·테두리·글자·아이콘 없음 · ⋯ 없음 · 44px · 다크도", async ({
+// [원본] test("통계 체중 카드 머리 「기록 ›」 — 다른 카드 머리처럼 회색 글자 · 강조색 채움·테두리·글자·아이콘 없음 · ⋯ 없음 · 44px · 다크도"
+test("통계 체중 카드 머리 「기록」 — 쐐기 없이 진한 글자(SPEC-057 R5·R6) · 강조색 채움·테두리·글자 없음 · ⋯ 없음 · 44px · 다크도", async ({
   page,
 }) => {
   test.setTimeout(120_000);
@@ -458,6 +460,8 @@ test("통계 체중 카드 머리 「기록 ›」 — 다른 카드 머리처�
   await expect(page.getByTestId("bodyweight-more")).toHaveCount(0);
   await expect(btn).toHaveText("기록");
   await expect(btn).toHaveAccessibleName(/기록/);
+  await expect(btn.locator("svg"), "시트를 여는 버튼 — 쐐기 없음(SPEC-057 R5)").toHaveCount(0);
+  await expect(btn).toHaveAttribute("aria-haspopup", "dialog");
   for (const dark of [false, true]) {
     if (dark) {
       await page.emulateMedia({ colorScheme: "dark" });

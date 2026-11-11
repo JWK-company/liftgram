@@ -199,9 +199,10 @@ export default function ExploreClient() {
                       key={tag.tag}
                       href={routes.hashtag(tag.tag)}
                       data-testid="explore-tag"
-                      className="rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[var(--spacing-md)] py-[6px]"
+                      // [원본] className="rounded-[var(--radius-pill)] … py-[6px]" · AppText color="primary" — 누를 수 있는 값 판 4px · 빨강 글자 금지(SPEC-057 R1c · SRS-069)
+                      className="rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[var(--spacing-md)] py-[6px]"
                     >
-                      <AppText variant="caption" color="primary">{`#${tag.tag}`}</AppText>
+                      <AppText variant="caption" color="text">{`#${tag.tag}`}</AppText>
                     </a>
                   ))}
                 </div>
@@ -305,9 +306,10 @@ function SearchResults({
                 key={tag.tag}
                 href={routes.hashtag(tag.tag)}
                 data-testid="explore-tag"
-                className="rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[var(--spacing-md)] py-[6px]"
+                // [원본] className="rounded-[var(--radius-pill)] … py-[6px]" · AppText color="primary" — 누를 수 있는 값 판 4px · 빨강 글자 금지(SPEC-057 R1c · SRS-069)
+                className="rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[var(--spacing-md)] py-[6px]"
               >
-                <AppText variant="caption" color="primary">{`#${tag.tag}`}</AppText>
+                <AppText variant="caption" color="text">{`#${tag.tag}`}</AppText>
               </a>
             ))}
           </div>

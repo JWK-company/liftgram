@@ -1084,7 +1084,8 @@ export default function RoutineImport({
                     type="button"
                     data-testid="import-mentioned-add"
                     onClick={() => addMentioned(m)}
-                    className="min-h-[44px] rounded-[var(--radius-pill)] border border-(--color-line-strong) px-[var(--spacing-md)] text-(--color-ink) text-[length:var(--text-sm)]"
+                    // [원본] className="min-h-[44px] rounded-[var(--radius-pill)] border border-(--color-line-strong) px-[var(--spacing-md)] text-(--color-ink) text-[length:var(--text-sm)]" — 알약 → 4px(SPEC-057 R1a·R1b)
+                    className="min-h-[44px] rounded-[var(--radius-sm)] border border-(--color-line-strong) px-[var(--spacing-md)] text-(--color-ink) text-[length:var(--text-sm)]"
                   >
                     {t("routineImport.addMentioned", { name: nameOf(m.exerciseId) })}
                   </button>
@@ -1303,7 +1304,8 @@ function RowCard({
           {needs ? (
             <span
               data-testid="import-row-needs"
-              className="shrink-0 rounded-[var(--radius-pill)] bg-(--color-line) px-[var(--spacing-sm)] py-[2px] text-(--color-ink2) text-[length:var(--text-xs)]"
+              // [원본] className="shrink-0 rounded-[var(--radius-pill)] bg-(--color-line) px-[var(--spacing-sm)] py-[2px] text-(--color-ink2) text-[length:var(--text-xs)]" — 정보는 판 없이 글자만 · 확인 필요는 warn(SPEC-057 R2)
+              className="shrink-0 font-semibold text-(--color-warn) text-[length:var(--text-xs)]"
             >
               {t("routineImport.needsCheck")}
             </span>
@@ -1336,10 +1338,13 @@ function RowCard({
               aria-pressed={c === row.exerciseId}
               onClick={() => onCandidate(c)}
               style={{
-                backgroundColor: c === row.exerciseId ? "var(--color-surface-alt)" : "var(--color-card)",
-                borderColor: c === row.exerciseId ? "var(--color-ink)" : "var(--color-line-strong)",
+                // [원본] backgroundColor: c === row.exerciseId ? "var(--color-surface-alt)" : "var(--color-card)", borderColor: c === row.exerciseId ? "var(--color-ink)" : "var(--color-line-strong)", — 고르면 ink 테두리·흰 판이 동작 버튼(R1a)과 같아 보였다(REV-131)
+                // [개선] R1b — 늘 옅은 판, 고르면 brand 테두리 + 진한 굵은 글자(✓ 는 숫자 칩 묶음에서 알아보기 쉽게 남긴다)
+                backgroundColor: "var(--color-surface-alt)",
+                borderColor: c === row.exerciseId ? "var(--color-brand)" : "transparent",
               }}
-              className={`min-h-[44px] rounded-[var(--radius-pill)] border px-[var(--spacing-md)] text-(--color-ink) text-[length:var(--text-sm)] ${c === row.exerciseId ? "font-semibold" : ""}`}
+              // [원본] className={`min-h-[44px] rounded-[var(--radius-pill)] border px-[var(--spacing-md)] text-[length:var(--text-sm)] ${c === row.exerciseId ? "font-semibold text-(--color-ink)" : "text-(--color-ink2)"}`} — 알약 → 4px(SPEC-057 R1a·R1b)
+              className={`min-h-[44px] rounded-[var(--radius-sm)] border px-[var(--spacing-md)] text-[length:var(--text-sm)] ${c === row.exerciseId ? "font-semibold text-(--color-ink)" : "text-(--color-ink2)"}`}
             >
               {c === row.exerciseId ? <span aria-hidden>✓ </span> : null}
               {names.get(c) ?? "…"}
@@ -1362,7 +1367,8 @@ function RowCard({
           onClick={onPrescription}
           data-testid="import-row-presc"
           aria-label={`${unresolved ? t("routineImport.pickExercise") : name} ${presc}${row.restSec ? ` ${t("routineImport.rest")} ${t("routineImport.restSec", { sec: row.restSec })}` : ""}${defaulted ? ` ${t("routineImport.notStated")}` : ""}`}
-          className="min-h-[44px] rounded-[var(--radius-pill)] border border-(--color-line-strong) px-[var(--spacing-md)] text-(--color-ink) text-[length:var(--text-sm)]"
+          // [원본] className="min-h-[44px] rounded-[var(--radius-pill)] border border-(--color-line-strong) px-[var(--spacing-md)] text-(--color-ink) text-[length:var(--text-sm)]" — 알약 → 4px(SPEC-057 R1a·R1b)
+          className="min-h-[44px] rounded-[var(--radius-sm)] border border-(--color-line-strong) px-[var(--spacing-md)] text-(--color-ink) text-[length:var(--text-sm)]"
         >
           {presc}
           {row.restSec ? ` · ${t("routineImport.restSec", { sec: row.restSec })}` : ""}

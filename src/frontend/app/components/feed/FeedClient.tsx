@@ -447,6 +447,7 @@ export default function FeedClient() {
                 unread > 0 ? (
                   <span
                     data-testid="feed-unread-badge"
+                    data-shape="badge" // 숫자 배지(SPEC-057 R3)
                     // [원본] h-4 min-w-4 · 9px 글자 · 9+ — 너무 작아 숫자가 잘 안 보였다(S-25)
                     className="absolute top-0.5 right-0 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-(--color-brand) px-[4px] font-bold text-(--color-on-brand) text-[11px] leading-none ring-2 ring-(--color-surface)"
                   >

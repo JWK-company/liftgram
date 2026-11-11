@@ -314,10 +314,14 @@ export default function ExercisePickerScreen({
                 type="button"
                 data-testid="picker-wizard"
                 onClick={() => setWizardOpen(true)}
-                className="flex min-h-[32px] items-center gap-[4px] rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[var(--spacing-xs)]"
+                // [원본] className="flex min-h-[32px] items-center gap-[4px] rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[var(--spacing-xs)]" — 알약 → 4px(R1a)
+                // [원본] className="flex min-h-[32px] items-center gap-[4px] rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[var(--spacing-xs)]" — 고르는 칩처럼 보였다(REV-132)
+                // [개선] 창을 여는 보조 버튼(SPEC-057 R1a) — line-strong 테두리 · 진한 글자 · 시트 표시
+                aria-haspopup="dialog"
+                className="flex min-h-[36px] items-center gap-[4px] rounded-[var(--radius-sm)] border border-(--color-line-strong) px-[var(--spacing-sm)] py-[var(--spacing-xs)]"
               >
                 <Icon name="compass-outline" size={16} color="var(--color-ink2)" />
-                <AppText variant="caption" color="textMuted" className="font-semibold">
+                <AppText variant="caption" color="text" className="font-semibold">
                   {t("wizard.open")}
                 </AppText>
               </button>
@@ -338,8 +342,9 @@ export default function ExercisePickerScreen({
 
             {finderLabel ? (
               <div className="flex items-center gap-[4px]">
-                <Icon name={kind === "cardio" ? "heart" : "funnel"} size={13} color="var(--color-brand)" />
-                <AppText variant="caption" color="primary" className="truncate">
+                {/* [원본] 깔때기 아이콘 brand · 경로 글자 primary — 스무고개 경로는 정보(SPEC-057 R2 · REV-131 H1) */}
+                <Icon name={kind === "cardio" ? "heart" : "funnel"} size={13} color="var(--color-ink2)" />
+                <AppText variant="caption" color="textMuted" className="truncate font-semibold">
                   {t("wizard.finderActive", { path: finderLabel })}
                 </AppText>
               </div>
@@ -546,6 +551,7 @@ const PickRow = memo(function PickRow({
       {mode === "multi" ? (
         <span
           data-testid={selected ? "pick-order" : undefined}
+          data-shape="round" // 고른 순서 번호 원 — 원으로 둔다(SPEC-057 R3)
           // [원본] rounded-full · [개선] 둥근 정도는 토큰(SPEC-056 F2)
           className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--radius-pill)] border-2 font-bold text-[length:var(--text-sm)] ${
             selected

@@ -481,7 +481,8 @@ export function PrescriptionRows({
             data-scheme={schemeOf(rows) ?? ""}
             onClick={() => setSchemeOpen(true)}
             // [원본] className="… rounded-full border border-(--color-line) bg-(--color-surface-alt) px-[14px]" — 누르는 값 칩(판 유지) · [개선] 둥근 정도는 토큰(SPEC-056 F2)
-            className="flex min-h-[44px] items-center self-start rounded-[var(--radius-pill)] border border-(--color-line) bg-(--color-surface-alt) px-[14px]"
+            // [원본] className="flex min-h-[44px] items-center self-start rounded-[var(--radius-pill)] border border-(--color-line) bg-(--color-surface-alt) px-[14px]" — 알약 → 4px 옅은 판(SPEC-057 R1b)
+            className="flex min-h-[44px] items-center self-start rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[14px]"
           >
             <AppText variant="label" color="text">
               {t("scheme.chip", { name: schemeChipName(rows, allowLoad) })} ▾

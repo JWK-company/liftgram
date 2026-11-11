@@ -7,7 +7,9 @@
 //   · 블록 머리에 브랜드 빨강 0(글자·테두리·배경·SVG 채움/선) · 세트 표 안 빨강은 「눌린 세트 체크」·「세트 추가」만
 //   · 그림과 이름 사이가 붙지 않는다(F3 — 겹침이 아니라 간격을 잰다) · 머리에 순서 화살표가 없다(⋯ 메뉴로)
 //   · kg│lb 는 누르는 자리 높이 44px, 두 자리 사이에 틈, 아래 무게 칸을 침범하지 않는다(H-1)
-//   · 부가 행동은 「더 보기」 안 · 펼침은 이번 운동 동안만 기억(M-1) · 첫 그림부터 펼친 채(M-2)
+//   · [원본] 부가 행동은 「더 보기」 안 · 펼침은 이번 운동 동안만 기억(M-1) · 첫 그림부터 펼친 채(M-2)
+//   · [개선 SPEC-057] 「더 보기」 없음 — 운동 방법 ▾ · 다른 조합(n) · 이전기록 숨기기가 늘 보인다.
+//     그래서 상한을 줄 하나만큼 올렸다: 첫 세트 체크 top ≤ 370 · 머리 높이는 블록마다(실측 + 여유 7px)
 import { expect, test } from "@playwright/test";
 import {
   블록,
@@ -18,7 +20,7 @@ import {
   카탈로그_준비,
   종목_추가,
 } from "./fixtures/declutter-seed";
-import { 블록_더보기 } from "./helpers/block";
+import { 블록_행동_보임 } from "./helpers/block";
 
 type Page = import("@playwright/test").Page;
 
@@ -171,18 +173,28 @@ test("운동 블록 — 첫 세트까지 짧고, 머리에 빨강이 없고, 그
     JSON.stringify({ closed: { top360, top390, heads360, red, gap, headArrows, oldArrows, unit } }),
   );
 
-  // 펼친 상태(더 보기)도 잰다 — 펼친 사람에게도 너무 멀지 않게(M-1·M-7)
-  await 블록_더보기(블록(page, 0));
-  await page.evaluate(() => window.scrollTo(0, 0));
-  const top360Open = await 첫세트_체크_top(page);
+  // [원본] 펼친 상태(더 보기)도 잰다 — 블록_더보기 뒤 top360Open(≤ 480)
+  // [개선 SPEC-057] 「더 보기」가 없어 지금 상태가 곧 펼친 상태 — 버튼 줄이 다 그려진 뒤에 잰 값인지 확인한다(늦게 끼어든 줄을 놓치지 않게)
+  await 블록_행동_보임(블록(page, 0));
+  await expect(블록(page, 0).getByTestId("btn-other-slots")).toBeVisible();
+  await expect(블록(page, 0).getByTestId("prev-clear")).toBeVisible();
+  expect(await 첫세트_체크_top(page), "버튼 줄이 다 그려진 뒤에도 같은 top").toBe(top360);
 
-  console.log(
-    JSON.stringify({ top360, top390, top360Open, heads360, red, gap, headArrows, oldArrows, unit }),
-  );
-  expect(top360, "360×640 첫 세트 체크 top").toBeLessThanOrEqual(320);
-  expect(top390, "390×844 첫 세트 체크 top").toBeLessThanOrEqual(320);
-  expect(top360Open, "360×640 「더 보기」를 편 뒤 첫 세트 체크 top").toBeLessThanOrEqual(480);
-  for (const [i, h] of heads360.entries()) expect(h, `블록 ${i} 머리 높이(360)`).toBeLessThanOrEqual(170);
+  console.log(JSON.stringify({ top360, top390, heads360, red, gap, headArrows, oldArrows, unit }));
+  // [원본] top360·top390 ≤ 320(접힌 상태) · top360Open ≤ 480(「더 보기」를 편 상태) · 머리 높이 ≤ 170
+  // [개선 SPEC-057] 「더 보기」를 걷어 부가 행동 줄(운동 방법 ▾ · 다른 조합 · 이전기록 숨기기 — 32px 줄)이 늘 보인다.
+  //   실측 2026-11-11: top 364(= 옛 접힘 320 + 줄 하나 44) · 머리 203/179/191 — 옛 「편 상태」 상한 480 보다 116px 짧다.
+  //   상한은 줄 하나만큼 올리고(여유 6px), 줄이 두 줄로 꺾이면(360px 에서 오른쪽 묶음이 내려가면) 걸리게 둔다.
+  expect(top360, "360×640 첫 세트 체크 top").toBeLessThanOrEqual(370);
+  expect(top390, "390×844 첫 세트 체크 top").toBeLessThanOrEqual(370);
+  // [원본] expect(top360Open, …).toBeLessThanOrEqual(370); for (…) expect(h, …).toBeLessThanOrEqual(210);
+  // [개선 REV-130] 블록마다 상한(실측 203/179/191 + 7) — 한 상한이면 덜 붐비는 블록이 두 줄로 꺾여도 통과했다
+  const headMax = [210, 186, 198];
+  expect(heads360.length, "블록 수").toBe(headMax.length);
+  for (const [i, h] of heads360.entries()) {
+    expect(h, `블록 ${i} 머리 높이(360) — 세트 체크가 없으면 -1`).toBeGreaterThan(0);
+    expect(h, `블록 ${i} 머리 높이(360)`).toBeLessThanOrEqual(headMax[i] ?? 210);
+  }
   for (const [i, r] of red.entries()) {
     expect(r.head, `블록 ${i} 머리 빨강`).toEqual([]);
     expect(r.table, `블록 ${i} 세트 표 빨강(허용: 눌린 체크·세트 추가)`).toEqual([]);
@@ -196,6 +208,109 @@ test("운동 블록 — 첫 세트까지 짧고, 머리에 빨강이 없고, 그
   expect(unit.intoInput, "무게 칸 위 끝을 토글이 가로채지 않는다").toBe(false);
 });
 
+/* [원본] test("운동 블록 — 부가 행동은 「더 보기」 안, 모든 블록이 함께 펴지고, 이번 운동 동안만 기억한다") —
+   접기·같이 펴짐·이번 운동 동안 기억·새로고침 첫 그림을 쟀다. SPEC-057 에서 「더 보기」를 걷어(사용자 지적 1821) 잴 것이 없어졌다.
+   원복 시 커밋 a35b535 의 이 파일에서 되살린다. */
+test("운동 블록 — 부가 행동은 처음부터 보이고(「더 보기」 없음), 꺾쇠 없이 글자만, 버튼 없는 블록은 빈 줄이 없다(SPEC-057)", async ({
+  page,
+}) => {
+  test.setTimeout(300_000);
+  await 카탈로그_준비(page);
+  await 지난_기록_채우기(page);
+  await 붐비는_운동_화면(page);
+
+  const card = 블록(page, 0);
+  await expect(card.getByTestId("block-more")).toHaveCount(0);
+  await expect(card.getByTestId("tip-toggle")).toBeVisible({ timeout: 15_000 });
+  await expect(card.getByTestId("tip-toggle")).toHaveAttribute("aria-expanded", "false");
+  const other = card.getByTestId("btn-other-slots");
+  const prev = card.getByTestId("prev-clear");
+  await expect(other).toBeVisible();
+  await expect(prev).toBeVisible();
+  // 다른 화면으로 가지 않는 버튼 — 꺾쇠 없음(R5) · 시트를 연다(aria-haspopup) · 누르는 자리 44px
+  await expect(other.locator("svg")).toHaveCount(0);
+  await expect(prev.locator("svg")).toHaveCount(0);
+  await expect(other).toHaveAttribute("aria-haspopup", "dialog");
+  await expect(other).toContainText(/다른 조합\(\d+\)/);
+  const tip = card.getByTestId("tip-toggle");
+  for (const b of [other, prev, tip]) expect((await b.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(44);
+  // 같은 줄의 누르는 글자는 한 모양(REV-130) — 크기·굵기·색이 같다
+  const looks = await Promise.all(
+    [tip, other, prev].map((b) =>
+      b.evaluate((el) => {
+        const cs = getComputedStyle(el);
+        return `${cs.fontSize} ${cs.fontWeight} ${cs.color}`;
+      }),
+    ),
+  );
+  expect(new Set(looks).size, `운동 방법 · 다른 조합 · 이전기록 숨기기 모양 ${looks.join(" | ")}`).toBe(1);
+  // 넓힌 누르는 자리가 아래 kg│lb 와 겹치지 않는다(REV-130 — 겹친 곳은 무엇이 눌릴지 모른다)
+  const unitBox = await card.getByTestId("unit-toggle").first().boundingBox();
+  for (const b of [other, prev, tip]) {
+    const bb = await b.boundingBox();
+    if (bb && unitBox)
+      expect(bb.y + bb.height, "버튼 아래 끝 ≤ kg│lb 위 끝").toBeLessThanOrEqual(unitBox.y + 0.5);
+  }
+  // 숨기기 ↔ 보이기 — 이전 칸이 비고 PR 이 숨고, 상태를 읽어 준다
+  const live = card.locator('[aria-live="polite"]');
+  const firstPrev = card.getByTestId("set-prev").first();
+  await expect(live).toHaveText("");
+  await expect(prev).toHaveText("이전기록 숨기기");
+  await expect(firstPrev).not.toHaveAttribute("aria-label", "이전 기록 없음");
+  await expect(card.getByTestId("pr-chip-weight")).toBeVisible();
+  await prev.click();
+  await expect(prev).toHaveText("이전기록 보이기");
+  await expect(live).toHaveText("이전 기록을 숨겼어요");
+  // 빈 이전 칸은 「–」 + 「이전 기록 없음」
+  await expect(firstPrev).toHaveAttribute("aria-label", "이전 기록 없음");
+  await expect(card.getByTestId("pr-chip-weight")).toHaveCount(0);
+  await prev.click();
+  await expect(prev).toHaveText("이전기록 숨기기");
+  await expect(live).toHaveText("이전 기록을 다시 표시했어요");
+  await expect(firstPrev).not.toHaveAttribute("aria-label", "이전 기록 없음");
+  await expect(card.getByTestId("pr-chip-weight")).toBeVisible();
+  // 운동 방법은 그 자리에서 펼친다(aria-expanded)
+  await tip.click();
+  await expect(tip).toHaveAttribute("aria-expanded", "true");
+  // aria-controls 는 블록마다 다른 id 를 가리킨다(같은 종목 블록이 둘이어도 겹치지 않게 · REV-130)
+  const ctl = await tip.getAttribute("aria-controls");
+  expect(ctl).toMatch(/^tip-body-/);
+  await expect(card.locator(`[id="${ctl}"]`)).toBeVisible();
+  await expect(page.locator(`[id="${ctl}"]`)).toHaveCount(1);
+
+  // 처음 하는 종목(지난 기록·다른 조합 없음)에는 버튼 줄이 없다 — 빈 줄 금지
+  await 종목_추가(page, "덤벨 컬");
+  const freshBlock = 블록(page, (await page.getByTestId("workout-exercises").locator("> div").count()) - 1);
+  await expect(freshBlock.getByTestId("we-name")).toHaveText("덤벨 컬");
+  await expect(freshBlock.getByTestId("tip-toggle")).toBeVisible();
+  await expect(freshBlock.getByTestId("block-actions")).toHaveCount(0);
+
+  // 유산소 종목에는 운동 방법·버튼 줄·읽어 주는 칸이 없다 — 첫 그림에 잠깐 생겼다 빠지지도 않는다(REV-130)
+  await page.evaluate(() => {
+    const w = window as unknown as { __cardioRow?: boolean };
+    w.__cardioRow = false;
+    const list = document.querySelector('[data-testid="workout-exercises"]');
+    if (!list) return;
+    new MutationObserver(() => {
+      const last = list.lastElementChild;
+      if (
+        last?.textContent?.includes("러닝머신") &&
+        last.querySelector('[data-testid="tip-toggle"],[data-testid="block-actions"]')
+      )
+        w.__cardioRow = true;
+    }).observe(list, { childList: true, subtree: true });
+  });
+  await 종목_추가(page, "러닝머신");
+  const cardio = 블록(page, (await page.getByTestId("workout-exercises").locator("> div").count()) - 1);
+  await expect(cardio.getByTestId("we-name")).toHaveText("러닝머신");
+  await expect(cardio.getByTestId("tip-toggle")).toHaveCount(0);
+  await expect(cardio.getByTestId("block-actions")).toHaveCount(0);
+  await expect(cardio.locator('[aria-live="polite"]')).toHaveCount(0);
+  expect(await page.evaluate(() => (window as unknown as { __cardioRow?: boolean }).__cardioRow)).toBe(false);
+});
+
+// [원본] SPEC-057 전 「더 보기」 테스트 — 「더 보기」를 걷어 위 테스트로 바꿨다(되살릴 때 helpers/block.ts 의 블록_더보기 도)
+/*
 test("운동 블록 — 부가 행동은 「더 보기」 안, 모든 블록이 함께 펴지고, 이번 운동 동안만 기억한다", async ({
   page,
 }) => {
@@ -251,6 +366,7 @@ test("운동 블록 — 부가 행동은 「더 보기」 안, 모든 블록이 
     timeout: 15_000,
   });
 });
+*/
 
 test("운동 블록 — PR 은 금색 글자, 누르면 안 한 첫 세트에 채우고(값이 실제로 바뀐다) ⓘ 는 기록으로", async ({
   page,

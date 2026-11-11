@@ -422,7 +422,8 @@ export default function ActiveWorkout() {
             fullWidth={false}
             loading={busy || adding}
             testId="btn-complete"
-            className="rounded-[var(--radius-pill)]! px-[var(--spacing-md)]!"
+            // [원본] className="rounded-[var(--radius-pill)]! px-[var(--spacing-md)]!" — 알약 덮어쓰기 걷음 — Button 기본 4px(SPEC-057 R1a)
+            className="px-[var(--spacing-md)]!"
             onPress={() =>
               void (async () => {
                 const undone = await repo.getWorkoutUndoneSetCount(workout.id).catch(() => 0);
@@ -465,7 +466,8 @@ export default function ActiveWorkout() {
             // [원본] className="ml-[6px] h-[44px] shrink-0 rounded-[var(--radius-pill)] border border-(--color-line) px-[12px] font-semibold text-(--color-ink2) text-[length:var(--text-sm)] active:bg-(--color-surface-alt)"
             // [개선] 보이는 크기는 「완료」(sm · 36px · 같은 좌우 여백)와 같게 — 44px 가 혼자 커서 줄이 안 맞았다(2026-11-10 사용자 지적).
             //   누르는 자리는 ::before 로 위아래 5px(테두리 1px 안쪽 기준) 늘려 44px 그대로.
-            className="relative ml-[6px] h-[36px] shrink-0 rounded-[var(--radius-pill)] border border-(--color-line) px-[var(--spacing-md)] font-semibold text-(--color-ink2) text-[length:var(--text-sm)] before:absolute before:inset-x-0 before:-inset-y-[5px] before:content-[''] focus-visible:outline-2 focus-visible:outline-(--color-brand) focus-visible:outline-offset-2 active:bg-(--color-surface-alt)"
+            // [원본] className="relative ml-[6px] h-[36px] shrink-0 rounded-[var(--radius-pill)] border border-(--color-line) px-[var(--spacing-md)] font-semibold text-(--color-ink2) text-[length:var(--text-sm)] before:absolute before:inset-x-0 before:-inset-y-[5px] before:content-[''] focus-visible:outline-2 focus-visible:outline-(--color-brand) focus-visible:outline-offset-2 active:bg-(--color-surface-alt)" — 알약·옅은 테두리 → 4px line-strong(R1a)
+            className="relative ml-[6px] h-[36px] shrink-0 rounded-[var(--radius-sm)] border border-(--color-line-strong) px-[var(--spacing-md)] font-semibold text-(--color-ink) text-[length:var(--text-sm)] before:absolute before:inset-x-0 before:-inset-y-[5px] before:content-[''] focus-visible:outline-2 focus-visible:outline-(--color-brand) focus-visible:outline-offset-2 active:bg-(--color-surface-alt)"
           >
             {t("session.discardHeaderButton")}
           </button>
@@ -648,8 +650,10 @@ export default function ActiveWorkout() {
                     >
                       <ExerciseName exerciseId={x.exerciseId} variant="body" base />
                       {x.supersetGroup ? (
-                        <span className="rounded-[var(--radius-pill)] bg-(--color-brand-muted) px-[var(--spacing-sm)] py-[2px]">
-                          <AppText variant="label" color="primary">
+                        // [원본] <span className="rounded-[var(--radius-pill)] bg-(--color-brand-muted) px-[var(--spacing-sm)] py-[2px]"> — 정보 배지 → 글자만(SPEC-057 R2)
+                        <span>
+                          {/* [원본] color="primary" — 빨강 글자 금지(SRS-069) · 굵기는 AppText 에 직접(바깥 span 은 label 의 semibold 에 진다 · REV-131) */}
+                          <AppText variant="label" color="textMuted" className="font-bold!">
                             {t("session.superset")}
                           </AppText>
                         </span>

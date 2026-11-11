@@ -32,7 +32,7 @@ import {
 } from "@app/core";
 // 보이던 숫자를 그대로 두고 떠나면 저장 kg 를 바꾸지 않는다(/qa code M-1) @plm SRS-067
 import { enteredWeightToKg } from "@app/core/domain/blockUnit";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useSetDrafts } from "./setDrafts";
 // [원본] import { RirChip } from "./RirChip"; // 세트 힘든 정도 칩(켰을 때만) @plm SRS-073
 // [원본] import { useEffortLogging } from "@/lib/effortPref";
@@ -561,7 +561,8 @@ export function SetRowEdit({
             disabled={isDone} // 완료한 세트는 잠근다 — 접힌 줄에 늘 보여 손이 스치기 쉽다(REV-045 L-4)
             onClick={() => setVarOpen(true)}
             style={{ backgroundColor: "var(--color-ink)", color: "var(--color-surface)" }}
-            className="inline-flex h-[26px] max-w-full items-center truncate rounded-full px-[12px] font-bold text-[length:var(--text-sm)]"
+            // [원본] className="inline-flex h-[26px] max-w-full items-center truncate rounded-full px-[12px] font-bold text-[length:var(--text-sm)]" — 누르는 배지는 4px(SPEC-057 R1a)
+            className="inline-flex h-[26px] max-w-full items-center truncate rounded-[var(--radius-sm)] px-[12px] font-bold text-[length:var(--text-sm)]"
           >
             {variantChipLabel}
           </button>
@@ -579,7 +580,8 @@ export function SetRowEdit({
             onClick={onCheck}
             className="-my-[9px] inline-flex min-h-[44px] items-center"
           >
-            <span className="inline-flex h-[26px] items-center gap-[4px] rounded-full bg-(--color-surface-alt) px-[10px] text-[length:var(--text-xs)] font-semibold text-(--color-ink)">
+            {/* [원본] <span className="inline-flex h-[26px] items-center gap-[4px] rounded-full bg-(--color-surface-alt) px-[10px] text-[length:var(--text-xs)] font-semibold text-(--color-ink)"> — 누를 수 있는 값 판은 4px(SPEC-057 R1c) */}
+            <span className="inline-flex h-[26px] items-center gap-[4px] rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[10px] text-[length:var(--text-xs)] font-semibold text-(--color-ink)">
               <span aria-hidden="true">?</span>
               {t("check.chip")}
             </span>
@@ -617,7 +619,8 @@ export function SetRowEdit({
           ) : null}
           {/* [원본] {set.targetRir != null ? ( — 켜면 처방 RIR 글자는 칩 하나로 합친다(「목표 2」·「2 · 목표 2」 · U-10) */}
           {!chipOn && set.targetRir != null ? (
-            <AppText variant="label" color="primary" className="font-bold">
+            // [원본] color="primary" — 누를 수 없는 처방 글자에 빨강(SRS-069 · SPEC-057 R2 · REV-131)
+            <AppText variant="label" color="textMuted" className="font-bold!">
               {t("session.rxRir", { rir: set.targetRir })}
             </AppText>
           ) : null}
@@ -656,9 +659,12 @@ export function SetRowEdit({
             type="button"
             data-testid="set-apply-suggestion"
             onClick={onApplySuggestion}
-            className="rounded-[var(--radius-pill)] bg-(--color-brand-muted) px-[var(--spacing-sm)] py-[2px]"
+            // [원본] className="rounded-[var(--radius-pill)] bg-(--color-brand-muted) px-[var(--spacing-sm)] py-[2px]" — 동작 버튼은 4px 테두리(SPEC-057 R1a · 빨강 판 걷음)
+            // [개선 REV-131] 보이는 높이 26px(제안 줄이 세트 표를 덜 민다) · 누르는 자리는 위아래 9px 늘려 44px
+            className="relative flex h-[26px] items-center rounded-[var(--radius-sm)] border border-(--color-line-strong) px-[var(--spacing-sm)] before:absolute before:inset-x-0 before:-inset-y-[9px] before:content-['']"
           >
-            <AppText variant="label" color="primary" className="font-bold">
+            {/* [원본] <AppText variant="label" color="primary" className="font-bold"> — 빨강 글자 → 진한 글자(SRS-069) */}
+            <AppText variant="label" color="text" className="font-bold">
               {t("session.rxApply")}
             </AppText>
           </button>
@@ -961,30 +967,47 @@ function SetVariantSheet({
 
 /** 라벨 한 줄 + 칩 묶음. app의 varRowLabel/varOptRow와 같은 배치다. */
 function SheetRow({ label, children }: { label: string; children: React.ReactNode }) {
+  const labelId = useId();
   return (
     <>
       <div className="mt-[var(--spacing-md)] mb-[var(--spacing-xs)]">
-        <AppText variant="label" color="textMuted">
+        <AppText variant="label" color="textMuted" id={labelId}>
           {label}
         </AppText>
       </div>
-      <div className="flex flex-wrap gap-[var(--spacing-xs)]">{children}</div>
+      {/* [원본] <div className="flex flex-wrap gap-[var(--spacing-xs)]">{children}</div>
+          [개선 REV-131] 한 줄에서 하나만 고른다 — radiogroup 이 줄 이름을 읽어 준다(그립·부착물의 「기본」이 갈린다) */}
+      <div role="radiogroup" aria-labelledby={labelId} className="flex flex-wrap gap-[var(--spacing-xs)]">
+        {children}
+      </div>
     </>
   );
 }
 
 function VarOpt({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
   return (
+    // biome-ignore lint/a11y/useSemanticElements: 칩 모양 버튼에 radio 역할 — 누르면 바로 값이 되는 칩(ImportRowSheet 와 같다 · REV-131)
     <button
       type="button"
       onClick={onPress}
       style={{
-        backgroundColor: active ? "var(--color-brand-muted)" : "var(--color-surface-alt)",
-        borderColor: active ? "var(--color-brand)" : "var(--color-line)",
+        // [원본] backgroundColor: active ? "var(--color-brand-muted)" : "var(--color-surface-alt)", — 고른 칩에 brand-muted 바탕 금지(SPEC-057 R1b)
+        backgroundColor: "var(--color-surface-alt)",
+        // [원본] borderColor: active ? "var(--color-brand)" : "var(--color-line)", — 테두리는 고른 칩만(R1b)
+        borderColor: active ? "var(--color-brand)" : "transparent",
       }}
-      className="rounded-[var(--radius-pill)] border px-[var(--spacing-md)] py-[var(--spacing-xs)]"
+      // [원본] aria-pressed={active} — 하나만 고르는 줄이라 radio(REV-131)
+      role="radio"
+      aria-checked={active}
+      // [원본] className="rounded-[var(--radius-pill)] border px-[var(--spacing-md)] py-[var(--spacing-xs)]" — 알약 → 4px(R1b)
+      className="min-h-[32px] rounded-[var(--radius-sm)] border px-[var(--spacing-md)] py-[var(--spacing-xs)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-brand)"
     >
-      <AppText variant="caption" color={active ? "primary" : "text"} className={active ? "font-bold" : ""}>
+      {/* [원본] <AppText variant="caption" color={active ? "primary" : "text"} className={active ? "font-bold" : ""}> — 고른 칩 글자 빨강 → 진한 굵은 글자(R1b) */}
+      <AppText
+        variant="caption"
+        color={active ? "text" : "textMuted"}
+        className={active ? "font-semibold" : ""}
+      >
         {label}
       </AppText>
     </button>

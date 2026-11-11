@@ -183,14 +183,18 @@ export function ScheduleEditor({
               onClick={() => setBlockWeeks(w)}
               aria-pressed={on}
               data-testid={`schedule-block-${w ?? "none"}`}
-              className={`rounded-[var(--radius-pill)] border px-[var(--spacing-md)] py-[var(--spacing-xs)] ${
-                on
-                  ? "border-(--color-brand) bg-(--color-brand-muted)"
-                  : // [원본] "border-(--color-line) bg-(--color-surface-alt)" · [개선] 회색 판 대신 경계선만(SPEC-056 F7 · ui/Chip 과 같다)
-                    "border-(--color-line-strong) bg-(--color-card)"
+              // [원본] rounded-[var(--radius-pill)] · 고르면 border-brand bg-brand-muted · 아니면 border-line-strong bg-card(SPEC-056 F7)
+              // [개선] 알약·brand-muted → 4px 옅은 판, 고르면 brand 테두리 + 진한 굵은 글자(SPEC-057 R1b) — 아래 취소·저장(4px)과 같은 모서리(사용자 지적 1821 사진 2)
+              className={`min-h-[36px] rounded-[var(--radius-sm)] border bg-(--color-surface-alt) px-[var(--spacing-md)] py-[var(--spacing-xs)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-brand) ${
+                on ? "border-(--color-brand)" : "border-transparent"
               }`}
             >
-              <AppText variant="caption" color={on ? "primary" : "text"} className={on ? "font-bold!" : ""}>
+              {/* [원본] <AppText variant="caption" color={on ? "primary" : "text"} className={on ? "font-bold!" : ""}> */}
+              <AppText
+                variant="caption"
+                color={on ? "text" : "textMuted"}
+                className={on ? "font-semibold!" : ""}
+              >
                 {w == null ? t("schedule.blockNone") : t("schedule.blockOption", { weeks: w })}
               </AppText>
             </button>

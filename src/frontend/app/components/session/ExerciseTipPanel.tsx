@@ -20,7 +20,8 @@ import { lang, t } from "@/lib/i18n";
 // [원본] import { Pictogram } from "../Pictogram";
 import { ExerciseMotion } from "../ExerciseMotion";
 import { MotionNotice } from "../MotionNotice";
-import { Icon } from "../ui/Icon";
+// [원본] import { Icon } from "../ui/Icon"; — 필름·꺾쇠 아이콘은 MetaAction 이 그린다(REV-130)
+import { MetaAction } from "../ui/quiet";
 import { ValueChip } from "../ui/ValueChip";
 import { AppText } from "../ui/primitives";
 
@@ -30,9 +31,12 @@ const expandedByExercise = new Map<string, boolean>();
 // P2(ADR-033): 이름이 아니라 종목 id 로 찾는다 — 대표 이름·별칭이 바뀌어도 팁이 끊기지 않는다.
 export function ExerciseTipPanel({
   exerciseId,
+  blockId,
   trailing,
 }: {
   exerciseId: string | null;
+  /** 펼친 내용의 id 를 블록마다 다르게 — 같은 종목 블록이 둘이어도 aria-controls 가 겹치지 않는다(REV-130) */
+  blockId?: string;
   trailing?: ReactNode;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -56,7 +60,10 @@ export function ExerciseTipPanel({
     setMode("media");
   }, [exerciseId]);
 
-  if (!exerciseId) return null;
+  // [원본] if (!exerciseId) return null; — 그림이 없어도 옆 버튼(trailing)은 남긴다(REV-130 방어)
+  const trailingOnly = trailing ? <div className="mt-[var(--spacing-xs)] flex">{trailing}</div> : null;
+  if (!exerciseId) return trailingOnly;
+  const bodyId = `tip-body-${blockId ?? exerciseId}`;
   // [원본] const media = getExerciseMedia(exerciseId);
   // [P5] 같은 동작·같은 기구 사진만(빌린 사진은 비운다) + 시드 종목은 픽토그램 움직임(ADR-036) @plm SRS-055
   // 사진·설명 표(672KB)는 처음 펼칠 때 불러온다 — 운동 화면 첫 로드에 싣지 않는다.
@@ -68,7 +75,8 @@ export function ExerciseTipPanel({
       ? media.instructionsKo
       : media.instructionsEn
     : [];
-  if (!picto && !media && steps.length === 0) return null;
+  // [원본] if (!picto && !media && steps.length === 0) return null;
+  if (!picto && !media && steps.length === 0) return trailingOnly;
 
   // [원본] const hasImages = hasMediaImages(media);
   const hasImages = picto || !!(media && (media.gif || media.start));
@@ -83,10 +91,16 @@ export function ExerciseTipPanel({
   return (
     <div className="mt-[var(--spacing-xs)]">
       {/* [원본] flex items-center justify-between — 좁은 폭에서 「운동 방법 보기」가 두 줄로 꺾였다(화면 정리 P1) */}
-      <div className="flex flex-wrap items-center justify-between gap-x-[var(--spacing-sm)]">
+      {/* [개선 SPEC-057] trailing(다른 조합 · 이전기록 숨기기)은 넘기는 쪽(ExerciseBlock)이 ml-auto 를 단다 — 좁은 폭에서 다음 줄로 꺾여도 오른쪽에 붙는다 */}
+      {/* [원본] <div className="flex flex-wrap items-center justify-between gap-x-[var(--spacing-sm)]"> */}
+      {/* [개선] 글자 크기를 옆 버튼 줄(MetaLine)과 같은 sm 으로 · 꺾여도 세로 틈 8px */}
+      <div className="flex flex-wrap items-center justify-between gap-x-[var(--spacing-sm)] gap-y-[8px] text-[length:var(--text-sm)]">
+        {/* [원본] 12px ink2 버튼 + 필름 아이콘 — 옆 「다른 조합」·「이전기록 숨기기」(14px ink semibold)와 다른 부품처럼 보였다(REV-130)
         <button
           type="button"
           data-testid="tip-toggle"
+          aria-expanded={expanded} // 그 자리 펼침(SPEC-057 REV-128 A10)
+          aria-controls={expanded ? `tip-body-${exerciseId}` : undefined}
           onClick={toggle}
           className="flex min-h-[32px] shrink-0 items-center gap-[4px] self-start whitespace-nowrap py-[2px]"
         >
@@ -96,6 +110,18 @@ export function ExerciseTipPanel({
           </AppText>
           <Icon name={expanded ? "chevron-up" : "chevron-down"} size={14} color="var(--color-ink2)" />
         </button>
+        */}
+        {/* [개선] 같은 누르는 글자(MetaAction) · 그 자리 펼침이라 ▾/▴ 하나만(R5) · 누르는 자리 44px */}
+        <MetaAction
+          testId="tip-toggle"
+          tall
+          ariaExpanded={expanded} // 그 자리 펼침(SPEC-057 REV-128 A10)
+          ariaControls={expanded ? bodyId : undefined}
+          trailingIcon={expanded ? "chevron-up" : "chevron-down"}
+          onPress={toggle}
+        >
+          {t("session.tipToggle")}
+        </MetaAction>
         {trailing}
       </div>
 
@@ -103,6 +129,7 @@ export function ExerciseTipPanel({
         <button
           type="button"
           data-testid="tip-media"
+          id={bodyId}
           // 안내 글을 장식 칩으로 바꿔 버튼 이름이 비었다 — 단계가 있으면 이름을 직접(SPEC-046 P2 리뷰)
           aria-label={steps.length ? t("chip.tipSteps") : undefined}
           onClick={() => steps.length && setMode("steps")}
@@ -140,14 +167,18 @@ export function ExerciseTipPanel({
         <button
           type="button"
           data-testid="tip-steps"
+          id={bodyId}
           onClick={() => hasImages && setMode("media")}
-          className="mt-[var(--spacing-xs)] flex w-full flex-col gap-[var(--spacing-xs)] rounded-[var(--radius-md)] bg-(--color-surface-alt) p-[var(--spacing-sm)] text-left"
+          // [원본] rounded-[var(--radius-md)] · [개선] 누르는 판은 4px(SPEC-057 R1)
+          className="mt-[var(--spacing-xs)] flex w-full flex-col gap-[var(--spacing-xs)] rounded-[var(--radius-sm)] bg-(--color-surface-alt) p-[var(--spacing-sm)] text-left"
         >
           {steps.map((s, i) => (
             <span key={s} className="flex items-start gap-[var(--spacing-sm)]">
-              <span className="mt-[1px] flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-(--color-brand-muted)">
-                <AppText variant="label" color="primary" className="font-bold">
-                  {String(i + 1)}
+              {/* [원본] 18px 원 판(rounded-pill · brand-muted) 안 빨강 번호 — [개선] 번호 글자만(SPEC-056 F5 · SPEC-057 R2) */}
+              {/* [원본] flex w-[18px] justify-center · 진한 번호 — 「9.」「10.」 점이 어긋나고 진한 글자는 누르는 것처럼 읽혔다(REV-130) */}
+              <span className="mt-[1px] w-[20px] shrink-0 text-right tabular-nums">
+                <AppText variant="label" color="textMuted" className="font-bold">
+                  {`${i + 1}.`}
                 </AppText>
               </span>
               <AppText variant="caption" color="textMuted" className="flex-1">

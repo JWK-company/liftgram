@@ -289,7 +289,8 @@ function CreatorVersionStep({
           className="border-(--color-line) border-b py-[var(--spacing-sm)]"
         >
           {routine.days.length > 1 ? (
-            <AppText variant="caption" color="primary" className="font-bold">
+            // [원본] <AppText variant="caption" color="primary" className="font-bold"> — 누를 수 없는 머리글은 빨강 대신 회색 굵은 글자(SRS-069 · SPEC-057 REV-131 H1 — 「다음 운동」 머리글과 같은 꼴)
+            <AppText variant="caption" color="textMuted" className="font-bold!">
               {d.nameKo}
             </AppText>
           ) : null}
@@ -330,7 +331,8 @@ function CreatorVersionStep({
                     </a>
                   ) : null}
                   {isDefault ? (
-                    <span className="shrink-0 rounded-[var(--radius-pill)] bg-(--color-surface) px-[6px] text-(--color-ink3) text-[length:var(--text-xs)]">
+                    // [원본] <span className="shrink-0 rounded-[var(--radius-pill)] bg-(--color-surface) px-[6px] text-(--color-ink3) text-[length:var(--text-xs)]"> — 정보는 판 없이 글자만(SPEC-057 R2)
+                    <span className="shrink-0 font-semibold text-(--color-ink3) text-[length:var(--text-xs)]">
                       {t("creator.defaultChip")}
                     </span>
                   ) : null}
@@ -352,7 +354,8 @@ function CreatorVersionStep({
         rel="noopener noreferrer"
         data-testid="creator-open-video"
         aria-label={t("creator.openVideoAria")}
-        className="mt-[var(--spacing-md)] flex min-h-[44px] items-center justify-center rounded-[var(--radius-md)] border border-(--color-line-strong) font-medium text-(--color-ink) text-[length:var(--text-md)]"
+        // [원본] className="mt-[var(--spacing-md)] flex min-h-[44px] items-center justify-center rounded-[var(--radius-md)] border border-(--color-line-strong) font-medium text-(--color-ink) text-[length:var(--text-md)]" — 4px(R1a)
+        className="mt-[var(--spacing-md)] flex min-h-[44px] items-center justify-center rounded-[var(--radius-sm)] border border-(--color-line-strong) font-medium text-(--color-ink) text-[length:var(--text-md)]"
       >
         {t("creator.openVideo")} ↗
       </a>

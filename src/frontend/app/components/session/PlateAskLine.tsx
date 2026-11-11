@@ -30,7 +30,8 @@ export function PlateAskLine({ onAnswer }: { onAnswer: (oneSide: boolean) => voi
     <fieldset
       data-testid="plate-ask"
       aria-label={t("session.plateAsk")}
-      className="m-0 mt-[2px] flex min-w-0 border-0 flex-wrap items-center gap-x-[2px] rounded-[var(--radius-md)] bg-(--color-surface-alt) px-[var(--spacing-sm)] text-[length:var(--text-sm)] text-(--color-ink2)"
+      // [원본] className="m-0 mt-[2px] flex min-w-0 border-0 flex-wrap items-center gap-x-[2px] rounded-[var(--radius-md)] bg-(--color-surface-alt) px-[var(--spacing-sm)] text-[length:var(--text-sm)] text-(--color-ink2)" — 4px(R1c)
+      className="m-0 mt-[2px] flex min-w-0 border-0 flex-wrap items-center gap-x-[2px] rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[var(--spacing-sm)] text-[length:var(--text-sm)] text-(--color-ink2)"
     >
       <span className="mr-auto min-w-0 py-[6px]">
         <span className="block">{t("session.plateAsk")}</span>

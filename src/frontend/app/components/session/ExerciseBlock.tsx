@@ -86,7 +86,8 @@ import { AppText, Card, Tag } from "../ui/primitives";
 import { RecordSlotSelector } from "../ui/RecordSlotSelector";
 import { UnitToggle } from "../ui/UnitToggle";
 import { Icon } from "../ui/Icon";
-import { FoldToggle, MetaAction, MetaLine, PrText, useFold } from "../ui/quiet";
+// [원본] import { FoldToggle, MetaAction, MetaLine, PrText, useFold } from "../ui/quiet"; — 「더 보기」를 걷었다(SPEC-057 Phase 2)
+import { MetaAction, MetaLine, PrText } from "../ui/quiet";
 import { useExerciseName } from "@/lib/exerciseNames";
 import { ExerciseName } from "./ExerciseName";
 import { Pictogram } from "../Pictogram";
@@ -121,7 +122,7 @@ export interface WorkoutExerciseRow {
   id: string;
   exerciseId: string;
   supersetGroup: string | null;
-  /** 이 블록이 속한 운동 — 「더 보기」 펼침을 이번 운동 동안만 기억하는 데 쓴다(/qa code M-1) */
+  /** 이 블록이 속한 운동 — [원본] 「더 보기」 펼침을 이번 운동 동안만 기억하는 데 썼다(/qa code M-1 · SPEC-057 에서 「더 보기」를 걷음) */
   workoutId?: string;
   restSeconds: number | null;
   note: string | null;
@@ -209,9 +210,15 @@ export function ExerciseBlock({
   // 처방 무게 근거(세트 id → 문구) — 탑셋을 마친 뒤 채운 세트(SRS-063)
   const [loadNotes, setLoadNotes] = useState<Record<string, string>>({});
   const [prevCleared, setPrevCleared] = useState(false);
+  // 한 번이라도 눌렀으면 상태를 읽어 준다 — 처음 그릴 때는 말하지 않는다(SPEC-057 REV-128 A9)
+  // [원본] const [prevToggled, setPrevToggled] = useState(false); — 조합을 바꿔 prevCleared 가 풀리면 누르지 않았는데 「다시 표시했어요」를 읽었다(REV-130)
+  // [개선] 읽어 줄 글자를 누를 때만 정한다 — 조합이 바뀌면 비운다
+  const [prevAnnounce, setPrevAnnounce] = useState("");
   const [loadMode, setLoadMode] = useState<"external" | "assisted" | "bodyweight">("external");
   const [baseEquipment, setBaseEquipment] = useState<EquipmentType | null>(null);
   const [isCardio, setIsCardio] = useState(false);
+  // 종목 종류(유산소 여부)를 다 읽었는지 — 읽기 전에는 운동 방법·버튼 줄을 그리지 않는다(첫 그림에 줄이 생겼다 빠지며 표가 튀었다 · REV-130)
+  const [kindLoaded, setKindLoaded] = useState(false);
   // 종목마다 기록하는 지표가 다르다(러닝머신=경사·속도, 계단=단계, 줄넘기=시간만) — 도메인이 정한다.
   const [cardioMetrics, setCardioMetrics] = useState<CardioMetric[]>(["duration", "distance"]);
   // [원본] const [exName, setExName] = useState<string | null>(null);
@@ -309,7 +316,8 @@ export function ExerciseBlock({
   // 「더 보기」 펼침 — 블록 전체가 하나(종목마다 따로 두지 않는다 · /qa spec Q6) @plm SRS-069
   // [원본] const [foldOpen, setFoldOpen] = useFold("block"); — 한 번 펴면 다음 운동까지 영원히 펴졌다(/qa code M-1)
   // [개선] 이번 운동 동안만 기억 — 새 운동은 접힌 채로 시작한다
-  const [foldOpen, setFoldOpen] = useFold(`block:${we.workoutId ?? "-"}`);
+  // const [foldOpen, setFoldOpen] = useFold(`block:${we.workoutId ?? "-"}`);
+  // [개선 SPEC-057] 「더 보기」 없음 — 운동 방법·다른 조합·이전기록 숨기기는 늘 보인다(사용자 지적 1821)
 
   // ── 블록 무게 단위(kg|lb) — 한 헬스장에 kg·lb 기구가 섞여 있다(2026-10-27) @plm SRS-067 ──
   // 기본값 = 같은 종목·칸으로 마지막에 완료한 블록의 단위(저장소가 정한다 · 환산 없음). 토글은 숫자 유지·단위만(Q4 B).
@@ -436,6 +444,7 @@ export function ExerciseBlock({
       } catch {
         // 삭제된 종목 — 기본값으로 둔다.
       }
+      if (alive) setKindLoaded(true);
     })();
     return () => {
       alive = false;
@@ -458,6 +467,7 @@ export function ExerciseBlock({
       setPrs(best);
       setPrevNote(pnote);
       setPrevCleared(false);
+      setPrevAnnounce(""); // 누르지 않은 변화는 읽지 않는다(REV-130)
     })();
     return () => {
       alive = false;
@@ -596,7 +606,8 @@ export function ExerciseBlock({
   // [원본] const hasTip = !isCardio && !!getExerciseMedia(we.exerciseId); // P2: 미디어는 종목 id 로 찾는다(ADR-033)
   // [P5] 시드 종목은 사진이 없어도 픽토그램 움직임이 있다(ADR-036) @plm SRS-055
   // 사진·설명 표의 키는 전부 시드 종목이다 — 시드 종목이면 팁이 있다(사진 표 672KB 를 이 화면에서 미리 싣지 않는다)
-  const hasTip = !isCardio && hasPictogram(we.exerciseId);
+  // [원본] const hasTip = !isCardio && hasPictogram(we.exerciseId);
+  const hasTip = kindLoaded && !isCardio && hasPictogram(we.exerciseId);
   const bwRelative = loadMode === "assisted" || loadMode === "bodyweight";
   const bwMissing = bwRelative && bodyweightKg == null;
 
@@ -914,22 +925,43 @@ export function ExerciseBlock({
   // [원본] 「이전기록 지우기」는 팁 줄 오른쪽(또는 메타 칩 줄 끝)에 늘 보였다 — 화면 정리 뒤엔 「더 보기」 안 @plm SRS-069
   const prevClearBtn =
     !isCardio && (hasPrev || prevCleared) ? (
-      <MetaAction testId="prev-clear" onPress={() => setPrevCleared((v) => !v)}>
+      // [개선 SPEC-057] 꺾쇠 없이 글자만(R5) · 누르는 자리 44px · 바뀐 상태는 아래 aria-live 가 읽어 준다(REV-128 A9·A10)
+      <MetaAction
+        testId="prev-clear"
+        tall
+        onPress={() => {
+          // [원본] setPrevToggled(true); setPrevCleared((v) => !v);
+          const next = !prevCleared;
+          setPrevCleared(next);
+          setPrevAnnounce(next ? t("session.prevHiddenAnnounce") : t("session.prevShownAnnounce"));
+        }}
+      >
         {prevCleared ? t("session.showPrev") : t("session.clearPrev")}
       </MetaAction>
     ) : null;
   const otherSlotsBtn =
     !isCardio && otherSlots.length > 0 ? (
-      <MetaAction testId="btn-other-slots" onPress={() => setSlotsOpen(true)}>
-        {t("session.otherSlots")} ({otherSlots.length})
+      // [원본] {t("session.otherSlots")} ({otherSlots.length}) — 꺾쇠 › 가 붙었다
+      // [개선 SPEC-057] 「다른 조합(n)」 글자만 · 시트를 연다(aria-haspopup) · 누르는 자리 44px
+      <MetaAction testId="btn-other-slots" tall hasPopup onPress={() => setSlotsOpen(true)}>
+        {/* [원본] {`${t("session.otherSlots")}(${otherSlots.length})`} — 언어마다 띄어쓰기가 달라 틀로(REV-130) */}
+        {t("session.otherSlotsN", { n: otherSlots.length })}
       </MetaAction>
     ) : null;
-  // 이번 칸에 기록이 하나도 없으면 「다른 조합 기록 보기」는 접지 않고 메타 줄에 꺼내 둔다 —
-  // 빈 칸에서 지난 조합의 무게를 찾는 단서라서(/qa code M-4). 기록이 있는 평소에는 「더 보기」 안.
-  const otherSlotsOut = !!otherSlotsBtn && prevSets.length === 0 && !prs.weight && !prs.volume;
-  // 「더 보기」에 넣을 것이 있을 때만 토글을 둔다(운동 방법 · 다른 조합 · 이전기록 지우기)
-  // [원본] const hasFold = !isCardio && (hasTip || !!otherSlotsBtn || !!prevClearBtn);
-  const hasFold = !isCardio && (hasTip || (!!otherSlotsBtn && !otherSlotsOut) || !!prevClearBtn);
+  // [원본 설명] 이번 칸에 기록이 하나도 없으면 「다른 조합 기록 보기」는 접지 않고 메타 줄에 꺼내 두었다 —
+  // 빈 칸에서 지난 조합의 무게를 찾는 단서라서(/qa code M-4). 기록이 있는 평소에는 「더 보기」 안이었다.
+  // → SPEC-057: 「더 보기」가 없어져 늘 아래 버튼 줄에 보인다.
+  // [원본] const otherSlotsOut = !!otherSlotsBtn && prevSets.length === 0 && !prs.weight && !prs.volume;
+  // [원본] const hasFold = !isCardio && (hasTip || (!!otherSlotsBtn && !otherSlotsOut) || !!prevClearBtn);
+  // [개선 SPEC-057] 「더 보기」 없이 늘 보이는 한 줄 — 다른 조합 · 이전기록 숨기기(둘 다 없으면 줄을 그리지 않는다)
+  // 두 버튼이 좁은 폭에서 두 줄로 꺾여도 누르는 자리(44px)가 겹치지 않게 세로 틈 8px(REV-130)
+  const blockActions =
+    kindLoaded && (otherSlotsBtn || prevClearBtn) ? (
+      <MetaLine testId="block-actions" className="ml-auto justify-end gap-y-[8px]">
+        {otherSlotsBtn}
+        {prevClearBtn}
+      </MetaLine>
+    ) : null;
   const showPr = !isCardio && !prevCleared && (prs.weight || prs.volume);
   // 중량 PR 과 볼륨 PR 이 다른 세트면 두 조각 — 메타 줄 가운데서 꺾이지 않게 자기 줄로 내린다(/qa code M-7)
   const prOwnLine = !!showPr && !!prs.weight && !!prs.volume && prs.weight.setLogId !== prs.volume.setLogId;
@@ -945,8 +977,9 @@ export function ExerciseBlock({
   // ─────────────────────────────────────────────────────────────────────────────
   // 화면 정리 P1(D2·D3·D4 · SRS-069) — 정보는 그대로, 상자·빨강을 걷어 낸다.
   //   머리      [▲▼] [그림] 이름 ············ 회색 볼륨 · ⋯
-  //   메타 줄    조합 ▾ · 슈퍼세트 · 금색 PR(누르면 채움 · ⓘ 기록) · 경고            더 보기 ▾
-  //   더 보기    운동 방법 · 다른 조합 · 이전기록 지우기 (펼침은 기기에 기억 — 전역 하나)
+  //   메타 줄    조합 ▾ · 슈퍼세트 · 금색 PR(누르면 채움 · ⓘ 기록) · 경고
+  //   행동 줄    운동 방법 ▾ ············ 다른 조합(n) · 이전기록 숨기기   (늘 보임 · SPEC-057)
+  //   [원본] 메타 줄 오른쪽 끝 「더 보기 ▾」 → 펼치면 운동 방법 · 다른 조합 · 이전기록 지우기(펼침은 기기에 기억 — 전역 하나)
   //   표 머리    세트 · 이전 · 무게 kg│lb · 횟수
   // [원본] 메타 칩 줄(테두리 알약 변형·PR 칩·kg/lb 알약·볼륨 태그) + 「이전 기록 · 조합」 줄 + 팁 줄 — 커밋 5222c61 의 이 파일
   //   (피드백 #62 · SRS-084) 세트 추가 아래 도구 한 줄 — ⏱ 휴식 · ✎ 메모 · ⌃⌄ 순서(메뉴에서 꺼냄 · 회색 · 44px)
@@ -1090,7 +1123,8 @@ export function ExerciseBlock({
               // 메타 줄 높이 그대로(32px · 위로 넘치지 않게 아래만 당김 · P1 코드 리뷰 정확성 8)
               className="-mb-[6px] inline-flex min-h-[32px] items-center gap-[2px] self-start rounded-[var(--radius-sm)] focus-visible:outline-2 focus-visible:outline-(--color-brand) active:opacity-70"
             >
-              <AppText variant="label" color="primary" className="font-bold">
+              {/* [원본] <AppText variant="label" color="primary" className="font-bold"> — 빨강은 주 행동에만(SRS-069) · 시트를 여는 글자 = 진한 굵은 글자(SPEC-057 R6 · REV-132) */}
+              <AppText variant="label" color="text" className="font-bold">
                 {t(`scheme.name.${blockScheme}` as Parameters<typeof t>[0])}
               </AppText>
               {/* 꺾쇠는 다른 ②(일자바▾ · 1▾)와 같은 회색 — 빨강은 이름 글자만(P1 코드 리뷰 시각 5) */}
@@ -1111,7 +1145,7 @@ export function ExerciseBlock({
           </div>
         ) : null}
 
-        {/* 메타 줄 — 조합 · 슈퍼셋 · PR · 경고 (회색, PR 만 금색) + 오른쪽 「더 보기」 */}
+        {/* 메타 줄 — 조합 · 슈퍼셋 · PR · 경고 (회색, PR 만 금색) · [원본] + 오른쪽 「더 보기」(SPEC-057 에서 걷음) */}
         <div className="mt-[2px] flex items-start gap-[var(--spacing-sm)]">
           <MetaLine className="flex-1" testId="we-meta">
             {!isCardio ? (
@@ -1156,7 +1190,7 @@ export function ExerciseBlock({
                   />
                 ))
               : null}
-            {otherSlotsOut ? <span key="other">{otherSlotsBtn}</span> : null}
+            {/* [원본] {otherSlotsOut ? <span key="other">{otherSlotsBtn}</span> : null} — 빈 칸이면 메타 줄로 꺼냈다(SPEC-057 에서 늘 보이는 줄로 모음) */}
             {bwMissing ? (
               <span
                 key="bw"
@@ -1166,6 +1200,7 @@ export function ExerciseBlock({
               </span>
             ) : null}
           </MetaLine>
+          {/* [원본] 「더 보기 ▾」 토글 — SPEC-057 에서 걷음(되살릴 때 useFold·FoldToggle import 도 함께)
           {hasFold ? (
             <span className="shrink-0">
               <FoldToggle
@@ -1176,7 +1211,7 @@ export function ExerciseBlock({
                 controls={`block-more-${we.id}`}
               />
             </span>
-          ) : null}
+          ) : null} */}
         </div>
 
         {/* PR 두 조각(중량 ≠ 볼륨) — 금색 한 줄 */}
@@ -1202,7 +1237,7 @@ export function ExerciseBlock({
         {/* [원본] 「이전 기록 · 조합」을 읽어 주는 글로만 남겨 두었다(sr-only prev-slot) — 이전 기록은 늘 지금 칸에서 읽으므로
             조합 트리거(「변형 선택 — 일자바」)와 같은 말을 한 번 더 읽을 뿐이라 지운다(/qa code L-4).
             원복 시 커밋 432f53f 의 이 자리 span 을 되살린다. @plm SRS-058 SRS-069 */}
-        {/* 더 보기 — 운동 방법 · 다른 조합 · 이전기록 지우기 */}
+        {/* [원본] 더 보기 패널 — SPEC-057 에서 걷음
         {hasFold && foldOpen ? (
           <div id={`block-more-${we.id}`} data-testid="block-more-panel" className="mb-[2px]">
             {hasTip ? (
@@ -1224,6 +1259,19 @@ export function ExerciseBlock({
               </MetaLine>
             )}
           </div>
+        ) : null} */}
+        {/* [개선 SPEC-057] 운동 방법 ▾ 은 왼쪽, 다른 조합 · 이전기록 숨기기는 오른쪽 — 늘 보인다. 그림 없는 종목은 버튼 줄만, 둘 다 없으면 줄 없음(REV-128 A8) */}
+        {hasTip ? (
+          <ExerciseTipPanel exerciseId={we.exerciseId} blockId={we.id} trailing={blockActions ?? undefined} />
+        ) : blockActions ? (
+          <div className="mt-[var(--spacing-xs)] flex">{blockActions}</div>
+        ) : null}
+        {/* 이전기록 숨기기·보이기를 읽어 준다(글자 교체만으로는 상태가 바뀐 줄 모른다 · REV-128 A9) */}
+        {kindLoaded && !isCardio ? (
+          <span className="sr-only" aria-live="polite">
+            {/* [원본] {prevToggled ? (prevCleared ? t("session.prevHiddenAnnounce") : t("session.prevShownAnnounce")) : ""} */}
+            {prevAnnounce}
+          </span>
         ) : null}
 
         {/* 표 머리 — 「무게」 칸 안에 kg│lb(D2 · /qa spec Q8). 한쪽 입력이면 칸 위에 「한쪽」 */}
@@ -1481,7 +1529,8 @@ export function ExerciseBlock({
               setNoteOpen(false);
               void write(() => repo.setWorkoutExerciseNote(we.id, note));
             }}
-            className="mt-[var(--spacing-sm)] min-h-[38px] w-full rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface-alt) p-[var(--spacing-md)] text-[length:var(--text-md)] text-(--color-ink) placeholder:text-(--color-ink3)"
+            // [원본] className="mt-[var(--spacing-sm)] min-h-[38px] w-full rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface-alt) p-[var(--spacing-md)] text-[length:var(--text-md)] text-(--color-ink) placeholder:text-(--color-ink3)" — 6px → 4px(SPEC-057 R1a·R1c · REV-132)
+            className="mt-[var(--spacing-sm)] min-h-[38px] w-full rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) p-[var(--spacing-md)] text-[length:var(--text-md)] text-(--color-ink) placeholder:text-(--color-ink3)"
           />
         ) : null}
 
@@ -1516,7 +1565,8 @@ export function ExerciseBlock({
                 <div
                   key={x.variantKey ?? "default"}
                   data-testid={`slot-${x.variantKey ?? "default"}`}
-                  className="rounded-[var(--radius-md)] border border-(--color-line) p-[var(--spacing-md)]"
+                  // [원본] className="rounded-[var(--radius-md)] border border-(--color-line) p-[var(--spacing-md)]" — 6px → 4px(SPEC-057 R1a·R1c · REV-132)
+                  className="rounded-[var(--radius-sm)] border border-(--color-line) p-[var(--spacing-md)]"
                 >
                   <div className="flex items-center gap-[var(--spacing-sm)]">
                     <AppText variant="body" className="min-w-0 flex-1 font-bold">
@@ -1778,7 +1828,8 @@ function RestKindRow({
   const clamp = (n: number) => Math.min(REST_SHEET_MAX, Math.max(0, n));
   const time = `${Math.floor(value / 60)}:${String(value % 60).padStart(2, "0")}`;
   const btn =
-    "flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-(--color-surface-alt) text-(--color-ink) focus-visible:outline-2 focus-visible:outline-(--color-brand)";
+    // [원본] "flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-(--color-surface-alt) text-(--color-ink) focus-visible:outline-2 focus-visible:outline-(--color-brand)"; — 6px → 4px(SPEC-057 R1a·R1c · REV-132)
+    "flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-(--color-surface-alt) text-(--color-ink) focus-visible:outline-2 focus-visible:outline-(--color-brand)";
   return (
     <div
       data-testid={`rest-kind-${slot}`}

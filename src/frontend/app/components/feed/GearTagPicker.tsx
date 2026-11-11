@@ -69,7 +69,8 @@ export function GearTagPicker({
               type="button"
               onClick={() => onChange(normalizeGearTags(value.filter((x) => x.category !== g.category)))}
               data-testid="gear-chip"
-              className="flex items-center rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[5px]"
+              // [원본] className="flex items-center rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[5px]" — 알약 → 4px 옅은 판(SPEC-057 R1c)
+              className="flex items-center rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[5px]"
             >
               <AppText variant="caption">
                 {g.brand ? `${g.brand} ${t(gearLabelKey(g.category))}` : t(gearLabelKey(g.category))}
@@ -87,10 +88,12 @@ export function GearTagPicker({
         disabled={disabled}
         onClick={() => setOpen(true)}
         data-testid="gear-open"
-        className="flex items-center py-[var(--spacing-xs)] disabled:opacity-60"
+        aria-haspopup="dialog"
+        // [원본] className="flex items-center py-[var(--spacing-xs)] disabled:opacity-60" · 아이콘 brand · 글자 primary — 누르는 글자 = 진한 굵은 글자(SPEC-057 R6 · REV-132)
+        className="flex min-h-[44px] items-center disabled:opacity-60"
       >
-        <Icon name="fitness-outline" size={16} color="var(--color-brand)" />
-        <AppText variant="caption" color="primary" className="ml-[4px] font-medium!">
+        <Icon name="fitness-outline" size={16} color="var(--color-ink2)" />
+        <AppText variant="caption" color="text" className="ml-[4px] font-semibold!">
           {value.length > 0 ? t("gear.editTags", { count: value.length }) : t("gear.addTags")}
         </AppText>
       </button>
@@ -116,10 +119,12 @@ export function GearTagPicker({
                     type="button"
                     onClick={() => toggle(g.category)}
                     data-testid="gear-quick"
-                    className="flex items-center rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[4px]"
+                    // [원본] className="flex items-center rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[4px]" — 알약 → 4px 옅은 판(SPEC-057 R1c)
+                    className="flex items-center rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[4px]"
                   >
-                    <Icon name="add" size={13} color="var(--color-brand)" />
-                    <AppText variant="caption" color="primary" className="ml-[2px]">
+                    {/* [원본] 아이콘 brand · 글자 primary — 빨강은 주 행동에만(SRS-069) */}
+                    <Icon name="add" size={13} color="var(--color-ink2)" />
+                    <AppText variant="caption" color="text" className="ml-[2px]">
                       {t(gearLabelKey(g.category))}
                     </AppText>
                   </button>

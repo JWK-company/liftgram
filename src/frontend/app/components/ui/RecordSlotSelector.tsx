@@ -187,6 +187,7 @@ export function RecordSlotSelector({
           setOpen(true);
         }}
         trailingIcon="chevron-down"
+        hasPopup // 대화상자를 연다(SPEC-057 R6 · REV-129)
         ariaLabel={`${t("variant.selectTitle")} — ${summary}`}
       >
         {summary}
@@ -242,7 +243,8 @@ export function RecordSlotSelector({
                 {showOneSide ? (
                   <label
                     data-testid="slot-plate-one-side"
-                    className="mt-[var(--spacing-md)] flex cursor-pointer items-start gap-[var(--spacing-sm)] rounded-[var(--radius-md)] bg-(--color-surface-alt) p-[var(--spacing-md)]"
+                    // [원본] className="mt-[var(--spacing-md)] flex cursor-pointer items-start gap-[var(--spacing-sm)] rounded-[var(--radius-md)] bg-(--color-surface-alt) p-[var(--spacing-md)]" — 6px → 4px(SPEC-057 R1a·R1c · REV-132)
+                    className="mt-[var(--spacing-md)] flex cursor-pointer items-start gap-[var(--spacing-sm)] rounded-[var(--radius-sm)] bg-(--color-surface-alt) p-[var(--spacing-md)]"
                   >
                     <input
                       type="checkbox"
@@ -390,6 +392,8 @@ function BrandRow({
   );
 }
 
+// [원본] 알약 + brand-muted 바탕 + 빨강 글자 칩 — 커밋 a35b535 의 이 함수 본문
+// [개선] 고르는 칩 하나의 꼴(QuietChip · SPEC-057 R1b · REV-129)
 export function SelectChip({
   label,
   active,
@@ -404,21 +408,5 @@ export function SelectChip({
   /** 누르는 자리 44px — 칩만 줄지어 있는 곳(세트 표 강도 목표). */
   tall?: boolean;
 }) {
-  return (
-    <button
-      type="button"
-      onClick={onPress}
-      data-testid={testId}
-      aria-pressed={active}
-      style={{
-        backgroundColor: active ? "var(--color-brand-muted)" : "var(--color-surface-alt)",
-        borderColor: active ? "var(--color-brand)" : "var(--color-line)",
-      }}
-      className={`rounded-[var(--radius-pill)] border px-[var(--spacing-md)] py-[var(--spacing-xs)]${tall ? " min-h-[44px]" : ""}`}
-    >
-      <AppText variant="caption" color={active ? "primary" : "text"}>
-        {label}
-      </AppText>
-    </button>
-  );
+  return <QuietChip label={label} active={active} onPress={onPress} testId={testId} tall={tall} />;
 }

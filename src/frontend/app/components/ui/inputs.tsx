@@ -134,7 +134,8 @@ export function NumberStepper({
         data-testid={testId ? `${testId}-minus` : undefined}
         aria-label="감소"
         onClick={() => onChange(clamp(value - step))}
-        className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] bg-(--color-surface-alt) text-(--color-ink)"
+        // [원본] rounded-[var(--radius-md)] · [개선] 누르는 것은 4px(SPEC-057 R1)
+        className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-sm)] bg-(--color-surface-alt) text-(--color-ink)"
       >
         <Icon name="remove" size={18} />
       </button>
@@ -182,7 +183,8 @@ export function NumberStepper({
         data-testid={testId ? `${testId}-plus` : undefined}
         aria-label="증가"
         onClick={() => onChange(clamp(value + step))}
-        className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] bg-(--color-surface-alt) text-(--color-ink)"
+        // [원본] rounded-[var(--radius-md)] · [개선] 누르는 것은 4px(SPEC-057 R1)
+        className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-sm)] bg-(--color-surface-alt) text-(--color-ink)"
       >
         <Icon name="add" size={18} />
       </button>

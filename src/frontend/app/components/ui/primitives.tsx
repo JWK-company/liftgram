@@ -115,10 +115,13 @@ export function Card({
 export type TagTone = "default" | "primary" | "pr" | "muted" | "success" | "warning" | "danger";
 
 /**
- * 작은 칩. 배경은 각 상태색의 **연한 판** 토큰이다(라이트·다크 두 벌 · 그 위 글자 AA 계산값 — tokens.ts).
+ * 작은 상태 표시. [원본] 배경은 각 상태색의 **연한 판** 토큰이었다(알약).
+ * [개선] 누를 수 없는 정보는 판 없이 굵은 작은 글자 — 의미 색은 글자색이 맡는다(SPEC-057 R2). bg 값은 되돌리기용으로 남긴다.
  */
 const TAG_PALETTE: Record<TagTone, { bg: string; fg: string }> = {
-  primary: { bg: "var(--color-brand-muted)", fg: "var(--color-brand)" },
+  // [원본] primary: { bg: "var(--color-brand-muted)", fg: "var(--color-brand)" },
+  // [개선] 판이 빠지면 빨강 글자가 고스트 버튼(누르는 빨강 글자)과 같아진다 — 정보는 진한 글자(SPEC-057 R2 · REV-129)
+  primary: { bg: "var(--color-brand-muted)", fg: "var(--color-ink)" },
   pr: { bg: "var(--color-pr-soft)", fg: "var(--color-pr)" },
   success: { bg: "var(--color-ok-soft)", fg: "var(--color-ok)" },
   warning: { bg: "var(--color-warn-soft)", fg: "var(--color-warn)" },
@@ -128,11 +131,13 @@ const TAG_PALETTE: Record<TagTone, { bg: string; fg: string }> = {
 };
 
 export function Tag({ label, tone = "default" }: { label: string; tone?: TagTone }) {
-  const { bg, fg } = TAG_PALETTE[tone] ?? TAG_PALETTE.default;
+  // [원본] const { bg, fg } = …; style={{ backgroundColor: bg, color: fg }} · className="… rounded-[var(--radius-pill)] px-[var(--spacing-sm)] py-[3px] …"
+  const { fg } = TAG_PALETTE[tone] ?? TAG_PALETTE.default;
   return (
     <span
-      style={{ backgroundColor: bg, color: fg }}
-      className="inline-flex self-start rounded-[var(--radius-pill)] px-[var(--spacing-sm)] py-[3px] text-[length:var(--text-xs)] font-semibold"
+      data-tag=""
+      style={{ color: fg }}
+      className="inline-flex self-start py-[3px] text-[length:var(--text-xs)] font-semibold"
     >
       {label}
     </span>

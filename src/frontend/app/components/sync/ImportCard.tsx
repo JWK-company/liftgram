@@ -173,6 +173,7 @@ export function ImportCard() {
                           onPress={() => void askUndo(b.id)}
                           disabled={busyId != null}
                           testId="btn-import-undo"
+                          hasPopup // 확인창을 연다(SPEC-057 R6)
                         >
                           {t("import.undo")}
                         </MetaAction>

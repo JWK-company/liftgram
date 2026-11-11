@@ -43,6 +43,7 @@ import { Icon } from "../ui/Icon";
 import { LogoSpinner } from "../ui/LogoSpinner";
 import { AppText, EmptyState, SectionHeader } from "../ui/primitives";
 import { Skeleton } from "../ui/Skeleton";
+import { segCellClass } from "../ui/rows";
 
 export type MemberTab = "records" | "stats" | "routines";
 
@@ -270,7 +271,8 @@ function Band({ name }: { name: string | null }) {
       <a
         href="/coaching"
         data-testid="member-exit"
-        className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-[var(--radius-md)] px-[var(--spacing-sm)] font-semibold text-(--color-coaching-ink) text-[length:var(--text-sm)]"
+        // [원본] className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-[var(--radius-md)] px-[var(--spacing-sm)] font-semibold text-(--color-coaching-ink) text-[length:var(--text-sm)]" — 누르는 것 4px(R1a)
+        className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-[var(--radius-sm)] px-[var(--spacing-sm)] font-semibold text-(--color-coaching-ink) text-[length:var(--text-sm)]"
       >
         {t("coaching.member.exit")}
       </a>
@@ -369,7 +371,8 @@ function Period44({
       aria-label={t("coaching.member.period")}
       data-testid="report-period"
       // [원본] className="mb-[var(--spacing-sm)] flex rounded-[10px] bg-(--color-surface-alt) p-[3px]" · [개선] 분절 토글 판은 유지 · 둥근 정도만 토큰(SPEC-056 F2)
-      className="mb-[var(--spacing-sm)] flex rounded-[var(--radius-lg)] bg-(--color-surface-alt) p-[3px]"
+      // [원본] className="mb-[var(--spacing-sm)] flex rounded-[var(--radius-lg)] bg-(--color-surface-alt) p-[3px]" — 분할 토글 트랙은 sm(SPEC-057 R1d · REV-132)
+      className="mb-[var(--spacing-sm)] flex rounded-[var(--radius-sm)] bg-(--color-surface-alt) p-[3px]"
       onKeyDown={(e) => {
         const next = rovingNext(e, values, value);
         if (!next) return;
@@ -390,9 +393,10 @@ function Period44({
             data-testid={it.testId}
             onClick={() => onChange(it.value)}
             // [원본] rounded-[8px] · [개선] 토큰(SPEC-056 F2)
-            className={`flex min-h-11 min-w-0 flex-1 items-center justify-center rounded-[var(--radius-md)] text-[length:var(--text-sm)] ${
-              on ? "bg-(--seg-on) font-semibold text-(--color-ink) shadow-sm" : "text-(--color-ink2)"
-            }`}
+            // [원본] className={`flex min-h-11 min-w-0 flex-1 items-center justify-center rounded-[var(--radius-md)] text-[length:var(--text-sm)] ${ — 누르는 것 4px(R1a)
+            // [원본] className={`… rounded-[var(--radius-sm)] … ${on ? "bg-(--seg-on) font-semibold text-(--color-ink) shadow-sm" : "text-(--color-ink2)"}`} — 고른 칸 판 대비 1.12(REV-132)
+            // [개선] 분할 토글 칸 하나의 꼴(segCellClass · SPEC-057 R1d) — 고른 칸에 line-strong 테두리
+            className={`flex min-h-11 min-w-0 flex-1 items-center justify-center text-[length:var(--text-sm)] ${segCellClass(on)}`}
           >
             {it.label}
           </button>
@@ -946,8 +950,10 @@ function WorkoutRow({
             {w.coach ? (
               <span
                 data-testid="member-workout-coach"
-                className="inline-flex shrink-0 items-center rounded-[var(--radius-pill)] bg-(--color-coaching-soft) px-[var(--spacing-sm)] py-[1px] font-semibold text-(--color-coaching-ink) text-[length:var(--text-xs)]"
+                // [원본] className="inline-flex shrink-0 items-center rounded-[var(--radius-pill)] bg-(--color-coaching-soft) px-[var(--spacing-sm)] py-[1px] font-semibold text-(--color-coaching-ink) text-[length:var(--text-xs)]" — 정보는 판 없이 글자만 — 코칭은 coaching-ink + 점(SPEC-057 R2)
+                className="inline-flex shrink-0 items-center gap-[4px] font-semibold text-(--color-coaching-ink) text-[length:var(--text-xs)]"
               >
+                <span aria-hidden className="h-[6px] w-[6px] shrink-0 rounded-full bg-(--color-coaching)" />
                 {t("coaching.plan.coachRoutine")}
               </span>
             ) : null}

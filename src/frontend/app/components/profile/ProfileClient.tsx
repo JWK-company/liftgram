@@ -45,7 +45,7 @@ import { useToast } from "../Toast";
 import { ActionSheet, SheetShell } from "../ui/Dialog";
 import { TextField } from "../ui/inputs";
 import { AppText, Card } from "../ui/primitives";
-import { ListGroup, ListRow, SectionLabel } from "../ui/rows";
+import { segCellClass, ListGroup, ListRow, SectionLabel } from "../ui/rows";
 // 버전 = package.json(SemVer) · 빌드 번호·커밋 = 배포 스크립트가 찍는다(deploy-h2500-3.sh). 개발 중엔 "dev".
 import { PREFS_EVENT } from "@/lib/prefs";
 import { BusinessInfo } from "../BusinessInfo";
@@ -266,7 +266,10 @@ export default function ProfileClient() {
         <Card className="mb-[var(--spacing-xl)]">
           <div className="flex items-center gap-[var(--spacing-md)]" data-testid="profile-me">
             {/* [원본] … rounded-full … · [개선] 둥근 정도는 토큰(아바타는 원 · SPEC-056 F2) */}
-            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-(--color-brand) font-bold text-(--color-on-brand) text-[length:var(--text-lg)]">
+            <span
+              data-shape="round"
+              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-(--color-brand) font-bold text-(--color-on-brand) text-[length:var(--text-lg)]"
+            >
               {displayName.slice(0, 1).toUpperCase()}
             </span>
             <span className="flex min-w-0 flex-1 flex-col">
@@ -689,7 +692,8 @@ function Segmented<T extends string>({
   return (
     <div
       data-testid={testId}
-      className="flex gap-[2px] rounded-[var(--radius-pill)] bg-(--color-surface-alt) p-[2px]"
+      // [원본] className="flex gap-[2px] rounded-[var(--radius-pill)] bg-(--color-surface-alt) p-[2px]" — 분할 토글은 4px 트랙(SPEC-057 R1d)
+      className="flex gap-[2px] rounded-[var(--radius-sm)] bg-(--color-surface-alt) p-[2px]"
     >
       {options.map((o) => (
         <button
@@ -701,13 +705,15 @@ function Segmented<T extends string>({
           aria-pressed={o.value === value}
           disabled={disabled}
           onClick={() => onChange(o.value)}
-          style={{ backgroundColor: o.value === value ? "var(--color-brand)" : "transparent" }}
-          className="rounded-[var(--radius-pill)] px-[var(--spacing-md)] py-[4px] disabled:opacity-60"
+          // [원본] style={{ backgroundColor: o.value === value ? "var(--color-brand)" : "transparent" }} · className="rounded-[var(--radius-pill)] px-[var(--spacing-md)] py-[4px] disabled:opacity-60"
+          //        글자 style={{ color: 고른 칸 on-brand · 아니면 ink2 }} className={고른 칸 font-bold}
+          // [개선] R1d — 고른 칸은 흰 판 + line-strong 테두리 + 진한 글자(kg│lb 와 같은 segCellClass · SPEC-057)
+          className={`${segCellClass(o.value === value)} px-[var(--spacing-md)] py-[4px] disabled:opacity-60`}
         >
           <AppText
             variant="caption"
-            style={{ color: o.value === value ? "var(--color-on-brand)" : "var(--color-ink2)" }}
-            className={o.value === value ? "font-bold" : ""}
+            color={o.value === value ? "text" : "textMuted"}
+            className={o.value === value ? "font-semibold!" : ""}
           >
             {o.label}
           </AppText>
@@ -735,13 +741,20 @@ function Chip({
       data-testid={testId}
       aria-pressed={active}
       onClick={onPress}
+      // [원본] style={{ backgroundColor: active ? brand-muted : surface-alt, borderColor: active ? brand : line }}
+      //        className="rounded-[var(--radius-pill)] border px-[var(--spacing-md)] py-[var(--spacing-xs)]" · 글자 active ? primary·bold : text
+      // [개선] R1b — 4px 옅은 판, 고르면 brand 테두리 + 진한 굵은 글자(SPEC-057)
       style={{
-        backgroundColor: active ? "var(--color-brand-muted)" : "var(--color-surface-alt)",
-        borderColor: active ? "var(--color-brand)" : "var(--color-line)",
+        backgroundColor: "var(--color-surface-alt)",
+        borderColor: active ? "var(--color-brand)" : "transparent",
       }}
-      className="rounded-[var(--radius-pill)] border px-[var(--spacing-md)] py-[var(--spacing-xs)]"
+      className="min-h-[32px] rounded-[var(--radius-sm)] border px-[var(--spacing-md)] py-[var(--spacing-xs)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-brand)"
     >
-      <AppText variant="caption" color={active ? "primary" : "text"} className={active ? "font-bold" : ""}>
+      <AppText
+        variant="caption"
+        color={active ? "text" : "textMuted"}
+        className={active ? "font-semibold!" : ""}
+      >
         {label}
       </AppText>
     </button>

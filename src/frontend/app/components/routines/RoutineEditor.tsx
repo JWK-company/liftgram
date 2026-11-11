@@ -1208,18 +1208,25 @@ function FolderChip({
       aria-pressed={active} // 고른 상태를 색만으로 알리지 않게(P3 코드 리뷰 M-2)
       // [원본] style={{ backgroundColor: active ? "var(--color-brand-muted)" : "var(--color-surface-alt)", borderColor: active ? "var(--color-brand)" : "var(--color-line)" }}
       // [개선] 고르지 않은 칸은 회색 판 대신 바탕 + 누르는 것의 경계(line-strong) — ui/Chip 과 같은 규칙(SPEC-056 F7)
+      // [원본 SPEC-056] style={{ backgroundColor: active ? brand-muted : card, borderColor: active ? brand : line-strong }}
+      // [개선] R1b — 늘 옅은 판, 고르면 brand 테두리(선택 바탕 채움 없음 · SPEC-057)
       style={{
-        backgroundColor: active ? "var(--color-brand-muted)" : "var(--color-card)",
-        borderColor: active ? "var(--color-brand)" : "var(--color-line-strong)",
+        backgroundColor: "var(--color-surface-alt)",
+        borderColor: active ? "var(--color-brand)" : "transparent",
       }}
       // [원본] className="flex items-center gap-[4px] rounded-[var(--radius-md)] border px-[var(--spacing-sm)] py-[6px]"
       // [개선] 누르는 자리 44px(::before) · 고른 칸은 굵은 글자(P3 코드 리뷰 M-2)
-      className="relative flex items-center gap-[4px] rounded-[var(--radius-md)] border px-[var(--spacing-sm)] py-[6px] before:absolute before:inset-x-0 before:-inset-y-[8px] before:content-['']"
+      // [원본] className="relative flex items-center gap-[4px] rounded-[var(--radius-md)] border px-[var(--spacing-sm)] py-[6px] before:absolute before:inset-x-0 before:-inset-y-[8px] before:content-['']" — 4px(R1b)
+      // [개선 REV-132] 키보드 포커스 링
+      className="relative flex items-center gap-[4px] rounded-[var(--radius-sm)] border px-[var(--spacing-sm)] py-[6px] before:absolute before:inset-x-0 before:-inset-y-[8px] before:content-[''] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-brand)"
     >
-      {icon ? (
-        <Icon name={icon} size={12} color={active ? "var(--color-brand)" : "var(--color-ink2)"} />
-      ) : null}
-      <AppText variant="caption" color={active ? "primary" : "text"} className={active ? "font-bold" : ""}>
+      {icon ? <Icon name={icon} size={12} color={active ? "var(--color-ink)" : "var(--color-ink2)"} /> : null}
+      {/* [원본] 아이콘 brand · 글자 primary bold — 고른 칩 글자는 진한 굵은 글자(R1b) */}
+      <AppText
+        variant="caption"
+        color={active ? "text" : "textMuted"}
+        className={active ? "font-semibold!" : ""}
+      >
         {label}
       </AppText>
     </button>

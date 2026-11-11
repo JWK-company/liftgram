@@ -33,6 +33,7 @@ export function Avatar({ name, url, size = 36 }: { name?: string; url?: string; 
     <div
       style={{ ...style, fontSize: Math.round(size * 0.42) }}
       className="flex items-center justify-center rounded-full bg-(--color-brand) font-bold text-(--color-on-brand)"
+      data-shape="round" // 원인 것(SPEC-057 R3) — 모양 가드가 원인지 역검사한다
       aria-hidden
     >
       {letter}

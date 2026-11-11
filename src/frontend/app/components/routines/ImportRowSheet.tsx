@@ -51,10 +51,13 @@ function Radio({
       data-testid={testId}
       onClick={onPress}
       style={{
-        backgroundColor: checked ? "var(--color-surface-alt)" : "var(--color-card)",
-        borderColor: checked ? "var(--color-ink)" : "var(--color-line-strong)",
+        // [원본] backgroundColor: checked ? "var(--color-surface-alt)" : "var(--color-card)", borderColor: checked ? "var(--color-ink)" : "var(--color-line-strong)", — 고르면 ink 테두리·흰 판이 동작 버튼(R1a)과 같아 보였다(REV-131)
+        // [개선] R1b — 늘 옅은 판, 고르면 brand 테두리 + 진한 굵은 글자(✓ 는 숫자 칩 묶음에서 알아보기 쉽게 남긴다)
+        backgroundColor: "var(--color-surface-alt)",
+        borderColor: checked ? "var(--color-brand)" : "transparent",
       }}
-      className={`min-h-[44px] min-w-[44px] shrink-0 rounded-[var(--radius-pill)] border px-[var(--spacing-md)] text-[length:var(--text-sm)] text-(--color-ink) active:opacity-80 ${checked ? "font-semibold" : ""}`}
+      // [원본] className={`min-h-[44px] min-w-[44px] shrink-0 rounded-[var(--radius-pill)] border px-[var(--spacing-md)] text-[length:var(--text-sm)] text-(--color-ink) active:opacity-80 ${checked ? "font-semibold" : ""}`} — 알약 → 4px(SPEC-057 R1a·R1b)
+      className={`min-h-[44px] min-w-[44px] shrink-0 rounded-[var(--radius-sm)] border px-[var(--spacing-md)] text-[length:var(--text-sm)] active:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-brand) ${checked ? "font-semibold text-(--color-ink)" : "text-(--color-ink2)"}`}
     >
       {checked ? <span aria-hidden>✓ </span> : null}
       {label}
@@ -107,7 +110,9 @@ function Toggle({
       aria-pressed={pressed}
       data-testid={testId}
       onClick={onPress}
-      className={`min-h-[44px] shrink-0 rounded-[var(--radius-pill)] border border-dashed px-[var(--spacing-md)] text-[length:var(--text-sm)] text-(--color-ink2) ${pressed ? "border-(--color-ink2) font-semibold" : "border-(--color-line-strong)"}`}
+      // [원본] className={`min-h-[44px] shrink-0 rounded-[var(--radius-pill)] border border-dashed px-[var(--spacing-md)] text-[length:var(--text-sm)] text-(--color-ink2) ${pressed ? "border-(--color-ink2) font-semibold" : "border-(--color-line-strong)"}`} — 알약 → 4px(SPEC-057 R1a·R1b)
+      // [원본 Phase 3] 점선 테두리 — 표에 없는 꼴(REV-131 H4) → [개선] R1b 고르는 칩(옅은 판 · 켜면 brand 테두리 + 진한 굵은 글자 · ✓ 유지)
+      className={`min-h-[44px] shrink-0 rounded-[var(--radius-sm)] border bg-(--color-surface-alt) px-[var(--spacing-md)] text-[length:var(--text-sm)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-brand) ${pressed ? "border-(--color-brand) font-semibold text-(--color-ink)" : "border-transparent text-(--color-ink2)"}`}
     >
       {pressed ? <span aria-hidden>✓ </span> : null}
       {label}
@@ -228,10 +233,13 @@ export default function ImportRowSheet({
           data-testid="ir-failure"
           onClick={() => onChange({ noteKo: toggleFailure(value.noteKo, !failure) }, {})}
           style={{
-            backgroundColor: failure ? "var(--color-surface-alt)" : "var(--color-card)",
-            borderColor: failure ? "var(--color-ink)" : "var(--color-line-strong)",
+            // [원본] backgroundColor: failure ? "var(--color-surface-alt)" : "var(--color-card)", borderColor: failure ? "var(--color-ink)" : "var(--color-line-strong)", — 고르면 ink 테두리·흰 판이 동작 버튼(R1a)과 같아 보였다(REV-131)
+            // [개선] R1b — 늘 옅은 판, 고르면 brand 테두리 + 진한 굵은 글자(✓ 는 숫자 칩 묶음에서 알아보기 쉽게 남긴다)
+            backgroundColor: "var(--color-surface-alt)",
+            borderColor: failure ? "var(--color-brand)" : "transparent",
           }}
-          className="min-h-[44px] rounded-[var(--radius-pill)] border px-[var(--spacing-md)] text-[length:var(--text-sm)] text-(--color-ink)"
+          // [원본] className="min-h-[44px] rounded-[var(--radius-pill)] border px-[var(--spacing-md)] text-[length:var(--text-sm)] text-(--color-ink)" — 알약 → 4px(SPEC-057 R1a·R1b)
+          className={`min-h-[44px] rounded-[var(--radius-sm)] border px-[var(--spacing-md)] text-[length:var(--text-sm)] ${failure ? "font-semibold text-(--color-ink)" : "text-(--color-ink2)"}`}
         >
           {failure ? <span aria-hidden>✓ </span> : null}
           {t("routineImport.toFailure")}

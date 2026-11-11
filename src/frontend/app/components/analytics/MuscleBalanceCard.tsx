@@ -233,7 +233,8 @@ export function MuscleBalanceCard({ days }: { /** 위쪽 기간의 일수(null =
                         // QuietChip 모양(무테·무채)을 호출부에서 그린다 — 보이는 칩 32px, 누르는 자리는 위아래 6px 를 더해 44px(U-11)
                         className="flex min-h-[44px] items-center"
                       >
-                        <span className="flex min-h-[32px] items-center rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[var(--spacing-md)] text-(--color-ink2) text-[length:var(--text-sm)]">
+                        {/* [원본] <span className="flex min-h-[32px] items-center rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[var(--spacing-md)] text-(--color-ink2) text-[length:var(--text-sm)]"> — 누를 수 있는 값 판 4px(R1c) */}
+                        <span className="flex min-h-[32px] items-center rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[var(--spacing-md)] text-(--color-ink2) text-[length:var(--text-sm)]">
                           {name}
                         </span>
                       </Link>

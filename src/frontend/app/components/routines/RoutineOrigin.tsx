@@ -41,8 +41,11 @@ export function RoutineOriginChip({
       <span
         data-testid={testId}
         data-origin="coach"
-        className="inline-flex max-w-[11em] shrink-0 items-center gap-[4px] rounded-[var(--radius-pill)] bg-(--color-coaching-soft) px-[8px] py-[1px] font-semibold text-(--color-coaching-ink) text-[length:var(--text-xs)]"
+        // [원본] className="inline-flex max-w-[11em] shrink-0 items-center gap-[4px] rounded-[var(--radius-pill)] bg-(--color-coaching-soft) px-[8px] py-[1px] font-semibold text-(--color-coaching-ink) text-[length:var(--text-xs)]" — 정보는 판 없이 글자만 — 코칭은 coaching-ink(SPEC-057 R2)
+        className="inline-flex max-w-[11em] shrink-0 items-center gap-[4px] font-semibold text-(--color-coaching-ink) text-[length:var(--text-xs)]"
       >
+        {/* 코칭 표시는 판 대신 앞의 코칭색 점(SPEC-057 R2 색 표) */}
+        <span aria-hidden className="h-[6px] w-[6px] shrink-0 rounded-full bg-(--color-coaching)" />
         <span className="truncate">
           {b.coachName ? t("routines.originCoach", { name: b.coachName }) : t("routines.originCoachNoName")}
         </span>
@@ -54,8 +57,11 @@ export function RoutineOriginChip({
     <span
       data-testid={testId}
       data-origin={b.kind === "coachEnded" ? "coach_ended" : "import"}
-      className="inline-flex shrink-0 items-center rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[8px] py-[1px] font-semibold text-(--color-ink2) text-[length:var(--text-xs)]"
+      // [원본] className="inline-flex shrink-0 items-center rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[8px] py-[1px] font-semibold text-(--color-ink2) text-[length:var(--text-xs)]" — 정보는 판 없이 글자만(SPEC-057 R2)
+      className="inline-flex shrink-0 items-center gap-[4px] font-semibold text-(--color-ink2) text-[length:var(--text-xs)]"
     >
+      {/* 판을 걷어 뒤 종목 줄과 이어 읽히지 않게 앞에 점(REV-131) */}
+      <span aria-hidden className="h-[6px] w-[6px] shrink-0 rounded-full bg-(--color-ink3)" />
       {b.kind === "coachEnded" ? t("routines.originCoachEnded") : t("routines.originImport")}
     </span>
   );
@@ -86,7 +92,8 @@ export function CoachRoutineBanner({
   return (
     <div
       data-testid="coach-routine-banner"
-      className="mb-[var(--spacing-md)] rounded-[var(--radius-md)] border-(--color-coaching) border-l-[3px] bg-(--color-coaching-soft) px-[var(--spacing-md)] py-[var(--spacing-sm)]"
+      // [원본] rounded-[var(--radius-md)] — 판 모서리는 4px 하나로(SPEC-057 REV-131 H3)
+      className="mb-[var(--spacing-md)] rounded-[var(--radius-sm)] border-(--color-coaching) border-l-[3px] bg-(--color-coaching-soft) px-[var(--spacing-md)] py-[var(--spacing-sm)]"
     >
       <span className="block font-semibold text-(--color-coaching-ink) text-[length:var(--text-sm)]">
         {b.coachName

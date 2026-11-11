@@ -117,7 +117,8 @@ export function BlockTools({
       >
         <span
           data-chip-face=""
-          className={`inline-flex items-center gap-[4px] rounded-[10px] px-[6px] py-[2px] ${chipFaceClass("default", false)}`}
+          // [원본] className={`inline-flex items-center gap-[4px] rounded-[10px] px-[6px] py-[2px] ${chipFaceClass("default", false)}`} — 값 판 4px(R1c)
+          className={`inline-flex items-center gap-[4px] rounded-[var(--radius-sm)] px-[6px] py-[2px] ${chipFaceClass("default", false)}`}
         >
           <Icon name="timer-outline" size={14} color="var(--color-ink3)" />
           {t("session.restShort", { time: formatRestShort(restSeconds) })}
@@ -146,7 +147,8 @@ export function BlockTools({
       >
         <span
           data-chip-face=""
-          className={`inline-flex min-w-0 max-w-full items-center gap-[4px] rounded-[10px] px-[6px] py-[2px] ${chipFaceClass("default", false)}`}
+          // [원본] className={`inline-flex min-w-0 max-w-full items-center gap-[4px] rounded-[10px] px-[6px] py-[2px] ${chipFaceClass("default", false)}`} — 값 판 4px(R1c)
+          className={`inline-flex min-w-0 max-w-full items-center gap-[4px] rounded-[var(--radius-sm)] px-[6px] py-[2px] ${chipFaceClass("default", false)}`}
         >
           <Icon name="create-outline" size={14} color="var(--color-ink3)" />
           <span className="min-w-0 truncate">{preview || t("session.noteShort")}</span>

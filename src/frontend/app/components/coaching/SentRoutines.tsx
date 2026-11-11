@@ -173,7 +173,8 @@ function SentRow({ row, hideStatus = false }: { row: Row; hideStatus?: boolean }
     </>
   );
   const cls =
-    "flex min-h-14 w-full min-w-0 items-center gap-[var(--spacing-sm)] rounded-[var(--radius-md)] bg-(--color-surface) px-[var(--spacing-md)] py-[var(--spacing-xs)] text-left";
+    // [원본] "flex min-h-14 w-full min-w-0 items-center gap-[var(--spacing-sm)] rounded-[var(--radius-md)] bg-(--color-surface) px-[var(--spacing-md)] py-[var(--spacing-xs)] text-left"; — 누르는 줄 4px(R1)
+    "flex min-h-14 w-full min-w-0 items-center gap-[var(--spacing-sm)] rounded-[var(--radius-sm)] bg-(--color-surface) px-[var(--spacing-md)] py-[var(--spacing-xs)] text-left";
   if (!row.draftId)
     return (
       <div data-testid="sent-row" data-name={row.name} className={cls}>

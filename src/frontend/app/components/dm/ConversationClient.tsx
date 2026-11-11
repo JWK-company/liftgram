@@ -414,7 +414,8 @@ export default function ConversationClient({ conversationId }: { conversationId:
           data-testid="conv-input"
           aria-label={t("dm.messagePlaceholder")}
           // [원본] rounded-[22px] — 토큰 밖 둥근 값 · [개선] 입력칸은 모서리 토큰(SPEC-056 F2)
-          className="block max-h-[110px] min-h-[44px] min-w-0 flex-1 resize-none rounded-[var(--radius-md)] border border-(--color-line-strong) bg-(--color-card) px-[var(--spacing-lg)] py-[10px] text-[length:var(--text-md)] text-(--color-ink) leading-[22px] outline-none placeholder:text-(--color-ink3) focus:border-(--color-brand)"
+          // [원본] className="block max-h-[110px] min-h-[44px] min-w-0 flex-1 resize-none rounded-[var(--radius-md)] border border-(--color-line-strong) bg-(--color-card) px-[var(--spacing-lg)] py-[10px] text-[length:var(--text-md)] text-(--color-ink) leading-[22px] outline-none placeholder:text-(--color-ink3) focus:border-(--color-brand)" — 입력칸 4px(SPEC-057)
+          className="block max-h-[110px] min-h-[44px] min-w-0 flex-1 resize-none rounded-[var(--radius-sm)] border border-(--color-line-strong) bg-(--color-card) px-[var(--spacing-lg)] py-[10px] text-[length:var(--text-md)] text-(--color-ink) leading-[22px] outline-none placeholder:text-(--color-ink3) focus:border-(--color-brand)"
         />
         <button
           type="button"
@@ -449,7 +450,8 @@ function Bubble({ msg, mine, showSender }: { msg: Message; mine: boolean; showSe
       >
         {/* 그룹에서만 누가 보냈는지 적는다 — 1:1은 물어볼 것도 없다. */}
         {showSender && !mine && msg.sender?.displayName ? (
-          <AppText variant="label" color="primary" className="mb-[2px] block">
+          // [원본] <AppText variant="label" color="primary" className="mb-[2px] block"> — 보낸 사람은 정보 글자(SPEC-057 R2 · REV-132)
+          <AppText variant="label" color="textMuted" className="mb-[2px] block font-bold!">
             {msg.sender.displayName}
           </AppText>
         ) : null}

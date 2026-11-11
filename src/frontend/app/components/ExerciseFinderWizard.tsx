@@ -242,19 +242,22 @@ function WizardCard({
       data-testid={testId}
       onClick={onPress}
       style={{
-        backgroundColor: accent ? "var(--color-brand-muted)" : "var(--color-surface-alt)",
-        borderColor: accent ? "var(--color-brand)" : "var(--color-line)",
+        // [원본] backgroundColor: accent ? "var(--color-brand-muted)" : "var(--color-surface-alt)", — brand-muted 판 걷음(SPEC-057 R1a)
+        backgroundColor: "var(--color-surface-alt)",
+        // [원본] borderColor: accent ? "var(--color-brand)" : "var(--color-line)", — 강조만 brand 테두리
+        // [개선 REV-131] brand 테두리는 「골랐다」는 뜻(R1b) — 강조 카드도 테두리 없음
+        borderColor: "transparent",
       }}
-      className={`flex items-center rounded-[var(--radius-md)] border px-[var(--spacing-xs)] py-[var(--spacing-md)] active:opacity-70 ${
+      // [원본] className={`flex items-center rounded-[var(--radius-md)] border px-[var(--spacing-xs)] py-[var(--spacing-md)] active:opacity-70 ${ — 4px(R1a)
+      className={`flex items-center rounded-[var(--radius-sm)] border px-[var(--spacing-xs)] py-[var(--spacing-md)] active:opacity-70 ${
         wide
           ? "min-h-[52px] w-full justify-start gap-[var(--spacing-sm)] px-[var(--spacing-lg)]"
           : "min-h-16 w-[31%] flex-col justify-center gap-[4px]"
       }`}
     >
-      {icon ? (
-        <Icon name={icon} size={20} color={accent ? "var(--color-brand)" : "var(--color-ink2)"} />
-      ) : null}
-      <AppText variant="body" color={accent ? "primary" : "text"} center={!wide} className="font-semibold">
+      {icon ? <Icon name={icon} size={20} color={accent ? "var(--color-ink)" : "var(--color-ink2)"} /> : null}
+      {/* [원본] <AppText variant="body" color={accent ? "primary" : "text"} center={!wide} className="font-semibold"> — 빨강 글자 금지(SRS-069) */}
+      <AppText variant="body" color="text" center={!wide} className="font-semibold">
         {label}
       </AppText>
     </button>

@@ -127,12 +127,16 @@ export function CoachProfileFields() {
               aria-pressed={on}
               disabled={full}
               onClick={() => toggleTag(tag)}
+              // [원본] 고르면 coaching-soft 판 + coaching 테두리·글자, 아니면 surface-alt + line 테두리
+              // [개선] R1b — 늘 옅은 판, 고르면 코칭색 테두리 + 진한 글자(선택 바탕 채움 없음 · SPEC-057)
               style={{
-                backgroundColor: on ? "var(--color-coaching-soft)" : "var(--color-surface-alt)",
-                borderColor: on ? "var(--color-coaching)" : "var(--color-line)",
-                color: on ? "var(--color-coaching-ink)" : "var(--color-ink2)",
+                backgroundColor: "var(--color-surface-alt)",
+                borderColor: on ? "var(--color-coaching)" : "transparent",
+                color: on ? "var(--color-ink)" : "var(--color-ink2)",
               }}
-              className={`min-h-11 rounded-[var(--radius-pill)] border px-[var(--spacing-md)] text-[length:var(--text-sm)] ${on ? "font-bold" : ""} ${full ? "opacity-40" : ""}`}
+              // [원본] className={`min-h-11 rounded-[var(--radius-pill)] border px-[var(--spacing-md)] text-[length:var(--text-sm)] ${on ? "font-bold" : ""} ${full ? "opacity-40" : ""}`} — 알약 → 4px(R1b)
+              // [개선 REV-132] 키보드 포커스 링
+              className={`min-h-11 rounded-[var(--radius-sm)] border px-[var(--spacing-md)] text-[length:var(--text-sm)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-brand) ${on ? "font-semibold" : ""} ${full ? "opacity-40" : ""}`}
             >
               {t(`coaching.tag.${tag}` as TransKey)}
             </button>

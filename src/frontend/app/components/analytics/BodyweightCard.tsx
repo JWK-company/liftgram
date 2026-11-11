@@ -34,7 +34,7 @@ import { lang, t } from "@/lib/i18n";
 // [원본] import { BodyweightRecordSheet } from "../profile/BodyweightRow"; · WeighInSheet · Button · MoreMenu — 머리 버튼·목표 시트를 체중 패널로
 import { BodyweightHistorySheet } from "../profile/BodyweightRow";
 import { formatBodyweightDate } from "../session/WeighInSheet";
-import { Icon } from "../ui/Icon";
+// [원본] import { Icon } from "../ui/Icon"; — 「기록 ›」 쐐기를 걷어 쓰지 않는다(SPEC-057 R5)
 import { LineChart } from "../ui/LineChart";
 import { AppText, Card } from "../ui/primitives";
 import { SectionLabel, Segmented } from "../ui/rows";
@@ -193,17 +193,20 @@ export function BodyweightCard() {
                               : []),
                           ]}
                         /> */}
-            {/* [개선] 다른 카드 머리처럼 회색 글자 + › 하나 — 누르면 체중 패널 시트(바로 입력 · 목표 · 지난 기록). 빨강 채움·테두리 없음 */}
+            {/* [원본] 다른 카드 머리처럼 회색 글자 + › 하나 — 누르면 체중 패널 시트(바로 입력 · 목표 · 지난 기록). 빨강 채움·테두리 없음 */}
+            {/* [개선] 쐐기 없는 진한 굵은 글자 「기록」(SPEC-057 R6) — 앞 최근 값과 이어 읽히지 않게 왼쪽 여백 md(REV-132) */}
             <button
               type="button"
               data-testid="btn-bodyweight-card-record"
               aria-label={t("bodyweight.cardRecordAria")}
               aria-haspopup="dialog"
               onClick={() => setSheet("record")}
-              className="flex min-h-11 shrink-0 items-center gap-[2px] rounded-[var(--radius-sm)] pl-[var(--spacing-xs)] font-medium text-(--color-ink2) text-[length:var(--text-sm)] focus-visible:outline-2 focus-visible:outline-(--color-brand) active:bg-(--color-surface-alt)"
+              // [원본] font-medium text-(--color-ink2) + 뒤 › 아이콘 — 시트를 여는 버튼이라 쐐기 없이 진한 굵은 글자(SPEC-057 R5·R6)
+              // [원본 Phase 4] className="… pl-[var(--spacing-xs)] …"
+              className="ml-[var(--spacing-sm)] flex min-h-11 shrink-0 items-center gap-[2px] rounded-[var(--radius-sm)] pl-[var(--spacing-xs)] font-semibold text-(--color-ink) text-[length:var(--text-sm)] focus-visible:outline-2 focus-visible:outline-(--color-brand) active:bg-(--color-surface-alt)"
             >
               {t("bodyweight.record")}
-              <Icon name="chevron-forward" size={16} color="var(--color-ink2)" />
+              {/* [원본] <Icon name="chevron-forward" size={16} color="var(--color-ink2)" /> */}
             </button>
           </div>
         }

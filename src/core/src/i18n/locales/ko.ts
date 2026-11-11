@@ -288,6 +288,7 @@ export const ko = {
   "exercises.deleteCustomTitle": "이 종목을 지울까요?",
   "exercises.deleteCustomMessage": "목록과 고르기에서 사라져요. 지난 기록은 그대로 남아요.",
   "exercises.renameLabel": "이름 바꾸기",
+  "exercises.renameAliasesLabel": "흔히 부르는 이름",
   "exercises.renameReset": "원래 이름으로",
   "exercises.categoryLabel": "분류",
   "exercises.categoryPlaceholder": "예: 상체, 컴파운드 (선택)",
@@ -1062,8 +1063,12 @@ export const ko = {
   "session.setVariantTitle": "세트 옵션 (이 세트만)",
   "session.exVolume": "볼륨 {volume}",
   "session.exTotalReps": "총 {reps}회",
-  "session.clearPrev": "이전기록 지우기",
-  "session.showPrev": "이전기록 표시",
+  // [원본] "이전기록 지우기" · "이전기록 표시" — 「지우기」가 기록 삭제로 읽혔다(SPEC-057 · REV-128 A9)
+  "session.clearPrev": "이전기록 숨기기",
+  "session.showPrev": "이전기록 보이기",
+  "session.prevHiddenAnnounce": "이전 기록을 숨겼어요",
+  // [원본] "session.prevShownAnnounce": "이전 기록을 다시 보여요", — 어색한 말(REV-130)
+  "session.prevShownAnnounce": "이전 기록을 다시 표시했어요",
   "session.partialColHeader": "부분",
   "session.partialFull": "부분 반복(깔짝)",
   "session.durationColHeader": "시간(분)",
@@ -1099,7 +1104,10 @@ export const ko = {
   "variant.slotNow": "지금 조합",
   "session.weightOneSideLabel": "한쪽({weightUnit})",
   "session.prevSlot": "이전 기록 · {slot}",
-  "session.otherSlots": "다른 조합 기록 보기",
+  // [원본] "다른 조합 기록 보기" — 「더 보기」 없이 늘 보이는 줄이라 짧게(SPEC-057 · REV-128 A8)
+  "session.otherSlots": "다른 조합",
+  // 버튼 글자 — 언어마다 띄어쓰기가 달라 틀째 둔다(REV-130)
+  "session.otherSlotsN": "다른 조합({n})",
   "session.otherSlotsTitle": "조합별 기록",
   "session.otherSlotsEmpty": "이 종목은 아직 다른 조합으로 한 기록이 없어요.",
   "session.slotSessions": "{date} · {count}회 수행",

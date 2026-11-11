@@ -614,7 +614,12 @@ export default function ImportFlow() {
               {t("import.match.confirm")}
             </MetaAction>
           ) : null}
-          <MetaAction key="pick" onPress={() => setPicking(m.sourceName)} testId="import-match-pick">
+          <MetaAction
+            key="pick"
+            onPress={() => setPicking(m.sourceName)}
+            testId="import-match-pick"
+            hasPopup /* 피커를 연다(SPEC-057 R6) */
+          >
             {t("import.match.pick")}
           </MetaAction>
           {d.kind !== "custom" ? (

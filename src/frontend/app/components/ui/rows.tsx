@@ -148,6 +148,19 @@ export function ListRow({
 
 export type SegmentItem<V extends string> = { value: V; label: string; href?: string; testId?: string };
 
+/**
+ * 분할 토글 칸 하나의 꼴(SPEC-057 R1d · REV-129) — Segmented·UnitToggle 이 같이 쓴다.
+ * 모서리 2px(트랙 4px 의 안쪽) · 켜진 칸 = 흰 판 + line-strong 1px 테두리 + 진한 semibold(트랙 대비 라이트 4.17 · 다크 4.78)
+ * · 꺼진 칸 = ink2(ink3 은 트랙 위 12px 대비 미달) · 포커스는 칸 안쪽 ink 링(다크 켜진 칸 위에서도 7:1).
+ */
+export function segCellClass(on: boolean): string {
+  return `rounded-[2px] border focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-(--color-ink) ${
+    on
+      ? "border-(--color-line-strong) bg-(--seg-on) font-semibold text-(--color-ink)"
+      : "border-transparent font-medium text-(--color-ink2)"
+  }`;
+}
+
 /** 구간 선택기 — 회색 틀 안의 흰 칸. href 를 주면 링크(주소가 곧 상태)로 그린다. */
 export function Segmented<V extends string>({
   items,
@@ -166,13 +179,14 @@ export function Segmented<V extends string>({
     <div
       role="tablist"
       data-testid={testId}
-      className={`flex rounded-[10px] bg-(--color-surface-alt) p-[3px] ${className}`}
+      // [원본] rounded-[10px] · 칸 rounded-[8px] · [개선] 분할 토글 트랙 4px · 칸 2px(SPEC-057 R1d)
+      className={`flex rounded-[var(--radius-sm)] bg-(--color-surface-alt) p-[3px] ${className}`}
     >
       {items.map((it) => {
         const on = it.value === value;
-        const cls = `flex h-9 flex-1 items-center justify-center rounded-[8px] text-[length:var(--text-sm)] ${
-          on ? "bg-(--seg-on) font-semibold text-(--color-ink) shadow-sm" : "text-(--color-ink2)"
-        }`;
+        // [원본] on ? "bg-(--seg-on) font-semibold text-(--color-ink) shadow-sm" : "text-(--color-ink2)"
+        // [개선] 분할 토글 칸 하나의 꼴(segCellClass · SPEC-057 R1d · REV-129) — 켜진 칸 테두리로 트랙과 3:1
+        const cls = `flex h-9 flex-1 items-center justify-center text-[length:var(--text-sm)] ${segCellClass(on)}`;
         return it.href ? (
           <a
             key={it.value}

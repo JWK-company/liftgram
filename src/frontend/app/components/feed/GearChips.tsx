@@ -142,13 +142,16 @@ export function GearChips({
               type="button"
               onClick={() => open(tag)}
               data-testid="gear-link"
-              className="flex items-center rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[5px]"
+              // [원본] className="flex items-center rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[5px]" — 알약 → 4px 옅은 판(SPEC-057 R1c)
+              className="flex items-center rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[5px]"
             >
-              <AppText variant="caption" color="primary">
+              {/* [원본] color="primary" — 빨강 글자는 주 행동에만(SRS-069) */}
+              <AppText variant="caption" color="text">
                 {tag.brand ? `${tag.brand} ${t(gearLabelKey(tag.category))}` : t(gearLabelKey(tag.category))}
               </AppText>
               <span className="ml-[4px] flex">
-                <Icon name="open-outline" size={12} color="var(--color-brand)" />
+                {/* [원본] <Icon name="open-outline" size={12} color="var(--color-brand)" /> — 빨강은 주 행동에만(SRS-069 · REV-132) */}
+                <Icon name="open-outline" size={12} color="var(--color-ink2)" />
               </span>
             </button>
           ))}

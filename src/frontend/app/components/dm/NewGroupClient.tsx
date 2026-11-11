@@ -121,10 +121,11 @@ export default function NewGroupClient() {
                 data-testid="new-msg-chip"
                 aria-label={t("dm.unpick", { name: u.author?.displayName || t("discover.unnamed") })}
                 onClick={() => toggle(u)}
-                className="flex min-h-[44px] items-center gap-[4px] rounded-full bg-(--color-brand-muted) pr-[8px] pl-[12px] text-(--color-brand) text-[length:var(--text-sm)]"
+                // [원본] className="flex min-h-[44px] items-center gap-[4px] rounded-full bg-(--color-brand-muted) pr-[8px] pl-[12px] text-(--color-brand) text-[length:var(--text-sm)]" — 알약·빨강 → 4px 옅은 판 · 진한 글자(SPEC-057 R1c)
+                className="flex min-h-[44px] items-center gap-[4px] rounded-[var(--radius-sm)] bg-(--color-surface-alt) pr-[8px] pl-[12px] text-(--color-ink) text-[length:var(--text-sm)]"
               >
                 {u.author?.displayName || t("discover.unnamed")}
-                <Icon name="close" size={14} color="var(--color-brand)" />
+                <Icon name="close" size={14} color="var(--color-ink2)" />
               </button>
             ))}
           </div>

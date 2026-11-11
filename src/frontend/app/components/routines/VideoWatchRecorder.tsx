@@ -457,7 +457,8 @@ export default function VideoWatchRecorder({ review, startSec, nameOf, update, o
                       },
                     )}`}
                     onClick={() => openSheet(r.key)}
-                    className="min-h-[44px] shrink-0 rounded-[var(--radius-pill)] border border-(--color-line-strong) px-[var(--spacing-sm)] text-(--color-ink) text-[length:var(--text-sm)]"
+                    // [원본] className="min-h-[44px] shrink-0 rounded-[var(--radius-pill)] border border-(--color-line-strong) px-[var(--spacing-sm)] text-(--color-ink) text-[length:var(--text-sm)]" — 알약 → 4px(R1a)
+                    className="min-h-[44px] shrink-0 rounded-[var(--radius-sm)] border border-(--color-line-strong) px-[var(--spacing-sm)] text-(--color-ink) text-[length:var(--text-sm)]"
                   >
                     {t("routineImport.prescription", {
                       sets: r.sets,

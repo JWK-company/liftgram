@@ -119,7 +119,8 @@ export function RirSheet({
               >
                 <span
                   style={{ borderColor: selected ? "var(--color-brand)" : "transparent" }}
-                  className={`flex h-[32px] min-w-[44px] shrink-0 items-center justify-center rounded-[var(--radius-pill)] border bg-(--color-surface-alt) px-[var(--spacing-sm)] text-[length:var(--text-sm)] tabular-nums ${
+                  // [원본] className={`flex h-[32px] min-w-[44px] shrink-0 items-center justify-center rounded-[var(--radius-pill)] border bg-(--color-surface-alt) px-[var(--spacing-sm)] text-[length:var(--text-sm)] tabular-nums ${ — 알약 → 4px(R1b)
+                  className={`flex h-[32px] min-w-[44px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] border bg-(--color-surface-alt) px-[var(--spacing-sm)] text-[length:var(--text-sm)] tabular-nums ${
                     selected ? "font-semibold text-(--color-ink)" : "text-(--color-ink2)"
                   }`}
                 >
@@ -146,7 +147,8 @@ export function RirSheet({
           aria-label={t("effort.stepDec")}
           disabled={draft !== null && draft <= EFFORT_RIR_MIN}
           onClick={() => step(-1)}
-          className="flex h-[44px] w-[44px] items-center justify-center rounded-[var(--radius-md)] bg-(--color-surface-alt) text-(--color-ink) disabled:opacity-40"
+          // [원본] rounded-[var(--radius-md)] — 누르는 것은 4px(SPEC-057 R1a)
+          className="flex h-[44px] w-[44px] items-center justify-center rounded-[var(--radius-sm)] bg-(--color-surface-alt) text-(--color-ink) disabled:opacity-40"
         >
           <Icon name="remove" size={18} />
         </button>
@@ -169,7 +171,8 @@ export function RirSheet({
           aria-label={t("effort.stepInc")}
           disabled={draft !== null && draft >= EFFORT_RIR_MAX}
           onClick={() => step(1)}
-          className="flex h-[44px] w-[44px] items-center justify-center rounded-[var(--radius-md)] bg-(--color-surface-alt) text-(--color-ink) disabled:opacity-40"
+          // [원본] rounded-[var(--radius-md)] — 누르는 것은 4px(SPEC-057 R1a)
+          className="flex h-[44px] w-[44px] items-center justify-center rounded-[var(--radius-sm)] bg-(--color-surface-alt) text-(--color-ink) disabled:opacity-40"
         >
           <Icon name="add" size={18} />
         </button>

@@ -364,21 +364,25 @@ function ExpandFailedNote() {
 
 function GymCard({ gym, recommended }: { gym: RankedGym; recommended?: boolean }) {
   return (
-    // [개선] 추천 칸은 빨강 테두리가 뜻을 가지므로 상자 유지(SPEC-056 REV-122)
+    // [원본] 추천 칸은 빨강 테두리가 뜻을 가지므로 상자 유지(SPEC-056 REV-122)
+    // [개선] 추천 칸은 기본 상자(boxed) + ★ 「추천」 굵은 회색 글자(SPEC-057 R2 · REV-132)
     <Card
       boxed={recommended}
       data-testid={recommended ? "gym-recommended" : "gym-row"}
       // [원본] className={`mb-[var(--spacing-sm)] flex items-center ${recommended ? "border border-(--color-brand) bg-(--color-brand-muted)" : ""}`}
       // [개선] 평평한 줄은 아래 선으로 나뉘어 사이 여백이 없다 — 추천 상자만 아래 여백(SPEC-056 F1)
       className={`flex items-center ${
-        recommended ? "mb-[var(--spacing-sm)] border border-(--color-brand) bg-(--color-brand-muted)" : ""
+        // [원본] recommended ? "… border border-(--color-brand) bg-(--color-brand-muted)" — brand 테두리는 「골랐다」는 뜻(R1b) · 빨강 판 금지(SRS-069)
+        // [원본] recommended ? "mb-[var(--spacing-sm)] border border-(--color-line-strong)" : "" — boxed 의 border-line 과 겹쳤다(REV-132) · 상자는 boxed 그대로, 뜻은 ★ 글자로
+        recommended ? "mb-[var(--spacing-sm)]" : ""
       }`}
     >
       <div className="min-w-0 flex-1 pr-[var(--spacing-md)]">
         {recommended ? (
           <div className="mb-[2px] flex items-center gap-[3px]">
-            <Icon name="star" size={11} color="var(--color-brand)" />
-            <AppText variant="label" color="primary">
+            {/* [원본] <Icon name="star" size={11} color="var(--color-brand)" /> · <AppText variant="label" color="primary"> — 빨강은 주 행동에만(SRS-069 · REV-132) */}
+            <Icon name="star" size={11} color="var(--color-ink2)" />
+            <AppText variant="label" color="textMuted" className="font-bold!">
               {t("gyms.recommended")}
             </AppText>
           </div>

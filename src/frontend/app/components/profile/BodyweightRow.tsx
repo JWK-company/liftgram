@@ -244,7 +244,8 @@ export function BodyweightHistorySheet({ onClose }: { onClose: () => void }) {
               value={editDate}
               max={ymdOf(todayEnd - 1)}
               onChange={(e) => setEditDate(e.target.value)}
-              className="h-[44px] rounded-[var(--radius-md)] border border-(--color-line-strong) bg-(--color-surface) px-[var(--spacing-sm)] text-(--color-ink)"
+              // [원본] className="h-[44px] rounded-[var(--radius-md)] border border-(--color-line-strong) bg-(--color-surface) px-[var(--spacing-sm)] text-(--color-ink)" — 입력칸 4px(SPEC-057)
+              className="h-[44px] rounded-[var(--radius-sm)] border border-(--color-line-strong) bg-(--color-surface) px-[var(--spacing-sm)] text-(--color-ink)"
             />
           </label>
         }
@@ -813,7 +814,8 @@ export function BodyweightPanel({
                             value={editDate}
                             max={ymdOf(todayEnd - 1)}
                             onChange={(e) => setEditDate(e.target.value)}
-                            className="h-[44px] rounded-[var(--radius-md)] border border-(--color-line-strong) bg-(--color-surface) px-[var(--spacing-sm)] text-(--color-ink)"
+                            // [원본] className="h-[44px] rounded-[var(--radius-md)] border border-(--color-line-strong) bg-(--color-surface) px-[var(--spacing-sm)] text-(--color-ink)" — 입력칸 4px(SPEC-057)
+                            className="h-[44px] rounded-[var(--radius-sm)] border border-(--color-line-strong) bg-(--color-surface) px-[var(--spacing-sm)] text-(--color-ink)"
                           />
                         </label>
                       }

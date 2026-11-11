@@ -9,9 +9,10 @@
 //   새 색 토큰은 만들지 않는다(원본 core/src/theme/tokens.ts 그대로).
 //
 //   MetaLine   회색 caption 한 줄 — 조각을 「 · 」로 잇는다(텍스트·누를 수 있는 텍스트 혼용)
-//   MetaAction 누를 수 있는 메타 조각 — 꺾쇠(›·▾) 하나로 누를 수 있음을 알린다(점선 밑줄은 새 소음이라 뺐다 · /qa code L-1)
-//              최소 높이 32px(장갑 낀 손가락 · /qa spec Q7)
-//   QuietChip  무테·무채 작은 칩 — 선택 상태만 브랜드 테두리(글자는 ink2 — ink3 는 surface-alt 위 대비 미달 · Q1)
+//   MetaAction 누를 수 있는 메타 조각 — [원본] 꺾쇠(›·▾) 하나로 누를 수 있음을 알렸다(점선 밑줄은 새 소음이라 뺐다 · /qa code L-1)
+//              [개선 SPEC-057 R5·R6] 꺾쇠는 뜻이 있을 때만(이동 › · 펼침 ▾/▴ · 값 선택기 ▾), 누를 수 있음은 진한 글자(ink·medium)가
+//              알린다 — 정보 조각(MetaLine 의 ink2)과 색·굵기로 갈린다. 최소 높이 32px(장갑 낀 손가락 · /qa spec Q7)
+//   QuietChip  고르는 칩(R1b) — 4px 옅은 판, 선택 상태만 브랜드 테두리(글자는 ink2 — ink3 는 surface-alt 위 대비 미달 · Q1)
 //   Fold       「더 보기 ▾」 한 줄 접기 — 펼침은 **이번 운동 동안만** 기억(scope 에 운동 id · /qa code M-1)
 //              첫 그림부터 저장된 값(useSyncExternalStore · M-2) · 다른 탭의 변경도 따른다(storage 이벤트 · M-3)
 //   PrText     금색 PR 조각 — 금색 한 가지가 「누를 수 있음」 신호. 누르면 콜백, 옆 ⓘ 는 기록으로(길게 누르기 안 씀 · Q7)
@@ -52,7 +53,7 @@ export function MetaLine({
   );
 }
 
-/** 누를 수 있는 메타 조각 — 회색 글자 + 꺾쇠. 상자·밑줄을 두지 않는다(꺾쇠를 따로 주지 않으면 ›). */
+/** 누를 수 있는 메타 조각 — 진한 글자(R6). 상자·밑줄을 두지 않는다. 꺾쇠는 `trailingIcon` 을 준 곳만(R5). */
 export function MetaAction({
   children,
   onPress,
@@ -63,6 +64,8 @@ export function MetaAction({
   trailingIcon,
   ariaExpanded,
   ariaControls,
+  hasPopup = false,
+  tall = false,
 }: {
   children: ReactNode;
   onPress: () => void;
@@ -74,11 +77,20 @@ export function MetaAction({
   trailingIcon?: "chevron-down" | "chevron-forward" | "chevron-up";
   ariaExpanded?: boolean;
   ariaControls?: string;
+  /** 시트(대화상자)를 여는 버튼 — 꺾쇠 대신 보조기기에 알린다(SPEC-057 R6) */
+  hasPopup?: boolean;
+  /** 누르는 자리 44px · 위아래 4px 만 이웃 여백으로 빌린다(늘 보이는 블록 행동 · SPEC-057 REV-128 A10) */
+  tall?: boolean;
 }) {
-  const color = tone === "pr" ? "text-(--color-pr)" : "text-(--color-ink2)";
+  // [원본] const color = tone === "pr" ? "text-(--color-pr)" : "text-(--color-ink2)";
+  // [개선] 누르는 글자는 정보 글자(ink2)보다 한 단계 진하게 — 꺾쇠를 뺀 대신(SPEC-057 R6)
+  // [개선 REV-129] medium(500) 은 12~14px 에서 정보 글자와 잘 갈리지 않는다(다크 대비 1.29) → semibold
+  const color = tone === "pr" ? "text-(--color-pr)" : "font-semibold text-(--color-ink)";
   // [원본] 꺾쇠는 주는 쪽만 — 밑줄이 누를 수 있다는 신호였다
-  // [개선] 밑줄을 빼는 대신 꺾쇠는 늘 하나(금색 PR 조각은 PrText 가 따로 그린다) @plm SRS-069
-  const icon = trailingIcon ?? "chevron-forward";
+  // [원본] 밑줄을 빼는 대신 꺾쇠는 늘 하나(금색 PR 조각은 PrText 가 따로 그린다) @plm SRS-069
+  // const icon = trailingIcon ?? "chevron-forward";
+  // [개선] 꺾쇠는 뜻이 있을 때만 — 시트 열기·그 자리 동작은 글자만(SPEC-057 R5)
+  const icon = trailingIcon;
   return (
     <button
       type="button"
@@ -86,24 +98,33 @@ export function MetaAction({
       aria-label={ariaLabel}
       aria-expanded={ariaExpanded}
       aria-controls={ariaControls}
+      aria-haspopup={hasPopup ? "dialog" : undefined}
       disabled={disabled}
       onClick={onPress}
-      className={`inline-flex min-h-[32px] min-w-0 items-center gap-[2px] ${color} disabled:opacity-60`}
+      // [원본] tall = -my-[6px] — 위아래 이웃과 틈이 4px 뿐이라 누르는 자리가 2px 씩 겹쳤다(REV-130)
+      className={`inline-flex ${tall ? "-my-[4px] min-h-[44px]" : "min-h-[32px]"} min-w-0 items-center gap-[2px] ${color} disabled:opacity-60`}
     >
       {/* [원본] <span className="min-w-0 truncate underline decoration-dotted decoration-[1px] underline-offset-[3px]"> */}
       <span className="min-w-0 truncate">{children}</span>
-      <Icon name={icon} size={12} color={tone === "pr" ? "var(--color-pr)" : "var(--color-ink3)"} />
+      {icon ? (
+        <Icon name={icon} size={12} color={tone === "pr" ? "var(--color-pr)" : "var(--color-ink3)"} />
+      ) : null}
     </button>
   );
 }
 
-/** 무테·무채 작은 칩 — 선택 상태만 브랜드 테두리. 고르는 칩(필터·브랜드)에 쓴다. */
+/**
+ * 고르는 칩 하나의 꼴(SPEC-057 R1b) — 4px 옅은 판·테두리 없음, 고르면 brand 1px 테두리 + 진한 굵은 글자.
+ * 앱의 고르는 칩(Chip · SelectChip · 필터·브랜드)은 모두 이것을 쓴다(REV-129 — 높이·굵기가 갈리지 않게).
+ */
 export function QuietChip({
   label,
   active = false,
   onPress,
   testId,
   compact = false,
+  tall = false,
+  nowrap = false,
 }: {
   label: string;
   active?: boolean;
@@ -111,6 +132,10 @@ export function QuietChip({
   testId?: string;
   /** 작은 칩 — 글자 한 단계 작게·옆 여백 좁게(높이 32 는 그대로 · 장갑 낀 손가락). 칸 시트 「나머지 브랜드」(화면 정리 D9) @plm SRS-071 */
   compact?: boolean;
+  /** 누르는 자리 44px — 칩만 줄지어 있는 곳(세트 표 강도 목표 등) */
+  tall?: boolean;
+  /** 가로 스크롤 줄 — 줄바꿈 없이(필터 칩) */
+  nowrap?: boolean;
 }) {
   return (
     <button
@@ -119,7 +144,8 @@ export function QuietChip({
       aria-pressed={active}
       onClick={onPress}
       style={{ borderColor: active ? "var(--color-brand)" : "transparent" }}
-      className={`min-h-[32px] rounded-[var(--radius-pill)] border bg-(--color-surface-alt) ${
+      // [원본] rounded-[var(--radius-pill)] — 알약 · [개선] 4px 옅은 판(SPEC-057 R1b)
+      className={`${tall ? "min-h-[44px]" : "min-h-[32px]"} ${nowrap ? "shrink-0 whitespace-nowrap" : ""} rounded-[var(--radius-sm)] border bg-(--color-surface-alt) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-brand) ${
         compact
           ? "px-[10px] text-[length:var(--text-xs)]"
           : "px-[var(--spacing-md)] text-[length:var(--text-sm)]"

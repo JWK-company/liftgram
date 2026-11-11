@@ -64,7 +64,8 @@ export function LastLoginBadge() {
         aria-hidden="true"
         data-testid="last-login-badge"
         // [원본] className="… rounded-full …" · [개선] 둥근 정도는 토큰(SPEC-056 F2 · 태그는 알약 허용)
-        className="pointer-events-none absolute -top-2.5 right-3 rounded-[var(--radius-pill)] bg-(--color-brand) px-2 py-0.5 font-semibold text-(--color-on-brand) text-[11px] leading-none ring-2 ring-(--color-card)"
+        // [원본] className="pointer-events-none absolute -top-2.5 right-3 rounded-[var(--radius-pill)] bg-(--color-brand) px-2 py-0.5 font-semibold text-(--color-on-brand) text-[11px] leading-none ring-2 ring-(--color-card)" — 떠 있는 꼬리표도 4px 판(SPEC-057 R2 예외)
+        className="pointer-events-none absolute -top-2.5 right-3 rounded-[var(--radius-sm)] bg-(--color-brand) px-2 py-0.5 font-semibold text-(--color-on-brand) text-[11px] leading-none ring-2 ring-(--color-card)"
       >
         {t("auth.lastBadge")}
       </span>
@@ -146,7 +147,8 @@ export function SocialButtons({
           {loaded ? (
             <span
               // [원본] className="rounded-full …" · [개선] 둥근 정도는 토큰(SPEC-056 F2)
-              className="rounded-[var(--radius-pill)] border border-(--color-line) bg-(--color-card) px-2 py-0.5 text-xs text-(--color-ink2)"
+              // [원본] className="rounded-[var(--radius-pill)] border border-(--color-line) bg-(--color-card) px-2 py-0.5 text-xs text-(--color-ink2)" — 꼬리표 4px 판
+              className="rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-card) px-2 py-0.5 text-xs text-(--color-ink2)"
             >
               {t("auth.setupNeeded")}
             </span>
