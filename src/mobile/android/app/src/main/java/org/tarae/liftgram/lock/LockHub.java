@@ -49,6 +49,13 @@ public final class LockHub {
     /** 알림·알람을 지금 상태로 다시 맞춘다(호출한 스레드에서 · 저장소 실행기 안에서 상태를 복사해 그린다). */
     public static void refresh(Context ctx) {
         try {
+            // 붙잡기가 끝났는데 아직 안 풀렸으면 풀고 웹을 깨운다 — REDRAW 알람보다 먼저 다른 refresh 가 오면 알람이 지워진다(REV-147 1)
+            Boolean due = store(ctx).read(s -> s.undo != null && !s.held(System.currentTimeMillis()));
+            Boolean expired = !Boolean.TRUE.equals(due) ? Boolean.FALSE : store(ctx).write(s -> {
+                long now = System.currentTimeMillis();
+                return s.undo != null && !s.held(now) && s.releaseHold();
+            });
+            if (Boolean.TRUE.equals(expired)) LiftgramLockPlugin.fireAction();
             LockView v = store(ctx).read(s -> LockView.of(s, System.currentTimeMillis()));
             WorkoutNotification.render(ctx, v);
             // 운동 중 포그라운드 서비스(SPEC-020) — 휴식 경로(RestAlarm.route)가 「서비스가 도나」를 보므로 먼저 맞춘다

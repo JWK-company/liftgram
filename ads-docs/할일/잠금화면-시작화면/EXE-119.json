@@ -1,0 +1,661 @@
+{
+  "id": "EXE-119",
+  "type": "Execution",
+  "title": "SPEC-060 Phase 3 — 값 칸 열기·휴식 조절·확인·버전 구현",
+  "group": "할일/잠금화면-시작화면",
+  "meta": {
+    "phase": "3",
+    "result": "done"
+  },
+  "relations": {
+    "executes": [
+      "SPEC-060"
+    ]
+  },
+  "schemaVersion": 1,
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요약"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "값 칸(무게·횟수)을 누르면 그 칸 아래에 ± 줄이 열린다. 한 번에 하나만 열리고, 4초 뒤 닫히며, 「원래대로」로 처방값에 돌아간다. 쉬는 시간 줄 전체를 누르면 그 자리에 [−30초][+30초]가 열리고 건너뛰기는 없앴다. 버전을 앱 1.6.0(13) · 웹 0.99.0 으로 올렸다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "바꾼 파일"
+          }
+        ]
+      },
+      {
+        "type": "table",
+        "content": [
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_header",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "파일"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_header",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "무엇을"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "src/mobile/android/app/src/main/java/org/tarae/liftgram/lock/LockWorkoutActivity.java",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "valueCell",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": "·"
+                      },
+                      {
+                        "type": "text",
+                        "text": "editorRow",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": "·"
+                      },
+                      {
+                        "type": "text",
+                        "text": "openEditor",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": "·"
+                      },
+                      {
+                        "type": "text",
+                        "text": "closeEditor",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": "·"
+                      },
+                      {
+                        "type": "text",
+                        "text": "resetField",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": ", "
+                      },
+                      {
+                        "type": "text",
+                        "text": "setRestOpen",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": "·"
+                      },
+                      {
+                        "type": "text",
+                        "text": "scheduleRestClose",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": ", 재빌드 뒤 열린 편집 줄 되살림, 접근성 시간("
+                      },
+                      {
+                        "type": "text",
+                        "text": "getRecommendedTimeoutMillis",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": ")"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "src/mobile/android/app/src/main/res/values/strings_lock.xml",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": " · "
+                      },
+                      {
+                        "type": "text",
+                        "text": "src/mobile/android/app/src/main/res/values-en/strings_lock.xml",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "「눌러서 시간 조절」·「원래대로」·−30초·상태 읽기 문구"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "src/mobile/release.json",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "1.6.0 · versionCode 13"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "src/frontend/package.json",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "0.99.0"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "테스트 결과"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "./gradlew :app:testDebugUnitTest :app:assembleDebug",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "text": " — 67개 통과."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "에뮬레이터(API 35): +2.5 로 82.5 와 「원래 80」·「원래대로」, 초안 저장 확인 · 쉬는 시간 줄 −30초로 휴식 줄어듦 · REV-148 반영 뒤 띠 가운데 탭은 되돌리지 않고 단추 자리만 되돌림."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준 확인"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "SRS-100: 잠금 화면에서 값 조정과 휴식 조절을 화면을 열지 않고 할 수 있다 — 에뮬레이터에서 확인."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "코드 리뷰"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "REV-148 — 채택 6(Phase 2 와 묶음, EXE-118 참고)."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "범위 밖 변경"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "src/frontend/package.json",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "text": " 버전만 올렸다(배포마다 SemVer 올림 규칙)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "시안과 달라진 점"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "「쉰 시간 기록」은 앱에 없는 기능이라 하지 않았다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "공통 되돌리기 띠를 셋으로 나눴다: 완료는 밀기 띠, 값은 ± 줄의 「원래대로」, 휴식은 −30초."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "모래시계는 40×56 이 아니라 48×68dp."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "휴식 조절은 시계만이 아니라 쉬는 시간 줄 전체를 누르면 열린다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "iOS 는 바꾸지 않았다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "남은 일·다음 단계"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "미검증: TalkBack 읽기, API 30 에뮬레이터(lg_test30), 작은 화면, 제스처 내비게이션 왼쪽 가장자리 뒤로가기, 휴식 3초 단계의 되돌리기."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "커밋·main 합친 뒤 코드 위치 등록: SRS-100 "
+                  },
+                  {
+                    "type": "text",
+                    "text": "src/mobile/android/app/src/main/java/org/tarae/liftgram/lock/LockWorkoutActivity.java",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "text": " "
+                  },
+                  {
+                    "type": "text",
+                    "text": "openEditor",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "text": "."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

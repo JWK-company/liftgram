@@ -1,0 +1,745 @@
+{
+  "id": "EXE-117",
+  "type": "Execution",
+  "title": "SPEC-060 Phase 1 — 저장소: 완료 붙잡기·되돌리기·−30초 구현",
+  "group": "할일/잠금화면-시작화면",
+  "meta": {
+    "phase": "1",
+    "result": "done"
+  },
+  "relations": {
+    "executes": [
+      "SPEC-060"
+    ]
+  },
+  "schemaVersion": 1,
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요약"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "잠금 화면에서 민 완료를 5초 동안 대기열 안에 붙잡아 두고, 그동안 되돌릴 수 있게 했다. 웹과 주고받는 계약(대기열 → drain → ack)은 바꾸지 않았다. 붙잡는 동안 drain 은 그 완료를 싣지 않고 완료 전 휴식을 보낸다. 쉬는 시간 −30초도 더했다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "바꾼 파일"
+          }
+        ]
+      },
+      {
+        "type": "table",
+        "content": [
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_header",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "파일"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_header",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "무엇을"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "src/mobile/android/app/src/main/java/org/tarae/liftgram/lock/LockState.java",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "undo",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": "·"
+                      },
+                      {
+                        "type": "text",
+                        "text": "rawSteps",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": "·"
+                      },
+                      {
+                        "type": "text",
+                        "text": "rawApplied",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": " 필드(직렬화), "
+                      },
+                      {
+                        "type": "text",
+                        "text": "drain(now)",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": "·"
+                      },
+                      {
+                        "type": "text",
+                        "text": "held",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": "·"
+                      },
+                      {
+                        "type": "text",
+                        "text": "releaseHold",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": "·"
+                      },
+                      {
+                        "type": "text",
+                        "text": "undoComplete",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": ", "
+                      },
+                      {
+                        "type": "text",
+                        "text": "pressComplete",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": " 붙잡기 인자, "
+                      },
+                      {
+                        "type": "text",
+                        "text": "addRest",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": " 음수"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "src/mobile/android/app/src/main/java/org/tarae/liftgram/lock/LockActionReceiver.java",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "ACTION_UNDO",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": "·"
+                      },
+                      {
+                        "type": "text",
+                        "text": "ACTION_MINUS30",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": ", 붙잡힌 완료는 웹을 깨우지 않음, REDRAW 가 깨움"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "src/mobile/android/app/src/main/java/org/tarae/liftgram/lock/LiftgramLockPlugin.java",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "queueDrain",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": " — 잠금 화면이 안 보이면 붙잡기를 풀고 내보냄"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "src/mobile/android/app/src/main/java/org/tarae/liftgram/lock/LockHub.java",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "refresh",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": " 가 끝난 붙잡기를 풀고 "
+                      },
+                      {
+                        "type": "text",
+                        "text": "fireAction",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "src/mobile/android/app/src/main/java/org/tarae/liftgram/lock/LockView.java",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "되돌리기 표시값("
+                      },
+                      {
+                        "type": "text",
+                        "text": "undoUntil",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": "·"
+                      },
+                      {
+                        "type": "text",
+                        "text": "undoActionId",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": "·"
+                      },
+                      {
+                        "type": "text",
+                        "text": "undoMembers",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": ")"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "src/mobile/android/app/src/test/java/org/tarae/liftgram/lock/LockUndoTest.java",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "새 시험 14개"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "테스트 결과"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "cd src/mobile/android && ./gradlew :app:testDebugUnitTest",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "text": " — 67개 통과, 실패 0."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준 확인"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "SRS-100: 잠금 화면에서 세트를 완료하고 실수를 5초 안에 되돌릴 수 있다 — "
+                  },
+                  {
+                    "type": "text",
+                    "text": "src/mobile/android/app/src/test/java/org/tarae/liftgram/lock/LockUndoTest.java",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "text": " 의 되돌리기·휴식 복원·초안 복원 시험으로 확인."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "ADR-048: 웹 계약은 그대로 — drain·ack 시험("
+                  },
+                  {
+                    "type": "text",
+                    "text": "src/mobile/android/app/src/test/java/org/tarae/liftgram/lock/LockStoreTest.java",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "text": ")이 바뀌지 않고 통과."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "코드 리뷰"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "REV-147 — 채택 4 · 보류 0 · 기각 0. 끝난 붙잡기의 깨우기, 내보낸 뒤 되돌리기 막기, 되살린 초안의 처방 대조를 반영했다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "범위 밖 변경"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "없음."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "남은 일·다음 단계"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "커밋·main 합친 뒤 코드 위치 등록: SRS-100 "
+                  },
+                  {
+                    "type": "text",
+                    "text": "src/mobile/android/app/src/main/java/org/tarae/liftgram/lock/LockState.java",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "text": " "
+                  },
+                  {
+                    "type": "text",
+                    "text": "undoComplete",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "text": "."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "다음: Phase 2(EXE-118)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

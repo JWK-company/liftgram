@@ -1,0 +1,154 @@
+# SPEC-060 — 잠금 운동 화면 개편 — 정돈된 모양 · 밀어서 완료 · 모래시계 · 값 칸 열기
+
+> 타입 Spec · 그룹 할일/잠금화면-시작화면 · ADStudio가 `SPEC-060.json`에서 자동으로 만든 읽기용 파일(고치려면 .json 또는 ADStudio에서)
+
+- **implements** → ADR-048, SRS-100
+
+### 목표
+
+사용자 피드백(메시지 2008)에 대한 시안(https://claude.ai/artifact/EKcxxEkhTe4iFPP83WZkno)에서 권장안 `1a 2a 3A ①+② 4A`가 승인됐다(메시지 2013). 안드로이드 잠금 운동 화면을 다음과 같이 바꾼다.
+
+- **1a 모양**: 앱 모양 규칙(SPEC-057)을 따른다. 모서리 4dp, 시간 알약은 바탕 없는 글자, 카드는 구분선, 강조색은 밀기 손잡이에만.
+- **2a 밀어서 세트 완료**: 85% 넘게 밀면 완료한다. 완료 뒤 5초 동안 「되돌리기」를 둔다.
+- **3A 모래시계**: 원형 링 대신 모래시계 그림, 큰 숫자, 가는 막대를 둔다. 밀기 칸은 쉬는 시간 바로 아래에 둔다.
+- **①+② 일찍 시작**: 쉬는 중에 밀면 남은 휴식을 버리고 세트를 완료한 뒤 새 휴식을 시작한다. 직전 완료 뒤 15초 안에 다시 밀면 한 번 더 밀어야 완료된다. 드롭 세트는 예외다.
+- **4A 실수 터치**: ± 는 평소 숨긴다. 값 칸을 눌러야 그 아래 ± 줄이 열리고, 4초 뒤 닫힌다. ±30초는 쉬는 시간을 눌러야 열린다. 「건너뛰기」 단추는 없앤다.
+
+아이폰 Live Activity(`src/mobile/ios/App/LiftgramWidgets/WorkoutLiveActivity.swift`)와 알림 카드 버튼은 이번 범위가 아니다.
+
+### 범위
+
+| 파일 | 무엇을 |
+| --- | --- |
+| `src/mobile/android/app/src/main/java/org/tarae/liftgram/lock/LockState.java` | 완료 붙잡기(hold), 되돌리기(undo), drain 이 붙잡힌 조작에서 멈춤, addRest 음수(−30초) |
+| `src/mobile/android/app/src/main/java/org/tarae/liftgram/lock/LockActionReceiver.java` | 화면 완료는 붙잡기와 함께, 되돌리기·−30초 동작 |
+| `src/mobile/android/app/src/main/java/org/tarae/liftgram/lock/LockView.java` | 되돌릴 수 있는 완료 표시값(세트·값·남은 시간), 지금 세트 종류 |
+| `src/mobile/android/app/src/main/java/org/tarae/liftgram/lock/LockWorkoutActivity.java` | 화면 전체 |
+| `src/mobile/android/app/src/main/java/org/tarae/liftgram/lock/LockSlideView.java` | 새 파일 — 밀기 칸과 되돌리기 띠 |
+| `src/mobile/android/app/src/main/java/org/tarae/liftgram/lock/LockHourglassView.java` | 새 파일 — 모래시계 |
+| `src/mobile/android/app/src/main/java/org/tarae/liftgram/lock/LockRingView.java` | 쓰지 않음(파일은 남김 · 원본 보존) |
+| `src/mobile/android/app/src/main/res/values/strings_lock.xml` · `src/mobile/android/app/src/main/res/values-en/strings_lock.xml` | 문구 |
+| `src/mobile/android/app/src/test/java/org/tarae/liftgram/lock/LockUndoTest.java` | 새 단위 시험 |
+| `src/mobile/release.json` · `src/frontend/package.json` | 앱 1.6.0(13) · 웹 0.99.0 |
+
+### 설계
+
+#### 완료 붙잡기와 되돌리기(LockState)
+
+- 화면에서 밀어 완료하면 `pressComplete(now, token, true)` 로 지금처럼 조작을 만든다. 대기열 항목에는 `holdUntil = now + 5000` 을 둔다. 이 값은 항목에만 있고 조작(action)에는 없어서 웹은 보지 못한다.
+- `undo` 기록 `{actionId, step, rest, draft, editedWe, until}` 을 저장소에 둔다. 이 값은 완료 직전의 단계, 휴식, 초안, 고친 블록이다.
+- `drain()` 은 대기열을 앞에서부터 보다가 `holdUntil > now` 인 항목에서 **멈춘다**. 뒤 조작만 먼저 보내면 웹 워터마크(seq)가 앞질러 붙잡힌 조작이 「이미 반영됨」으로 버려지기 때문이다.
+- `undoComplete(actionId, now)`: 그 항목이 있고 ack 되지 않았고 `holdUntil > now` 일 때만 되돌린다. 대기열에서 빼고, 단계를 `steps` 맨 앞에 다시 넣는다(같은 setIds 가 이미 있으면 넣지 않는다). 휴식·초안·고친 블록은 되돌리고 `undo` 를 지운다. seq 는 되돌리지 않는다. 웹은 seq 의 빈 번호를 문제 삼지 않는다(`src/core/src/domain/lockScreen.ts` `alreadyApplied` 는 `<=` 비교).
+- 5초가 지나면 화면이 `LiftgramLockPlugin.fireAction()` 을 한 번 더 불러 웹 drain 을 깨운다. 화면이 그 전에 죽어도 앱이 다시 앞에 올 때 drain 하므로 조작은 빠지지 않는다.
+- 붙잡는 동안 들어온 웹 스냅샷은 `pendingActions()` 로 rebase 되므로 완료한 단계는 계속 빠져 있다.
+- `end()`(운동 끝), `clear()`(리셋), 세션이 바뀐 스냅샷이 오면 `undo` 를 지우고 붙잡기도 푼다.
+
+#### 리뷰 반영(REV-146)
+
+- **원래 단계 보관**: `update()` 가 웹이 보낸 steps 를 `rawSteps`·`rawApplied` 로 따로 둔다. 되돌리기는 대기열에서 뺀 뒤 `rebase(rawSteps, rawApplied, pendingActions())` 로 다시 계산한다. `rawSteps` 가 없을 때(옛 저장 파일)만 옛 단계를 맨 앞에 넣는다.
+- **휴식**: 붙잡는 동안 `drain(now)` 은 붙잡기 전 휴식(`undo.rest`)을 싣는다. 되돌리기는 지금 `rest.setAt` 이 그 완료가 건 휴식의 `setAt` 과 같을 때만 휴식을 되돌린다. 되돌릴 때는 옛 `endsAt`·`totalSec` 에 `setAt=now`·`by=native` 를 붙인 새 기록으로 쓴다(LWW 에서 이기게).
+- **붙잡기 풀기**: 앱이 앞에 와 drain 할 때 잠금 운동 화면이 안 보이면(`!LockWorkoutActivity.isVisible()`), 그리고 화면을 떠날 때(`openApp`·뒤로 가기·`finishIfAlive`·`onPause`) 붙잡기를 바로 푼다(`releaseHold`). `queueDrain` 은 쓰기 경로가 된다. 화면 완료는 그 자리에서 `fireAction` 하지 않는다.
+- **하나만**: 붙잡힌 항목은 최대 하나다. 새 붙잡기는 앞 붙잡기를 푼다.
+- **시계**: 붙잡힘 = `holdAt <= now < holdUntil` 이고 `holdUntil - now <= 5000` 일 때. 시계가 뒤로 가면 풀린 것으로 본다.
+- **결과**: `undoComplete` 는 `UNDONE`·`EXPIRED`·`GONE` 을 돌려준다. 띠는 LockView `undoUntil` 로 그리고 300ms 일찍 닫는다. 만료면 「이미 기록했어요」를 잠깐 보인다.
+- **고친 블록**: undo 기록에 바뀐 키의 이전 값만 둔다. 되돌릴 때 값이 그 seq 인 키만 이전 값으로 되돌린다(이전 값이 `rawApplied` 보다 클 때만). 초안은 다시 계산한 지금 단계 토큰과 같을 때만 되살린다. `draftLost` 도 담는다.
+- **깨우기**: `stallsAt()` 이 붙잡기 끝 시각을 돌려주어 RestAlarm 의 REDRAW 알람이 그때 울린다. REDRAW 처리는 refresh 뒤 `fireAction` 을 부른다. 화면 Handler 에는 기대지 않는다.
+- **밀기 제스처**: 가로 30dp 를 넘어야 손잡이가 따라온다(시안 값). 첫 포인터만 따라가고, 세로가 이기면 그 제스처를 버린다. 가로로 정해진 뒤에만 `requestDisallowInterceptTouchEvent`. 칸에 `setSystemGestureExclusionRects`(API 29+)를 걸어 왼쪽 뒤로 가기와 겹치지 않게 한다. 손잡이 시작은 시스템 제스처 여백 안쪽.
+- **② 확인**: 드롭(D) 세트와 슈퍼셋 단계(멤버 2개 이상)는 건너뛴다. 첫 밀기는 짧게 두 번 진동하고 칸 테두리를 강조색으로 바꾼다. 글자는 「N세트도 끝났나요? 한 번 더 밀기」이고 TalkBack 으로 알린다. 시간 안에 다시 밀지 않으면 「완료하지 않았어요」를 잠깐 보인다. 되돌리면 「직전 완료」 기억도 지운다.
+- **되돌리기 띠**: 띠가 뜬 뒤 500ms 는 터치를 받지 않는다. 새 DOWN 으로 시작한 터치만 받는다. 상태가 바뀌면 TalkBack 알림(「…완료함. 되돌리려면 두 번 탭」·「되돌리기 끝남」)을 낸다. 띠가 끝난 뒤 1초는 클릭 완료를 무시한다. 접근성 사용자 지정 동작 「되돌리기」를 둔다. 글자에 종목 이름을 붙인다.
+- **시간 제한**: 4초 닫기·5초 되돌리기·② 대기는 `AccessibilityManager.getRecommendedTimeoutMillis`(API 29+)를 거친다. TalkBack 이 켜져 있으면 ± 줄은 저절로 닫히지 않는다. 저장소 붙잡기 5초도 같은 값을 쓴다(상한 30초).
+- **크기**: 값 칸과 ± 단추는 높이 56dp 이상, ±30초 단추와 쉬는 시간 줄은 48dp 이상. 쉬지 않을 땐 −30초를 끈다(+30초는 지금처럼 30초 시작).
+- **배치**: 스크롤 영역은 위 정렬로 바꾼다. 값 칸을 열면 아래만 밀리고 누른 칸은 움직이지 않는다. 화면 밖이면 보이게 스크롤한다.
+- **상태 보존**: 열린 편집 setId·쉬는 줄 열림·② 기한·드래그 중을 Activity 필드로 둔다. 재빌드 뒤 같은 setId 가 있으면 다시 연다. 드래그 중에는 재빌드·모드 전환을 놓을 때까지 미룬다. 재빌드·`onPause` 때 닫기 Runnable 을 모두 지운다. `fontScale`·`densityDpi`·`screenHeightDp` 가 바뀌어도 재빌드한다.
+- **커스텀 뷰**: 밀기 칸의 글자는 TextView 자식으로 두어 자동 크기를 쓴다. 진동은 API 30+ `CONFIRM`, 그 아래 `LONG_PRESS`. 접근성 역할은 Button. 방향은 LTR 로 고정한다.
+- **강조색 규칙**: 강조색은 밀기 손잡이, 바꾼 값 글자, 모래, 열린 칸 테두리에만 쓴다.
+
+#### 휴식 조절
+
+- `addRest(sec, now)` 는 음수를 받는다. 남은 시간이 0 이하가 되면 `endRest` 와 같은 결과가 된다. 쉬는 중이 아니면 −30초는 아무것도 하지 않는다.
+- `ACTION_MINUS30` 을 더한다. 화면 전용이며, 알림 카드에는 넣지 않는다.
+
+#### 화면(LockWorkoutActivity)
+
+위에서부터 고정 영역과 스크롤 영역으로 나눈다.
+
+1. 위 줄: 시계 아이콘과 운동 시간 글자(바탕 없음), 오른쪽에 「잠금 해제」 4dp 테두리 단추.
+2. 안내 한 줄(지금과 같음).
+3. **쉬는 시간 줄(고정)**: 모래시계(48×68dp), 「쉬는 시간」 글자와 큰 시계(44sp, 작은 화면·슈퍼셋은 줄임)를 둔다. 오른쪽에는 「눌러서 시간 조절」 안내가 있고, 열리면 그 자리에 [−30초][+30초] 4dp 단추가 나온다. 줄을 누르면 열리고 마지막 조작 4초 뒤 닫힌다. 글자 자리에서 바뀌므로 아래 칸이 움직이지 않는다.
+4. 가는 막대(4dp): 쉰 비율. 쉬는 중이 아니면 비운다.
+5. **밀기 칸(고정 · 64dp · 4dp 모서리)**: 왼쪽 손잡이(56dp, 강조색), 가운데 「밀어서 세트 완료 ›››」. 완료 뒤 5초는 같은 칸이 되돌리기 띠가 된다. 띠에는 「3세트 완료 · 80kg × 8회」, 오른쪽 「되돌리기」 단추, 줄어드는 막대가 있다.
+6. 스크롤 영역: 종목마다 위 구분선(1dp), 이름과 세트 줄(세트 점은 원이라 그대로), 값 칸 두 개(무게·횟수 · 4dp 테두리)가 있다. 값 칸을 누르면 그 종목 아래에 [−2.5][+2.5][원래대로 또는 닫기] 줄이 열린다(한 번에 하나). 바꾼 값은 강조색이고 「원래 80」 표시는 지금과 같다. 「다음: …」 은 그 아래 회색 줄이다.
+7. 바탕은 앱과 같은 `#FFFFFF` · `#161616` 이다(옛 분홍·갈색 바탕은 `[원본]` 으로 남김).
+8. 「앱에서 하기」(완료할 수 없는 단계)는 지금처럼 밀기 칸 자리를 지키며 감춘다(INVISIBLE). 앱으로 가는 길은 「잠금 해제」다.
+
+#### 밀기 칸(LockSlideView)
+
+- 누른 뒤 가로로 30dp 넘게 움직여야 손잡이가 따라온다. 세로로 더 움직이면 놓아 준다. 85% 를 넘기면 진동 한 번, 놓으면 완료한다. 덜 밀면 0.2초 동안 돌아간다.
+- 켜진 직후 1초 보호(`WAKE_GUARD_MS`)는 누르기 시작에서 본다.
+- 접근성: 역할은 버튼, 설명은 「세트 완료」. TalkBack 두 번 탭·스위치 제어 클릭은 바로 완료한다(②의 확인도 건너뛴다 — 의도한 조작). 되돌리기 상태의 클릭은 되돌리기이고, 설명은 「3세트 완료, 되돌리기」.
+- ② 다시 확인: 직전 완료(화면 기억 · uptime) 뒤 15초 안이고 지금 세트가 드롭(D)이 아니면, 첫 밀기에서는 완료하지 않는다. 칸 글자를 「방금 완료했어요 — 한 번 더 밀면 완료」로 바꾸고 5초 안에 다시 밀면 완료한다.
+- 단계 토큰: 밀기를 시작할 때의 `stepToken` 을 붙잡아 두고, 놓을 때 바뀌었으면 완료하지 않는다(지금 꾹 누르기와 같음).
+
+#### 모래시계(LockHourglassView)
+
+- 위 모래 = 남은 비율, 아래 모래 = 쉰 비율. 쉬는 중에는 가는 줄기를 그린다. 쉬지 않을 때는 위가 가득 찬 멈춘 그림이다.
+- 휴식이 끝나는 순간(쉬는 중 → 아님) 0.4초 동안 180° 뒤집힌다. 「애니메이션 제거」(`ValueAnimator.areAnimatorsEnabled()` 거짓)면 뒤집지 않는다. 그리기는 1초 틱마다이며, 따로 계속 도는 애니메이션은 없다(배터리).
+
+### 작업 단계
+
+#### Phase 1 — 저장소: 완료 붙잡기·되돌리기·−30초
+
+- [x] `LockState` `holdUntil` · `undo` 필드(직렬화 포함), `pressComplete` 에 붙잡기 인자
+- [x] `drain()` 이 붙잡힌 항목에서 멈춤
+- [x] `undoComplete`, `end`·`clear`·세션 변경 때 정리
+- [x] `addRest` 음수
+- [x] `LockActionReceiver` `ACTION_UNDO` · `ACTION_MINUS30`, 화면 완료는 붙잡기
+- [x] `LockView` 에 되돌리기 표시값(`undoText` 재료 · `undoUntil`)과 지금 세트 종류(`label`)
+- [x] `rawSteps` 보관, drain(now) 휴식·멈춤, releaseHold, stallsAt 붙잡기 끝, REDRAW fireAction
+- [x] `LockUndoTest` — 직렬화 왕복, 붙잡는 중 스냅샷 뒤 되돌리기는 rawSteps 로 다시 계산, 휴식 LWW, 하나만, 시계 뒤로, 붙잡는 동안 drain 이 비고 5초 뒤 나옴, 뒤 조작도 멈춤, 되돌리면 단계·휴식·초안이 돌아옴, 시간이 지나거나 ack 되면 되돌리지 못함, 붙잡는 중 스냅샷이 와도 단계가 빠져 있음, −30초
+
+완료 기준: `./gradlew :app:testDebugUnitTest` 통과(기존 시험 포함).
+
+#### Phase 2 — 화면: 모양·모래시계·밀기·되돌리기
+
+- [x] `LockHourglassView`, `LockSlideView` 새 파일
+- [x] `LockWorkoutActivity` 배치·팔레트(4dp · 바탕 · 구분선), 링·꾹 누르기·건너뛰기 `[원본]` 처리
+- [x] 밀어서 완료, 되돌리기 띠, ② 다시 확인, 5초 뒤 drain 깨우기
+- [x] 문구(한국어·영어)
+
+완료 기준: `./gradlew :app:assembleDebug` 통과. 에뮬레이터에서 밀기 완료, 덜 밀면 돌아감, 되돌리기, 15초 안 두 번째 확인을 확인한다.
+
+#### Phase 3 — 값 칸 열기·휴식 조절·확인·버전
+
+- [x] 값 칸 누르면 ± 줄 열림(한 번에 하나 · 4초 뒤 닫힘 · 원래대로)
+- [x] 쉬는 시간 줄 누르면 [−30초][+30초](4초 뒤 닫힘)
+- [x] 에뮬레이터: 라이트·다크, 작은 화면(lg_test30), 슈퍼셋, TalkBack 설명 — 작은 화면·TalkBack 은 미검증(EXE-119 남은 일)
+- [x] `src/mobile/release.json` 1.6.0(13) · `src/frontend/package.json` 0.99.0
+
+완료 기준: 단위 시험·빌드 통과, 에뮬레이터 확인 목록 통과.
+
+### 수용 기준
+
+| 연결 | 기준 |
+| --- | --- |
+| SRS-100 | 잠금을 풀지 않고 세트 완료·값 조정·휴식 조절이 된다(밀기 · 값 칸 · 쉬는 시간 줄) |
+| SRS-100 | 한 번 스치거나 누르는 것으로는 아무 값도 바뀌지 않는다(밀기 85% · 값 칸은 열기만) |
+| SRS-100 | 잘못 완료하면 5초 안에 잠금화면에서 되돌릴 수 있고, 되돌린 완료는 앱 기록에 들어가지 않는다 |
+| ADR-048 | 조작 경로(대기열 → 웹 drain → ack)는 그대로다. 붙잡기는 대기열 안에서만 일어나고 웹 계약은 바뀌지 않는다 |
+| 1a | 화면의 모든 단추·칸은 4dp 모서리이고 알약(999)은 없다. 원은 세트 점과 모래시계 그림뿐이다 |
+
+### 테스트 계획
+
+- 단위(JVM): `LockUndoTest` 와 기존 `LockStoreTest`·`LockRulesFixtureTest`·`LockScreenModelTest` 등 — `cd src/mobile/android && ./gradlew :app:testDebugUnitTest`
+- 빌드: `./gradlew :app:assembleDebug`
+- 웹 계약 회귀: `src/frontend/e2e/lock-bridge.spec.ts` (웹 쪽은 바꾸지 않지만 drain 모양이 같은지)
+- 에뮬레이터 추가: 제스처 내비에서 손잡이 왼쪽 끝 잡기, 글꼴 2.0, TalkBack 으로 값 바꾸기 완주, 휴식 3초 단계 완료 → 되돌리기
+- 에뮬레이터(lg_test API 35 · lg_test30 API 30): 잠금 상태에서 운동 화면을 띄워 밀기·되돌리기·두 번째 확인·값 칸·쉬는 시간 조절·라이트/다크·슈퍼셋을 본다. adb 로 대기열(`LockStore` 파일)을 읽어 붙잡기·되돌리기를 확인한다.
+
+### 위험·주의
+
+- **붙잡는 동안 앱이 앞에 오면** drain 이 그 완료를 아직 받지 못한다. 앱 화면에서는 그 세트가 최대 5초 동안 미완료로 보인다. 5초 뒤 drain 을 깨워 맞춘다.
+- 알림 카드의 「완료」 단추는 붙잡지 않는다(되돌리기 띠가 없다). 카드 완료가 붙잡힌 화면 완료 뒤에 오면 drain 순서 때문에 함께 기다린다.
+- 「쉰 시간 기록」은 앱에 없는 기능이라 하지 않는다(시안에서 말한 것 정정 — 메시지로 알림).
+- iOS 는 바뀌지 않는다. 시안에서 「모양만 맞춤」이라 했지만 SwiftUI Live Activity 는 이미 시스템 모양이라 이번에는 손대지 않는다(남은 일).
+- 「공통 되돌리기 띠」는 이렇게 나눴다: 완료는 밀기 칸의 띠, 값은 ± 줄의 「원래대로」, 휴식은 −30초. 띠를 하나 더 두면 칸이 움직여 실수를 부르기 때문이다.

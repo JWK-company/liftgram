@@ -61,9 +61,10 @@ public class LockWorkoutActivity extends Activity {
     // [개선] 앱 토큰과 같은 값(src/frontend/app/theme.generated.css · SPEC-021)
     private static final class Palette {
         final boolean dark;
-        final int bg, card, track, ink, ink2, ink3, brand, onBrand, stepBg, stroke;
+        final int bg, card, track, ink, ink2, ink3, brand, onBrand, stepBg, stroke, line;
 
-        Palette(boolean dark, int bg, int card, int track, int ink, int ink2, int ink3, int brand, int onBrand, int stepBg, int stroke) {
+        Palette(boolean dark, int bg, int card, int track, int ink, int ink2, int ink3, int brand, int onBrand, int stepBg, int stroke, int line) {
+            this.line = line;
             this.dark = dark;
             this.bg = bg;
             this.card = card;
@@ -78,8 +79,12 @@ public class LockWorkoutActivity extends Activity {
         }
     }
 
-    private static final Palette LIGHT = new Palette(false, 0xFFFFF0EB, 0xFFFFFFFF, 0xFFF1F2F4, 0xFF141619, 0xFF3E4348, 0xFF6A737B, 0xFFC8381C, 0xFFFFFFFF, 0xFFFFF0EB, 0xFF747474);
-    private static final Palette DARK = new Palette(true, 0xFF3D2620, 0xFF2B2B2B, 0xFF3A3A3A, 0xFFF5F7F9, 0xFFD8DBDF, 0xFF98A1AD, 0xFFFF7A57, 0xFF161616, 0xFF3A3A3A, 0xFFA8A8A8);
+    // [원본] 분홍·갈색 바탕(C안) — 앱 화면과 달라 「AI 느낌」으로 보였다(SPEC-060 1a)
+    // private static final Palette LIGHT = new Palette(false, 0xFFFFF0EB, 0xFFFFFFFF, 0xFFF1F2F4, 0xFF141619, 0xFF3E4348, 0xFF6A737B, 0xFFC8381C, 0xFFFFFFFF, 0xFFFFF0EB, 0xFF747474);
+    // private static final Palette DARK = new Palette(true, 0xFF3D2620, 0xFF2B2B2B, 0xFF3A3A3A, 0xFFF5F7F9, 0xFFD8DBDF, 0xFF98A1AD, 0xFFFF7A57, 0xFF161616, 0xFF3A3A3A, 0xFFA8A8A8);
+    // [개선] 앱 바탕·선 토큰 그대로(bg · surface · line)
+    private static final Palette LIGHT = new Palette(false, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFF1F2F4, 0xFF141619, 0xFF3E4348, 0xFF6A737B, 0xFFC8381C, 0xFFFFFFFF, 0xFFF1F2F4, 0xFF747474, 0xFFDBDBDB);
+    private static final Palette DARK = new Palette(true, 0xFF161616, 0xFF2B2B2B, 0xFF3A3A3A, 0xFFF5F7F9, 0xFFD8DBDF, 0xFF98A1AD, 0xFFFF7A57, 0xFF161616, 0xFF3A3A3A, 0xFFA8A8A8, 0xFF424242);
     private static final String KEY_THEME = "lockTheme";
 
     private Palette p = LIGHT;
@@ -129,8 +134,58 @@ public class LockWorkoutActivity extends Activity {
     private Button plusBtn;
     private Button skipBtn;
 
+    // ── SPEC-060 화면 상태(재빌드해도 남는다 · REV-146 안드로이드 4·5) ──
+    private LockHourglassView hourglass;
+    private LockSlideView slide;
+    private LinearLayout restRow;
+    private TextView restHint;
+    private LinearLayout restAdjust;
+    private Button minusBtn;
+    private ProgressBar restTrack;
+    private TextView valueHint;
+    private boolean restOpen;
+    private boolean restEnabled = true;
+    private String openEditSetId;
+    private boolean openEditWeight;
+    private boolean dragging;
+    private String slideToken;
+    private long confirmUntil;
+    /** 밀기를 시작할 때 확인 중이었나 — 미는 사이 기한이 끝나도 두 번째 밀기는 완료(REV-148 2) */
+    private boolean slideConfirming;
+    private long lastDoneAt;
+    private String undoShownId;
+    private long undoTotalMs = LockActionReceiver.UNDO_MS;
+    private long undoEndedAt;
+    private long flashUntil;
+    private String flashMsg;
+    private Boolean wasResting;
+    private boolean needRebuild;
+    private int builtClockSp;
+    private final Runnable closeEdit = () -> {
+        if (repeatPressed) {
+            scheduleEditClose();
+            return;
+        }
+        closeEditor();
+    };
+    private final Runnable closeRest = () -> setRestOpen(false);
+    private final Runnable confirmExpire = () -> {
+        if (confirmUntil > 0 && SystemClock.uptimeMillis() >= confirmUntil) {
+            confirmUntil = 0;
+            flash(getString(R.string.lock_not_done), 3000);
+        }
+    };
+
     private static final class Row {
         LockView.Member m;
+        String setId = "";
+        LinearLayout weightCell;
+        LinearLayout repsCell;
+        LinearLayout editor;
+        Button editMinus;
+        Button editPlus;
+        Button editReset;
+        boolean editingWeight;
         TextView weight;
         TextView weightWas;
         TextView reps;
@@ -174,6 +229,7 @@ public class LockWorkoutActivity extends Activity {
             // 「잠금 해제」 진행 중이면 그 콜백이 앱을 열고 닫는다(REV-015 플랫폼 M-4)
             if (!a.isFinishing() && !a.dismissing) {
                 LockDiag.add(a, "운동 화면 닫음: 운동 끝·설정 끔·잠금 해제");
+                a.releaseHold(); // 붙잡은 완료는 바로 웹으로(REV-146 안드로이드 2)
                 a.finish();
             }
         });
@@ -197,6 +253,7 @@ public class LockWorkoutActivity extends Activity {
         themeChoice = LockRules.normalizeTheme(getSharedPreferences(LockScreenGate.UI_PREFS, MODE_PRIVATE).getString(KEY_THEME, "system"));
         p = resolveDark(themeChoice) ? DARK : LIGHT;
         paintWindow();
+        builtConfigKey = configKey(getResources().getConfiguration());
         setContentView(build());
         if (Build.VERSION.SDK_INT >= 33) {
             getOnBackInvokedDispatcher().registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT, this::onBack);
@@ -210,6 +267,7 @@ public class LockWorkoutActivity extends Activity {
     private void onBack() {
         if (guarded()) return;
         LockDiag.add(this, "운동 화면 닫음: 뒤로 가기");
+        releaseHold();
         finish();
     }
 
@@ -221,7 +279,16 @@ public class LockWorkoutActivity extends Activity {
     @Override
     public void onConfigurationChanged(Configuration c) {
         super.onConfigurationChanged(c); // uiMode 는 manifest 에서 직접 받는다 — 재생성되지 않는다
+        // 글꼴·밀도·화면 높이가 바뀌어도 다시 만든다 — dp·sp 를 만들 때 계산했다(REV-146 안드로이드 10)
+        int key = configKey(c);
+        if (key != builtConfigKey) needRebuild = true;
         if (maybeRetheme(themeChoice)) reload();
+    }
+
+    private int builtConfigKey;
+
+    private static int configKey(Configuration c) {
+        return Math.round(c.fontScale * 100) * 31 * 31 + c.densityDpi * 31 + c.screenHeightDp;
     }
 
     private boolean resolveDark(String choice) {
@@ -240,7 +307,14 @@ public class LockWorkoutActivity extends Activity {
             getSharedPreferences(LockScreenGate.UI_PREFS, MODE_PRIVATE).edit().putString(KEY_THEME, choice).apply();
         }
         boolean dark = resolveDark(choice);
-        if (dark == p.dark || pendingEdits > 0 || holdDownAt >= 0 || repeatPressed) return false;
+        // [원본] if (dark == p.dark || pendingEdits > 0 || holdDownAt >= 0 || repeatPressed) return false;
+        // [개선] 글꼴 등 변경도 · 밀고 있는 중이면 놓을 때까지 미룬다(REV-146 안드로이드 5)
+        if ((dark == p.dark && !needRebuild) || pendingEdits > 0 || holdDownAt >= 0 || repeatPressed || dragging) return false;
+        needRebuild = false;
+        main.removeCallbacks(closeEdit);
+        main.removeCallbacks(closeRest);
+        wasResting = null; // 새 그림은 뒤집기부터 하지 않는다
+        builtClockSp = 0;
         // holdTick 은 holdDownAt 만 보고 완료를 실행한다 — 먼저 멈춘다(REV-021 안드로이드 H-1)
         stopHold();
         stopRepeats();
@@ -249,6 +323,7 @@ public class LockWorkoutActivity extends Activity {
         builtRingDp = 0;
         p = dark ? DARK : LIGHT;
         paintWindow();
+        builtConfigKey = configKey(getResources().getConfiguration());
         setContentView(build());
         return true;
     }
@@ -310,6 +385,10 @@ public class LockWorkoutActivity extends Activity {
         main.removeCallbacks(tick);
         stopHold();
         stopRepeats();
+        // 화면이 꺼지거나 가려졌다 — 밀던 것은 완료하지 않고, 붙잡은 완료는 확정한다(REV-146 안드로이드 2·8)
+        if (slide != null) slide.cancelGesture();
+        dragging = false;
+        releaseHold();
     }
 
     @Override
@@ -380,6 +459,15 @@ public class LockWorkoutActivity extends Activity {
         return new RippleDrawable(ColorStateList.valueOf((p.ink & 0x00FFFFFF) | 0x33000000), g, null);
     }
 
+    /** 4dp 모서리 바탕 + 눌림 잔물결(SPEC-060 1a — 알약 대신) */
+    private Drawable rect(int color, int strokeColor, int strokeDp) {
+        GradientDrawable g = new GradientDrawable();
+        g.setColor(color);
+        g.setCornerRadius(dp(4));
+        if (strokeDp > 0) g.setStroke(dp(strokeDp), strokeColor);
+        return new RippleDrawable(ColorStateList.valueOf((p.ink & 0x00FFFFFF) | 0x33000000), g, null);
+    }
+
     private GradientDrawable cardBg() {
         GradientDrawable g = new GradientDrawable();
         g.setColor(p.card);
@@ -396,7 +484,8 @@ public class LockWorkoutActivity extends Activity {
         b.setTypeface(Typeface.DEFAULT_BOLD);
         b.setTextSize(TypedValue.COMPLEX_UNIT_SP, primary ? 18 : 15);
         b.setTextColor(primary ? p.onBrand : p.ink);
-        b.setBackground(primary ? pill(p.brand, false) : pill(p.card, true));
+        // [원본] b.setBackground(primary ? pill(p.brand, false) : pill(p.card, true));
+        b.setBackground(primary ? rect(p.brand, 0, 0) : rect(p.card, p.stroke, 1)); // 4dp 직사각형(SPEC-060 1a)
         b.setMinHeight(dp(primary ? 72 : 56));
         b.setMinimumHeight(dp(primary ? 72 : 56));
         b.setContentDescription(label);
@@ -427,7 +516,9 @@ public class LockWorkoutActivity extends Activity {
         return p;
     }
 
-    private View build() {
+    // [원본] C안 화면(SPEC-021) — SPEC-060 build() 로 대신. 되돌릴 수 있게 남긴다.
+    @SuppressWarnings("unused")
+    private View buildC() {
         // [원본] ScrollView 하나에 완료 버튼까지 — 슈퍼셋·휴식 중이면 완료가 화면 밖으로 밀렸다(REV-015 화면 #3)
         // [개선] 위는 스크롤 · 완료 버튼은 아래 고정 줄 · 시스템 바·펀치홀 여백(edge-to-edge · 플랫폼 M-5)
         // [개선 SPEC-021] 위 줄·안내는 스크롤 밖 — 안내가 화면 밖으로 밀리지 않게(REV-021 안드로이드 M-4)
@@ -609,7 +700,9 @@ public class LockWorkoutActivity extends Activity {
         return SystemClock.uptimeMillis() < ignoreUntil;
     }
 
-    private void render(LockView v) {
+    // [원본] C안 그리기(SPEC-021) — SPEC-060 render() 로 대신
+    @SuppressWarnings("unused")
+    private void renderC(LockView v) {
         if (isFinishing() || isDestroyed()) return;
         if (shouldClose(v)) {
             // 진단(SPEC-020) — 잠금이 아직 안 걸린 채 켜졌으면(삼성 「자동 잠금」 지연 등) 여기서 닫힌다
@@ -715,7 +808,9 @@ public class LockWorkoutActivity extends Activity {
         }
     }
 
-    private void buildMembers(LockView v) {
+    // [원본] C안 멤버 카드(± 늘 보임) — SPEC-060 buildMembers() 로 대신
+    @SuppressWarnings("unused")
+    private void buildMembersC(LockView v) {
         stopRepeats();
         repeats.clear();
         membersBox.removeAllViews();
@@ -925,6 +1020,764 @@ public class LockWorkoutActivity extends Activity {
         }
     }
 
+    // ── SPEC-060 화면 ─────────────────────────────────────────────────────
+    // 위: 운동 시간 글자 · 「잠금 해제」 / 안내 / 고정: 쉬는 시간 줄(모래시계 · 시계 · 눌러서 ±30초) · 가는 막대 · 밀기 칸
+    // 스크롤(위 정렬): 종목마다 구분선 · 이름·세트 · 값 칸(누르면 ± 줄) · 「다음」
+
+    private View build() {
+        final LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(p.bg);
+
+        LinearLayout top = new LinearLayout(this);
+        top.setGravity(Gravity.CENTER_VERTICAL);
+        top.setPadding(dp(16), dp(14), dp(16), dp(6));
+        root.addView(top);
+        // [원본 SPEC-021] 시간 알약(바탕 · 999) — 정보는 바탕 없는 글자(SPEC-060 1a)
+        timePill = new LinearLayout(this);
+        timePill.setGravity(Gravity.CENTER_VERTICAL);
+        timePill.setMinimumHeight(dp(48));
+        timePill.setFocusable(true);
+        timeIcon = new ImageView(this);
+        timeIcon.setImageResource(R.drawable.ic_lock_clock);
+        timeIcon.setColorFilter(p.ink3);
+        timeIcon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        timePill.addView(timeIcon);
+        timeText = text(16, p.ink2, true);
+        timeText.setFontFeatureSettings("tnum");
+        timeText.setGravity(Gravity.CENTER_VERTICAL);
+        timeText.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        fitOneLine(timeText, 10, 16);
+        LinearLayout.LayoutParams timeLp = new LinearLayout.LayoutParams(dp(68), dp(28));
+        timeLp.setMarginStart(dp(6));
+        timePill.addView(timeText, timeLp);
+        top.addView(timePill);
+        top.addView(new View(this), new LinearLayout.LayoutParams(0, 1, 1));
+        unlock = button(getString(R.string.lock_screen_unlock), false);
+        unlock.setBackground(rect(p.bg, p.stroke, 1));
+        unlock.setMinHeight(dp(48));
+        unlock.setMinimumHeight(dp(48));
+        unlock.setPadding(dp(14), 0, dp(14), 0);
+        Drawable lockIcon = getDrawable(R.drawable.ic_lock_unlock);
+        if (lockIcon != null) {
+            lockIcon = lockIcon.mutate();
+            lockIcon.setTint(p.ink);
+            unlock.setCompoundDrawablesRelativeWithIntrinsicBounds(lockIcon, null, null, null);
+            unlock.setCompoundDrawablePadding(dp(6));
+        }
+        unlock.setOnClickListener(x -> {
+            if (!guarded()) openApp();
+        });
+        top.addView(unlock);
+
+        notice = text(15, p.ink2, false);
+        notice.setGravity(Gravity.CENTER);
+        notice.setPadding(dp(16), dp(2), dp(16), dp(4));
+        notice.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        root.addView(notice);
+
+        // 쉬는 시간 + 밀기 — 고정(휴식이 시작·끝나도, 값 칸을 열어도 움직이지 않는다)
+        restBox = new LinearLayout(this);
+        restBox.setOrientation(LinearLayout.VERTICAL);
+        restBox.setPadding(dp(16), dp(4), dp(16), dp(10));
+        restRow = new LinearLayout(this);
+        restRow.setGravity(Gravity.CENTER_VERTICAL);
+        restRow.setMinimumHeight(dp(72));
+        restRow.setPadding(dp(4), dp(4), dp(4), dp(4));
+        restRow.setBackground(rect(p.bg, 0, 0));
+        restRow.setFocusable(true);
+        restRow.setOnClickListener(x -> {
+            if (guarded() || !restEnabled) return;
+            setRestOpen(!restOpen);
+        });
+        hourglass = new LockHourglassView(this);
+        hourglass.setColors(p.ink3, p.ink2, p.brand);
+        LinearLayout.LayoutParams hgLp = new LinearLayout.LayoutParams(dp(48), dp(68));
+        hgLp.setMarginEnd(dp(12));
+        restRow.addView(hourglass, hgLp);
+        LinearLayout clockCol = new LinearLayout(this);
+        clockCol.setOrientation(LinearLayout.VERTICAL);
+        restLabel = text(14, p.ink3, true);
+        restLabel.setText(R.string.lock_screen_rest);
+        restLabel.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        clockCol.addView(restLabel);
+        restClock = text(44, p.ink, true);
+        restClock.setMaxLines(1);
+        restClock.setFontFeatureSettings("tnum");
+        restClock.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+        restClock.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        clockCol.addView(restClock, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(56)));
+        restRow.addView(clockCol, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+        // 오른쪽 — 안내 글자 자리에서 [−30초][+30초] 로 바뀐다(아래 칸이 움직이지 않게)
+        FrameLayout right = new FrameLayout(this);
+        restHint = text(13, p.ink3, false);
+        restHint.setText(R.string.lock_rest_hint);
+        restHint.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        restHint.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        right.addView(restHint, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.END | Gravity.CENTER_VERTICAL));
+        restAdjust = new LinearLayout(this);
+        minusBtn = smallButton(getString(R.string.lock_minus30), getString(R.string.lock_minus30_desc));
+        minusBtn.setOnClickListener(x -> {
+            if (guarded()) return;
+            act(LockActionReceiver.ACTION_MINUS30, null);
+            scheduleRestClose();
+        });
+        plusBtn = smallButton(getString(R.string.lock_action_plus30), getString(R.string.lock_plus30_desc));
+        plusBtn.setOnClickListener(x -> {
+            if (guarded()) return;
+            act(LockActionReceiver.ACTION_PLUS30, null);
+            scheduleRestClose();
+        });
+        LinearLayout.LayoutParams mlp = new LinearLayout.LayoutParams(dp(80), dp(52));
+        mlp.setMarginEnd(dp(6));
+        restAdjust.addView(minusBtn, mlp);
+        restAdjust.addView(plusBtn, new LinearLayout.LayoutParams(dp(80), dp(52)));
+        restAdjust.setVisibility(View.GONE);
+        right.addView(restAdjust, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.END | Gravity.CENTER_VERTICAL));
+        restRow.addView(right, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        restBox.addView(restRow, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        restTrack = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+        restTrack.setMax(1000);
+        restTrack.setProgressTintList(ColorStateList.valueOf(p.brand));
+        restTrack.setProgressBackgroundTintList(ColorStateList.valueOf(p.track));
+        restTrack.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(4));
+        tlp.topMargin = dp(6);
+        restBox.addView(restTrack, tlp);
+        slide = new LockSlideView(this);
+        slide.setColors(p.card, p.line, p.stroke, p.brand, p.onBrand, p.ink, p.ink2);
+        slide.setListener(slideListener);
+        LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(64));
+        slp.topMargin = dp(12);
+        restBox.addView(slide, slp);
+        root.addView(restBox, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        ScrollView sv = new ScrollView(this);
+        sv.setFillViewport(true);
+        root.addView(sv, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1));
+        LinearLayout col = new LinearLayout(this);
+        col.setOrientation(LinearLayout.VERTICAL);
+        col.setPadding(dp(16), dp(4), dp(16), dp(16));
+        // [원본 SPEC-021] col.setGravity(Gravity.BOTTOM) — 값 칸을 열면 위 내용이 밀려 누른 칸이 움직였다(REV-146 안드로이드 6)
+        col.setGravity(Gravity.TOP);
+        sv.addView(col);
+        membersBox = new LinearLayout(this);
+        membersBox.setOrientation(LinearLayout.VERTICAL);
+        col.addView(membersBox, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        next = text(14, p.ink3, false);
+        next.setPadding(0, dp(10), 0, 0);
+        col.addView(next);
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(root, (v, ins) -> {
+            androidx.core.graphics.Insets b = ins.getInsets(
+                    androidx.core.view.WindowInsetsCompat.Type.systemBars() | androidx.core.view.WindowInsetsCompat.Type.displayCutout());
+            v.setPadding(b.left, b.top, b.right, b.bottom);
+            return androidx.core.view.WindowInsetsCompat.CONSUMED;
+        });
+        setRestOpen(restOpen);
+        return root;
+    }
+
+    /** ±30초 · ± 줄 단추 — 4dp 테두리(SPEC-060) */
+    private Button smallButton(String label, String description) {
+        Button b = button(label, false);
+        b.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        b.setPadding(dp(4), 0, dp(4), 0);
+        b.setMinWidth(0);
+        b.setMinimumWidth(0);
+        b.setMinHeight(dp(48));
+        b.setMinimumHeight(dp(48));
+        b.setContentDescription(description);
+        fitOneLine(b, 10, 16);
+        return b;
+    }
+
+    private android.view.accessibility.AccessibilityManager a11y() {
+        return getSystemService(android.view.accessibility.AccessibilityManager.class);
+    }
+
+    /** TalkBack(터치 탐색) 켜짐 */
+    private boolean talkBack() {
+        android.view.accessibility.AccessibilityManager am = a11y();
+        return am != null && am.isEnabled() && am.isTouchExplorationEnabled();
+    }
+
+    /** 시간 제한은 접근성 권장값을 거친다(API 29+ · REV-146 사용성 6) */
+    private long timeout(long ms) {
+        android.view.accessibility.AccessibilityManager am = a11y();
+        if (Build.VERSION.SDK_INT >= 29 && am != null) {
+            return am.getRecommendedTimeoutMillis((int) ms,
+                    android.view.accessibility.AccessibilityManager.FLAG_CONTENT_CONTROLS | android.view.accessibility.AccessibilityManager.FLAG_CONTENT_TEXT);
+        }
+        return ms;
+    }
+
+    private void setRestOpen(boolean open) {
+        restOpen = open && restEnabled;
+        if (restAdjust == null) return;
+        restAdjust.setVisibility(restOpen ? View.VISIBLE : View.GONE);
+        restHint.setVisibility(restOpen ? View.GONE : restEnabled ? View.VISIBLE : View.INVISIBLE);
+        androidx.core.view.ViewCompat.setStateDescription(restRow, getString(restOpen ? R.string.lock_state_open : R.string.lock_state_closed));
+        main.removeCallbacks(closeRest);
+        if (restOpen) scheduleRestClose();
+    }
+
+    private void scheduleRestClose() {
+        main.removeCallbacks(closeRest);
+        if (restOpen && !talkBack()) main.postDelayed(closeRest, timeout(4000));
+    }
+
+    /** 시계 글자 크기 — 낮은 화면·슈퍼셋은 작게. 글자 칸을 고정해야 자동 크기가 돈다. */
+    private void sizeRest(boolean superset) {
+        int sp = superset || getResources().getConfiguration().screenHeightDp < 680 ? 36 : 44;
+        if (sp == builtClockSp) return;
+        builtClockSp = sp;
+        restClock.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp);
+        androidx.core.widget.TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(restClock, 16, sp, 1, TypedValue.COMPLEX_UNIT_SP);
+    }
+
+    private void flash(String msg, long ms) {
+        flashMsg = msg;
+        flashUntil = SystemClock.uptimeMillis() + ms;
+        reload();
+    }
+
+    private void render(LockView v) {
+        if (isFinishing() || isDestroyed()) return;
+        if (shouldClose(v)) {
+            LockDiag.add(this, "운동 화면 닫음: " + (v.active ? "화면 켜짐 · 잠금 안 걸림" : "운동 없음"));
+            finish();
+            return;
+        }
+        // 밀고 있는 동안은 다시 그리지 않는다 — 놓은 뒤 그린다(REV-146 안드로이드 4). 단계 비교용으로 last 만 바꾼다
+        if (dragging) {
+            last = v;
+            return;
+        }
+        maybeRetheme(v.theme);
+        last = v;
+        timePill.setVisibility(v.elapsedSec == null ? View.GONE : View.VISIBLE);
+        if (v.elapsedSec != null) {
+            timeIcon.setImageResource(v.paused ? R.drawable.ic_lock_pause : R.drawable.ic_lock_clock);
+            timeText.setText(LockRules.clockText(v.elapsedSec));
+            String timeDesc = getString(R.string.lock_screen_elapsed, (int) (v.elapsedSec / 60), (int) (v.elapsedSec % 60));
+            timePill.setContentDescription(v.paused ? timeDesc + ", " + getString(R.string.lock_paused) : timeDesc);
+        }
+        boolean resting = v.restEndsAt != null && !v.paused;
+        restBox.setVisibility(View.VISIBLE);
+        // [원본 SPEC-021] +30초·건너뛰기 단추 늘 보임 — 쉬는 시간 줄을 눌러야 ±30초(SPEC-060 4A) · 건너뛰기는 밀기가 대신한다
+        restEnabled = !v.paused && v.openApp != LockView.OpenAppReason.STALLED;
+        plusBtn.setEnabled(restEnabled);
+        minusBtn.setEnabled(restEnabled && resting);
+        minusBtn.setAlpha(restEnabled && resting ? 1f : 0.4f);
+        if (!restEnabled && restOpen) setRestOpen(false);
+        else if (!restOpen) restHint.setVisibility(restEnabled ? View.VISIBLE : View.INVISIBLE);
+        restRow.setClickable(restEnabled);
+        sizeRest(v.members.size() > 1);
+        float frac;
+        if (resting) {
+            long remain = Math.max(0, (v.restEndsAt - System.currentTimeMillis() + 999) / 1000);
+            restClock.setText(String.format(Locale.ROOT, "%d:%02d", remain / 60, remain % 60));
+            frac = LockRules.restFraction(remain, v.restTotalSec);
+            restTrack.setProgress(Math.round((1f - frac) * 1000));
+        } else {
+            restClock.setText(String.format(Locale.ROOT, "%d:%02d", v.restIdleSec / 60, v.restIdleSec % 60));
+            frac = 1f;
+            restTrack.setProgress(0);
+        }
+        hourglass.set(resting, frac, wasResting != null);
+        wasResting = resting;
+        String restDesc = getString(R.string.lock_screen_rest) + " " + restClock.getText();
+        restRow.setContentDescription(restEnabled ? getString(R.string.lock_rest_row_desc, restDesc) : restDesc);
+
+        StringBuilder key = new StringBuilder(v.stepToken).append('|').append(v.canAdjust);
+        for (LockView.Member m : v.members) {
+            key.append('|').append(m.weight).append('/').append(m.reps).append('/').append(m.setNo).append('/').append(m.setTotal)
+                    .append('/').append(m.label).append('/').append(m.oneSide).append('/').append(m.name).append('/').append(WorkoutNotification.valueLine(this, m));
+        }
+        if (!key.toString().equals(builtKey)) {
+            builtKey = key.toString();
+            buildMembers(v);
+        }
+        if (pendingEdits == 0) {
+            for (LockView.Member m : v.members) {
+                Row r = rows.get(m.setId);
+                if (r != null) {
+                    r.m = m;
+                    fillRowV(r);
+                }
+            }
+        }
+        renderSlide(v);
+
+        String msg = null;
+        if (v.paused) msg = getString(R.string.lock_paused);
+        else if (v.openApp == LockView.OpenAppReason.VALUES && !v.screenCanComplete) msg = getString(R.string.lock_open_app_values);
+        else if (v.openApp == LockView.OpenAppReason.STALLED) msg = getString(R.string.lock_open_app_stalled);
+        else if (v.openApp == LockView.OpenAppReason.TRUNCATED) msg = getString(R.string.lock_truncated);
+        else if (!v.hasStep && v.undoUntil == null) msg = getString(R.string.lock_no_steps);
+        if (v.draftLost) {
+            draftLostUntil = SystemClock.uptimeMillis() + 6000;
+            clearDraftLost();
+        }
+        if (SystemClock.uptimeMillis() < draftLostUntil) msg = getString(R.string.lock_screen_draft_lost);
+        if (SystemClock.uptimeMillis() < flashUntil) msg = flashMsg;
+        notice.setText(msg == null ? "" : msg);
+        // [원본] GONE — 「되돌렸어요」 같은 안내가 뜨고 질 때 밀기 칸이 한 줄씩 오르내렸다(에뮬레이터 실측) · 자리를 지킨다
+        notice.setVisibility(msg == null ? View.INVISIBLE : View.VISIBLE);
+        if (v.next != null) {
+            next.setText(getString(R.string.lock_next, v.next.name + " · " + WorkoutNotification.setName(this, v.next)));
+            next.setVisibility(View.VISIBLE);
+        } else {
+            next.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    /** 밀기 칸 — 되돌리기 띠 · 확인 · 밀기 · 감춤(완료할 수 없는 단계) */
+    private void renderSlide(LockView v) {
+        long nowU = SystemClock.uptimeMillis();
+        if (v.undoUntil != null && v.undoActionId != null) {
+            long left = v.undoUntil - System.currentTimeMillis() - 300; // 저장소보다 조금 일찍 닫는다(REV-146 계약 4)
+            if (left > 0) {
+                String what = undoText(v.undoMembers);
+                boolean entering = !v.undoActionId.equals(undoShownId);
+                if (entering) {
+                    undoShownId = v.undoActionId;
+                    undoTotalMs = left;
+                    main.postDelayed(this::reload, left + 30);
+                }
+                slide.setVisibility(View.VISIBLE);
+                slide.showUndo(what, getString(R.string.lock_undo), getString(R.string.lock_undo_desc, what), nowU + left, undoTotalMs);
+                if (entering) slide.announceForAccessibility(getString(R.string.lock_undo_desc, what));
+                return;
+            }
+        }
+        if (undoShownId != null) {
+            undoShownId = null;
+            undoEndedAt = nowU;
+            if (talkBack()) slide.announceForAccessibility(getString(R.string.lock_undo_ended));
+        }
+        boolean canDo = v.hasStep && v.screenCanComplete;
+        if (!canDo) {
+            confirmUntil = 0;
+            slide.showSlide(LockSlideView.Mode.SLIDE, getString(R.string.lock_slide_complete) + "  ›››", getString(R.string.lock_screen_complete));
+            // 자리는 지켜 화면이 움직이지 않는다 · 앱으로 가는 길은 위 「잠금 해제」
+            slide.setVisibility(v.hasStep || v.truncated ? View.INVISIBLE : View.GONE);
+            return;
+        }
+        slide.setVisibility(View.VISIBLE);
+        if (nowU < confirmUntil && !v.members.isEmpty()) {
+            String q = getString(R.string.lock_slide_confirm, WorkoutNotification.setName(this, v.members.get(0)));
+            slide.showSlide(LockSlideView.Mode.CONFIRM, q, q);
+        } else {
+            slide.showSlide(LockSlideView.Mode.SLIDE, getString(R.string.lock_slide_complete) + "  ›››", getString(R.string.lock_screen_complete));
+        }
+    }
+
+    /** 되돌리기 띠 글자 — 「벤치프레스 3/5세트 · 80kg × 8회」 · 슈퍼셋은 「… +1」 */
+    private String undoText(java.util.List<LockView.Member> ms) {
+        if (ms.isEmpty()) return getString(R.string.lock_screen_complete);
+        LockView.Member m = ms.get(0);
+        if (m.draftWeight != null) m.weight = m.draftWeight;
+        if (m.draftReps != null) m.reps = m.draftReps;
+        String s = m.name + " " + WorkoutNotification.setName(this, m);
+        if (ms.size() > 1) return s + " +" + (ms.size() - 1);
+        String line = WorkoutNotification.valueLine(this, m);
+        return line == null || line.isEmpty() ? s : s + " · " + line;
+    }
+
+    /** ② 다시 확인이 필요한 단계인가 — 드롭 세트·슈퍼셋은 연달아 끝내는 것이 정상이라 묻지 않는다(REV-146 사용성 2) */
+    private static boolean needsConfirm(LockView v) {
+        return v.members.size() == 1 && !"D".equals(v.members.get(0).label);
+    }
+
+    private final LockSlideView.Listener slideListener = new LockSlideView.Listener() {
+        @Override
+        public void onSlid() {
+            LockView v = last;
+            if (v == null || !v.hasStep || !v.screenCanComplete || slideToken == null || !slideToken.equals(v.stepToken)) {
+                slide.resetThumb(true); // 밀던 사이 단계가 바뀌었다 — 다른 세트를 완료하지 않는다
+                reload();
+                return;
+            }
+            long now = SystemClock.uptimeMillis();
+            boolean confirming = slideConfirming || now < confirmUntil;
+            if (!confirming && lastDoneAt > 0 && now - lastDoneAt < 15_000 && needsConfirm(v)) {
+                confirmUntil = now + timeout(5000);
+                // 완료 진동과 다르게 — 짧게 두 번(REV-146 사용성 7)
+                slide.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP);
+                main.postDelayed(() -> slide.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP), 130);
+                String q = getString(R.string.lock_slide_confirm, WorkoutNotification.setName(LockWorkoutActivity.this, v.members.get(0)));
+                slide.showSlide(LockSlideView.Mode.CONFIRM, q, q);
+                slide.announceForAccessibility(q);
+                main.removeCallbacks(confirmExpire);
+                main.postDelayed(confirmExpire, confirmUntil - now + 20);
+                return;
+            }
+            completeNow(v.stepToken);
+        }
+
+        @Override
+        public void onClickComplete() {
+            // 되돌리기 띠가 끝난 직후 1초는 받지 않는다 — 되돌리려던 두 번 탭이 다음 세트를 완료하지 않게(REV-146 사용성 5)
+            if (SystemClock.uptimeMillis() < undoEndedAt + 1000) return;
+            LockView v = last;
+            if (v != null && v.hasStep && v.screenCanComplete) completeNow(v.stepToken);
+        }
+
+        @Override
+        public void onUndo() {
+            undoNow();
+        }
+
+        @Override
+        public void onDragging(boolean d) {
+            dragging = d;
+            if (d) {
+                slideToken = last == null ? null : last.stepToken;
+                slideConfirming = SystemClock.uptimeMillis() < confirmUntil;
+                closeEditor(); // 밀면 열린 줄은 닫고 지금 칸 값으로 완료한다(REV-146 사용성 8)
+                setRestOpen(false);
+            }
+        }
+
+        @Override
+        public boolean guarded() {
+            return LockWorkoutActivity.this.guarded();
+        }
+    };
+
+    private void completeNow(String token) {
+        // [원본] lastDoneAt = SystemClock.uptimeMillis(); — 완료가 안 돼도 「직전 완료」로 셌다(REV-148 4)
+        confirmUntil = 0;
+        slideConfirming = false;
+        main.removeCallbacks(confirmExpire);
+        closeEditor();
+        setRestOpen(false);
+        final long hold = Math.min(LockState.HOLD_MAX_MS, timeout(LockActionReceiver.UNDO_MS));
+        final Context app = getApplicationContext();
+        try {
+            io.execute(() -> {
+                String r = null;
+                try {
+                    r = LockActionReceiver.handle(app, LockActionReceiver.ACTION_COMPLETE, token, true, hold);
+                } catch (Exception e) {
+                    android.util.Log.w("LiftgramLock", "운동 화면 조작 실패", e);
+                }
+                final boolean done = LockActionReceiver.DONE.equals(r);
+                main.post(() -> {
+                    if (done) lastDoneAt = SystemClock.uptimeMillis();
+                    reload();
+                });
+            });
+        } catch (java.util.concurrent.RejectedExecutionException ignored) {
+            // 닫히는 중
+        }
+        // 완료가 안 됐으면(그새 바뀜) 손잡이를 돌려놓는다 — 다시 밀고 있으면 건드리지 않는다(REV-148 3)
+        main.postDelayed(() -> {
+            if (slide != null && !slide.isDragging() && slide.mode() != LockSlideView.Mode.UNDO) slide.resetThumb(true);
+        }, 700);
+    }
+
+    private void undoNow() {
+        LockView v = last;
+        if (v == null || v.undoActionId == null) return;
+        final String id = v.undoActionId;
+        final Context app = getApplicationContext();
+        try {
+            io.execute(() -> {
+                String r = null;
+                try {
+                    r = LockActionReceiver.handle(app, LockActionReceiver.ACTION_UNDO, id, false, 0);
+                } catch (Exception e) {
+                    android.util.Log.w("LiftgramLock", "되돌리기 실패", e);
+                }
+                final String res = r;
+                main.post(() -> {
+                    boolean ok = LockState.UNDONE.equals(res);
+                    if (ok) lastDoneAt = 0; // 되돌렸으면 다음 밀기에 확인을 묻지 않는다(REV-146 안드로이드 7)
+                    // 「되돌리기 끝남」을 또 읽지 않게 띠 상태를 먼저 닫는다(REV-148 6)
+                    undoShownId = null;
+                    undoEndedAt = SystemClock.uptimeMillis();
+                    String msg = getString(ok ? R.string.lock_undone : R.string.lock_undo_expired);
+                    if (slide != null) slide.announceForAccessibility(msg);
+                    flash(msg, ok ? 2500 : 3000);
+                });
+            });
+        } catch (java.util.concurrent.RejectedExecutionException ignored) {
+            // 닫히는 중
+        }
+    }
+
+    /** 붙잡은 화면 완료를 확정한다 — 화면을 떠날 때(REV-146 안드로이드 2 · 계약 3) */
+    private void releaseHold() {
+        final Context app = getApplicationContext();
+        Runnable r = () -> {
+            try {
+                Boolean had = LockHub.store(app).write(LockState::releaseHold);
+                if (Boolean.TRUE.equals(had)) {
+                    LockHub.refresh(app);
+                    LiftgramLockPlugin.fireAction();
+                }
+            } catch (Exception e) {
+                android.util.Log.w("LiftgramLock", "붙잡기 풀기 실패", e);
+            }
+        };
+        try {
+            io.execute(r);
+        } catch (java.util.concurrent.RejectedExecutionException e) {
+            new Thread(r, "liftgram-lock-release").start();
+        }
+    }
+
+    private void buildMembers(LockView v) {
+        stopRepeats();
+        repeats.clear();
+        membersBox.removeAllViews();
+        rows.clear();
+        valueHint = null;
+        boolean group = v.members.size() > 1;
+        bigControls = !group && getResources().getConfiguration().screenHeightDp >= 680;
+        for (LockView.Member m : v.members) {
+            View sep = new View(this);
+            sep.setBackgroundColor(p.line);
+            membersBox.addView(sep, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(1)));
+            LinearLayout blk = new LinearLayout(this);
+            blk.setOrientation(LinearLayout.VERTICAL);
+            blk.setPadding(0, dp(12), 0, dp(12));
+            blk.addView(memberHeaderFlat(m, group));
+            Row r = new Row();
+            r.m = m;
+            r.setId = m.setId;
+            r.prefix = group ? m.name + " " : "";
+            if (m.cardio || !v.canAdjust) {
+                TextView val = text(24, p.ink, true);
+                fitOneLine(val, 14, 24);
+                String line = WorkoutNotification.valueLine(this, m);
+                val.setText(line == null || line.isEmpty() ? "–" : line);
+                blk.addView(val, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(40)));
+            } else {
+                LinearLayout cells = new LinearLayout(this);
+                final String setId = m.setId;
+                if (m.weight != null) {
+                    r.weight = text(bigControls ? 40 : 32, p.ink, true);
+                    r.weightWas = text(13, p.ink3, false);
+                    r.weightCell = valueCell(r.weight, r.weightWas);
+                    r.weightCell.setOnClickListener(x -> openEditor(setId, true));
+                    LinearLayout.LayoutParams wl = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
+                    wl.setMarginEnd(dp(8));
+                    cells.addView(r.weightCell, wl);
+                }
+                r.reps = text(bigControls ? 40 : 32, p.ink, true);
+                r.repsWas = text(13, p.ink3, false);
+                r.repsCell = valueCell(r.reps, r.repsWas);
+                r.repsCell.setOnClickListener(x -> openEditor(setId, false));
+                cells.addView(r.repsCell, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+                blk.addView(cells, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+                r.editor = editorRow(r);
+                blk.addView(r.editor);
+                if (valueHint == null) {
+                    valueHint = text(13, p.ink3, false);
+                    valueHint.setText(R.string.lock_value_hint);
+                    valueHint.setPadding(0, dp(6), 0, 0);
+                    blk.addView(valueHint);
+                }
+            }
+            rows.put(m.setId, r);
+            fillRowV(r);
+            membersBox.addView(blk);
+        }
+        // 재빌드 전에 열려 있던 칸을 다시 연다(REV-146 안드로이드 4)
+        if (openEditSetId != null) {
+            Row r = rows.get(openEditSetId);
+            if (r != null && r.editor != null && (openEditWeight ? r.weightCell != null : r.repsCell != null)) showEditor(r, openEditWeight);
+            else closeEditor();
+        }
+    }
+
+    /** 종목 이름 · 세트 점 · 세트 글자 — 왼쪽 정렬 · 한 포커스 */
+    private View memberHeaderFlat(LockView.Member m, boolean group) {
+        LinearLayout h = new LinearLayout(this);
+        h.setOrientation(LinearLayout.VERTICAL);
+        h.setPadding(0, 0, 0, dp(8));
+        h.setFocusable(true);
+        TextView name = text(group ? 18 : 22, p.ink, true);
+        name.setText(m.name);
+        h.addView(name);
+        LinearLayout line = new LinearLayout(this);
+        line.setGravity(Gravity.CENTER_VERTICAL);
+        line.setMinimumHeight(dp(24));
+        if (!group && m.setNo > 0 && m.setTotal >= 1 && m.setTotal <= 8 && m.setNo <= m.setTotal) {
+            for (int i = 1; i <= m.setTotal; i++) line.addView(pip(i, m.setNo));
+        }
+        String setText = WorkoutNotification.setName(this, m) + (m.oneSide ? " · " + getString(R.string.lock_one_side) : "");
+        TextView set = text(14, p.ink2, false);
+        set.setText(setText);
+        set.setPadding(line.getChildCount() > 0 ? dp(6) : 0, 0, 0, 0);
+        line.addView(set);
+        h.addView(line);
+        h.setContentDescription(m.name + ", " + setText);
+        return h;
+    }
+
+    /** 값 칸 — 누르면 아래 ± 줄이 열린다(SPEC-060 4A) · 높이 64dp 이상(장갑) */
+    private LinearLayout valueCell(TextView value, TextView was) {
+        LinearLayout c = new LinearLayout(this);
+        c.setOrientation(LinearLayout.VERTICAL);
+        c.setGravity(Gravity.CENTER);
+        c.setMinimumHeight(dp(bigControls ? 80 : 64));
+        c.setPadding(dp(8), dp(6), dp(8), dp(6));
+        c.setBackground(rect(p.card, p.stroke, 1));
+        c.setFocusable(true);
+        c.setClickable(true);
+        value.setGravity(Gravity.CENTER);
+        value.setFontFeatureSettings("tnum");
+        value.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        fitOneLine(value, 14, bigControls ? 40 : 32);
+        was.setGravity(Gravity.CENTER);
+        was.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        fitOneLine(was, 9, 13);
+        c.addView(value, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(bigControls ? 48 : 40)));
+        // 단위 줄 22dp — 글꼴 200% 에서 18dp 면 「kg」 아래가 잘렸다(에뮬레이터 실측)
+        c.addView(was, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(22)));
+        c.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        return c;
+    }
+
+    /** [−][+][원래대로·닫기] — 56dp · 누르면 4초 뒤 닫힘을 다시 센다 · 오래 누르면 반복(#8) */
+    private LinearLayout editorRow(Row r) {
+        LinearLayout e = new LinearLayout(this);
+        e.setPadding(0, dp(8), 0, 0);
+        r.editMinus = smallButton("−", "");
+        r.editPlus = smallButton("+", "");
+        r.editReset = smallButton(getString(R.string.lock_value_close), getString(R.string.lock_value_close));
+        r.editMinus.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+        r.editPlus.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+        LinearLayout.LayoutParams a = new LinearLayout.LayoutParams(0, dp(56), 1);
+        a.setMarginEnd(dp(8));
+        LinearLayout.LayoutParams b = new LinearLayout.LayoutParams(0, dp(56), 1);
+        b.setMarginEnd(dp(8));
+        e.addView(r.editMinus, a);
+        e.addView(r.editPlus, b);
+        e.addView(r.editReset, new LinearLayout.LayoutParams(0, dp(56), 1));
+        final String setId = r.setId;
+        repeat(r.editMinus, () -> {
+            nudge(setId, r.editingWeight, -1);
+            scheduleEditClose();
+        });
+        repeat(r.editPlus, () -> {
+            nudge(setId, r.editingWeight, +1);
+            scheduleEditClose();
+        });
+        r.editReset.setOnClickListener(x -> {
+            if (guarded()) return;
+            boolean edited = r.editingWeight ? r.m.draftWeight != null : r.m.draftReps != null;
+            if (edited) {
+                resetField(r);
+                scheduleEditClose();
+            } else {
+                closeEditor();
+            }
+        });
+        e.setVisibility(View.GONE);
+        return e;
+    }
+
+    private void openEditor(String setId, boolean weight) {
+        if (guarded()) return;
+        Row r = rows.get(setId);
+        if (r == null || r.editor == null) return;
+        if (setId.equals(openEditSetId) && openEditWeight == weight) {
+            closeEditor(); // 같은 칸을 다시 누르면 닫는다
+            return;
+        }
+        showEditor(r, weight);
+    }
+
+    private void showEditor(Row r, boolean weight) {
+        for (Row o : rows.values()) {
+            if (o.editor != null && o != r) o.editor.setVisibility(View.GONE);
+        }
+        r.editingWeight = weight;
+        openEditSetId = r.setId;
+        openEditWeight = weight;
+        String unit = weight ? r.m.unit : getString(R.string.lock_screen_reps_unit);
+        String step = weight ? WorkoutNotification.num(LockRules.weightStep(r.m.unit)) : "1";
+        String field = r.prefix + getString(weight ? R.string.lock_screen_weight : R.string.lock_screen_reps);
+        r.editMinus.setText("−" + step);
+        r.editPlus.setText("+" + step);
+        r.editMinus.setContentDescription(field + " " + step + unit + " " + getString(R.string.lock_screen_minus));
+        r.editPlus.setContentDescription(field + " " + step + unit + " " + getString(R.string.lock_screen_plus));
+        r.editor.setVisibility(View.VISIBLE);
+        if (valueHint != null) valueHint.setVisibility(View.GONE);
+        paintCells();
+        updateReset(r);
+        scheduleEditClose();
+        final View ed = r.editor;
+        ed.post(() -> {
+            android.graphics.Rect box = new android.graphics.Rect(0, 0, ed.getWidth(), ed.getHeight());
+            ed.requestRectangleOnScreen(box, false);
+        });
+    }
+
+    private void closeEditor() {
+        main.removeCallbacks(closeEdit);
+        openEditSetId = null;
+        for (Row o : rows.values()) if (o.editor != null) o.editor.setVisibility(View.GONE);
+        if (valueHint != null) valueHint.setVisibility(View.VISIBLE);
+        paintCells();
+    }
+
+    private void scheduleEditClose() {
+        main.removeCallbacks(closeEdit);
+        if (openEditSetId != null && !talkBack()) main.postDelayed(closeEdit, timeout(4000));
+    }
+
+    /** 열린 칸은 강조색 테두리 2dp(SPEC-060 강조색 규칙) · 펼침 상태를 읽어 준다 */
+    private void paintCells() {
+        for (Row o : rows.values()) {
+            for (int i = 0; i < 2; i++) {
+                LinearLayout c = i == 0 ? o.weightCell : o.repsCell;
+                if (c == null) continue;
+                boolean open = o.setId.equals(openEditSetId) && openEditWeight == (i == 0);
+                c.setBackground(open ? rect(p.card, p.brand, 2) : rect(p.card, p.stroke, 1));
+                androidx.core.view.ViewCompat.setStateDescription(c, getString(open ? R.string.lock_state_open : R.string.lock_state_closed));
+            }
+        }
+    }
+
+    private void updateReset(Row r) {
+        if (r.editReset == null) return;
+        boolean edited = r.editingWeight ? r.m.draftWeight != null : r.m.draftReps != null;
+        String t = getString(edited ? R.string.lock_value_reset : R.string.lock_value_close);
+        r.editReset.setText(t);
+        r.editReset.setContentDescription(t);
+    }
+
+    /** fillRow + 값 칸 설명 · 원래대로 글자 */
+    private void fillRowV(Row r) {
+        fillRow(r);
+        if (r.weightCell != null && r.weight != null) r.weightCell.setContentDescription(getString(R.string.lock_value_open_desc, r.weight.getContentDescription()));
+        if (r.repsCell != null && r.reps != null) r.repsCell.setContentDescription(getString(R.string.lock_value_open_desc, r.reps.getContentDescription()));
+        if (r.editor != null && r.editor.getVisibility() == View.VISIBLE) updateReset(r);
+    }
+
+    /** 원래대로 — 그 칸의 고른 값을 지운다(초안에서 원래 값과 같으면 지워진다 · LockState.setDraft) */
+    private void resetField(Row r) {
+        LockView v = last;
+        if (v == null || !v.canAdjust) return;
+        LockView.Member m = r.m;
+        if (r.editingWeight) m.draftWeight = null;
+        else m.draftReps = null;
+        fillRowV(r);
+        final String token = v.stepToken;
+        final String setId = r.setId;
+        final Double w = m.draftWeight != null ? m.draftWeight : m.weight;
+        final Integer rp = m.draftReps != null ? m.draftReps : m.reps;
+        final Context app = getApplicationContext();
+        pendingEdits++;
+        submitEdit(() -> LockHub.store(app).write(s -> s.setDraft(token, setId, w, rp)));
+    }
+
     // ── 조작 ──────────────────────────────────────────────────────────────
 
     /** ± 한 번 — 화면에 바로 보이고(낙관), 저장소 초안에 적는다(#4) */
@@ -940,7 +1793,7 @@ public class LockWorkoutActivity extends Activity {
             int nr = LockRules.nudgeReps(m.draftReps != null ? m.draftReps : m.reps, dir);
             m.draftReps = m.reps != null && nr == m.reps ? null : nr;
         }
-        fillRow(r);
+        fillRowV(r);
         final String token = v.stepToken;
         final Double fw = weight ? (m.draftWeight != null ? m.draftWeight : m.weight) : null;
         final Integer fr = weight ? null : (m.draftReps != null ? m.draftReps : m.reps);
@@ -1099,6 +1952,7 @@ public class LockWorkoutActivity extends Activity {
     }
 
     private void launchWorkout() {
+        releaseHold();
         Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("liftgram://workout"), this, MainActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         try {

@@ -39,6 +39,18 @@ public final class LockState {
      * 옛 계산이라, 완료할 때 보인 값을 그대로 values 로 싣는다. 웹이 그 seq 까지 반영한 스냅샷을 보내면 지운다.
      */
     public JSONObject editedWe;
+    /**
+     * 되돌릴 수 있게 붙잡아 둔 화면 완료(SPEC-060 · REV-146) — 한 번에 하나.
+     * {actionId, seq, holdAt, holdUntil, step, rest(완료 전 · NULL 가능), restSetAt(완료가 건 휴식의 setAt · -1 = 안 걸음),
+     *  draft, draftLost, edited({weId: 이전 seq 또는 NULL})}
+     * 붙잡는 동안 drain 은 이 항목에서 멈추고(뒤 조작이 워터마크를 앞지르지 않게) 완료 전 휴식을 싣는다.
+     */
+    public JSONObject undo;
+    /** 웹이 보낸 원래 단계 · 그때 워터마크 — 되돌릴 때 이것으로 다시 rebase 한다(REV-146 계약 2) */
+    public JSONArray rawSteps;
+    public long rawApplied;
+    /** 붙잡기 상한 — 시계가 뒤로 가도 대기열이 오래 멈추지 않게(REV-146 계약 5) */
+    public static final long HOLD_MAX_MS = 30_000L;
 
     public static LockState fresh() {
         LockState s = new LockState();
@@ -62,6 +74,9 @@ public final class LockState {
             s.draft = o.optJSONObject("draft");
             s.draftLost = o.optBoolean("draftLost");
             s.editedWe = o.optJSONObject("editedWe");
+            s.undo = o.optJSONObject("undo");
+            s.rawSteps = o.optJSONArray("rawSteps");
+            s.rawApplied = o.optLong("rawApplied");
             JSONArray q = o.optJSONArray("queue");
             if (q != null) for (int i = 0; i < q.length(); i++) s.queue.add(q.getJSONObject(i));
             return s;
@@ -84,6 +99,9 @@ public final class LockState {
             o.put("draft", draft == null ? JSONObject.NULL : draft);
             o.put("draftLost", draftLost);
             o.put("editedWe", editedWe == null ? JSONObject.NULL : editedWe);
+            o.put("undo", undo == null ? JSONObject.NULL : undo);
+            o.put("rawSteps", rawSteps == null ? JSONObject.NULL : rawSteps);
+            o.put("rawApplied", rawApplied);
             JSONArray q = new JSONArray();
             for (JSONObject e : queue) q.put(e);
             o.put("queue", q);
@@ -130,6 +148,9 @@ public final class LockState {
         JSONObject s = new JSONObject(next.toString());
         JSONArray steps = s.optJSONArray("steps");
         if (steps == null) steps = new JSONArray();
+        rawSteps = new JSONArray(steps.toString());
+        rawApplied = applied;
+        if (sessionChanged) undo = null;
         s.put("steps", LockRules.rebase(steps, applied, pendingActions()));
         snapshot = s;
         if (mine) forgetCovered();
@@ -152,16 +173,36 @@ public final class LockState {
         draft = null;
         draftLost = false;
         editedWe = null;
+        undo = null;
+        rawSteps = null;
     }
 
     /** 웹 drain — ack 안 된 조작 전부 · 지금 휴식 · storeId. */
+    // [원본] public JSONObject drain() — 붙잡기가 없던 때. 지금 시각으로 drain(now) 를 부른다
     public JSONObject drain() throws JSONException {
+        return drain(System.currentTimeMillis());
+    }
+
+    /**
+     * 붙잡힌 화면 완료가 있으면 그 항목 앞에서 멈추고, 휴식은 완료 전 것을 싣는다(SPEC-060 · REV-146 계약 1).
+     * 뒤 조작만 먼저 보내면 웹 워터마크가 앞질러 붙잡힌 조작이 「이미 반영」으로 버려진다.
+     */
+    public JSONObject drain(long now) throws JSONException {
+        boolean held = held(now);
+        // 끝난 붙잡기는 여기서 나간다 — 내보낸 뒤에는 되돌리지 못하게 지운다(시계가 다시 창 안으로 돌아와도 · REV-147 2)
+        if (!held) undo = null;
+        String heldId = held ? undo.optString("actionId") : null;
         JSONArray actions = new JSONArray();
-        for (JSONObject e : queue) if (!e.optBoolean("acked")) actions.put(e.getJSONObject("action"));
+        for (JSONObject e : queue) {
+            if (e.optBoolean("acked")) continue;
+            if (heldId != null && heldId.equals(e.getJSONObject("action").optString("id"))) break;
+            actions.put(e.getJSONObject("action"));
+        }
         JSONObject o = new JSONObject();
         o.put("actions", actions);
+        JSONObject r = held ? undo.optJSONObject("rest") : rest;
         // 카드가 없으면(끝난 세션) 휴식도 없다 — 다음 세션으로 새지 않게(계약 M-2)
-        o.put("rest", rest == null || snapshot == null ? JSONObject.NULL : rest);
+        o.put("rest", r == null || snapshot == null ? JSONObject.NULL : r);
         o.put("storeId", storeId);
         return o;
     }
@@ -182,6 +223,99 @@ public final class LockState {
     /** 리셋(새 웹 DB) — 옛 DB 의 조작을 지운다. */
     public void clear() {
         queue.clear();
+        undo = null;
+    }
+
+    /** 붙잡혀 있나 — holdAt ≤ now < holdUntil 이고 남은 시간이 상한 안(시계가 뒤로 가면 풀린 것으로 · REV-146 계약 5) */
+    public boolean held(long now) {
+        if (undo == null) return false;
+        long at = undo.optLong("holdAt"), until = undo.optLong("holdUntil");
+        return at <= now && now < until && until - now <= HOLD_MAX_MS;
+    }
+
+    /** 붙잡기를 푼다 — 되돌리기 끝 · 화면을 떠남 · 앱이 앞에 옴(REV-146 계약 3). 조작은 대기열에 그대로 남아 다음 drain 에 간다. */
+    public boolean releaseHold() {
+        boolean had = undo != null;
+        undo = null;
+        return had;
+    }
+
+    public static final String UNDONE = "UNDONE";
+    public static final String EXPIRED = "EXPIRED";
+    public static final String GONE = "GONE";
+
+    /**
+     * 붙잡은 화면 완료를 되돌린다(SPEC-060 2a). 대기열에서 빼고 단계를 다시 계산하고, 그 완료가 건 휴식·초안·고친 블록을 되돌린다.
+     * seq 는 되돌리지 않는다(웹은 빈 번호를 문제 삼지 않는다 — alreadyApplied 는 ≤ 비교).
+     */
+    public String undoComplete(String actionId, long now) throws JSONException {
+        if (undo == null || actionId == null || !actionId.equals(undo.optString("actionId"))) return GONE;
+        if (!held(now)) {
+            undo = null;
+            return EXPIRED;
+        }
+        JSONObject u = undo;
+        JSONObject found = null;
+        for (JSONObject e : queue) if (actionId.equals(e.getJSONObject("action").optString("id"))) found = e;
+        if (found == null || found.optBoolean("acked") || snapshot == null) {
+            undo = null;
+            return GONE;
+        }
+        queue.remove(found);
+        // 단계 — 웹이 보낸 원래 단계로 다시 rebase(그 사이 온 스냅샷과 어긋나지 않게 · 계약 2)
+        if (rawSteps != null) {
+            snapshot.put("steps", LockRules.rebase(new JSONArray(rawSteps.toString()), rawApplied, pendingActions()));
+        } else {
+            JSONObject st = u.optJSONObject("step");
+            JSONArray steps = snapshot.optJSONArray("steps");
+            if (steps == null) steps = new JSONArray();
+            if (st != null && !hasAnySet(steps, idSet(st.optJSONArray("setIds")))) {
+                JSONArray out = new JSONArray().put(st);
+                for (int i = 0; i < steps.length(); i++) out.put(steps.get(i));
+                snapshot.put("steps", out);
+            }
+        }
+        // 휴식 — 그 완료가 건 휴식이 그대로일 때만 · 새 기록으로(LWW 에서 이기게 · 계약 1·7)
+        long restSetAt = u.optLong("restSetAt", -1);
+        if (restSetAt >= 0 && rest != null && rest.optLong("setAt") == restSetAt) {
+            JSONObject prev = u.optJSONObject("rest");
+            long prevEnds = prev == null || prev.isNull("endsAt") ? 0 : prev.optLong("endsAt");
+            if (prevEnds > now) rest = restAt(prevEnds, prev.optLong("totalSec"), now);
+            else endRest(now);
+        }
+        // 고친 블록 — 이 완료가 바꾼 키만 이전 값으로(계약 7)
+        JSONObject edited = u.optJSONObject("edited");
+        long seqUndone = u.optLong("seq");
+        if (edited != null && editedWe != null) {
+            java.util.Iterator<String> it = edited.keys();
+            while (it.hasNext()) {
+                String we = it.next();
+                if (editedWe.optLong(we, -1) != seqUndone) continue;
+                long prevSeq = edited.isNull(we) ? -1 : edited.optLong(we, -1);
+                if (prevSeq > rawApplied) editedWe.put(we, prevSeq);
+                else editedWe.remove(we);
+            }
+            if (editedWe.length() == 0) editedWe = null;
+        }
+        // 초안 — 다시 계산한 지금 단계가 같은 단계일 때만(계약 11)
+        JSONObject d = u.optJSONObject("draft");
+        JSONObject cur = currentStep();
+        if (d != null && cur != null && stepToken(cur).equals(d.optString("token"))) {
+            draft = d;
+            draftLost = u.optBoolean("draftLost");
+        }
+        // 되살린 초안도 지금 표시값과 다시 맞춘다 — 그 사이 처방이 바뀌었거나 다른 단계 초안이면 버린다(REV-147 3·4)
+        dropStaleDraft();
+        undo = null;
+        return UNDONE;
+    }
+
+    private static boolean hasAnySet(JSONArray steps, Set<String> ids) {
+        for (int i = 0; i < steps.length(); i++) {
+            JSONArray s = steps.optJSONObject(i) == null ? null : steps.optJSONObject(i).optJSONArray("setIds");
+            if (s != null) for (int j = 0; j < s.length(); j++) if (ids.contains(s.optString(j))) return true;
+        }
+        return false;
     }
 
     public boolean stalled(long now) {
@@ -193,7 +327,8 @@ public final class LockState {
     /** 대기열이 「앱 열기」로 바뀌는 시각(가장 오래된 미확인 + 60초) — 그때 다시 그리도록 알람을 건다(계약 M-4). 없으면 null. */
     public Long stallsAt() {
         // [원본] 가장 오래된 미확인 + 60_001L — 시간으로는 더 이상 막히지 않으니 다시 그릴 시각이 없다
-        return null;
+        // [개선] 붙잡기 끝 — 그때 다시 그리고 웹 drain 을 깨운다(RestAlarm REDRAW · REV-146 계약 9)
+        return undo == null ? null : undo.optLong("holdUntil");
     }
 
     /** 단계 토큰 — 버튼에 실어 「누른 순간 보이던 단계」를 고정한다(계약 H-1). */
@@ -271,11 +406,27 @@ public final class LockState {
      * 바꾸지 않은 필드는 null · 바꾼 것이 하나도 없는 멤버는 빼고, 하나도 없으면 values 키 자체를 넣지 않는다(옛 조작과 같은 모양).
      */
     public JSONObject pressComplete(long now, String token, boolean withDraft) throws JSONException {
+        return pressComplete(now, token, withDraft, 0);
+    }
+
+    /** holdMs > 0 — 잠금 운동 화면의 밀어서 완료: 그동안 되돌릴 수 있게 붙잡는다(SPEC-060 · 한 번에 하나 · 앞 붙잡기는 푼다). */
+    public JSONObject pressComplete(long now, String token, boolean withDraft, long holdMs) throws JSONException {
         // [원본] if (!canComplete(now)) return null;
         if (withDraft ? !canCompleteOnScreen(now) : !canComplete(now)) return null;
         JSONObject st = currentStep();
         // 버튼이 본 단계와 지금 단계가 다르면(연타 두 번째 · 낡은 카드) 아무것도 하지 않는다
         if (token != null && !token.equals(stepToken(st))) return null;
+        // 되돌릴 재료 — 바꾸기 전에 적어 둔다
+        undo = null; // 붙잡기는 하나 — 앞 것은 풀려 다음 drain 에 간다(REV-146 계약 6)
+        JSONObject before = null;
+        if (holdMs > 0) {
+            before = new JSONObject();
+            before.put("step", new JSONObject(st.toString()));
+            before.put("rest", rest == null ? JSONObject.NULL : new JSONObject(rest.toString()));
+            before.put("draft", draft == null ? JSONObject.NULL : new JSONObject(draft.toString()));
+            before.put("draftLost", draftLost);
+        }
+        JSONObject editedBefore = editedWe == null ? new JSONObject() : new JSONObject(editedWe.toString());
         seq += 1;
         JSONObject a = new JSONObject();
         a.put("id", UUID.randomUUID().toString());
@@ -305,9 +456,13 @@ public final class LockState {
         Set<String> editedNow = new HashSet<>();
         JSONArray values = hasValuesCap() ? completeValues(st, withDraft, editedNow) : null;
         if (values != null && values.length() > 0) a.put("values", values);
+        JSONObject edited = new JSONObject();
         if (!editedNow.isEmpty()) {
             if (editedWe == null) editedWe = new JSONObject();
-            for (String we : editedNow) editedWe.put(we, seq);
+            for (String we : editedNow) {
+                edited.put(we, editedBefore.has(we) ? editedBefore.get(we) : JSONObject.NULL);
+                editedWe.put(we, seq);
+            }
         }
         draft = null;
         draftLost = false;
@@ -319,6 +474,15 @@ public final class LockState {
         snapshot.put("steps", LockRules.rebase(snapshot.getJSONArray("steps"), seq - 1, one));
         long restSec = st.optLong("restAfterSec");
         if (restSec > 0) rest = restAt(now + restSec * 1000L, restSec, now);
+        if (before != null) {
+            before.put("actionId", a.getString("id"));
+            before.put("seq", seq);
+            before.put("holdAt", now);
+            before.put("holdUntil", now + Math.min(holdMs, HOLD_MAX_MS));
+            before.put("restSetAt", restSec > 0 ? now : -1);
+            before.put("edited", edited);
+            undo = before;
+        }
         return a;
     }
 
@@ -461,6 +625,18 @@ public final class LockState {
     public void addRest(long sec, long now) throws JSONException {
         if (snapshot == null) return; // 끝난 세션의 카드 버튼(계약 M-2)
         long remain = LockRules.restRemainingSec(rest, now);
+        // −초(SPEC-060 화면 −30초) — 쉬는 중이 아니면 아무것도 안 함 · 0 이하가 되면 끝내기와 같다
+        if (sec < 0) {
+            if (remain <= 0) return;
+            long endsAt = rest.optLong("endsAt") + sec * 1000L;
+            if (endsAt <= now) {
+                endRest(now);
+                return;
+            }
+            long total = Math.max(1, rest.optLong("totalSec") + sec);
+            rest = restAt(endsAt, total, now);
+            return;
+        }
         long total = rest == null ? 0 : rest.optLong("totalSec");
         long endsAt = remain > 0 ? rest.optLong("endsAt") + sec * 1000L : now + sec * 1000L;
         rest = restAt(endsAt, remain > 0 ? total + sec : sec, now);

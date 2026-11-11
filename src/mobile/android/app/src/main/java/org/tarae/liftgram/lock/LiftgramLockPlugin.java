@@ -206,7 +206,13 @@ public class LiftgramLockPlugin extends Plugin {
     @PluginMethod
     public void queueDrain(PluginCall call) {
         try {
-            JSONObject d = store().read(LockState::drain);
+            // [원본] JSONObject d = store().read(LockState::drain);
+            // [개선] 잠금 운동 화면이 안 보이면(앱이 앞에 옴) 붙잡기를 풀고 drain — 앱에서 같은 세트를 또 완료하지 않게(REV-146 계약 3)
+            final boolean screen = LockWorkoutActivity.isVisible();
+            JSONObject d = store().write(s -> {
+                if (!screen) s.releaseHold();
+                return s.drain(System.currentTimeMillis()); // 시각은 실행기 안에서(REV-147 2)
+            });
             call.resolve(JSObject.fromJSONObject(d));
         } catch (Exception e) {
             call.reject("queueDrain 실패", e);

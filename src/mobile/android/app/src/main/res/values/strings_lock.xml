@@ -45,4 +45,24 @@
     <string name="lock_screen_draft_lost">세트가 바뀌어 조정한 값을 지웠어요</string>
     <string name="lock_fullscreen_channel">잠금화면 운동 화면</string>
     <string name="lock_fullscreen_channel_desc">화면을 끄거나 쉬는 시간이 끝나면 잠금화면 위에 운동 화면을 띄워요</string>
+    <!-- 잠금 운동 화면 개편(SPEC-060) -->
+    <string name="lock_slide_complete">밀어서 세트 완료</string>
+    <string name="lock_slide_confirm">%1$s도 끝났나요? 한 번 더 밀기</string>
+    <string name="lock_not_done">완료하지 않았어요</string>
+    <string name="lock_undo">되돌리기</string>
+    <string name="lock_undo_desc">%1$s 완료함, 두 번 탭하면 되돌리기</string>
+    <string name="lock_undo_ended">되돌리기 끝남</string>
+    <string name="lock_undone">되돌렸어요</string>
+    <string name="lock_undo_expired">이미 기록했어요</string>
+    <string name="lock_rest_hint">눌러서\n시간 조절</string>
+    <string name="lock_minus30">−30초</string>
+    <string name="lock_minus30_desc">30초 줄이기</string>
+    <string name="lock_plus30_desc">30초 늘리기</string>
+    <string name="lock_rest_row_desc">%1$s, 두 번 탭하면 시간 조절</string>
+    <string name="lock_value_hint">값을 누르면 바꿀 수 있어요</string>
+    <string name="lock_value_reset">원래대로</string>
+    <string name="lock_value_close">닫기</string>
+    <string name="lock_value_open_desc">%1$s, 두 번 탭하면 바꾸기</string>
+    <string name="lock_state_open">열림</string>
+    <string name="lock_state_closed">닫힘</string>
 </resources>

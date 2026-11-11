@@ -60,6 +60,10 @@ public final class LockView {
     public Long restTotalSec;
     /** 쉬는 시간이 안 돌 때 시계 자리에 보일 총시간(초) — 다음 휴식 길이, 없으면 지난 휴식 길이 */
     public long restIdleSec;
+    /** 되돌릴 수 있는 화면 완료(SPEC-060) — 붙잡혀 있을 때만. 끝 시각(epoch ms) · 조작 id · 완료한 멤버(고른 값 반영) */
+    public Long undoUntil;
+    public String undoActionId;
+    public List<Member> undoMembers = new ArrayList<>();
 
     static Member member(JSONObject m) {
         Member x = new Member();
@@ -141,6 +145,24 @@ public final class LockView {
         v.restIdleSec = st == null ? 0 : st.optLong("restAfterSec");
         if (v.restIdleSec <= 0 && s.rest != null) v.restIdleSec = Math.max(0, s.rest.optLong("totalSec"));
         v.stalledAt = s.stallsAt();
+        if (s.held(now)) {
+            v.undoUntil = s.undo.optLong("holdUntil");
+            v.undoActionId = s.undo.optString("actionId");
+            JSONObject ust = s.undo.optJSONObject("step");
+            JSONArray ums = ust == null ? null : ust.optJSONArray("members");
+            JSONObject ud = s.undo.optJSONObject("draft");
+            JSONObject uv = ud == null || ust == null || !LockState.stepToken(ust).equals(ud.optString("token")) ? null : ud.optJSONObject("v");
+            if (ums != null) for (int i = 0; i < ums.length(); i++) {
+                if (ums.optJSONObject(i) == null) continue;
+                Member m = member(ums.optJSONObject(i));
+                JSONObject e = uv == null ? null : uv.optJSONObject(m.setId);
+                if (e != null) {
+                    if (e.has("weight") && !e.isNull("weight")) m.draftWeight = e.optDouble("weight");
+                    if (e.has("reps") && !e.isNull("reps")) m.draftReps = e.optInt("reps");
+                }
+                v.undoMembers.add(m);
+            }
+        }
         v.draftLost = s.draftLost;
         return v;
     }

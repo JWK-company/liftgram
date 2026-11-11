@@ -1,0 +1,481 @@
+{
+  "id": "EXE-118",
+  "type": "Execution",
+  "title": "SPEC-060 Phase 2 — 화면: 모양·모래시계·밀기·되돌리기 구현",
+  "group": "할일/잠금화면-시작화면",
+  "meta": {
+    "phase": "2",
+    "result": "done"
+  },
+  "relations": {
+    "executes": [
+      "SPEC-060"
+    ]
+  },
+  "schemaVersion": 1,
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요약"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "잠금 운동 화면을 4dp 모서리의 정돈된 모양으로 바꿨다. 원형 링 대신 모래시계를 두고, 꾹 누르기 대신 밀어서 완료를 넣었다. 완료 뒤 5초 동안 되돌리기 띠가 나온다. 쉬는 중 완료한 뒤 15초 안에 다시 밀면 「…도 끝났나요? 한 번 더 밀기」로 묻는다. 드롭세트와 슈퍼세트는 묻지 않는다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "바꾼 파일"
+          }
+        ]
+      },
+      {
+        "type": "table",
+        "content": [
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_header",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "파일"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_header",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "무엇을"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "src/mobile/android/app/src/main/java/org/tarae/liftgram/lock/LockHourglassView.java",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "새 파일 — 모래시계(48×68dp), 휴식 끝에 0.4초 뒤집기, 「애니메이션 제거」면 안 뒤집음"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "src/mobile/android/app/src/main/java/org/tarae/liftgram/lock/LockSlideView.java",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "새 파일 — 밀기 칸(SLIDE·CONFIRM·UNDO), 30dp 가로 문턱, 85% 완료, 되돌리기 단추·남은 시간 막대, 접근성 동작"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "src/mobile/android/app/src/main/java/org/tarae/liftgram/lock/LockWorkoutActivity.java",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "새 배치·팔레트("
+                      },
+                      {
+                        "type": "text",
+                        "text": "line",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": "), 옛 "
+                      },
+                      {
+                        "type": "text",
+                        "text": "buildC",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": "·"
+                      },
+                      {
+                        "type": "text",
+                        "text": "renderC",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": "·"
+                      },
+                      {
+                        "type": "text",
+                        "text": "buildMembersC",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": " 와 분홍·갈색 팔레트는 [원본]으로 남김, 미는 중 다시 그리기 보류"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "src/mobile/android/app/src/main/res/values/strings_lock.xml",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": " · "
+                      },
+                      {
+                        "type": "text",
+                        "text": "src/mobile/android/app/src/main/res/values-en/strings_lock.xml",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "밀기·확인·되돌리기 문구"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "테스트 결과"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "./gradlew :app:testDebugUnitTest :app:assembleDebug",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "text": " — 67개 통과."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "에뮬레이터(API 35, lg_test): 다크·라이트 테마, 반만 밀면 아무 일 없음, 끝까지 밀면 붙잡힌 완료, 되돌리기로 단계·휴식(0:54) 복원과 「되돌렸어요」, ② 15초 안 확인, 슈퍼세트 띠 「… +1」, 글자 200%."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준 확인"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "SRS-100: 실수 완료를 막고(밀기·② 확인) 되돌릴 수 있다 — 에뮬레이터에서 확인."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "코드 리뷰"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "REV-148(Phase 2·3 묶음) — 채택 6. 띠의 DOWN 확인, 미는 중 확인 기한 유지, 복귀 애니메이션 정리, 실제 완료만 직전 완료로 세기, 되돌리기 탭 자리 좁히기, 끝남 안내 한 번만 읽기를 반영했다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "범위 밖 변경"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "없음."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "남은 일·다음 단계"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "에뮬레이터에서 찾아 고친 것: 안내 줄이 나타나며 밀기 칸이 밀리던 것(INVISIBLE 로), 글자 200%에서 「kg」 잘림(단위 줄 22dp), 손잡이 뒤 색 비침, 큰 글자에서 되돌리기 단추가 글자를 덮던 것(104dp 고정 + 자동 크기)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "다음: Phase 3(EXE-119)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

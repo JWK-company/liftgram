@@ -43,4 +43,24 @@
     <string name="lock_screen_draft_lost">The set changed, so your adjustments were cleared</string>
     <string name="lock_fullscreen_channel">Workout on lock screen</string>
     <string name="lock_fullscreen_channel_desc">Shows the workout screen over the lock screen when the screen turns off or rest ends</string>
+    <!-- SPEC-060 -->
+    <string name="lock_slide_complete">Slide to finish set</string>
+    <string name="lock_slide_confirm">Finished %1$s too? Slide again</string>
+    <string name="lock_not_done">Not completed</string>
+    <string name="lock_undo">Undo</string>
+    <string name="lock_undo_desc">%1$s completed, double-tap to undo</string>
+    <string name="lock_undo_ended">Undo ended</string>
+    <string name="lock_undone">Undone</string>
+    <string name="lock_undo_expired">Already saved</string>
+    <string name="lock_rest_hint">Tap to\nadjust</string>
+    <string name="lock_minus30">−30s</string>
+    <string name="lock_minus30_desc">Subtract 30 seconds</string>
+    <string name="lock_plus30_desc">Add 30 seconds</string>
+    <string name="lock_rest_row_desc">%1$s, double-tap to adjust time</string>
+    <string name="lock_value_hint">Tap a value to change it</string>
+    <string name="lock_value_reset">Reset</string>
+    <string name="lock_value_close">Close</string>
+    <string name="lock_value_open_desc">%1$s, double-tap to change</string>
+    <string name="lock_state_open">open</string>
+    <string name="lock_state_closed">closed</string>
 </resources>
