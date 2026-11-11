@@ -51,6 +51,7 @@ import { ScheduleEditor } from "./ScheduleEditor";
 import { CreatorTopicSheet } from "./CreatorRoutineSheet"; // 크리에이터 루틴 @plm SRS-091
 import { CreatorTipTopicSheet } from "./CreatorTipSheet"; // 운동 팁(SPEC-047)
 import { AppBar, AppBarAction } from "../ui/AppBar";
+import { GuideButton } from "../guide/GuideButton"; // 탭 사용법 ?(SPEC-058)
 import { ListGroup, SectionLabel } from "../ui/rows";
 import { AdSlot } from "../ads/AdSlot";
 import { RecentWorkouts, WeekSummary } from "./WeekSummary";
@@ -451,12 +452,18 @@ export default function RoutinesClient() {
       <AppBar
         logo
         title={t("routines.title")}
-        actions=<AppBarAction
-          icon="search-outline"
-          label={t("nav.exerciseList")}
-          href="/exercises"
-          testId="home-exercises"
-        />
+        // [원본] actions=<AppBarAction … testId="home-exercises" /> 하나 — 오른쪽에 ? 를 더했다(SPEC-058)
+        actions={
+          <>
+            <AppBarAction
+              icon="search-outline"
+              label={t("nav.exerciseList")}
+              href="/exercises"
+              testId="home-exercises"
+            />
+            <GuideButton tab="workout" />
+          </>
+        }
       />
       <div className="flex flex-1 flex-col p-[var(--spacing-lg)]">
         {/* ── 주간 스케줄 — 맨 위(2026-11-05 사용자 지시) · 사용자 기록을 읽기 전에는 자리만 잡는다(만들기 줄이 카드로 바뀌며 깜빡이지 않게) ── */}

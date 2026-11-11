@@ -2,7 +2,7 @@
 //
 // 기본 설정(playwright.config.ts)은 liftgram.hint.suppressed 로 안내를 막는다 — 여기서만 막지 않는다.
 //   (a) 「이전」: 처음 한 번 · 창이 열리면 숨고 닫히면 다시 · 입력 중엔 숨음 · 「알겠어요」 뒤엔 다시 와도 안 뜸 ·
-//       포커스를 옮기지 않음 · 설정 「안내 다시 보기」로 다시 뜸 · 「이전」을 누르면 본 것
+//       포커스를 옮기지 않음 · 표식을 지우면 다시 뜸(설정 「안내 다시 보기」는 SPEC-058 로 빠짐) · 「이전」을 누르면 본 것
 //   (b) 루틴 세트 번호: 세트 표가 보이면 · 번호를 누르면 본 것
 //   (c) 슈퍼셋 묶음 완료로 휴식이 걸리면 휴식 막대 위에
 //   #T18 — 「알겠어요」가 없어졌다: 「이전」·세트 번호 안내는 그 버튼 옆 말풍선 · 몇 초 뒤 저절로 · 어디를 눌러도 사라짐(=본 것).
@@ -47,6 +47,17 @@ async function 빠른_운동(page: Page, 종목: string[]) {
 }
 
 const PREV = '[data-testid="set-prev"]:not([disabled])';
+
+/**
+ * 첫 안내 되살리기 — [원본] 설정 「안내 다시 보기」(row-hints-reset)를 눌렀다.
+ * [개선] SPEC-058 로 그 줄을 뺐다(다시 보기는 운동 탭 ? 안내가 맡는다). 같은 효과(resetCoachMarks — 표식 세 개 지우기)를
+ * 저장소에서 직접 낸다 — 다음 page.goto 가 새로 불러오므로 모듈의 「이번 실행에 본 것」도 비워진다.
+ */
+async function 첫안내_되살리기(page: Page) {
+  await page.evaluate(() => {
+    for (const id of ["prev", "rxType", "longDone"]) localStorage.removeItem(`liftgram.hint.${id}`);
+  });
+}
 
 /** 본 안내 — 전제(눌리는 「이전」 칩)가 참이 된 뒤에도 안 뜬다 */
 async function 안_뜸(page: Page, hint: ReturnType<Page["getByTestId"]>) {
@@ -131,9 +142,11 @@ test("(a) 「이전」 첫 안내 — 한 번만 · 창·입력 중엔 숨음 ·
 
   // [원본] 설정 「안내 다시 보기」 → 다시 뜬다 → 「알겠어요」 → 다시 와도 안 뜬다
   // [개선] #T18 — 「알겠어요」 대신 다른 곳을 누르면 사라지고 본 것
+  // [원본] await page.goto("/profile"); await page.getByTestId("row-hints-reset").click(); 토스트 확인
+  // [개선] SPEC-058 — 프로필에는 그 줄이 없다 · 같은 효과를 저장소로
   await page.goto("/profile");
-  await page.getByTestId("row-hints-reset").click();
-  await expect(page.getByText("사용법 안내를 다시 보여 드릴게요")).toBeVisible();
+  await expect(page.getByTestId("row-hints-reset")).toHaveCount(0);
+  await 첫안내_되살리기(page);
   await page.goto("/workout");
   // 위에서 「이전」을 채운 세트는 아직 안 마쳤다 — 「이전」 칩이 여전히 눌린다
   await expect(hint).toBeVisible({ timeout: 20_000 });
@@ -145,11 +158,10 @@ test("(a) 「이전」 첫 안내 — 한 번만 · 창·입력 중엔 숨음 ·
   await page.reload();
   await 안_뜸(page, hint);
 
-  // e2e 억제 표식은 「다시 보기」로 지워지지 않는다
+  // [원본] e2e 억제 표식은 「다시 보기」로 지워지지 않는다 — row-hints-reset 을 눌러 확인했다
+  // [개선] SPEC-058 — 다시 보기 줄이 없어졌다. 억제 표식이 있으면 표식을 지워도 안 뜨는 것만 본다
   await page.evaluate(() => localStorage.setItem("liftgram.hint.suppressed", "e2e"));
-  await page.goto("/profile");
-  await page.getByTestId("row-hints-reset").click();
-  expect(await page.evaluate(() => localStorage.getItem("liftgram.hint.suppressed"))).toBe("e2e");
+  await 첫안내_되살리기(page);
   expect(await page.evaluate(() => localStorage.getItem("liftgram.hint.prev"))).toBeNull();
   await page.goto("/workout");
   await expect(page.locator(PREV).first()).toBeVisible({ timeout: 20_000 });
@@ -234,8 +246,8 @@ test("하나씩 — 「이전」 안내가 떠 있어도 슈퍼셋 묶음 완료
   // [원본] await 세트_기록(page, 60, 8);
   // [개선] #T18 — 어디를 눌러도 안내가 사라지니(두 번째 종목을 고르는 누름에 「이전」 안내가 이미 본 것이 됨)
   //   「안내 다시 보기」로 되살린 뒤, 「이전」 안내를 띄운 채로 남은 조작은 키보드로 한다 — 차례 넘김만 본다
-  await page.goto("/profile");
-  await page.getByTestId("row-hints-reset").click();
+  // [원본] await page.goto("/profile"); await page.getByTestId("row-hints-reset").click();
+  await 첫안내_되살리기(page); // SPEC-058 — 다시 보기 줄 대신
   await page.goto("/workout");
   await expect(prev).toBeVisible({ timeout: 20_000 });
   await expect(long).toHaveCount(0);

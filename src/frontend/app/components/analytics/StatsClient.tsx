@@ -30,6 +30,7 @@ import { MuscleBalanceCard } from "./MuscleBalanceCard"; // 근육 균형(SRS-07
 import { BodyweightCard } from "./BodyweightCard"; // 체중 추세(SRS-078)
 import { ExerciseChangeCard, PlateauCard } from "./ExerciseChangeCards"; // 종목 변화 · 그대로인 종목(SRS-101)
 import { WeeklyMuscleCard } from "./WeeklyMuscleCard"; // 근육별 주간 세트(SRS-101)
+import { GuideButton } from "../guide/GuideButton"; // 탭 사용법 ?(SPEC-058)
 
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
 type E1rmSessions = Awaited<ReturnType<AnalyticsRepo["getExerciseE1rmSessions"]>>;
@@ -156,7 +157,8 @@ export default function StatsClient() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <AppBar title={t("analytics.title")} />
+      {/* [원본] <AppBar title={t("analytics.title")} /> */}
+      <AppBar title={t("analytics.title")} actions={<GuideButton tab="stats" />} />
       <div className="flex flex-1 flex-col px-[var(--spacing-lg)] pt-[var(--spacing-md)]">
         <Segmented
           testId="stats-period"

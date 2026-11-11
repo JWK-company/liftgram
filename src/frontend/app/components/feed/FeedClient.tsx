@@ -35,6 +35,7 @@ import { ListState } from "../ui/ListState";
 import { AppText, EmptyState } from "../ui/primitives";
 import { ScreenHeader } from "../ui/ScreenHeader";
 import { AppBar } from "../ui/AppBar";
+import { GuideButton } from "../guide/GuideButton"; // 탭 사용법 ?(SPEC-058)
 import { ListGroup, ListRow, UnderlineTabs } from "../ui/rows";
 import DiscoverClient from "./DiscoverClient";
 import { GearTagPicker } from "./GearTagPicker";
@@ -456,6 +457,8 @@ export default function FeedClient() {
                 ) : null
               }
             />
+            {/* 탭 사용법 ? — 로그인 뒤 피드에만(SPEC-058 · REV-140 7) */}
+            <GuideButton tab="feed" />
           </>
         }
       />
