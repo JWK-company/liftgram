@@ -14,3 +14,4 @@
 | [EXE-099](EXE-099.md) | Execution | SPEC-057 Phase 3 — 운동 중 나머지·루틴·종목 구현 | executes → SPEC-057 |
 | [REV-132](REV-132.md) | Review | SPEC-057 Phase 4 코드 리뷰 — 나머지 화면 | reviews → SPEC-057 |
 | [EXE-100](EXE-100.md) | Execution | SPEC-057 Phase 4 — 나머지 화면 구현 | executes → SPEC-057 |
+| [EXE-101](EXE-101.md) | Execution | SPEC-057 Phase 5 — 전체 시험·배포 구현 | executes → SPEC-057 |
