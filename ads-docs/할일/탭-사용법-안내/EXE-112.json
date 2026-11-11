@@ -1,0 +1,589 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "바꾼 파일",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/app/components/profile/ProfileClient.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 「안내 다시 보기」 줄(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "HintsResetRow",
+                    "type": "text"
+                  },
+                  {
+                    "text": ")과 그 import 를 [원본] 주석으로 막았다. 줄 컴포넌트 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/app/components/profile/HintsResetRow.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 와 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "resetCoachMarks",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/lib/coachMarks.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": ")는 그대로 남겼다. 되돌릴 때 주석만 풀면 된다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/e2e/coach-marks.spec.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 줄을 누르던 세 곳을 같은 효과(표식 세 개 지우기)를 내는 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "첫안내_되살리기",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 로 바꿨다. 프로필에 그 줄이 없음도 확인한다. 첫 안내 자체의 시험은 그대로다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/e2e/tab-guide.spec.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(새 파일): 6개 시험.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "운동 탭: 점·짚기·누름 차단·연습 9종·쓰기 0건·마치기",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "키보드로 길게 누르기",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "닫기(×·Esc·뒤로)",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "기록·분석 짚기",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "피드 머리 360px 한 줄",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "프로필 줄 없음",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  }
+                ],
+                "type": "bullet_list"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "테스트",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "운영 빌드(새 DB ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "e2e_guide_*",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · 웹 3310 · API 3311 — 3100·3200 은 건드리지 않음)에서 돌렸다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "BASE=http://127.0.0.1:3310 bunx playwright test e2e/tab-guide.spec.ts e2e/coach-marks.spec.ts e2e/people.spec.ts e2e/home-primary.spec.ts e2e/flat-design.spec.ts e2e/declutter-p3.spec.ts",
+                            "type": "text"
+                          },
+                          {
+                            "text": " → ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "33 통과 · 0 실패",
+                            "type": "text"
+                          },
+                          {
+                            "text": "(2.2분).",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "끝난 뒤 시험 서버(3310·3311)를 끄고 시험 DB 를 지웠다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  }
+                ],
+                "type": "bullet_list"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "전체 e2e 는 돌리지 않았다. 메인 세션이 SPEC-057 과 합친 뒤 전체 e2e 를 돌리는 것으로 넘긴다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "수용 기준",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "프로필에 「안내 다시 보기」가 없다(e2e 통과).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "첫 안내 3개는 그대로 처음 한 번 뜬다. coach-marks 시험 4건이 통과했다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "리뷰",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "REV-141(코드 리뷰): 채택 4 · 보류 2 · 기각 1. 채택은 모두 반영했다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "남은 일",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "배포는 메인 세션이 모양 통일(SPEC-057)과 합친 뒤 한다.",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 버전은 올리지 않았다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "합칠 때 겹침: SPEC-057 이 같은 파일을 고친다. ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/app/components/routines/RoutinesClient.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(머리 actions) · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/app/components/feed/FeedClient.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(머리) · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/app/components/analytics/StatsClient.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": "·",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/app/components/analytics/RecordsHeader.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(머리) · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/app/components/profile/ProfileClient.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": ". 이 작업은 이 파일들에서 한두 줄만 바꿨다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "대본 대상 testId 계약 시험 넓히기(REV-141 보류 6) · 영어 문구(REV-140 보류 11)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "화면 지도 보고서(출시까지 화면 기준)에 ? 버튼과 안내 화면 사진 추가",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "할일/탭-사용법-안내",
+  "id": "EXE-112",
+  "meta": {
+    "phase": "3",
+    "result": "done"
+  },
+  "relations": {
+    "executes": [
+      "SPEC-058"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "SPEC-058 Phase 3 — 「안내 다시 보기」 빼기·시험",
+  "type": "Execution",
+  "updated": "2026-11-11T01:42:04Z"
+}

@@ -1,0 +1,449 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "바꾼 파일",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/lib/tabGuide.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(새 파일): 4탭 대본(운동 16단계 · 기록 5 · 분석 5 · 피드 6), 「봤다」 표식(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "liftgram.guide.<tab>",
+                    "type": "text"
+                  },
+                  {
+                    "text": "), 점 훅 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "useGuideUnseen",
+                    "type": "text"
+                  },
+                  {
+                    "text": ". e2e 억제 표식 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "liftgram.hint.suppressed",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 가 있으면 점을 그리지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/app/components/guide/GuideOverlay.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(새 파일): 대상 둘레를 어둡게 하는 판 4장과 링·물결, 누름 차단, 설명 띠(위·아래·가운데 자리), [이전]·[다음]/[마치기]·×, Esc(window 캡처)·뒤로(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "useBackToClose",
+                    "type": "text"
+                  },
+                  {
+                    "text": ")로 닫기, 초점 가두기와 ? 로 복귀, 닫을 때 스크롤 복원.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/app/components/guide/GuideButton.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(새 파일): ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "AppBarAction",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 으로 그린 ? (44px 원형 아이콘 · 안 본 탭 점).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "머리에 달기(한두 줄씩, 옛 줄은 [원본] 주석):",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "src/frontend/app/components/routines/RoutinesClient.tsx",
+                            "type": "text"
+                          },
+                          {
+                            "text": "(운동 — 🔍 오른쪽)",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "src/frontend/app/components/analytics/RecordsHeader.tsx",
+                            "type": "text"
+                          },
+                          {
+                            "text": "(기록 — 목록·달력 공용, 넘겨받은 actions 뒤)",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "src/frontend/app/components/analytics/StatsClient.tsx",
+                            "type": "text"
+                          },
+                          {
+                            "text": "(분석)",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "src/frontend/app/components/feed/FeedClient.tsx",
+                            "type": "text"
+                          },
+                          {
+                            "text": "(피드 — 로그인 뒤 머리 맨 오른쪽)",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  }
+                ],
+                "type": "bullet_list"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "테스트",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "cd src/frontend && ../node_modules/.bin/tsc --noEmit -p tsconfig.json",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 통과. biome 검사는 새 파일에서 오류 0이다(ProfileClient 의 noUnusedVariables 1건은 이 작업 전부터 있던 것).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "운영 빌드(웹 3310 · API 3311 · 새 DB): ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "e2e/tab-guide.spec.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 중 짚기·닫기·기록/분석·피드 시험 통과(전체 결과는 EXE-112).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "수용 기준",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "SRS-054: 탭 첫 화면 머리 오른쪽에 ? 가 있다. 피드 머리 아이콘 5개가 360px 에서 제목과 한 줄, 각 44px 이다(e2e 통과).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "안내 중 실제 화면이 눌리지 않는다. 「빠른 운동 시작」 위를 눌러도 주소가 그대로이고 덮개가 남는다(e2e 통과).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "리뷰",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "코드 리뷰 REV-141 의 채택 1·2·3 이 이 단계 파일(GuideOverlay)을 고쳤다. 고친 것은 스크롤 복원, 초점·Esc, 어둡게 판 4장이다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "남은 일",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "대본 대상 testId 계약을 모든 짚기 단계로 넓히는 시험(REV-141 보류 6)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "할일/탭-사용법-안내",
+  "id": "EXE-110",
+  "meta": {
+    "phase": "1",
+    "result": "done"
+  },
+  "relations": {
+    "executes": [
+      "SPEC-058"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "SPEC-058 Phase 1 — 대본·덮개·? 버튼(실제 화면 짚기)",
+  "type": "Execution",
+  "updated": "2026-11-11T01:41:59Z"
+}
