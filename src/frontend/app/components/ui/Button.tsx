@@ -24,12 +24,16 @@ function palette(variant: Variant): { bg: string; fg: string; border?: string } 
     case "secondary":
       return { bg: "transparent", fg: "var(--color-ink)", border: "var(--color-line-strong)" };
     case "ghost":
+      // 그대로 — 루틴 카드 「▶ 시작」은 사용자 의견으로 정한 판 없는 빨강 글자(home-primary · REV-149 8). ▶ 아이콘이 신호다.
+      // [보류 SPEC-061] return { bg: "transparent", fg: "var(--color-brand)", border: "var(--color-brand)" };
       return { bg: "transparent", fg: "var(--color-brand)" };
     case "danger":
       return { bg: "transparent", fg: "var(--color-bad)", border: "var(--color-bad)" };
     // 조용한 부가 행동 — 상자·빨강 없이 회색 글자(화면 정리 공용 규칙: 빨강은 화면의 주 행동 하나) @plm SRS-072
     case "quiet":
-      return { bg: "transparent", fg: "var(--color-ink2)" };
+      // [원본] return { bg: "transparent", fg: "var(--color-ink2)" }; — 회색 글자만(SPEC-061 1A)
+      // [개선] 회색 테두리 상자 · 진한 글자 — 입력칸과 같은 4px 직사각형(SPEC-057 R1)
+      return { bg: "transparent", fg: "var(--color-ink)", border: "var(--color-line-strong)" };
     // 옅은 강조 — 연한 빨강 판 + 빨간 글자. 여러 개 놓여도 화면이 빨강으로 덮이지 않는 「눌러서 시작」(내 루틴 「▶ 시작」 · 2026-11-09)
     // 빨강 채움(primary)은 여전히 화면에 하나다
     case "tonal":
@@ -44,6 +48,30 @@ function palette(variant: Variant): { bg: string; fg: string; border?: string } 
       return { bg: "transparent", fg: "var(--color-brand)", border: "var(--color-brand)" };
   }
 }
+
+/**
+ * 직접 그린 <button> 을 「누르는 단추」 모양으로 — 글자만 있는 단추가 다크에서 안내 글과 구별되지 않던 것(SPEC-061 1A).
+ * 새 컴포넌트 대신 클래스만 돌려준다(각 자리의 testId·aria·여백을 그대로 둔다). 크기·여백은 쓰는 쪽이 붙인다.
+ *   neutral = 회색 테두리 · 진한 글자 / brand = 브랜드 테두리·글자 / bad = 위험 테두리·글자 / brandFill = 브랜드 채움
+ */
+export function actionBoxClass(tone: "neutral" | "brand" | "bad" | "brandFill" = "neutral"): string {
+  const base =
+    // 최소 높이는 쓰는 쪽이 정한다 — 여기 두면 출력 순서상 쓰는 쪽의 min-h-11 을 덮었다(REV-150 1)
+    "inline-flex shrink-0 items-center justify-center rounded-[var(--radius-sm)] border font-semibold disabled:opacity-45 active:opacity-85";
+  switch (tone) {
+    case "brand":
+      return `${base} border-(--color-brand) bg-transparent text-(--color-brand)`;
+    case "bad":
+      return `${base} border-(--color-bad) bg-transparent text-(--color-bad)`;
+    case "brandFill":
+      return `${base} border-(--color-brand) bg-(--color-brand) text-(--color-on-brand)`;
+    default:
+      return `${base} border-(--color-line-strong) bg-transparent text-(--color-ink)`;
+  }
+}
+
+/** 36·40px 상자의 누르는 자리를 위아래 4px 씩 넓혀 44px 이상으로(SPEC-061 · REV-150 3) — 부모가 overflow 로 자르지 않는 곳에 */
+export const touchPad = "relative before:absolute before:inset-x-0 before:-inset-y-[4px] before:content-['']";
 
 export function Button({
   title,
@@ -91,6 +119,7 @@ export function Button({
     <button
       type="button"
       data-testid={testId}
+      data-variant={variant}
       onClick={onPress}
       disabled={isDisabled}
       style={style}

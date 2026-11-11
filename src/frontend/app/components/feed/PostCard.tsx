@@ -35,6 +35,7 @@ import { ReportSheet } from "../moderation/ReportSheet";
 import { OwnPostMenu } from "./OwnPostMenu";
 import { WorkoutBox } from "./WorkoutBox";
 import { CommentsSheet } from "./CommentsSheet";
+import { actionBoxClass, touchPad } from "../ui/Button";
 
 // 루틴 데이터가 커서 공식 글이 있을 때만 불러온다.
 const OfficialRoutineCard = dynamic(
@@ -206,9 +207,8 @@ export function PostCard({
             onClick={toggleFollow}
             disabled={followBusy}
             data-testid="post-follow"
-            className={`min-h-[44px] shrink-0 px-[var(--spacing-sm)] font-semibold text-[length:var(--text-sm)] ${
-              post.authorFollowedByMe ? "text-(--color-ink2)" : "text-(--color-brand)"
-            }`}
+            // [원본] 글자만 — 「팔로우」(빨강)·「팔로잉」(회색)(SPEC-061)
+            className={`${actionBoxClass()} ${touchPad} min-h-[36px] px-[var(--spacing-md)] text-[length:var(--text-sm)]`}
           >
             {t(post.authorFollowedByMe ? "feed.following" : "feed.follow")}
           </button>

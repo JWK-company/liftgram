@@ -11,6 +11,7 @@ import { moderationClient } from "@/lib/moderationClient";
 import { useToast } from "../Toast";
 import { Overlay } from "../ui/Dialog";
 import { AppText } from "../ui/primitives";
+import { actionBoxClass } from "../ui/Button";
 
 /** 화면에 보이는 순서 = app과 같다. */
 const REASONS: { value: Reason; key: TransKey }[] = [
@@ -77,11 +78,10 @@ export function ReportSheet({
       <button
         type="button"
         onClick={onClose}
-        className="mt-[var(--spacing-sm)] w-full py-[var(--spacing-sm)]"
+        // [원본] className="mt-[var(--spacing-sm)] w-full py-[var(--spacing-sm)]" + 흐린 글자 — 글자만(SPEC-061)
+        className={`${actionBoxClass()} mt-[var(--spacing-sm)] min-h-[48px] w-full`}
       >
-        <AppText variant="body" color="textMuted">
-          {t("report.cancel")}
-        </AppText>
+        <AppText variant="body">{t("report.cancel")}</AppText>
       </button>
     </Overlay>
   );

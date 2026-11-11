@@ -23,7 +23,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { markCoachMarkSeen } from "@/lib/coachMarks";
 import { t } from "@/lib/i18n";
-import { Button } from "../ui/Button";
+import { Button, actionBoxClass, touchPad } from "../ui/Button";
 import { ActionSheet } from "../ui/Dialog";
 import { Icon } from "../ui/Icon";
 import { SelectChip } from "../ui/RecordSlotSelector";
@@ -509,7 +509,8 @@ export function PrescriptionRows({
                 type="button"
                 data-testid="scheme-undo"
                 onClick={undoScheme}
-                className="min-h-[44px] px-[var(--spacing-sm)]"
+                // [원본] className="min-h-[44px] px-[var(--spacing-sm)]" — 빨간 글자만(SPEC-061)
+                className={`${actionBoxClass("brand")} ${touchPad} min-h-[40px] px-[var(--spacing-md)]`}
               >
                 <AppText variant="label" color="primary" className="font-bold">
                   {t("scheme.undo")}

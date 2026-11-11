@@ -38,6 +38,7 @@ import { formatBodyweightDate } from "../session/WeighInSheet";
 import { LineChart } from "../ui/LineChart";
 import { AppText, Card } from "../ui/primitives";
 import { SectionLabel, Segmented } from "../ui/rows";
+import { actionBoxClass } from "../ui/Button";
 
 type Range = "1m" | "3m" | "1y" | "all";
 /** 카드가 보는 수치(SPEC-049 Phase 3) */
@@ -203,7 +204,8 @@ export function BodyweightCard() {
               onClick={() => setSheet("record")}
               // [원본] font-medium text-(--color-ink2) + 뒤 › 아이콘 — 시트를 여는 버튼이라 쐐기 없이 진한 굵은 글자(SPEC-057 R5·R6)
               // [원본 Phase 4] className="… pl-[var(--spacing-xs)] …"
-              className="ml-[var(--spacing-sm)] flex min-h-11 shrink-0 items-center gap-[2px] rounded-[var(--radius-sm)] pl-[var(--spacing-xs)] font-semibold text-(--color-ink) text-[length:var(--text-sm)] focus-visible:outline-2 focus-visible:outline-(--color-brand) active:bg-(--color-surface-alt)"
+              // [원본] className="ml-[var(--spacing-sm)] flex min-h-11 shrink-0 items-center gap-[2px] rounded-[var(--radius-sm)] pl-[var(--spacing-xs)] font-semibold text-(--color-ink) …" — 진한 글자만이라 다크에서 단추로 안 보였다
+              className={`${actionBoxClass()} ml-[var(--spacing-sm)] min-h-11 px-[var(--spacing-md)] text-[length:var(--text-sm)] focus-visible:outline-2 focus-visible:outline-(--color-brand)`}
             >
               {t("bodyweight.record")}
               {/* [원본] <Icon name="chevron-forward" size={16} color="var(--color-ink2)" /> */}

@@ -12,7 +12,7 @@ import { useCallback, useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
 import { authClient, setTokens } from "@/lib/session";
 import { useAuth } from "../AuthProvider";
-import { Button } from "../ui/Button";
+import { Button, actionBoxClass, touchPad } from "../ui/Button";
 import { TextField } from "../ui/inputs";
 import { AppText, Card } from "../ui/primitives";
 import { useAuthOptions } from "./SocialButtons";
@@ -210,7 +210,8 @@ export function SecurityCard() {
                 <button
                   type="button"
                   // [원본] className="text-sm text-(--color-ink2)" · [개선] 누르는 자리 44px(SPEC-056 F7)
-                  className="min-h-[44px] px-[var(--spacing-xs)] text-sm text-(--color-ink2)"
+                  // [원본] className="min-h-[44px] px-[var(--spacing-xs)] text-sm text-(--color-ink2)" — 회색 글자만
+                  className={`${actionBoxClass()} ${touchPad} min-h-[40px] px-[var(--spacing-md)] text-sm`}
                   disabled={busy}
                   data-testid={`btn-unlink-${p}`}
                   onClick={() =>

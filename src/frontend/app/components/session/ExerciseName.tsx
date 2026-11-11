@@ -64,6 +64,8 @@ export function ExerciseName({
     <button
       type="button"
       className="block min-w-0 max-w-full text-left"
+      // 잘린 이름을 펼쳐 보는 자리 — 동작이 아니라 제목이라 글자 그대로(SPEC-061 가드 예외)
+      data-affordance="text"
       onClick={() => {
         setExpanded(true);
         if (timer.current) clearTimeout(timer.current);

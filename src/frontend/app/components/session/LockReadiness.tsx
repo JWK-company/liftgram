@@ -12,6 +12,7 @@ import { lock, lockAvailable, lockInfo, onAppState } from "@/lib/native";
 import { useSession } from "../SessionProvider";
 import { useToast } from "../Toast";
 import { AppText } from "../ui/primitives";
+import { actionBoxClass, touchPad } from "../ui/Button";
 
 type Info = Awaited<ReturnType<typeof lockInfo>>;
 type Kind = "notifications" | "fullScreen" | "overlay" | "battery";
@@ -135,9 +136,10 @@ export function LockReadiness() {
           type="button"
           data-testid="lock-readiness-hide"
           onClick={hide}
-          className="min-h-[44px] px-[var(--spacing-sm)] focus-visible:outline-2 focus-visible:outline-(--color-brand)"
+          // [원본] className="min-h-[44px] px-[var(--spacing-sm)] …" + 흐린 글자(SPEC-061)
+          className={`${actionBoxClass()} ${touchPad} min-h-[40px] px-[var(--spacing-md)] focus-visible:outline-2 focus-visible:outline-(--color-brand)`}
         >
-          <AppText variant="caption" color="textMuted">
+          <AppText variant="caption" className="font-semibold">
             {t("session.lockReadyHide")}
           </AppText>
         </button>

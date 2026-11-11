@@ -35,7 +35,7 @@ import { Visibility } from "@app/contracts";
 import { VisibilityPicker } from "../feed/VisibilityPicker";
 import { useAuth } from "../AuthProvider";
 import { useToast } from "../Toast";
-import { Button } from "../ui/Button";
+import { Button, actionBoxClass, touchPad } from "../ui/Button";
 import { SheetShell } from "../ui/Dialog";
 import { ValueChip } from "../ui/ValueChip";
 import { Icon } from "../ui/Icon";
@@ -459,6 +459,8 @@ export default function CalendarClient() {
             <button
               type="button"
               data-testid="month-label"
+              // 달 제목 — 눌러 오늘로 가는 지름길(제목이라 글자 그대로 · SPEC-061 가드 예외)
+              data-affordance="text"
               onClick={() => {
                 setView({ y: now.getFullYear(), m: now.getMonth() });
                 setSelected(todayKey);
@@ -583,7 +585,8 @@ export default function CalendarClient() {
               type="button"
               data-testid="btn-day-note"
               onClick={() => setNoteOpen(true)}
-              className="text-(--color-brand) text-[length:var(--text-sm)]"
+              // [원본] className="text-(--color-brand) text-[length:var(--text-sm)]" — 글자만(SPEC-061)
+              className={`${actionBoxClass("brand")} ${touchPad} min-h-[36px] px-[var(--spacing-md)] text-[length:var(--text-sm)]`}
             >
               + 이 날 메모
             </button>

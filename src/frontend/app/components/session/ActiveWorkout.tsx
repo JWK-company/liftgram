@@ -31,7 +31,7 @@ import { PrCelebrationHost } from "../PrCelebration";
 import { useSession } from "../SessionProvider";
 import { ErrorState } from "../States";
 import { useToast } from "../Toast";
-import { Button } from "../ui/Button";
+import { Button, actionBoxClass, touchPad } from "../ui/Button";
 import { ActionSheet, ConfirmDialog, SheetShell } from "../ui/Dialog"; // Overlay — 옛 바닥 시트 피커(주석)만 썼다
 // [원본] import { MoreMenu } from "../ui/MoreMenu"; — 머리 ⋯ 를 없앴다(SPEC-055 Phase 2)
 import { Icon } from "../ui/Icon";
@@ -988,9 +988,10 @@ function SupersetContainer({
           onClick={onUnlink}
           // [원본] className="px-[var(--spacing-sm)] py-[2px]" — 누르는 높이가 작았다
           // [개선] ② 메타 글자 그대로(파괴 동작이라 값 칩 모양 아님 · REV-084 9) · 누르는 높이만 44px(위아래로)
-          className="inline-flex min-h-[44px] items-center rounded-[var(--radius-sm)] px-[var(--spacing-sm)] focus-visible:outline-2 focus-visible:outline-(--color-brand)"
+          // [원본] className="inline-flex min-h-[44px] items-center rounded-[var(--radius-sm)] px-[var(--spacing-sm)] …" + 흐린 글자 — 글자만이라 단추로 안 보였다
+          className={`${actionBoxClass()} ${touchPad} min-h-[36px] px-[var(--spacing-sm)] focus-visible:outline-2 focus-visible:outline-(--color-brand)`}
         >
-          <AppText variant="label" color="textMuted">
+          <AppText variant="label" className="font-semibold">
             {t("session.supersetUnlink")}
           </AppText>
         </button>

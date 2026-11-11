@@ -21,6 +21,8 @@ async function boxes(page: Page): Promise<string[]> {
         const cs = getComputedStyle(p);
         if (cs.position === "fixed" || cs.position === "sticky") return true;
         if (p.matches('[role="dialog"],[role="alert"],[role="status"],[data-card="boxed"]')) return true;
+        // 누르는 것 안의 단추 모양(SPEC-061 — 업데이트 줄의 채운 「업데이트」) — button 안에 있을 때만 인정(역검사)
+        if (p.matches('[data-affordance="box"]') && p.closest("button,a")) return true;
       }
       // 컨트롤·그림은 그 요소 자신일 때만 뺀다 — 링크로 감싼 카드 목록이 상자로 돌아가도 잡히게(코드 리뷰 M-4)
       return el.matches("button,a,input,textarea,select,label,img,svg,canvas,video");

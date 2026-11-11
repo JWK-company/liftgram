@@ -10,6 +10,7 @@ import { lockAvailable } from "@/lib/native";
 import { isLockReady } from "@/lib/lockBridge";
 import { useSession } from "../SessionProvider";
 import { AppText } from "../ui/primitives";
+import { actionBoxClass } from "../ui/Button";
 
 function fmt(e: LockDrainMismatch["seen"], unit: "kg" | "lb", oneSide?: boolean): string {
   const parts: string[] = [];
@@ -130,7 +131,8 @@ export function LockNotices() {
                 data-testid="lock-mismatch-use-seen"
                 disabled={busy}
                 onClick={() => void applySeen(ms)}
-                className="min-h-[44px] rounded-[var(--radius-sm)] border border-(--color-line) px-[var(--spacing-sm)]"
+                // [원본] border-(--color-line) — 다크(#424242)에서 테두리가 거의 안 보였다(SPEC-061)
+                className={`${actionBoxClass()} min-h-[44px] px-[var(--spacing-sm)]`}
               >
                 <AppText variant="caption" className="font-bold">
                   {t("session.lockMismatchUseSeen")}
@@ -140,9 +142,10 @@ export function LockNotices() {
                 type="button"
                 data-testid="lock-mismatch-dismiss"
                 onClick={() => dismiss(ms.map((m) => m.setId))}
-                className="min-h-[44px] px-[var(--spacing-sm)]"
+                // [원본] className="min-h-[44px] px-[var(--spacing-sm)]" + 흐린 글자(SPEC-061)
+                className={`${actionBoxClass()} min-h-[44px] px-[var(--spacing-md)]`}
               >
-                <AppText variant="caption" color="textMuted">
+                <AppText variant="caption" className="font-semibold">
                   {t("common.close")}
                 </AppText>
               </button>

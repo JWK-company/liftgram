@@ -4,6 +4,7 @@
 // 해내면 onDone 을 한 번 부른다 — 자동으로 다음 단계로 넘기지는 않는다(booktarae 규칙).
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import type { PracticeKind } from "@/lib/tabGuide";
+import { actionBoxClass, touchPad } from "../ui/Button";
 
 const BOX =
   "flex h-10 min-w-0 items-center justify-center rounded-[var(--radius-sm)] border border-(--color-line-strong) bg-(--color-card) font-semibold text-(--color-ink) text-[length:var(--text-md)] tabular-nums";
@@ -533,7 +534,8 @@ function LongDone({ onDone }: { onDone: () => void }) {
             setB(false);
             setMsg(null);
           }}
-          className="mt-[4px] min-h-[40px] rounded-[var(--radius-sm)] px-[4px] text-(--color-ink2) text-[length:var(--text-sm)] active:bg-(--color-surface-alt)"
+          // [원본] className="mt-[4px] min-h-[40px] rounded-[var(--radius-sm)] px-[4px] text-(--color-ink2) …" — 회색 글자만(SPEC-061 · REV-149 6)
+          className={`${actionBoxClass()} ${touchPad} mt-[4px] min-h-[40px] self-start px-[var(--spacing-md)] text-[length:var(--text-sm)]`}
         >
           다시 해 보기
         </button>

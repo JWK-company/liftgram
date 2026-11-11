@@ -31,7 +31,7 @@ import { trackUsage } from "@/lib/usage";
 import { appVersionOf } from "@/lib/platform";
 import { videoClient } from "@/lib/videoClient";
 import ExercisePickerScreen, { type Pick } from "../ExercisePickerScreen";
-import { Button } from "../ui/Button";
+import { Button, actionBoxClass } from "../ui/Button";
 import { runAfterOverlays } from "@/lib/useBackToClose"; // 창 칸 정리 뒤에(REV-116 U1)
 import { closeTopOverlay, ConfirmDialog, SheetShell } from "../ui/Dialog";
 import { Icon } from "../ui/Icon";
@@ -1060,7 +1060,8 @@ export default function RoutineImport({
                   type="button"
                   data-testid="import-add"
                   onClick={() => setPicker({ kind: "add", day: di })}
-                  className="mt-[var(--spacing-xs)] min-h-[44px] font-semibold text-(--color-ink) text-[length:var(--text-sm)]"
+                  // [원본] className="mt-[var(--spacing-xs)] min-h-[44px] font-semibold text-(--color-ink) text-[length:var(--text-sm)]" — 글자만(SPEC-061)
+                  className={`${actionBoxClass()} mt-[var(--spacing-xs)] min-h-[44px] px-[var(--spacing-md)] text-[length:var(--text-sm)]`}
                 >
                   {t("routineImport.addExercise")}
                 </button>

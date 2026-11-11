@@ -492,9 +492,10 @@ test("통계 체중 카드 머리 「기록」 — 쐐기 없이 진한 글자(S
     });
     expect(r.color, "글자가 강조색이 아니다").not.toBe(r.brand);
     expect(["rgba(0, 0, 0, 0)", "transparent"]).toContain(r.bg); // 채움 없음
+    // [원본] 테두리 없음(SPEC-057 R6) → [개선] 회색 테두리 상자(SPEC-061 1A — 다크에서 단추로 안 보였다)
     expect(
-      r.borders.every((w) => w === "0px"),
-      "테두리 없음",
+      r.borders.every((w) => w === "1px"),
+      "회색 테두리 상자",
     ).toBe(true);
     expect(r.svgBrand, "› 아이콘도 강조색이 아니다").toBe(false);
     expect(r.height).toBeGreaterThanOrEqual(44);

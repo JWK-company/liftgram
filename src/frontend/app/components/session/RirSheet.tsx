@@ -16,6 +16,7 @@ import { t } from "@/lib/i18n";
 import { SheetShell } from "../ui/Dialog";
 import { Icon } from "../ui/Icon";
 import { AppText } from "../ui/primitives";
+import { actionBoxClass, touchPad } from "../ui/Button";
 
 type TKey = Parameters<typeof t>[0];
 
@@ -93,7 +94,8 @@ export function RirSheet({
           type="button"
           data-testid="rir-close"
           onClick={closeAndSave}
-          className="-mt-[8px] -mr-[8px] flex h-[44px] min-w-[44px] shrink-0 items-center justify-center px-[var(--spacing-sm)] text-(--color-ink2) text-[length:var(--text-sm)]"
+          // [원본] … text-(--color-ink2) — 글자만(SPEC-061)
+          className={`${actionBoxClass()} ${touchPad} h-[36px] min-w-[44px] px-[var(--spacing-md)] text-[length:var(--text-sm)]`}
         >
           {t("effort.close")}
         </button>
@@ -181,7 +183,8 @@ export function RirSheet({
           data-testid="rir-clear"
           disabled={draft === null}
           onClick={() => setDraft(null)}
-          className="flex h-[44px] min-w-[44px] items-center justify-center px-[var(--spacing-sm)] text-(--color-ink2) text-[length:var(--text-sm)] disabled:opacity-40"
+          // [원본] … text-(--color-ink2) — 글자만(SPEC-061)
+          className={`${actionBoxClass()} h-[44px] min-w-[44px] px-[var(--spacing-md)] text-[length:var(--text-sm)]`}
         >
           {t("effort.clear")}
         </button>

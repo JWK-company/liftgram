@@ -724,9 +724,15 @@ export default function RoutinesClient() {
                   // [개선] 상자 타일 대신 아래 가는 선 한 칸(SPEC-056 F1)
                   className="flex min-h-[44px] min-w-0 flex-1 flex-col gap-[2px] border-(--color-line) border-b py-[var(--spacing-md)] text-left active:opacity-70"
                 >
-                  <AppText variant="body" className="block truncate font-bold">
-                    {lang === "ko" ? c.nameKo : c.nameEn}
-                  </AppText>
+                  {/* [개선] 꺾쇠 — 누르면 목록 시트(SPEC-061 3A) */}
+                  <span className="flex min-w-0 items-center gap-[2px]">
+                    <AppText variant="body" className="block min-w-0 truncate font-bold">
+                      {lang === "ko" ? c.nameKo : c.nameEn}
+                    </AppText>
+                    <span aria-hidden className="inline-flex shrink-0">
+                      <Icon name="chevron-forward" size={16} color="var(--color-ink3)" />
+                    </span>
+                  </span>
                   <AppText variant="label" color="textMuted">
                     {t("creator.topicCount", { count: creatorRoutinesFor(c.id).length })}
                   </AppText>
@@ -756,9 +762,15 @@ export default function RoutinesClient() {
                   // [개선] 상자 타일 대신 아래 가는 선 한 칸(SPEC-056 F1)
                   className="flex min-h-[44px] min-w-0 flex-1 flex-col gap-[2px] border-(--color-line) border-b py-[var(--spacing-md)] text-left active:opacity-70"
                 >
-                  <AppText variant="body" className="block truncate font-bold">
-                    {lang === "ko" ? c.nameKo : c.nameEn}
-                  </AppText>
+                  {/* [개선] 꺾쇠 — 누르면 목록 시트(SPEC-061 3A) */}
+                  <span className="flex min-w-0 items-center gap-[2px]">
+                    <AppText variant="body" className="block min-w-0 truncate font-bold">
+                      {lang === "ko" ? c.nameKo : c.nameEn}
+                    </AppText>
+                    <span aria-hidden className="inline-flex shrink-0">
+                      <Icon name="chevron-forward" size={16} color="var(--color-ink3)" />
+                    </span>
+                  </span>
                   <AppText variant="label" color="textMuted">
                     {t("tips.topicCount", { count: tipsFor(c.id).length })}
                   </AppText>
@@ -1363,6 +1375,10 @@ function FolderGroup({
                     {r.name}
                   </AppText>
                   {r.id === todayId ? <TodayChip /> : null}
+                  {/* [개선] 꺾쇠 — 누르면 미리보기 시트(SPEC-061 3A) */}
+                  <span aria-hidden className="ml-[2px] inline-flex shrink-0">
+                    <Icon name="chevron-forward" size={16} color="var(--color-ink3)" />
+                  </span>
                 </span>
                 {/* [원본] <ExerciseLine repo={repo} routineId={r.id} /> — 종목 줄 쪽에 출처 칩(SPEC-050 P3a) */}
                 <ExerciseLineWithOrigin repo={repo} routine={r} />
@@ -1460,6 +1476,10 @@ function RoutineRow({
               {routine.name}
             </AppText>
             {today ? <TodayChip /> : null}
+            {/* [개선] 꺾쇠 — 누르면 미리보기 시트(SPEC-061 3A) */}
+            <span aria-hidden className="ml-[2px] inline-flex shrink-0">
+              <Icon name="chevron-forward" size={18} color="var(--color-ink3)" />
+            </span>
           </span>
           {/* [원본] <ExerciseLine repo={repo} routineId={routine.id} /> — 종목 줄 쪽에 출처 칩(SPEC-050 P3a) */}
           <ExerciseLineWithOrigin repo={repo} routine={routine} />

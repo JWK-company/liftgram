@@ -105,7 +105,13 @@ export function MetaAction({
       className={`inline-flex ${tall ? "-my-[4px] min-h-[44px]" : "min-h-[32px]"} min-w-0 items-center gap-[2px] ${color} disabled:opacity-60`}
     >
       {/* [원본] <span className="min-w-0 truncate underline decoration-dotted decoration-[1px] underline-offset-[3px]"> */}
-      <span className="min-w-0 truncate">{children}</span>
+      {/* [원본] <span className="min-w-0 truncate">{children}</span> — 진한 글자만으로는 다크에서 정보 글(ink2)과 구별되지 않았다 */}
+      {/* [개선] 얇은 밑줄(SPEC-061 2A) — 금색 PR 은 색이 신호라 밑줄 없음 */}
+      <span
+        className={`min-w-0 truncate ${tone === "pr" ? "" : "underline decoration-(--color-ink3) decoration-1 underline-offset-[3px]"}`}
+      >
+        {children}
+      </span>
       {icon ? (
         <Icon name={icon} size={12} color={tone === "pr" ? "var(--color-pr)" : "var(--color-ink3)"} />
       ) : null}

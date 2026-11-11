@@ -14,6 +14,7 @@ import { Icon } from "../ui/Icon";
 import { isBackupStalled, useSyncHealth } from "./useSyncHealth";
 import { localOnlyBannerVisible } from "@app/core/domain/loginNudge";
 import { anonCompletedCount } from "@/lib/loginNudge";
+import { actionBoxClass, touchPad } from "../ui/Button";
 
 const DISMISS_KEY = "sync_localonly_dismissed_at";
 // [원본] 5건부터 · 「나중에」 7일 — 비로그인 기기 기록을 너무 늦게·오래 숨겼다(SRS-086)
@@ -65,13 +66,18 @@ export function SyncHealthBanner() {
           {stalled ? t("syncHealth.warnBody", { count: h.pending ?? 0 }) : t("syncHealth.localOnlyBody")}
         </div>
         <div className="mt-[var(--spacing-sm)] flex gap-[var(--spacing-md)]">
-          <a href="/account" className="font-semibold text-(--color-brand)">
+          {/* [원본] <a href="/account" className="font-semibold text-(--color-brand)"> — 글자만(SPEC-061) */}
+          <a
+            href="/account"
+            className={`${actionBoxClass("brand")} ${touchPad} min-h-[40px] px-[var(--spacing-md)]`}
+          >
             {t("syncHealth.openProfile")}
           </a>
           {!stalled ? (
             <button
               type="button"
-              className="text-(--color-ink2)"
+              // [원본] className="text-(--color-ink2)"
+              className={`${actionBoxClass()} ${touchPad} min-h-[40px] px-[var(--spacing-md)]`}
               onClick={() => {
                 const now = Date.now();
                 setPref(DISMISS_KEY, String(now));

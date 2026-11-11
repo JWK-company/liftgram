@@ -25,7 +25,7 @@ import { t, type TransKey } from "@/lib/i18n";
 import { notifyCoachMarks } from "@/lib/coachMarks";
 import { getPref, setPref } from "@/lib/prefs";
 import { useAuth } from "./AuthProvider";
-import { Button } from "./ui/Button";
+import { Button, actionBoxClass } from "./ui/Button";
 import { AppText } from "./ui/primitives";
 
 /** 본 적 있음 표시. 안내 내용이 크게 바뀌면 뒤의 번호를 올려 다시 보여 준다. */
@@ -190,11 +190,10 @@ export function OnboardingOverlay() {
               type="button"
               onClick={finish}
               data-testid="onboarding-skip"
-              className="mt-[var(--spacing-sm)] block w-full text-center"
+              // [원본] className="mt-[var(--spacing-sm)] block w-full text-center" + 흐린 캡션 글자 — 단추로 안 보였다(SPEC-061)
+              className={`${actionBoxClass()} mt-[var(--spacing-sm)] min-h-[44px] w-full text-[length:var(--text-sm)]`}
             >
-              <AppText variant="caption" color="textFaint">
-                {t("onboarding.skip")}
-              </AppText>
+              {t("onboarding.skip")}
             </button>
           </>
         )}

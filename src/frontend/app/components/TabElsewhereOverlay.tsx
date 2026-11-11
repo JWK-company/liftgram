@@ -8,6 +8,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { t } from "@/lib/i18n";
 import { subscribeLegacyTabs, subscribeTabOverlay, type TabOverlayState, takeOverHere } from "@/lib/tabGuard";
+import { actionBoxClass } from "./ui/Button";
 
 export function TabElsewhereOverlay() {
   const [state, setState] = useState<TabOverlayState>("none");
@@ -97,7 +98,8 @@ export function LegacyTabBand() {
         type="button"
         data-testid="btn-legacy-tab-dismiss"
         // [원본] className="min-h-11 rounded-md px-3 font-semibold" · [개선] 토큰(SPEC-056 F2)
-        className="min-h-11 rounded-[var(--radius-sm)] px-3 font-semibold"
+        // [원본] className="min-h-11 rounded-[var(--radius-sm)] px-3 font-semibold" — 글자만(SPEC-061)
+        className={`${actionBoxClass()} min-h-11 px-3`}
         onClick={() => setDismissed(true)}
       >
         {t("common.ok")}

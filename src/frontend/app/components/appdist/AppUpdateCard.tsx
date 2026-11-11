@@ -7,6 +7,8 @@
 import { useState } from "react";
 import { type TransKey, t } from "@/lib/i18n";
 import { type TagTone, Tag } from "../ui/primitives";
+import { actionBoxClass } from "../ui/Button";
+import { Icon } from "../ui/Icon";
 import { AppUpdateSheet } from "./AppUpdateSheet";
 import { SwitchToAppSheet } from "./SwitchToAppSheet";
 import { useAppOffer } from "./useAppOffer";
@@ -35,6 +37,14 @@ export function AppUpdateCard() {
   const actionable =
     !!latest && (offer.kind === "update" || offer.kind === "reinstall" || offer.kind === "switch");
 
+  // 채운 단추의 글자(SPEC-061) — 배지 글자(「업데이트 있음」)가 아니라 누르면 일어나는 일
+  const ctaKey: TransKey =
+    offer.kind === "reinstall"
+      ? "appDist.ctaReinstall"
+      : offer.kind === "switch"
+        ? "appDist.ctaSwitch"
+        : "appDist.ctaUpdate";
+
   const title =
     shell.kind === "web"
       ? t("appDist.bannerSwitch")
@@ -50,6 +60,8 @@ export function AppUpdateCard() {
         data-kind={offer.kind}
         data-why={offer.kind === "none" ? offer.why : ""}
         disabled={!actionable}
+        // 누르면 시트가 열린다(REV-149 10)
+        aria-haspopup={actionable ? "dialog" : undefined}
         onClick={() => setOpen(true)}
         // [원본] className="flex min-h-[52px] w-full items-center gap-[var(--spacing-md)] px-[var(--spacing-lg)] py-[var(--spacing-md)] text-left focus-visible:outline-2 focus-visible:outline-(--color-brand) focus-visible:-outline-offset-2 disabled:cursor-default"
         // [개선] 판 없는 ListGroup 에 맞춰 좌우 여백 px-xs(ui/rows.tsx ListRow 와 같다 · SPEC-056)
@@ -66,7 +78,28 @@ export function AppUpdateCard() {
           </span> */}
           {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
         </span>
+        {/* [원본] 배지는 늘 색 글자(Tag) — 누를 수 있는 「업데이트 있음」도 다크에서 그냥 안내문으로 보였다(SPEC-061)
         {badge ? (
+          <span data-testid="app-update-card-badge" data-badge={badge.key}>
+            <Tag label={t(badge.key)} tone={badge.tone} />
+          </span>
+        ) : null} */}
+        {/* [개선] 누를 수 있으면 채운 단추 + 꺾쇠, 못 누르면(최신·개발·플레이) 지금처럼 색 글자 */}
+        {actionable ? (
+          <>
+            <span
+              data-testid="app-update-card-cta"
+              // 단추 안의 단추 모양 — 평평한 기록지 가드(flat-design)의 「상자」 예외(REV-149 1)
+              data-affordance="box"
+              data-badge={badge?.key ?? ""}
+              // 「다시 설치」는 회색 상자 — 업데이트(브랜드 채움)와 갈린다(REV-149 4)
+              className={`${actionBoxClass(offer.kind === "reinstall" ? "neutral" : "brandFill")} min-h-[36px] px-[var(--spacing-md)] text-[length:var(--text-sm)]`}
+            >
+              {t(ctaKey)}
+            </span>
+            <Icon name="chevron-forward" size={18} color="var(--color-ink3)" />
+          </>
+        ) : badge ? (
           <span data-testid="app-update-card-badge" data-badge={badge.key}>
             <Tag label={t(badge.key)} tone={badge.tone} />
           </span>

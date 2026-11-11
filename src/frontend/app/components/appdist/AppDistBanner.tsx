@@ -16,11 +16,14 @@ import { Icon } from "../ui/Icon";
 import { AppUpdateSheet } from "./AppUpdateSheet";
 import { SwitchToAppSheet } from "./SwitchToAppSheet";
 import { useAppOffer } from "./useAppOffer";
+import { actionBoxClass } from "../ui/Button";
 
 type Actionable = Exclude<Offer, { kind: "none" }>;
 
-const BTN =
-  "min-h-[44px] px-[var(--spacing-xs)] focus-visible:outline-2 focus-visible:outline-(--color-brand) focus-visible:outline-offset-2";
+// [원본] const BTN = "min-h-[44px] px-[var(--spacing-xs)] focus-visible:outline-2 focus-visible:outline-(--color-brand) focus-visible:outline-offset-2";
+/** 상자 단추용 — BTN 의 px-xs 가 출력 순서상 px-md 를 이겨 글자가 테두리에 붙었다(REV-150 2) */
+const BTN_BOX =
+  "min-h-[44px] focus-visible:outline-2 focus-visible:outline-(--color-brand) focus-visible:outline-offset-2";
 
 export function AppDistBanner() {
   const path = usePathname();
@@ -123,11 +126,13 @@ export function AppDistBanner() {
           </div>
           {/* [원본] <div className="mt-[2px] text-(--color-ink2)">{body}</div> */}
           {body ? <div className="mt-[2px] text-(--color-ink2)">{body}</div> : null}
-          <div className="mt-[var(--spacing-xs)] flex flex-wrap gap-x-[var(--spacing-md)]">
+          {/* [원본] gap-x-md — 단추가 상자가 되며 줄바꿈 때 위아래 틈도(SPEC-061) */}
+          <div className="mt-[var(--spacing-sm)] flex flex-wrap gap-[var(--spacing-sm)]">
             <button
               type="button"
               data-testid="btn-app-dist-open"
-              className={`${BTN} font-semibold text-(--color-brand)`}
+              // [원본] className={`${BTN} font-semibold text-(--color-brand)`} — 글자만(SPEC-061)
+              className={`${BTN_BOX} ${actionBoxClass("brand")} px-[var(--spacing-md)]`}
               onClick={() => setOpened(o)}
             >
               {cta}
@@ -136,7 +141,8 @@ export function AppDistBanner() {
               <button
                 type="button"
                 data-testid="btn-app-dist-later"
-                className={`${BTN} text-(--color-ink2)`}
+                // [원본] className={`${BTN} text-(--color-ink2)`}
+                className={`${BTN_BOX} ${actionBoxClass()} px-[var(--spacing-md)]`}
                 onClick={() => {
                   dismissOffer(key);
                   setHidden(true);
@@ -149,7 +155,8 @@ export function AppDistBanner() {
               <button
                 type="button"
                 data-testid="btn-app-dist-never"
-                className={`${BTN} text-(--color-ink2)`}
+                // [원본] className={`${BTN} text-(--color-ink2)`}
+                className={`${BTN_BOX} ${actionBoxClass()} px-[var(--spacing-md)]`}
                 onClick={() => {
                   dismissOffer(key, true);
                   setHidden(true);

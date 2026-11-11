@@ -738,6 +738,10 @@ function RowMain({
         className={`${cls} min-h-11 rounded-[var(--radius-sm)] text-left focus-visible:outline-2 focus-visible:outline-(--color-brand)`}
       >
         {children}
+        {/* [개선] 시트를 여는 줄에도 꺾쇠(SPEC-061 3A) */}
+        <span aria-hidden className="ml-auto inline-flex shrink-0">
+          <Icon name="chevron-forward" size={18} color="var(--color-ink3)" />
+        </span>
       </button>
     );
   if (!href) return <div className={cls}>{children}</div>;

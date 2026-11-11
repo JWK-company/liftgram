@@ -463,9 +463,13 @@ test("새 앱 — 업데이트 시트: 받기 진행 → 「업데이트」 → 
   await expect(page.getByTestId("app-update-card")).toHaveAttribute("data-kind", "update", {
     timeout: 20_000,
   });
-  await expect(page.getByTestId("app-update-card-badge")).toHaveAttribute(
-    "data-badge",
-    "appDist.badgeUpdate",
+  // [원본] app-update-card-badge 의 data-badge — 누를 수 있으면 채운 단추로 바뀌었다(SPEC-061)
+  const cta = page.getByTestId("app-update-card-cta");
+  await expect(cta).toHaveAttribute("data-badge", "appDist.badgeUpdate");
+  await expect(cta).toHaveText("업데이트");
+  // 채운 단추 — 바탕이 브랜드 색(투명이 아님)
+  expect(await cta.evaluate((el) => getComputedStyle(el).backgroundColor)).not.toMatch(
+    /rgba\(0, 0, 0, 0\)|transparent/,
   );
   await expect(page.getByTestId("app-update-card-fp")).toHaveCount(0); // 서명 지문은 보이지 않는다(SPEC-025)
   await page.context().close();

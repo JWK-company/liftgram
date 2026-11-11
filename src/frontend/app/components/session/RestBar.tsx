@@ -29,18 +29,19 @@ export function RestBar() {
         data-testid="rest-plus"
         onClick={() => startRest(restRemaining + 15)}
         // [원본] className="px-[4px] py-[2px]" — 누르는 자리 24px(REV-131) → 위아래 늘려 44px
-        className="relative px-[4px] py-[2px] before:absolute before:inset-x-0 before:-inset-y-[10px] before:content-['']"
+        className="relative rounded-[var(--radius-sm)] border border-(--color-bg) px-[8px] py-[2px] before:absolute before:inset-x-0 before:-inset-y-[10px] before:content-['']"
       >
         <AppText variant="caption" className="font-bold" style={{ color: "var(--color-bg)" }}>
           +15s
         </AppText>
       </button>
       {/* [원본] className="px-[4px] py-[2px]" — 위와 같다 */}
+      {/* [개선 SPEC-061] 뒤집힌 띠 안이라 바탕색 테두리 상자(REV-149 7) — 글자만이면 띠의 안내 글과 같아 보였다 */}
       <button
         type="button"
         data-testid="rest-skip"
         onClick={clearRest}
-        className="relative px-[4px] py-[2px] before:absolute before:inset-x-0 before:-inset-y-[10px] before:content-['']"
+        className="relative rounded-[var(--radius-sm)] border border-(--color-bg) px-[8px] py-[2px] before:absolute before:inset-x-0 before:-inset-y-[10px] before:content-['']"
       >
         <AppText variant="caption" className="font-bold" style={{ color: "var(--color-bg)" }}>
           {t("session.skip")}
