@@ -106,7 +106,9 @@ type MemberRecord struct {
 type Repo interface {
 	SearchTrainers(ctx context.Context, viewerID, query string) ([]Peer, error)
 	// [원본] TrainerEligible은 그 사람이 코칭 의향을 밝혔는지 본다. 없으면 NotFound.
-	// [개선] SPEC-052 — 코치 역할이 없어졌다. 계정이 있으면 true, 없으면 NotFound(서비스는 값이 아니라 있음만 본다).
+	// [원본] SPEC-052 — 코치 역할이 없어졌다. 계정이 있으면 true, 없으면 NotFound(서비스는 값이 아니라 있음만 본다).
+	// [개선] SPEC-059 — 값 = 「코칭 요청 받기」(trainer_intent). 없으면 NotFound.
+	// 있음만 보는 곳(코드 연결·수락)은 값을 버리고, 회원이 요청할 때만 값을 본다(trainerAcceptsRequests).
 	TrainerEligible(ctx context.Context, trainerID string) (bool, error)
 	UserExists(ctx context.Context, userID string) (bool, error)
 	Blocked(ctx context.Context, a, b string) (bool, error)
@@ -243,6 +245,13 @@ func (s *Service) RequestCoaching(ctx context.Context, viewerID string, in Reque
 	}
 	if err := s.assertTrainerEligible(ctx, trainerID); err != nil {
 		return Grant{}, err
+	}
+	// [개선] SPEC-059(사용자 결정 4a) — 회원이 먼저 거는 요청은 「코칭 요청 받기」를 켠 사람에게만.
+	// 코치가 거는 요청·코드 연결은 그대로(코드는 코치가 직접 건넨 것).
+	if asMember {
+		if err := s.assertAcceptsRequests(ctx, trainerID); err != nil {
+			return Grant{}, err
+		}
 	}
 	exists, err := s.repo.UserExists(ctx, memberID)
 	if err != nil {
@@ -605,6 +614,24 @@ func (s *Service) assertTrainerEligible(ctx context.Context, trainerID string) e
 			return errs.New(errs.NotFound, "trainer not found")
 		}
 		return err
+	}
+	return nil
+}
+
+// msgNotAccepting — 「코칭 요청 받기」를 끈 사람에게 회원이 요청할 때(SPEC-059).
+const msgNotAccepting = "이 사람은 지금 코칭 요청을 받지 않아요"
+
+// assertAcceptsRequests — 회원 요청을 받을 사람인가(SPEC-059). 계정이 없으면 NotFound, 껐으면 Forbidden.
+func (s *Service) assertAcceptsRequests(ctx context.Context, trainerID string) error {
+	ok, err := s.repo.TrainerEligible(ctx, trainerID)
+	if err != nil {
+		if isNotFound(err) {
+			return errs.New(errs.NotFound, "trainer not found")
+		}
+		return err
+	}
+	if !ok {
+		return errs.New(errs.Forbidden, msgNotAccepting)
 	}
 	return nil
 }

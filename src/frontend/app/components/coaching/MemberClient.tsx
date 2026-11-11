@@ -30,7 +30,8 @@ import { Code, ConnectError } from "@connectrpc/connect";
 import { type KeyboardEvent, useCallback, useEffect, useId, useRef, useState } from "react";
 import { lang, t, type TransKey } from "@/lib/i18n";
 import { coachingClient } from "@/lib/coachingClient";
-import { scopeOf } from "@/lib/coaching";
+// [원본] import { scopeOf } from "@/lib/coaching";
+import { auditLines, scopeOf } from "@/lib/coaching";
 import { useAuth } from "../AuthProvider";
 import { useWeightUnit } from "../feed/useWeightUnit";
 import { MemberReportBody } from "../summary/MemberReportDialog";
@@ -223,6 +224,8 @@ export default function MemberClient({ memberId, initialTab }: { memberId: strin
               <SentRoutinesSection memberId={memberId} onEnded={ended} />
               <SectionHeader title={t("coaching.member.memberRoutinesTitle")} />
               <MemberRoutinesBody peer={state.peer} onEnded={ended} />
+              {/* 연결 이력 — 코칭 화면 ⋯ 「이력」을 옮겼다(SPEC-059 · 사용자 결정 3a: 루틴 탭 맨 아래) */}
+              <ConnectionHistory grantId={state.grant.id} onEnded={ended} />
             </>
           ) : (
             // [원본] <Off testId="member-routine-off" text={t("coaching.member.routineOff")} />
@@ -230,6 +233,8 @@ export default function MemberClient({ memberId, initialTab }: { memberId: strin
             <>
               <Off testId="member-routine-off" text={t("coaching.member.routineOff")} />
               <SentRoutinesSection memberId={memberId} localOnly />
+              {/* 루틴 편집이 꺼져 있어도 이력은 본다(SPEC-059) */}
+              <ConnectionHistory grantId={state.grant.id} onEnded={ended} />
             </>
           )
         ) : !scope.logView ? (
@@ -1114,5 +1119,96 @@ function BodyCard({ body, range }: { body: readonly string[]; range: { startMs: 
         </>
       )}
     </div>
+  );
+}
+
+/**
+ * 연결 이력 — 루틴 탭 맨 아래 접기 칸(SPEC-059 · #T19 3a). 처음 펼칠 때 한 번만 읽는다(줄 30개까지).
+ * 줄 글은 코칭 화면 이름 시트와 같은 auditLines.
+ */
+function ConnectionHistory({ grantId, onEnded }: { grantId: string; onEnded: () => void }) {
+  const [lines, setLines] = useState<string[] | null>(null);
+  const [failed, setFailed] = useState(false);
+  const asked = useRef(false);
+  function load() {
+    if (asked.current) return;
+    asked.current = true;
+    coachingClient()
+      .listAudit({ grantId })
+      .then((r) => setLines(auditLines(r.entries).slice(0, 30)))
+      .catch((e) => {
+        asked.current = false; // 다음에 펼치거나 「다시 시도」로 다시 묻는다
+        // 연결이 끝났으면 다른 구역처럼 화면 전체를 「끝남」으로(코드 리뷰 REV-144 A2)
+        if (ConnectError.from(e).code === Code.PermissionDenied) onEnded();
+        else setFailed(true);
+      });
+  }
+  return (
+    <details
+      data-testid="member-history"
+      className="group mt-[var(--spacing-xl)] border-(--color-line) border-t"
+      onToggle={(e) => {
+        if ((e.currentTarget as HTMLDetailsElement).open) {
+          setFailed(false);
+          load();
+        }
+      }}
+    >
+      <summary
+        data-testid="member-history-toggle"
+        className="flex min-h-11 cursor-pointer list-none items-center gap-[var(--spacing-xs)] font-semibold text-(--color-ink) text-[length:var(--text-sm)] focus-visible:outline-2 focus-visible:outline-(--color-brand) [&::-webkit-details-marker]:hidden"
+      >
+        {t("coaching.member.historyTitle")}
+        <span aria-hidden className="inline-flex transition-transform group-open:rotate-180">
+          <Icon name="chevron-down" size={14} color="var(--color-ink2)" />
+        </span>
+      </summary>
+      {/* [원본] <div role="status"> 가 줄 30개까지 감싸 다 읽으면 한꺼번에 읽혔다 — 상태 한 줄만 라이브 영역(REV-144 A1) */}
+      <div className="pb-[var(--spacing-md)]">
+        <div role="status">
+          {failed ? (
+            <div className="flex items-center gap-[var(--spacing-sm)]">
+              <AppText
+                variant="caption"
+                color="textMuted"
+                className="block"
+                data-testid="member-history-error"
+              >
+                {t("common.error")}
+              </AppText>
+              <Button
+                title={t("common.retry")}
+                variant="quiet"
+                testId="member-history-retry"
+                onPress={() => {
+                  setFailed(false);
+                  load();
+                }}
+              />
+            </div>
+          ) : lines === null ? (
+            <AppText variant="caption" color="textMuted" className="block">
+              {t("common.loading")}
+            </AppText>
+          ) : lines.length === 0 ? (
+            <AppText variant="caption" color="textMuted" className="block">
+              {t("coaching.historyEmpty")}
+            </AppText>
+          ) : null}
+        </div>
+        {lines && lines.length > 0 ? (
+          <ul>
+            {lines.map((line, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: 읽은 뒤 바뀌지 않는 이력 줄 — 같은 때·같은 일이 겹칠 수 있다
+              <li key={`${i}-${line}`} className="py-[2px]" data-testid="member-history-line">
+                <AppText variant="caption" color="textMuted" className="block">
+                  {line}
+                </AppText>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    </details>
   );
 }

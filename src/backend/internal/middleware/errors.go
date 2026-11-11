@@ -27,6 +27,7 @@ var codeMap = map[errs.Code]connect.Code{
 	errs.Unavailable:  connect.CodeUnavailable,
 	// @plm SRS-080 하루 전송 상한·응답 크기 상한
 	errs.ResourceExhausted: connect.CodeResourceExhausted,
+	errs.Unimplemented:     connect.CodeUnimplemented, // SPEC-059
 }
 
 // ErrorInterceptor는 핸들러가 돌려준 오류를 Connect 오류로 옮긴다.

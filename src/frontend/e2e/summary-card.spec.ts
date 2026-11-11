@@ -1,6 +1,7 @@
 // 이미 보낸 요약 카드가 남는지(SRS-101 · ADR-051) — 보내기 화면은 없어졌지만 서버·DM 카드·코치 리포트는 그대로다.
 // 카드는 서버 API 로 직접 보내 만든다(옛 앱에서 보낸 것과 같은 상태).
 import { expect, test } from "@playwright/test";
+import { 끊기, 이름으로_요청, 회원_화면 } from "./helpers/coaching";
 import {
   가입,
   동기,
@@ -63,14 +64,9 @@ test("보낸 요약 카드는 DM·알림에서 열리고, 코치 리포트도 �
     await page.goto("/coaching");
     const auth = (await grantsReq).headers().authorization ?? "";
     expect(auth).not.toBe("");
-    await page.getByTestId("coaching-query").fill(트레이너);
-    await page.getByTestId("coaching-search").click();
-    await expect(page.getByTestId("coaching-results")).toContainText(트레이너, { timeout: 20_000 });
-    await page.getByTestId("coaching-request").first().click();
-    // [개선 SPEC-050] 요청은 범위 시트를 거친다 — 연결 전에 한 운동을 코치가 보려면 「지난 기록도 보여 주기」를 켠다(기본은 끔)
-    await page.getByTestId("scope-pastRecords").click();
-    await page.getByTestId("scope-confirm").click();
-    await expect(page.getByTestId("coaching-coaches")).toContainText("수락 대기", { timeout: 20_000 });
+    // [원본] 「코치 찾기」 검색 → 요청 → 범위 시트(지난 기록 켬) → 확인
+    // [개선 SPEC-059] 사람 찾기 → 프로필 「코치로 요청」
+    await 이름으로_요청(page, 트레이너, { pastRecords: true });
     const grantsReqT = pageT.waitForRequest(`**${RPC}/ListGrants`);
     await pageT.goto("/coaching");
     const authT = (await grantsReqT).headers().authorization ?? "";
@@ -170,19 +166,23 @@ test("보낸 요약 카드는 DM·알림에서 열리고, 코치 리포트도 �
     // 코치 리포트
     await pageT.goto("/coaching");
     // [개선 SPEC-050] 기록 요약·루틴은 회원 줄 ⋯ 시트 안
-    await pageT.getByTestId("coaching-grant-more").first().click();
-    await pageT.getByTestId("coaching-report").click();
+    // [원본] await pageT.getByTestId("coaching-grant-more").first().click();
+    // [원본] await pageT.getByTestId("coaching-report").click();
+    // [개선 SPEC-059] 기록 요약은 회원 줄을 눌러 들어간 회원 화면 「분석」 탭
+    await 회원_화면(pageT, "stats");
     const ready = pageT.getByTestId("report-ready");
     await expect(ready).toBeVisible({ timeout: 20_000 });
     await expect(ready.getByTestId("ps-volume")).toHaveText("600kg");
-    await pageT.getByTestId("coaching-report-view").getByRole("button", { name: "확인" }).click();
+    // [원본] await pageT.getByTestId("coaching-report-view").getByRole("button", { name: "확인" }).click(); — 창이 아니라 화면(SPEC-059)
 
     // 해지 → 거부
     await page.goto("/coaching");
     // [개선 SPEC-050] 연결 끊기는 ⋯ 시트 → 확인창
-    await page.getByTestId("coaching-grant-more").first().click();
-    await page.getByTestId("coaching-revoke").click();
-    await page.getByTestId("coaching-revoke-confirm").getByTestId("dialog-confirm").click();
+    // [원본] await page.getByTestId("coaching-grant-more").first().click();
+    // [원본] await page.getByTestId("coaching-revoke").click();
+    // [원본] await page.getByTestId("coaching-revoke-confirm").getByTestId("dialog-confirm").click();
+    // [개선 SPEC-059] 줄 오른쪽 🗑 → 확인창(도우미가 RevokeGrant 성공·줄 빠짐까지 — REV-144 B8)
+    await 끊기(page, "coaching-coaches", 트레이너);
     await expect(page.getByTestId("coaching-coaches")).toHaveCount(0, { timeout: 20_000 });
     await pageT.goto("/messages");
     await pageT.getByTestId("dm-row").filter({ hasText: 회원 }).click();

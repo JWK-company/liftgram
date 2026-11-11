@@ -14,6 +14,7 @@
 //
 // 시작 값은 기본값과 다르게 둔다(범위 바꾸기는 꺼진 칸을 켠 뒤 다시 열어 본다) — 같은 값이면 저장이 안 돼도 통과한다.
 import { expect, test } from "@playwright/test";
+import { 끊기, 이름으로_id, 코치_시트 } from "./helpers/coaching";
 import {
   가입,
   내려쓰기_대기,
@@ -96,14 +97,20 @@ async function 범위(page: Page): Promise<Record<string, string | null>> {
 
 const 기본범위 = { logView: "true", routineEdit: "true", bodyView: "false", pastRecords: "false" };
 
-async function 줄_메뉴(page: Page, section: "coaching-coaches" | "coaching-members", name: string) {
-  await page
-    .getByTestId(section)
-    .getByTestId("coaching-grant")
-    .filter({ hasText: name })
-    .getByTestId("coaching-grant-more")
-    .click();
-  await expect(page.getByTestId("coaching-grant-sheet")).toBeVisible();
+// [원본] 줄 ⋯ → 시트(SPEC-050) — SPEC-059 로 ⋯ 를 뗐다
+// async function 줄_메뉴(page: Page, section: "coaching-coaches" | "coaching-members", name: string) {
+//   await page
+//     .getByTestId(section)
+//     .getByTestId("coaching-grant")
+//     .filter({ hasText: name })
+//     .getByTestId("coaching-grant-more")
+//     .click();
+//   await expect(page.getByTestId("coaching-grant-sheet")).toBeVisible();
+// }
+// [개선] 내 코치 줄 이름 → 시트(공유 범위 바꾸기 · 연결 이력) · 끊기는 줄의 🗑 (helpers/coaching.ts)
+// [개선] 이름 시트(SPEC-059) — 이름은 남은 호출이 많아 그대로 둔다 · 회원 쪽 「내 코치」 줄에만 있다(REV-144 B9)
+async function 줄_메뉴(page: Page, section: "coaching-coaches", name: string) {
+  await 코치_시트(page, section, name);
 }
 
 /** 코치(pageT · 이미 코치)가 코드를 만들고 회원(pageM)이 기본 범위(루틴 받기 켬)로 연결한다. */
@@ -130,9 +137,9 @@ async function 코드로_연결(pageT: Page, pageM: Page, 코치: string) {
 /** 회원이 코치와의 연결을 끊는다(/coaching ⋯ → 끊기 → 확인). */
 async function 해지(pageM: Page, 코치: string) {
   await pageM.goto("/coaching");
-  await 줄_메뉴(pageM, "coaching-coaches", 코치);
-  await pageM.getByTestId("coaching-revoke").click();
-  await pageM.getByTestId("coaching-revoke-confirm").getByTestId("dialog-confirm").click();
+  // [원본] await 줄_메뉴(…); await pageM.getByTestId("coaching-revoke").click();
+  await 끊기(pageM, "coaching-coaches", 코치);
+  // [원본] await pageM.getByTestId("coaching-revoke-confirm").getByTestId("dialog-confirm").click(); — 끊기()가 확인까지
   await expect(
     pageM.getByTestId("coaching-coaches").getByTestId("coaching-grant").filter({ hasText: "코칭 중" }),
   ).toHaveCount(0, { timeout: 20_000 });
@@ -307,15 +314,18 @@ test("회원 요청 + 메시지 → 코치 수락 · 알림 · 대화방 배지 
 
     // 회원 — 트레이너 찾기 → 범위 시트(+한 줄) → 요청
     await 가입(page, 새_메일("cv2-r"), 회원);
-    await page.goto("/coaching");
-    await page.getByTestId("coaching-query").fill(코치A);
-    await page.getByTestId("coaching-search").click();
-    await expect(page.getByTestId("coaching-results")).toContainText(코치A, { timeout: 20_000 });
-    await page.getByTestId("coaching-request").first().click();
+    // [원본] /coaching 「코치 찾기」 검색 → 결과의 「요청」(coaching-query·coaching-search·coaching-results·coaching-request)
+    // [개선 SPEC-059] 사람 찾기 → 코치 프로필 「코치로 요청」 → 같은 범위 시트
+    await page.goto(`/u/${await 이름으로_id(page, 코치A)}`);
+    await page.getByTestId("profile-coaching-request").click({ timeout: 20_000 });
     expect(await 범위(page)).toEqual(기본범위);
     await page.getByTestId("scope-pastRecords").click(); // 지난 기록도 보여 주기 켬
     await page.getByTestId("scope-note").fill("주 3회 · 벤치 100kg 목표");
+    const 요청 = page.waitForResponse(`**${RPC}/RequestCoaching`);
     await page.getByTestId("scope-confirm").click();
+    expect((await 요청).ok()).toBe(true); // REV-145 B7
+    await expect(page.getByTestId("scope-confirm")).toHaveCount(0, { timeout: 20_000 });
+    await page.goto("/coaching"); // 프로필에서 요청했으니 코칭 화면으로(SPEC-059)
     await expect(page.getByTestId("coaching-coaches")).toContainText("수락 대기", { timeout: 20_000 });
     await expect(page.getByTestId("coaching-accept")).toHaveCount(0); // 내가 보낸 요청은 내가 수락하지 않는다
 
@@ -367,16 +377,18 @@ test("회원 요청 + 메시지 → 코치 수락 · 알림 · 대화방 배지 
 
     // 해지 — 확인창(취소하면 그대로) → 끊기
     await page.goto("/coaching");
-    await 줄_메뉴(page, "coaching-coaches", 코치A);
-    await page.getByTestId("coaching-revoke").click();
+    // [원본] await 줄_메뉴(…); await page.getByTestId("coaching-revoke").click();
+    await 끊기(page, "coaching-coaches", 코치A, false);
     const dlg = page.getByTestId("coaching-revoke-confirm");
-    await expect(dlg).toContainText("연결을 끊을까요?");
+    await expect(dlg).toContainText(`${코치A}님과 연결을 끊을까요?`);
+    await expect(dlg).toContainText("운동 기록은 지워지지 않아요");
+    // [원본] await expect(dlg).toContainText("연결을 끊을까요?"); — 위 이름 붙은 제목이 같은 것을 잰다
     await expect(dlg).toContainText("코치가 더는 기록을 볼 수 없어요");
     await dlg.getByTestId("dialog-cancel").click();
     await expect(page.getByTestId("coaching-coaches")).toContainText("코칭 중");
-    await 줄_메뉴(page, "coaching-coaches", 코치A);
-    await page.getByTestId("coaching-revoke").click();
-    await page.getByTestId("coaching-revoke-confirm").getByTestId("dialog-confirm").click();
+    // [원본] await 줄_메뉴(…); await page.getByTestId("coaching-revoke").click();
+    await 끊기(page, "coaching-coaches", 코치A);
+    // [원본] await page.getByTestId("coaching-revoke-confirm").getByTestId("dialog-confirm").click(); — 끊기()가 확인까지
     await expect(page.getByTestId("coaching-coaches")).toHaveCount(0, { timeout: 20_000 });
 
     await pageA.goto("/notifications");
@@ -541,7 +553,8 @@ test("360px — 초대 카드·GrantRow 넘침 없음 · 누르는 자리 44px �
     for (const id of ["invite-copy", "invite-renew"])
       await 크기_44(page.getByTestId("invite-card").getByTestId(id));
     await 크기_44(mrow.getByTestId("coaching-accept"));
-    await 크기_44(mrow.getByTestId("coaching-grant-more"));
+    // [원본] await 크기_44(mrow.getByTestId("coaching-grant-more")); — ⋯ 자리는 🗑(SPEC-059)
+    await 크기_44(mrow.getByTestId("coaching-revoke"));
     for (const id of ["invite-card", "coaching-grant"]) {
       const box = await page.getByTestId(id).first().boundingBox();
       expect(box && box.x >= 0 && box.x + box.width <= 360).toBe(true);
@@ -571,7 +584,8 @@ test("360px — 초대 카드·GrantRow 넘침 없음 · 누르는 자리 44px �
     await pageM.getByTestId("scope-cancel").click();
     // 회원 줄도 넘치지 않는다
     await 넘침_없음(pageM);
-    await 크기_44(pageM.getByTestId("coaching-grant-more").first());
+    // [원본] await 크기_44(pageM.getByTestId("coaching-grant-more").first()); — ⋯ 자리는 🗑(SPEC-059)
+    await 크기_44(pageM.getByTestId("coaching-revoke").first());
   } finally {
     await ctxM.close();
   }
@@ -1155,9 +1169,9 @@ test.describe("P2 회원 화면", () => {
 
       // 해지 → 「코칭이 끝났어요」 · 홈 카드 사라짐
       await page.goto("/coaching");
-      await 줄_메뉴(page, "coaching-coaches", 코치);
-      await page.getByTestId("coaching-revoke").click();
-      await page.getByTestId("coaching-revoke-confirm").getByTestId("dialog-confirm").click();
+      // [원본] await 줄_메뉴(…); await page.getByTestId("coaching-revoke").click();
+      await 끊기(page, "coaching-coaches", 코치);
+      // [원본] await page.getByTestId("coaching-revoke-confirm").getByTestId("dialog-confirm").click(); — 끊기()가 확인까지
       await expect(page.getByTestId("coaching-coaches")).toHaveCount(0, { timeout: 20_000 });
       await pageT.getByTestId("member-tab-routines").click();
       await expect(pageT.getByTestId("member-ended")).toContainText("코칭이 끝났어요", { timeout: 20_000 });
@@ -1811,7 +1825,8 @@ test.describe("P4 코멘트·점검", () => {
     return id;
   }
 
-  test("코치 루틴 운동 → 처방 대 실제 · 코멘트 → 회원 알림 → 상세 말풍선·숨기기 · 점검 숫자·쉬는 중 · 300자 · 360px · 해지 뒤 회원은 그대로", async ({
+  // [원본] 제목 「… 상세 말풍선·숨기기 · …」 — SPEC-059 로 숨기기를 뗐다
+  test("코치 루틴 운동 → 처방 대 실제 · 코멘트 → 회원 알림 → 상세 말풍선(숨기기 없음 · 서버 거절) · 점검 숫자·쉬는 중 · 300자 · 360px · 해지 뒤 회원은 그대로", async ({
     page,
     browser,
   }) => {
@@ -1924,7 +1939,8 @@ test.describe("P4 코멘트·점검", () => {
       await expect(box.getByTestId("coach-comment-input")).toHaveValue("");
       await expect(row.getByTestId("member-workout-meta")).toContainText("코멘트 1");
       await 크기_44(box.getByTestId("coach-comment-send"));
-      await 크기_44(box.getByTestId("coach-comment-hide"));
+      // [원본] await 크기_44(box.getByTestId("coach-comment-hide")); — 숨기기를 뗐다(SPEC-059)
+      await expect(box.getByTestId("coach-comment-hide")).toHaveCount(0);
       await 넘침_없음(pageT);
       expect(await 빨강_채움(pageT)).toBeLessThanOrEqual(1);
       // 다시 열어도 서버에서 읽는다(메모리만 — 새 문서)
@@ -1962,18 +1978,51 @@ test.describe("P4 코멘트·점검", () => {
         timeout: 20_000,
       });
 
-      // ── 회원이 숨긴다 → 확인창 → 사라짐 · 새로 열어도 없음 ──
-      await page.getByTestId("member-coach-comments").getByTestId("coach-comment-hide").click();
-      const hidden = page.waitForResponse(`**${RPC}/HideCoachComment`);
-      await page.getByTestId("coach-comment-hide-confirm").getByTestId("dialog-confirm").click();
-      expect((await hidden).ok()).toBe(true);
-      await expect(page.getByTestId("member-coach-comments")).toHaveCount(0);
-      // [원본] reload 뒤에 waitForResponse — 응답이 먼저 오면 놓쳐 catch 로 그냥 지나갔다(리뷰) · [개선] 새로고침 전에 건다
+      // [원본] 회원이 숨기기 → 사라짐(SPEC-050) — SPEC-059 로 숨기기를 뗐다
+      // // ── 회원이 숨긴다 → 확인창 → 사라짐 · 새로 열어도 없음 ──
+      // await page.getByTestId("member-coach-comments").getByTestId("coach-comment-hide").click();
+      // const hidden = page.waitForResponse(`**${RPC}/HideCoachComment`);
+      // await page.getByTestId("coach-comment-hide-confirm").getByTestId("dialog-confirm").click();
+      // expect((await hidden).ok()).toBe(true);
+      // await expect(page.getByTestId("member-coach-comments")).toHaveCount(0);
+      // // [원본] reload 뒤에 waitForResponse — 응답이 먼저 오면 놓쳐 catch 로 그냥 지나갔다(리뷰) · [개선] 새로고침 전에 건다
+      // const relisted = page.waitForResponse(`**${RPC}/ListCoachComments`);
+      // await page.reload();
+      // await expect(page.getByTestId("detail-name")).toBeVisible({ timeout: 20_000 });
+      // expect((await relisted).ok()).toBe(true);
+      // await expect(page.getByTestId("member-coach-comments")).toHaveCount(0);
+      // [개선] SPEC-059 — 숨기기 버튼이 없고, 옛 앱 판처럼 직접 불러도 서버가 거절한다(코멘트는 그대로)
+      await expect(page.getByTestId("member-coach-comments").getByTestId("coach-comment-hide")).toHaveCount(
+        0,
+      );
+      // 진짜 코멘트 id 로 부른다 — 새로고침 뒤에도 그 코멘트가 남는지까지 본다(P1 리뷰)
+      const commentId =
+        (await page
+          .getByTestId("member-coach-comments")
+          .getByTestId("coach-comment")
+          .first()
+          .getAttribute("data-id")) ?? "";
+      expect(commentId).not.toBe("");
+      const refused = await page.evaluate(
+        async ({ rpc, id }) => {
+          const r = await fetch(`${rpc}/HideCoachComment`, {
+            method: "POST",
+            headers: { "content-type": "application/json", "connect-protocol-version": "1" },
+            body: JSON.stringify({ id }),
+          });
+          return { ok: r.ok, code: ((await r.json().catch(() => ({}))) as { code?: string }).code ?? "" };
+        },
+        { rpc: RPC, id: commentId },
+      );
+      expect(refused).toEqual({ ok: false, code: "unimplemented" });
       const relisted = page.waitForResponse(`**${RPC}/ListCoachComments`);
       await page.reload();
       await expect(page.getByTestId("detail-name")).toBeVisible({ timeout: 20_000 });
       expect((await relisted).ok()).toBe(true);
-      await expect(page.getByTestId("member-coach-comments")).toHaveCount(0);
+      await expect(page.getByTestId("member-coach-comments").getByTestId("coach-comment")).toHaveCount(1);
+      await expect(
+        page.getByTestId("member-coach-comments").getByTestId("coach-comment").first(),
+      ).toHaveAttribute("data-id", commentId);
 
       // 코치 — 해지 뒤 회원 화면은 「코칭이 끝났어요」
       await pageT.goto(`/coaching/m/${memberId}`);
@@ -1983,7 +2032,8 @@ test.describe("P4 코멘트·점검", () => {
     }
   });
 
-  test("코치가 숨기기 · 기록 보기를 끄면 코멘트 쓰기가 막히고 「기록 보기를 꺼 두었어요」", async ({
+  // [원본] test("코치가 숨기기 · 기록 보기를 끄면 …") — 숨기기는 SPEC-059 로 뗐다
+  test("코치 코멘트는 숨길 수 없다 · 기록 보기를 끄면 코멘트 쓰기가 막히고 「기록 보기를 꺼 두었어요」", async ({
     page,
     browser,
   }) => {
@@ -2015,17 +2065,24 @@ test.describe("P4 코멘트·점검", () => {
       await box.getByTestId("coach-comment-input").fill("벤치 좋아요");
       await box.getByTestId("coach-comment-send").click();
       await expect(box.getByTestId("coach-comment")).toHaveCount(1, { timeout: 20_000 });
-      await box.getByTestId("coach-comment-hide").click();
-      const hidden = pageT.waitForResponse(`**${RPC}/HideCoachComment`);
-      await pageT.getByTestId("coach-comment-hide-confirm").getByTestId("dialog-confirm").click();
-      expect((await hidden).ok()).toBe(true);
-      await expect(box.getByTestId("coach-comment")).toHaveCount(0);
-
-      // 회원 상세에도 없다(숨긴 코멘트는 누구에게도 안 나간다)
+      // [원본] 코치가 숨긴다 → 회원 상세에도 없음 — SPEC-059 로 숨기기를 뗐다
+      // await box.getByTestId("coach-comment-hide").click();
+      // const hidden = pageT.waitForResponse(`**${RPC}/HideCoachComment`);
+      // await pageT.getByTestId("coach-comment-hide-confirm").getByTestId("dialog-confirm").click();
+      // expect((await hidden).ok()).toBe(true);
+      // await expect(box.getByTestId("coach-comment")).toHaveCount(0);
+      // // 회원 상세에도 없다(숨긴 코멘트는 누구에게도 안 나간다)
+      // await 최근_기록_상세(page);
+      // await expect(page.getByTestId("detail-name")).toBeVisible({ timeout: 20_000 });
+      // await page.waitForTimeout(1_500);
+      // await expect(page.getByTestId("member-coach-comments")).toHaveCount(0);
+      // [개선] SPEC-059 — 숨기기 버튼이 없고, 회원 상세에 코멘트가 보인다
+      await expect(box.getByTestId("coach-comment-hide")).toHaveCount(0);
       await 최근_기록_상세(page);
       await expect(page.getByTestId("detail-name")).toBeVisible({ timeout: 20_000 });
-      await page.waitForTimeout(1_500);
-      await expect(page.getByTestId("member-coach-comments")).toHaveCount(0);
+      await expect(page.getByTestId("member-coach-comments").getByTestId("coach-comment")).toHaveCount(1, {
+        timeout: 20_000,
+      });
 
       // 화면을 연 채 회원이 기록 보기를 끈다 → 코멘트를 남기면 「회원이 기록 보기를 꺼 두었어요」
       await pageT.goto(`/coaching/m/${memberId}`);

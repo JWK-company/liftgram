@@ -15,6 +15,7 @@ export function IconButton({
   label,
   testId,
   className = "",
+  hasPopup,
 }: {
   icon: IconName;
   onPress?: () => void;
@@ -26,12 +27,15 @@ export function IconButton({
   label: string;
   testId?: string;
   className?: string;
+  /** 누르면 창이 뜨는가(확인창 등 · SPEC-059) */
+  hasPopup?: "dialog" | "menu";
 }) {
   return (
     <button
       type="button"
       data-testid={testId}
       aria-label={label}
+      aria-haspopup={hasPopup}
       disabled={disabled}
       onClick={onPress}
       // [원본] className={`flex h-10 w-10 shrink-0 … — 누르는 자리 40px

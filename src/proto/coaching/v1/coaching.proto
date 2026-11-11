@@ -470,6 +470,7 @@ message CoachComment {
   string body = 6;
   int64 created_at = 7;
   // 보는 사람이 숨길 수 있나(코치는 자기 것 · 회원은 자기 운동의 것).
+  // SPEC-059 — 숨기기를 뗐다: 서버는 늘 false(옛 앱 판 호환을 위해 필드는 남김)
   bool can_hide = 8;
 }
 
@@ -566,6 +567,7 @@ service CoachingService {
   // ── 코멘트·점검(SPEC-050 P4 · 스펙의 AddComment·ListComments·HideComment — 피드 댓글 계약과 이름이 겹쳐 Coach 를 붙였다) ── 코멘트는 코치당 회원당 하루 20개. 남기면 회원에게 알림(coaching_comment · ref_id = 운동 id).
   rpc AddCoachComment(AddCoachCommentRequest) returns (AddCoachCommentResponse) {}
   rpc ListCoachComments(ListCoachCommentsRequest) returns (ListCoachCommentsResponse) {}
+  // SPEC-059 — 쓰지 않음: 서버가 늘 Unimplemented 로 거절(옛 앱 판 호환을 위해 모양은 남김)
   rpc HideCoachComment(HideCoachCommentRequest) returns (HideCoachCommentResponse) {}
   // 코치(viewer)의 활성 담당 회원마다 이번 주 운동 수·마지막 운동·코치 루틴 운동 수.
   rpc ListMemberDigest(ListMemberDigestRequest) returns (ListMemberDigestResponse) {}

@@ -452,7 +452,8 @@ SELECT EXISTS (
 )::boolean;
 
 -- ── 코치 코멘트(SPEC-050 P4 · coaching_comments 는 0033) ─────────────────────────────
--- 코치가 회원 운동 하나에 남기는 말. 숨기면 hidden_at — 숨긴 코멘트는 누구에게도 나가지 않는다.
+-- 코치가 회원 운동 하나에 남기는 말. [원본] 숨기면 hidden_at — 숨긴 코멘트는 누구에게도 나가지 않는다.
+-- [개선] SPEC-059 — 숨기기를 뗐다. 숨김 기록(hidden_at)은 남기되 목록은 보지 않는다(옛 숨김도 다시 보인다).
 
 -- name: InsertCoachingComment :one
 INSERT INTO coaching_comments (id, grant_id, trainer_id, member_id, workout_id, body)
@@ -464,7 +465,7 @@ RETURNING id, created_at;
 SELECT count(*) FROM coaching_comments
 WHERE trainer_id = @trainer_id::text AND member_id = @member_id::text AND created_at >= @since::timestamptz;
 
--- 운동 하나의 코멘트(숨긴 것 빼고 · 오래된 것부터). trainer_id 가 비면 모든 코치 — 회원이 볼 때.
+-- 운동 하나의 코멘트(오래된 것부터 · 숨김 기록은 보지 않음 SPEC-059). trainer_id 가 비면 모든 코치 — 회원이 볼 때.
 -- 회원 쪽은 차단한(된) 코치의 코멘트를 빼고 보인다(차단 사이에는 서로 보이지 않는다).
 -- [원본] JOIN users u ON u.id = c.trainer_id · c.trainer_id 그대로
 -- [개선] 0035 — 코치가 탈퇴하면 trainer_id 가 NULL(코멘트는 회원 것으로 남는다) → LEFT JOIN · 빈 글자(화면 「탈퇴한 코치」)
@@ -473,7 +474,8 @@ SELECT c.id, COALESCE(c.trainer_id, '')::text AS trainer_id, c.member_id, c.work
        COALESCE(u.display_name, '')::text AS trainer_name
 FROM coaching_comments c
 LEFT JOIN users u ON u.id = c.trainer_id
-WHERE c.member_id = @member_id::text AND c.workout_id = @workout_id::text AND c.hidden_at IS NULL
+-- [원본] WHERE c.member_id = @member_id::text AND c.workout_id = @workout_id::text AND c.hidden_at IS NULL
+WHERE c.member_id = @member_id::text AND c.workout_id = @workout_id::text
   AND (@trainer_id::text = '' OR c.trainer_id = @trainer_id::text)
   AND NOT EXISTS (
     SELECT 1 FROM blocks b
@@ -483,13 +485,14 @@ WHERE c.member_id = @member_id::text AND c.workout_id = @workout_id::text AND c.
 ORDER BY c.created_at, c.id
 LIMIT 200;
 
--- 이 코치가 이 회원에게 남긴 코멘트(숨긴 것 빼고 · 최근 것부터) — 회원 화면 기록 탭이 운동마다 묶는다.
+-- 이 코치가 이 회원에게 남긴 코멘트(최근 것부터 · 숨김 기록은 보지 않음 SPEC-059) — 회원 화면 기록 탭이 운동마다 묶는다.
 -- name: ListCommentsByPair :many
 SELECT c.id, COALESCE(c.trainer_id, '')::text AS trainer_id, c.member_id, c.workout_id, c.body, c.created_at,
        COALESCE(u.display_name, '')::text AS trainer_name
 FROM coaching_comments c
 JOIN users u ON u.id = c.trainer_id
-WHERE c.trainer_id = @trainer_id::text AND c.member_id = @member_id::text AND c.hidden_at IS NULL
+-- [원본] WHERE c.trainer_id = @trainer_id::text AND c.member_id = @member_id::text AND c.hidden_at IS NULL
+WHERE c.trainer_id = @trainer_id::text AND c.member_id = @member_id::text
 ORDER BY c.created_at DESC, c.id
 LIMIT 500;
 
@@ -499,7 +502,7 @@ SELECT id, COALESCE(grant_id, '')::text AS grant_id, COALESCE(trainer_id, '')::t
        member_id, workout_id, body, created_at, hidden_at
 FROM coaching_comments WHERE id = @id::text;
 
--- 숨기기 — 아직 숨기지 않은 것만(0행이면 이미 숨김).
+-- 숨기기 — 아직 숨기지 않은 것만(0행이면 이미 숨김). SPEC-059 뒤로 부르는 곳 없음(핸들러가 거절) — 되돌릴 때를 위해 남긴다.
 -- name: HideCoachingComment :execrows
 UPDATE coaching_comments SET hidden_at = now() WHERE id = @id::text AND hidden_at IS NULL;
 

@@ -19,9 +19,9 @@ import { errorText } from "@/lib/errorText";
 import { lang, t } from "@/lib/i18n";
 import { coachingClient } from "@/lib/coachingClient";
 import { useAuth } from "../AuthProvider";
-import { useToast } from "../Toast";
+// import { useToast } from "../Toast"; // [원본] 숨김 알림 — SPEC-059
 import { Button } from "../ui/Button";
-import { ConfirmDialog } from "../ui/Dialog";
+// import { ConfirmDialog } from "../ui/Dialog"; // [원본] 숨기기 확인창 — SPEC-059
 import { TextArea } from "../ui/inputs";
 import { AppText, SectionHeader } from "../ui/primitives";
 
@@ -47,10 +47,11 @@ const when = (ms: number) =>
     minute: "2-digit",
   });
 
-/** 청록 말풍선 한 개 — 코치 이름·때·글 · 숨기기(할 수 있을 때만). */
+/** 청록 말풍선 한 개 — 코치 이름·때·글. [원본] · 숨기기(할 수 있을 때만) — SPEC-059 로 뗐다. */
 export function CommentBubble({
   c,
-  onHide,
+  // [원본] onHide, — SPEC-059 로 숨기기를 뗐다
+  onHide: _onHide,
   showName = true,
 }: {
   c: CoachComment;
@@ -76,7 +77,8 @@ export function CommentBubble({
           {showName ? `${t("coaching.comment.from", { name: coachName(c) })} · ` : ""}
           {when(Number(c.createdAt))}
         </AppText>
-        {onHide && c.canHide ? (
+        {/* [원본] 숨기기 버튼 — SPEC-059(#T19 · 1b)로 뗐다(서버도 거절 · onHide prop 은 모양만 남김)
+        onHide && c.canHide ? (
           <button
             type="button"
             onClick={onHide}
@@ -90,7 +92,8 @@ export function CommentBubble({
           >
             {t("coaching.comment.hide")}
           </button>
-        ) : null}
+        ) : null
+        */}
       </div>
       <AppText
         variant="body"
@@ -104,7 +107,7 @@ export function CommentBubble({
 }
 
 /**
- * 코치 쪽 — 펼친 운동 하나의 코멘트 + 입력칸. 목록은 부모(기록 탭)가 갖고 있고, 남기기·숨기기가 끝나면 onAdded·onHidden 으로 알린다.
+ * 코치 쪽 — 펼친 운동 하나의 코멘트 + 입력칸. 목록은 부모(기록 탭)가 갖고 있고, 남기기가 끝나면 onAdded 로 알린다([원본] 숨기기 → onHidden — SPEC-059 로 뗐다 · prop 모양은 그대로).
  * PermissionDenied(해지·범위 끔)는 onDenied — 회원 화면이 연결을 다시 읽어 끝남/꺼짐을 가른다.
  */
 export function CoachCommentBox({
@@ -112,7 +115,8 @@ export function CoachCommentBox({
   workoutId,
   comments,
   onAdded,
-  onHidden,
+  // [원본] onHidden, — 숨기기를 뗐다(SPEC-059 · 부르는 쪽 모양은 그대로)
+  onHidden: _onHidden,
   onDenied,
 }: {
   memberId: string;
@@ -122,11 +126,11 @@ export function CoachCommentBox({
   onHidden: (id: string) => void;
   onDenied: (e: unknown) => boolean;
 }) {
-  const toast = useToast();
+  // [원본] const toast = useToast(); — 숨김 알림만 썼다(SPEC-059)
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hiding, setHiding] = useState<CoachComment | null>(null);
+  // [원본] const [hiding, setHiding] = useState<CoachComment | null>(null); — 숨기기를 뗐다(SPEC-059)
   // 연타 가드 — busy 상태는 다음 그림에서야 바뀌어 같은 틱의 두 번째 누름을 못 막는다(리뷰 낮음)
   const sendingRef = useRef(false);
   const n = runeCount(text.trim());
@@ -152,16 +156,17 @@ export function CoachCommentBox({
     }
   }
 
-  async function hide(c: CoachComment) {
-    setHiding(null);
-    try {
-      await coachingClient().hideCoachComment({ id: c.id });
-      onHidden(c.id);
-      toast(t("coaching.comment.hidden"));
-    } catch (e) {
-      if (!onDenied(e)) toast(errorText(e), "error");
-    }
-  }
+  // [원본] 숨기기 — SPEC-059(#T19 · 1b)로 뗐다. 서버도 거절한다.
+  // async function hide(c: CoachComment) {
+  //   setHiding(null);
+  //   try {
+  //     await coachingClient().hideCoachComment({ id: c.id });
+  //     onHidden(c.id);
+  //     toast(t("coaching.comment.hidden"));
+  //   } catch (e) {
+  //     if (!onDenied(e)) toast(errorText(e), "error");
+  //   }
+  // }
 
   return (
     <div data-testid="coach-comments" className="mt-[var(--spacing-sm)]">
@@ -169,7 +174,8 @@ export function CoachCommentBox({
         {t("coaching.comment.title")}
       </AppText>
       {comments.map((c) => (
-        <CommentBubble key={c.id} c={c} showName={false} onHide={() => setHiding(c)} />
+        // [원본] <CommentBubble key={c.id} c={c} showName={false} onHide={() => setHiding(c)} /> — 숨기기를 뗐다(SPEC-059)
+        <CommentBubble key={c.id} c={c} showName={false} />
       ))}
       <TextArea
         value={text}
@@ -214,7 +220,8 @@ export function CoachCommentBox({
           {error}
         </AppText>
       ) : null}
-      {hiding ? (
+      {/* [원본] 숨기기 확인창 — SPEC-059 로 뗐다
+      hiding ? (
         <ConfirmDialog
           title={t("coaching.comment.hideTitle")}
           message={t("coaching.comment.hideMessage")}
@@ -224,7 +231,8 @@ export function CoachCommentBox({
           onCancel={() => setHiding(null)}
           testId="coach-comment-hide-confirm"
         />
-      ) : null}
+      ) : null
+      */}
     </div>
   );
 }
@@ -256,13 +264,13 @@ export function MemberWorkoutComments({
 }) {
   const { user, loading } = useAuth();
   const userId = user?.id;
-  const toast = useToast();
+  // [원본] const toast = useToast(); — 숨김 알림만 썼다(SPEC-059)
   const cacheKey = userId && workoutId ? `${userId}:${workoutId}` : "";
   // [원본] useState<CoachComment[] | null>(null) — [개선] 읽은 적 있으면 캐시로 바로(다시 열 때 깜빡임 없음)
   const [rows, setRows] = useState<CoachComment[] | null>(
     () => memberCommentCache.get(cacheKey)?.rows ?? null,
   );
-  const [hiding, setHiding] = useState<CoachComment | null>(null);
+  // [원본] const [hiding, setHiding] = useState<CoachComment | null>(null); — 숨기기를 뗐다(SPEC-059)
   const genRef = useRef(0);
   const tickRef = useRef(reloadTick);
 
@@ -301,20 +309,21 @@ export function MemberWorkoutComments({
     };
   }, [loading, userId, workoutId, cacheKey, reloadTick]);
 
-  async function hide(c: CoachComment) {
-    setHiding(null);
-    try {
-      await coachingClient().hideCoachComment({ id: c.id });
-      setRows((prev) => {
-        const next = (prev ?? []).filter((x) => x.id !== c.id);
-        cachePut(cacheKey, next);
-        return next;
-      });
-      toast(t("coaching.comment.hidden"));
-    } catch (e) {
-      toast(errorText(e), "error");
-    }
-  }
+  // [원본] 숨기기 — SPEC-059(#T19 · 1b)로 뗐다. 서버도 거절한다.
+  // async function hide(c: CoachComment) {
+  //   setHiding(null);
+  //   try {
+  //     await coachingClient().hideCoachComment({ id: c.id });
+  //     setRows((prev) => {
+  //       const next = (prev ?? []).filter((x) => x.id !== c.id);
+  //       cachePut(cacheKey, next);
+  //       return next;
+  //     });
+  //     toast(t("coaching.comment.hidden"));
+  //   } catch (e) {
+  //     toast(errorText(e), "error");
+  //   }
+  // }
 
   // 코멘트 알림으로 왔으면(?comments=1) 다 읽은 뒤 이 자리로
   const ref = useRef<HTMLElement>(null);
@@ -338,9 +347,11 @@ export function MemberWorkoutComments({
     >
       <SectionHeader title={t("coaching.comment.title")} />
       {rows.map((c) => (
-        <CommentBubble key={c.id} c={c} onHide={() => setHiding(c)} />
+        // [원본] <CommentBubble key={c.id} c={c} onHide={() => setHiding(c)} /> — 숨기기를 뗐다(SPEC-059)
+        <CommentBubble key={c.id} c={c} />
       ))}
-      {hiding ? (
+      {/* [원본] 숨기기 확인창 — SPEC-059 로 뗐다
+      hiding ? (
         <ConfirmDialog
           title={t("coaching.comment.hideTitle")}
           message={t("coaching.comment.hideMessageMember")}
@@ -350,7 +361,8 @@ export function MemberWorkoutComments({
           onCancel={() => setHiding(null)}
           testId="coach-comment-hide-confirm"
         />
-      ) : null}
+      ) : null
+      */}
     </section>
   );
 }

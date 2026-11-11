@@ -29,6 +29,8 @@ const (
 	// 요청은 맞지만 **한도를 넘었다**(하루 전송 상한·응답 크기 상한). 화면이 "기간을 줄여 주세요"·
 	// "내일 다시"를 보일 신호다 — Validation(입력이 틀림)과 갈라 둔다. @plm SRS-080
 	ResourceExhausted Code = "resource_exhausted"
+	// 없어진 기능 — 옛 앱 판이 아직 부를 수 있다(코치 코멘트 숨기기 · SPEC-059).
+	Unimplemented Code = "unimplemented"
 )
 
 // DomainError는 도메인이 실패를 표현하는 유일한 방법이다.

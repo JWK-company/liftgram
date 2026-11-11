@@ -3677,6 +3677,7 @@ type CoachComment struct {
 	Body        string `protobuf:"bytes,6,opt,name=body,proto3" json:"body,omitempty"`
 	CreatedAt   int64  `protobuf:"varint,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	// 보는 사람이 숨길 수 있나(코치는 자기 것 · 회원은 자기 운동의 것).
+	// SPEC-059 — 숨기기를 뗐다: 서버는 늘 false(옛 앱 판 호환을 위해 필드는 남김)
 	CanHide       bool `protobuf:"varint,8,opt,name=can_hide,json=canHide,proto3" json:"can_hide,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

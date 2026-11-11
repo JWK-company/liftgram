@@ -734,12 +734,16 @@ export const ko = {
   "experience.levelHint.advanced": "지식 공유·멘토링 후보",
   // [원본] "experience.intentLabel": "코칭 의향",
   // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
-  "experience.intentLabel": "코치 찾기 노출",
+  // [원본 SPEC-052] "experience.intentLabel": "코치 찾기 노출",
+  "experience.intentLabel": "코칭", // SPEC-059
   // [원본] "experience.intentYes": "나는 회원을 구하고 싶어요",
   // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
-  "experience.intentYes": "코치 찾기에 나를 보여 주기",
-  "experience.intentShort": "코치 찾기에 보임", // SPEC-052
-  "experience.intentHint": "켜면 코치 찾기 검색에 이름·소개·태그가 보여요. 꺼 두어도 초대 코드로 회원과 연결할 수 있어요.", // SPEC-052
+  // [원본 SPEC-052] "experience.intentYes": "코치 찾기에 나를 보여 주기",
+  "experience.intentYes": "코칭 요청 받기", // SPEC-059
+  // [원본 SPEC-052] "experience.intentShort": "코치 찾기에 보임", // SPEC-052
+  "experience.intentShort": "코칭 요청 받음", // SPEC-059
+  // [원본 SPEC-052] "experience.intentHint": "켜면 코치 찾기 검색에 이름·소개·태그가 보여요. 꺼 두어도 초대 코드로 회원과 연결할 수 있어요.", // SPEC-052
+  "experience.intentHint": "켜면 내 프로필에 「코치로 요청」 버튼과 코치 소개가 보여요. 꺼도 초대 코드로는 연결할 수 있어요.", // SPEC-059
   "experience.summaryEmpty": "운동 경력을 알려 주세요", // SPEC-052
   // [원본] "experience.trainerDisclaimer": "코칭 의향 표시는 자격 보증이 아니에요. 검증 배지·후기와 함께 표시됩니다.",
   // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
@@ -2037,7 +2041,8 @@ export const ko = {
   "coaching.action.routine_send": "루틴 보냄",
   "coaching.action.routine_update": "루틴 고쳐 보냄",
   "coaching.action.comment_add": "코멘트 남김",
-  "coaching.action.comment_hide": "코멘트 숨김",
+  // [원본] "coaching.action.comment_hide": "코멘트 숨김", — SPEC-059: 숨김을 뗐고 옛 숨김도 다시 보인다
+  "coaching.action.comment_hide": "코멘트 숨김(지금은 다시 보여요)",
   "coaching.coachBadge": "코치",
   "coaching.activeBadge": "코칭 중",
   "coaching.tag.hypertrophy": "근비대",
@@ -2085,6 +2090,21 @@ export const ko = {
   "coaching.revokeMessageMember": "코치가 더는 기록을 볼 수 없어요.",
   "coaching.revokeMessageTrainer": "회원 기록을 더는 볼 수 없어요.",
   "coaching.revokeConfirm": "연결 끊기",
+  // SPEC-059 — ⋯ 대신 🗑 · 내 코치 이름 시트 · 회원 화면 연결 이력
+  "coaching.trash.revoke": "{name} 연결 끊기",
+  "coaching.trash.cancel": "{name} 요청 취소",
+  "coaching.trash.decline": "{name} 요청 거절",
+  "coaching.revokeTitleNamed": "{name}님과 연결을 끊을까요?",
+  "coaching.cancelTitle": "{name}님에게 보낸 요청을 취소할까요?",
+  "coaching.declineTitle": "{name}님의 요청을 거절할까요?",
+  "coaching.pendingMessage": "요청이 사라져요.",
+  "coaching.recordsKept": "운동 기록은 지워지지 않아요.",
+  "coaching.cancelConfirm": "요청 취소",
+  "coaching.declineConfirm": "거절",
+  "coaching.coachOpen": "{name} 코칭 설정",
+  "coaching.coachSheet.scope": "공유 범위 바꾸기",
+  "coaching.coachSheet.history": "연결 이력",
+  "coaching.member.historyTitle": "연결 이력",
   "coaching.invite.title": "초대 코드",
   // [원본] "coaching.invite.hint": "회원이 이 코드나 링크로 바로 연결해요.",
   // [개선] SPEC-052 — 코치 역할 없음 · 방향이 보이는 이름(REV-105 U4)
@@ -2105,6 +2125,13 @@ export const ko = {
   "coaching.invite.reload": "다시 불러오기",
   "coaching.join.section": "코드로 연결",
   "coaching.join.placeholder": "코치에게 받은 8자리 코드",
+  // SPEC-059 — 8칸 코드 · 코치 찾기 대신 안내
+  "coaching.join.boxesLabel": "초대 코드 8자리",
+  "coaching.join.onlyAlnum": "영문·숫자로 입력해 주세요",
+  "coaching.findHint.code": "코치에게 코드를 받았다면 위 칸에 넣으세요.",
+  "coaching.findHint.profile": "코치 프로필에서 바로 요청할 수도 있어요 —",
+  "coaching.findHint.people": "사람 찾기",
+  "profile.coachingCodeHint": "코칭을 받으려면 초대 코드로 연결하세요",
   "coaching.join.check": "확인",
   "coaching.join.title": "코치와 연결",
   "coaching.join.noCode": "초대 코드가 없어요. 코치에게 받은 링크를 다시 열어 주세요.",

@@ -225,7 +225,7 @@ func (s *Service) AddComment(ctx context.Context, viewerID, memberID, workoutID,
 	if p, err := s.repo.GetPeer(ctx, viewerID); err == nil {
 		c.TrainerName = p.DisplayName
 	}
-	c.CanHide = true
+	// [원본] c.CanHide = true — 숨기기는 없어졌다(SPEC-059)
 
 	// ── 커밋 뒤: 알림(차단이면 notifyAfter 가 거른다) → 감사 ──
 	s.notifyAfter(ctx, memberID, viewerID, notifyKindCoachingComment, workoutID)
@@ -249,9 +249,7 @@ func (s *Service) ListComments(ctx context.Context, viewerID, memberID, workoutI
 		if err != nil {
 			return nil, err
 		}
-		for i := range rows {
-			rows[i].CanHide = true
-		}
+		// [원본] for i := range rows { rows[i].CanHide = true } — 숨기기는 없어졌다(SPEC-059)
 		return nonNilComments(rows), nil
 	}
 
@@ -268,9 +266,7 @@ func (s *Service) ListComments(ctx context.Context, viewerID, memberID, workoutI
 		if err != nil {
 			return nil, err
 		}
-		for i := range rows {
-			rows[i].CanHide = true
-		}
+		// [원본] for i := range rows { rows[i].CanHide = true } — 숨기기는 없어졌다(SPEC-059)
 		return nonNilComments(rows), nil
 	}
 	rows, err := s.repo.ListCommentsByPair(ctx, viewerID, memberID)
@@ -302,7 +298,7 @@ func (s *Service) ListComments(ctx context.Context, viewerID, memberID, workoutI
 	out := make([]Comment, 0, len(rows))
 	for _, c := range rows {
 		if visible[c.WorkoutID] {
-			c.CanHide = true
+			// [원본] c.CanHide = true — 숨기기는 없어졌다(SPEC-059)
 			out = append(out, c)
 		}
 	}

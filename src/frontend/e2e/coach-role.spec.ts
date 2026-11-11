@@ -7,6 +7,7 @@
 //   · 코치 찾기 검색에는 노출을 켠 사람만
 //   · 첫 실행 안내에 트레이너·코치 질문이 없고, 경력만 보낸다(켜 둔 노출 값은 그대로)
 import { expect, test } from "@playwright/test";
+import { 검색_없음, 끊기, 이름으로_id } from "./helpers/coaching";
 import { 가입, 새_기기, 새_메일 } from "./helpers/opengym";
 
 type Page = import("@playwright/test").Page;
@@ -31,7 +32,9 @@ async function 노출_켜기(page: Page) {
   await expect(page.getByTestId("trainer-intent")).toHaveAttribute("aria-pressed", "false", {
     timeout: 20_000,
   });
-  await expect(page.getByTestId("trainer-intent")).toHaveText("코치 찾기에 나를 보여 주기");
+  // [원본] await expect(page.getByTestId("trainer-intent")).toHaveText("코치 찾기에 나를 보여 주기");
+  await expect(page.getByTestId("trainer-intent")).toHaveText("코칭 요청 받기"); // SPEC-059
+  await expect(page.getByTestId("trainer-intent-hint")).toContainText("코치로 요청");
   await page.getByTestId("trainer-intent").click();
   await expect(page.getByTestId("trainer-intent")).toHaveAttribute("aria-pressed", "true", {
     timeout: 20_000,
@@ -94,20 +97,44 @@ test("노출을 끈 사람이 초대 코드 → 다른 기기에서 연결 → �
 
     // B — 코치 찾기: 노출 켠 S 는 나오고 노출 끈 A 는 안 나온다 · 사람 찾기에는 A 가 나오지만 배지 없음
     await 가입(pageM, 새_메일("role-m"), 회원);
-    await pageM.goto("/coaching");
-    await pageM.getByTestId("coaching-query").fill(tag);
-    await pageM.getByTestId("coaching-search").click();
-    await expect(pageM.getByTestId("coaching-results")).toContainText(노출, { timeout: 20_000 });
-    await expect(pageM.getByTestId("coaching-results")).not.toContainText(코치);
-    await expect(pageM.getByTestId("coaching-result-coach-badge")).toHaveCount(0); // S 도 회원이 없다
+    // [원본] /coaching 「코치 찾기」 검색 — 노출 켠 S 만 결과에 · A 는 없음 · 결과에 코치 배지 없음
+    //	coaching-query(tag) → coaching-search → coaching-results ⊃ 노출 · ⊅ 코치 · coaching-result-coach-badge 0
+    // [개선 SPEC-059] 검색이 없어졌다 — 「코칭 요청 받기」를 켠 S 프로필에만 「코치로 요청」(A 는 아래에서)
+    await 검색_없음(pageM);
+    await pageM.goto(`/u/${await 이름으로_id(pageM, 노출)}`);
+    await expect(pageM.getByTestId("profile-coaching-request")).toBeVisible({ timeout: 20_000 });
+    await expect(pageM.getByTestId("profile-coach-badge")).toHaveCount(0); // S 도 회원이 없다
     await pageM.goto("/people");
     await pageM.getByTestId("people-query").fill(코치);
     const 찾은줄 = pageM.getByTestId("people-row").filter({ hasText: 코치 });
     await expect(찾은줄).toHaveCount(1, { timeout: 20_000 });
     await expect(찾은줄.getByTestId("people-coach-badge")).toHaveCount(0);
+    const 인증요청 = pageM.waitForRequest((r) => r.url().includes(`${RPC}/`) && !!r.headers().authorization);
     await pageM.goto(`/u/${aId}`);
+    const authM = (await 인증요청).headers().authorization ?? "";
     await expect(pageM.getByTestId("profile-coaching-invite")).toBeVisible({ timeout: 20_000 });
     await expect(pageM.getByTestId("profile-coach-badge")).toHaveCount(0);
+    // SPEC-059 — 「코칭 요청 받기」를 끈 A 에게는 요청 버튼 대신 코드 안내 · API 로 걸어도 거절
+    await expect(pageM.getByTestId("profile-coaching-request")).toHaveCount(0);
+    await expect(pageM.getByTestId("profile-coaching-code-hint")).toBeVisible();
+    const 거절 = await pageM.evaluate(
+      async ([rpc, trainerId, auth]) => {
+        const r = await fetch(`${rpc}/RequestCoaching`, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "connect-protocol-version": "1",
+            authorization: auth,
+          },
+          body: JSON.stringify({ trainerId }),
+        });
+        const j = (await r.json().catch(() => ({}))) as { code?: string; message?: string };
+        return { ok: r.ok, code: j.code ?? "", why: (j.message ?? "").includes("코칭 요청을 받지 않아요") };
+      },
+      [RPC, aId, authM] as const,
+    );
+    // 사유 문구까지 — 다른 이유의 permission_denied 와 가른다(REV-145 B6)
+    expect(거절).toEqual({ ok: false, code: "permission_denied", why: true });
 
     // A 는 홈에 머문다 — 코칭을 안 하는 동안 연결 목록·점검을 묻지 않는다
     let asked = 0;
@@ -158,14 +185,9 @@ test("노출을 끈 사람이 초대 코드 → 다른 기기에서 연결 → �
 
     // B 가 끊으면 배지가 사라진다
     await pageM.goto("/coaching");
-    await pageM
-      .getByTestId("coaching-coaches")
-      .getByTestId("coaching-grant")
-      .filter({ hasText: 코치 })
-      .getByTestId("coaching-grant-more")
-      .click();
-    await pageM.getByTestId("coaching-revoke").click();
-    await pageM.getByTestId("coaching-revoke-confirm").getByTestId("dialog-confirm").click();
+    // [원본] 줄 ⋯(coaching-grant-more) → 시트 「연결 끊기」 → 확인
+    // [개선 SPEC-059] 줄 오른쪽 🗑 → 확인
+    await 끊기(pageM, "coaching-coaches", 코치);
     await expect(
       pageM.getByTestId("coaching-coaches").getByTestId("coaching-grant").filter({ hasText: "코칭 중" }),
     ).toHaveCount(0, { timeout: 20_000 });

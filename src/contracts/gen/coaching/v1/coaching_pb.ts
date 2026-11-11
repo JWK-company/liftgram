@@ -1648,6 +1648,7 @@ export type CoachComment = Message<"coaching.v1.CoachComment"> & {
 
   /**
    * 보는 사람이 숨길 수 있나(코치는 자기 것 · 회원은 자기 운동의 것).
+   * SPEC-059 — 숨기기를 뗐다: 서버는 늘 false(옛 앱 판 호환을 위해 필드는 남김)
    *
    * @generated from field: bool can_hide = 8;
    */
@@ -2283,6 +2284,8 @@ export const CoachingService: GenService<{
     output: typeof ListCoachCommentsResponseSchema;
   },
   /**
+   * SPEC-059 — 쓰지 않음: 서버가 늘 Unimplemented 로 거절(옛 앱 판 호환을 위해 모양은 남김)
+   *
    * @generated from rpc coaching.v1.CoachingService.HideCoachComment
    */
   hideCoachComment: {

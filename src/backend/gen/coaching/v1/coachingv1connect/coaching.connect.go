@@ -168,6 +168,7 @@ type CoachingServiceClient interface {
 	// ── 코멘트·점검(SPEC-050 P4 · 스펙의 AddComment·ListComments·HideComment — 피드 댓글 계약과 이름이 겹쳐 Coach 를 붙였다) ── 코멘트는 코치당 회원당 하루 20개. 남기면 회원에게 알림(coaching_comment · ref_id = 운동 id).
 	AddCoachComment(context.Context, *connect.Request[v1.AddCoachCommentRequest]) (*connect.Response[v1.AddCoachCommentResponse], error)
 	ListCoachComments(context.Context, *connect.Request[v1.ListCoachCommentsRequest]) (*connect.Response[v1.ListCoachCommentsResponse], error)
+	// SPEC-059 — 쓰지 않음: 서버가 늘 Unimplemented 로 거절(옛 앱 판 호환을 위해 모양은 남김)
 	HideCoachComment(context.Context, *connect.Request[v1.HideCoachCommentRequest]) (*connect.Response[v1.HideCoachCommentResponse], error)
 	// 코치(viewer)의 활성 담당 회원마다 이번 주 운동 수·마지막 운동·코치 루틴 운동 수.
 	ListMemberDigest(context.Context, *connect.Request[v1.ListMemberDigestRequest]) (*connect.Response[v1.ListMemberDigestResponse], error)
@@ -519,6 +520,7 @@ type CoachingServiceHandler interface {
 	// ── 코멘트·점검(SPEC-050 P4 · 스펙의 AddComment·ListComments·HideComment — 피드 댓글 계약과 이름이 겹쳐 Coach 를 붙였다) ── 코멘트는 코치당 회원당 하루 20개. 남기면 회원에게 알림(coaching_comment · ref_id = 운동 id).
 	AddCoachComment(context.Context, *connect.Request[v1.AddCoachCommentRequest]) (*connect.Response[v1.AddCoachCommentResponse], error)
 	ListCoachComments(context.Context, *connect.Request[v1.ListCoachCommentsRequest]) (*connect.Response[v1.ListCoachCommentsResponse], error)
+	// SPEC-059 — 쓰지 않음: 서버가 늘 Unimplemented 로 거절(옛 앱 판 호환을 위해 모양은 남김)
 	HideCoachComment(context.Context, *connect.Request[v1.HideCoachCommentRequest]) (*connect.Response[v1.HideCoachCommentResponse], error)
 	// 코치(viewer)의 활성 담당 회원마다 이번 주 운동 수·마지막 운동·코치 루틴 운동 수.
 	ListMemberDigest(context.Context, *connect.Request[v1.ListMemberDigestRequest]) (*connect.Response[v1.ListMemberDigestResponse], error)

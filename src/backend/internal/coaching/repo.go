@@ -70,14 +70,19 @@ func visibleCard(p Peer) Peer {
 
 func (r *pgRepo) TrainerEligible(ctx context.Context, trainerID string) (bool, error) {
 	// [원본] u, err := r.q.GetUserByID(ctx, trainerID) … return u.TrainerIntent, nil
-	// [개선] SPEC-052 — 코치 역할이 없다. 계정이 있으면 true(없으면 NotFound).
-	if _, err := r.q.GetUserByID(ctx, trainerID); err != nil {
+	// [원본] SPEC-052 — 코치 역할이 없다. 계정이 있으면 true(없으면 NotFound).
+	//	if _, err := r.q.GetUserByID(ctx, trainerID); err != nil { … }
+	//	return true, nil
+	// [개선] SPEC-059 — 값 = 「코칭 요청 받기」(trainer_intent). 있음만 보는 곳은 값을 버리고,
+	// 회원이 요청할 때만 값을 본다(끈 사람에게는 요청을 보낼 수 없다).
+	u, err := r.q.GetUserByID(ctx, trainerID)
+	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return false, errs.New(errs.NotFound, "trainer not found")
 		}
 		return false, err
 	}
-	return true, nil
+	return u.TrainerIntent, nil
 }
 
 func (r *pgRepo) UserExists(ctx context.Context, userID string) (bool, error) {

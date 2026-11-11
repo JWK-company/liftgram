@@ -734,12 +734,16 @@ export const en: Record<TransKey, string> = {
   "experience.levelHint.advanced": "Share knowledge, mentor others",
   // [원본] "experience.intentLabel": "Coaching intent",
   // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
-  "experience.intentLabel": "Coach search visibility",
+  // [원본 SPEC-052] "experience.intentLabel": "Coach search visibility",
+  "experience.intentLabel": "Coaching", // SPEC-059
   // [원본] "experience.intentYes": "I want to find clients",
   // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
-  "experience.intentYes": "Show me in coach search",
-  "experience.intentShort": "Shown in coach search", // SPEC-052
-  "experience.intentHint": "When on, your name, intro and tags appear in coach search. You can still connect with clients by invite code while it’s off.", // SPEC-052
+  // [원본 SPEC-052] "experience.intentYes": "Show me in coach search",
+  "experience.intentYes": "Accept coaching requests", // SPEC-059
+  // [원본 SPEC-052] "experience.intentShort": "Shown in coach search", // SPEC-052
+  "experience.intentShort": "Accepts coaching requests", // SPEC-059
+  // [원본 SPEC-052] "experience.intentHint": "When on, your name, intro and tags appear in coach search. You can still connect with clients by invite code while it’s off.", // SPEC-052
+  "experience.intentHint": "When on, your profile shows a “Request coaching” button and your coach intro. You can still connect by invite code while it’s off.", // SPEC-059
   "experience.summaryEmpty": "Tell us your training experience", // SPEC-052
   // [원본] "experience.trainerDisclaimer": "Coaching intent is not a credential guarantee. Shown with verification badges and reviews.",
   // [개선] SPEC-052 — 코치 역할 없음(연결에서 생김) · 의향 → 코치 찾기 노출
@@ -2022,7 +2026,8 @@ export const en: Record<TransKey, string> = {
   "coaching.action.routine_send": "Sent routine",
   "coaching.action.routine_update": "Updated routine",
   "coaching.action.comment_add": "Left comment",
-  "coaching.action.comment_hide": "Hid comment",
+  // [원본] "coaching.action.comment_hide": "Hid comment", — SPEC-059
+  "coaching.action.comment_hide": "Hid comment (shown again now)",
   "coaching.coachBadge": "Coach",
   "coaching.activeBadge": "Coaching",
   "coaching.tag.hypertrophy": "Hypertrophy",
@@ -2070,6 +2075,21 @@ export const en: Record<TransKey, string> = {
   "coaching.revokeMessageMember": "Your coach will no longer see your records.",
   "coaching.revokeMessageTrainer": "You will no longer see this member's records.",
   "coaching.revokeConfirm": "Disconnect",
+  // SPEC-059
+  "coaching.trash.revoke": "Disconnect {name}",
+  "coaching.trash.cancel": "Cancel request to {name}",
+  "coaching.trash.decline": "Decline {name}'s request",
+  "coaching.revokeTitleNamed": "Disconnect from {name}?",
+  "coaching.cancelTitle": "Cancel your request to {name}?",
+  "coaching.declineTitle": "Decline {name}'s request?",
+  "coaching.pendingMessage": "The request will be removed.",
+  "coaching.recordsKept": "Your workout records are not deleted.",
+  "coaching.cancelConfirm": "Cancel request",
+  "coaching.declineConfirm": "Decline",
+  "coaching.coachOpen": "Coaching settings for {name}",
+  "coaching.coachSheet.scope": "Change sharing scope",
+  "coaching.coachSheet.history": "Connection history",
+  "coaching.member.historyTitle": "Connection history",
   "coaching.invite.title": "Invite code",
   // [원본] "coaching.invite.hint": "Members connect right away with this code or link.",
   // [개선] SPEC-052 — 코치 역할 없음 · 방향이 보이는 이름(REV-105 U4)
@@ -2090,6 +2110,13 @@ export const en: Record<TransKey, string> = {
   "coaching.invite.reload": "Reload",
   "coaching.join.section": "Connect with a code",
   "coaching.join.placeholder": "8-character code from your coach",
+  // SPEC-059 — 8칸 코드 · 코치 찾기 대신 안내
+  "coaching.join.boxesLabel": "8-character invite code",
+  "coaching.join.onlyAlnum": "Use letters and numbers only",
+  "coaching.findHint.code": "Got a code from your coach? Enter it above.",
+  "coaching.findHint.profile": "You can also request from a coach's profile —",
+  "coaching.findHint.people": "Find people",
+  "profile.coachingCodeHint": "To get coaching, connect with an invite code",
   "coaching.join.check": "Check",
   "coaching.join.title": "Connect with coach",
   "coaching.join.noCode": "No invite code. Open the link from your coach again.",

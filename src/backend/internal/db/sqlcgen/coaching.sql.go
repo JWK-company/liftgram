@@ -700,7 +700,7 @@ const hideCoachingComment = `-- name: HideCoachingComment :execrows
 UPDATE coaching_comments SET hidden_at = now() WHERE id = $1::text AND hidden_at IS NULL
 `
 
-// 숨기기 — 아직 숨기지 않은 것만(0행이면 이미 숨김).
+// 숨기기 — 아직 숨기지 않은 것만(0행이면 이미 숨김). SPEC-059 뒤로 부르는 곳 없음(핸들러가 거절) — 되돌릴 때를 위해 남긴다.
 func (q *Queries) HideCoachingComment(ctx context.Context, id string) (int64, error) {
 	result, err := q.db.Exec(ctx, hideCoachingComment, id)
 	if err != nil {
@@ -731,7 +731,8 @@ type InsertCoachingCommentRow struct {
 }
 
 // ── 코치 코멘트(SPEC-050 P4 · coaching_comments 는 0033) ─────────────────────────────
-// 코치가 회원 운동 하나에 남기는 말. 숨기면 hidden_at — 숨긴 코멘트는 누구에게도 나가지 않는다.
+// 코치가 회원 운동 하나에 남기는 말. [원본] 숨기면 hidden_at — 숨긴 코멘트는 누구에게도 나가지 않는다.
+// [개선] SPEC-059 — 숨기기를 뗐다. 숨김 기록(hidden_at)은 남기되 목록은 보지 않는다(옛 숨김도 다시 보인다).
 func (q *Queries) InsertCoachingComment(ctx context.Context, arg InsertCoachingCommentParams) (InsertCoachingCommentRow, error) {
 	row := q.db.QueryRow(ctx, insertCoachingComment,
 		arg.ID,
@@ -997,7 +998,7 @@ SELECT c.id, COALESCE(c.trainer_id, '')::text AS trainer_id, c.member_id, c.work
        COALESCE(u.display_name, '')::text AS trainer_name
 FROM coaching_comments c
 JOIN users u ON u.id = c.trainer_id
-WHERE c.trainer_id = $1::text AND c.member_id = $2::text AND c.hidden_at IS NULL
+WHERE c.trainer_id = $1::text AND c.member_id = $2::text
 ORDER BY c.created_at DESC, c.id
 LIMIT 500
 `
@@ -1017,7 +1018,8 @@ type ListCommentsByPairRow struct {
 	TrainerName string
 }
 
-// 이 코치가 이 회원에게 남긴 코멘트(숨긴 것 빼고 · 최근 것부터) — 회원 화면 기록 탭이 운동마다 묶는다.
+// 이 코치가 이 회원에게 남긴 코멘트(최근 것부터 · 숨김 기록은 보지 않음 SPEC-059) — 회원 화면 기록 탭이 운동마다 묶는다.
+// [원본] WHERE c.trainer_id = @trainer_id::text AND c.member_id = @member_id::text AND c.hidden_at IS NULL
 func (q *Queries) ListCommentsByPair(ctx context.Context, arg ListCommentsByPairParams) ([]ListCommentsByPairRow, error) {
 	rows, err := q.db.Query(ctx, listCommentsByPair, arg.TrainerID, arg.MemberID)
 	if err != nil {
@@ -1051,7 +1053,7 @@ SELECT c.id, COALESCE(c.trainer_id, '')::text AS trainer_id, c.member_id, c.work
        COALESCE(u.display_name, '')::text AS trainer_name
 FROM coaching_comments c
 LEFT JOIN users u ON u.id = c.trainer_id
-WHERE c.member_id = $1::text AND c.workout_id = $2::text AND c.hidden_at IS NULL
+WHERE c.member_id = $1::text AND c.workout_id = $2::text
   AND ($3::text = '' OR c.trainer_id = $3::text)
   AND NOT EXISTS (
     SELECT 1 FROM blocks b
@@ -1078,10 +1080,11 @@ type ListCommentsForWorkoutRow struct {
 	TrainerName string
 }
 
-// 운동 하나의 코멘트(숨긴 것 빼고 · 오래된 것부터). trainer_id 가 비면 모든 코치 — 회원이 볼 때.
+// 운동 하나의 코멘트(오래된 것부터 · 숨김 기록은 보지 않음 SPEC-059). trainer_id 가 비면 모든 코치 — 회원이 볼 때.
 // 회원 쪽은 차단한(된) 코치의 코멘트를 빼고 보인다(차단 사이에는 서로 보이지 않는다).
 // [원본] JOIN users u ON u.id = c.trainer_id · c.trainer_id 그대로
 // [개선] 0035 — 코치가 탈퇴하면 trainer_id 가 NULL(코멘트는 회원 것으로 남는다) → LEFT JOIN · 빈 글자(화면 「탈퇴한 코치」)
+// [원본] WHERE c.member_id = @member_id::text AND c.workout_id = @workout_id::text AND c.hidden_at IS NULL
 func (q *Queries) ListCommentsForWorkout(ctx context.Context, arg ListCommentsForWorkoutParams) ([]ListCommentsForWorkoutRow, error) {
 	rows, err := q.db.Query(ctx, listCommentsForWorkout, arg.MemberID, arg.WorkoutID, arg.TrainerID)
 	if err != nil {

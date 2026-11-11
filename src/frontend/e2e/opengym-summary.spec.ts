@@ -9,6 +9,7 @@
 //   (P4 /qa code 조치 2026-10-27) 표본에 맨몸 풀업 — 기본값으로 보낸 스냅샷 전체에 체중 값(72.5 · 725)이 없다(P4S-1) ·
 //   시트 포커스(P4U-8) · 5. 오프라인 첫 진입(셸 · 코치 모름 안내 · P4U-5·18) · 6. 영구 실패 표시(P4U-6) · 기기 주인 멈춤(P4S-2)
 import { expect, test } from "@playwright/test";
+import { 끊기, 이름으로_요청, 회원_화면 } from "./helpers/coaching";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import {
@@ -43,15 +44,9 @@ async function 코칭의향_켜기(page: Page) {
 }
 
 async function 코칭요청(page: Page, 트레이너이름: string) {
-  await page.goto("/coaching");
-  await page.getByTestId("coaching-query").fill(트레이너이름);
-  await page.getByTestId("coaching-search").click();
-  await expect(page.getByTestId("coaching-results")).toContainText(트레이너이름, { timeout: 20_000 });
-  await page.getByTestId("coaching-request").first().click();
-  // [개선 SPEC-050] 요청은 범위 시트를 거친다 — 연결 전에 한 운동을 코치가 보려면 「지난 기록도 보여 주기」를 켠다(기본은 끔)
-  await page.getByTestId("scope-pastRecords").click();
-  await page.getByTestId("scope-confirm").click();
-  await expect(page.getByTestId("coaching-coaches")).toContainText("수락 대기", { timeout: 20_000 });
+  // [원본] /coaching 「코치 찾기」 검색(coaching-query → coaching-search → coaching-request) → 범위 시트(지난 기록 켬) → 확인
+  // [개선 SPEC-059] 검색이 없어졌다 — 사람 찾기에서 이름 → 프로필 「코치로 요청」 → 같은 범위 시트
+  await 이름으로_요청(page, 트레이너이름, { pastRecords: true });
 }
 
 async function 수락(pageT: Page) {
@@ -201,7 +196,7 @@ test("요약 기본값 그대로 보냄 → 스냅샷에 체중 없음 → 트�
   browser,
 }) => {
   test.setTimeout(420_000);
-  const { ctxT, pageT, 회원 } = await 짝(page, browser, "a");
+  const { ctxT, pageT, 회원, 트레이너 } = await 짝(page, browser, "a");
   try {
     // ── 회원: 4주(기본) 요약 — 체중 섹션은 있지만 꺼져 있고 미리보기에도 없다 ──
     await 요약_열기(page);
@@ -292,12 +287,14 @@ test("요약 기본값 그대로 보냄 → 스냅샷에 체중 없음 → 트�
     // ── 트레이너 리포트(원본 → 이 기기 core 계산) = 회원 숫자 ──
     await pageT.goto("/coaching");
     // [개선 SPEC-050] 기록 요약·루틴은 회원 줄 ⋯ 시트 안
-    await pageT.getByTestId("coaching-grant-more").first().click();
-    await pageT.getByTestId("coaching-report").click();
+    // [원본] await pageT.getByTestId("coaching-grant-more").first().click();
+    // [원본] await pageT.getByTestId("coaching-report").click();
+    // [개선 SPEC-059] 기록 요약은 회원 줄을 눌러 들어간 회원 화면 「분석」 탭
+    await 회원_화면(pageT, "stats");
     const ready = pageT.getByTestId("report-ready");
     await expect(ready).toBeVisible({ timeout: 20_000 });
     expect(await 숫자(ready)).toEqual(회원숫자);
-    await pageT.getByTestId("coaching-report-view").getByRole("button", { name: "확인" }).click();
+    // [원본] await pageT.getByTestId("coaching-report-view").getByRole("button", { name: "확인" }).click(); — 창이 아니라 화면(SPEC-059)
 
     // ── 트레이너 브라우저 저장소에 회원 id 가 없다(S-20) ──
     await pageT.waitForTimeout(1_500); // LokiJS 자동 저장이 돌 시간
@@ -308,9 +305,11 @@ test("요약 기본값 그대로 보냄 → 스냅샷에 체중 없음 → 트�
     // ── 회원이 해지 → 트레이너가 카드를 다시 열면 거부 ──
     await page.goto("/coaching");
     // [개선 SPEC-050] 연결 끊기는 ⋯ 시트 → 확인창
-    await page.getByTestId("coaching-grant-more").first().click();
-    await page.getByTestId("coaching-revoke").click();
-    await page.getByTestId("coaching-revoke-confirm").getByTestId("dialog-confirm").click();
+    // [원본] await page.getByTestId("coaching-grant-more").first().click();
+    // [원본] await page.getByTestId("coaching-revoke").click();
+    // [원본] await page.getByTestId("coaching-revoke-confirm").getByTestId("dialog-confirm").click();
+    // [개선 SPEC-059] 줄 오른쪽 🗑 → 확인창(도우미가 RevokeGrant 성공·줄 빠짐까지 — REV-144 B8)
+    await 끊기(page, "coaching-coaches", 트레이너);
     await expect(page.getByTestId("coaching-coaches")).toHaveCount(0, { timeout: 20_000 });
     await pageT.goto("/messages");
     await pageT.getByTestId("dm-row").filter({ hasText: 회원 }).click();
@@ -689,13 +688,14 @@ test("1년 표본 — 응답 바이트·서버 시간·트레이너/회원 계�
     const cdpT = await pageT.context().newCDPSession(pageT);
     await cdpT.send("Emulation.setCPUThrottlingRate", { rate: 4 });
     await pageT.goto("/coaching");
+    // [개선 SPEC-059] 기록 요약은 회원 화면 「분석」 탭 — 먼저 회원 화면(기록 탭)을 열고 그 탭의 같은 RPC 가 끝난 뒤 잰다
+    await 회원_화면(pageT, "records");
+    await expect(pageT.getByTestId("member-records")).toBeVisible({ timeout: 60_000 }); // 빈 상태도 이 안(REV-144 B1)
     for (const p of ["4w", "3m", "7d"]) {
       const resP = pageT.waitForResponse("**/api/coaching.v1.CoachingService/GetMemberRecords");
-      // [개선 SPEC-050] 기록 요약은 회원 줄 ⋯ 시트 안
-      if (p === "4w") {
-        await pageT.getByTestId("coaching-grant-more").first().click();
-        await pageT.getByTestId("coaching-report").click();
-      } else await pageT.getByTestId(`report-period-${p}`).click();
+      // [원본] SPEC-050 — 4w 는 회원 줄 ⋯ 시트 「기록 요약」(coaching-grant-more → coaching-report)
+      if (p === "4w") await pageT.getByTestId("member-tab-stats").click();
+      else await pageT.getByTestId(`report-period-${p}`).click();
       const res = await resP;
       const text = await res.body();
       const timing = res.request().timing();

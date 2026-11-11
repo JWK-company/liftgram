@@ -210,11 +210,16 @@ func TestComments_Postgres_코멘트_알림_목록_차단_숨김_점검(t *testi
 	if n := pgCount(t, pool, `SELECT count(*) FROM coaching_audits WHERE grant_id=$1 AND action='comment_hide'`, g.ID); n != 1 {
 		t.Fatalf("숨김 감사 %d", n)
 	}
-	if got, _ := svc.ListComments(ctx, member, "", "w-coach"); len(got) != 0 {
-		t.Fatalf("숨긴 뒤 회원: %+v", got)
+	// [원본] 숨긴 뒤 회원·코치 목록 len == 0
+	// [개선] SPEC-059 — 숨김 기록(hidden_at)은 남되 목록은 보지 않는다 → 양쪽 다 다시 보인다
+	if n := pgCount(t, pool, `SELECT count(*) FROM coaching_comments WHERE id=$1 AND hidden_at IS NOT NULL`, c.ID); n != 1 {
+		t.Fatalf("숨김 기록은 남는다: %d", n)
 	}
-	if got, _ := svc.ListComments(ctx, trainer, member, ""); len(got) != 0 {
-		t.Fatalf("숨긴 뒤 코치: %+v", got)
+	if got, _ := svc.ListComments(ctx, member, "", "w-coach"); len(got) != 1 || got[0].ID != c.ID {
+		t.Fatalf("숨김 기록이 있어도 회원에게 보인다: %+v", got)
+	}
+	if got, _ := svc.ListComments(ctx, trainer, member, ""); len(got) != 1 || got[0].ID != c.ID {
+		t.Fatalf("숨김 기록이 있어도 코치에게 보인다: %+v", got)
 	}
 
 	// 해지 뒤 — 회원은 여전히 읽는다(새 코멘트로) · 코치는 쓰기·읽기 막힘
@@ -331,8 +336,9 @@ func TestComments_Postgres_코치_탈퇴해도_회원_코멘트는_남는다(t *
 	if err := svc.HideComment(ctx, member, cid); err != nil {
 		t.Fatalf("탈퇴한 코치 코멘트 숨기기: %v", err)
 	}
-	if got, _ := svc.ListComments(ctx, member, "", "w1"); len(got) != 0 {
-		t.Fatalf("숨긴 뒤: %+v", got)
+	// [원본] 숨긴 뒤 len == 0 · [개선] SPEC-059 — 다시 보인다
+	if got, _ := svc.ListComments(ctx, member, "", "w1"); len(got) != 1 {
+		t.Fatalf("숨김 기록이 있어도 보인다: %+v", got)
 	}
 
 	// 회원 탈퇴 → 그 회원의 코멘트는 지운다(CASCADE 그대로)

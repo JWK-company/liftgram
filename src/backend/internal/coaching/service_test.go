@@ -382,13 +382,26 @@ func TestRequest_자기_자신은_못_가르친다(t *testing.T) {
 
 // [원본] TestRequest_코칭_의향이_없으면_걸_수_없다 — 의향을 켜지 않은 사람에게는 Validation 으로 막았다.
 // [개선] SPEC-052 — 코치 역할이 없다. 노출을 끈 사람에게도 걸리고(양쪽 방향), 없는 계정만 NotFound.
-func TestRequest_노출을_끈_사람에게도_걸_수_있다(t *testing.T) {
+// [원본 이름] TestRequest_노출을_끈_사람에게도_걸_수_있다 — SPEC-059 로 회원 요청은 막힘
+func TestRequest_요청_받기를_끈_사람에게는_회원_요청이_막힌다(t *testing.T) {
 	repo := newRepo()
 	repo.eligible["t1"] = false // 계정은 있지만 코치 찾기 노출을 켜지 않았다
 	repo.users["m1"] = true
+	// [원본] SPEC-052 — 회원 쪽 요청도 걸렸다.
+	//	g, err := newSvc(repo).Request(context.Background(), "m1", "t1", "")
+	//	if err != nil || g.Status != StatusPending … { t.Fatalf("회원 쪽 요청이 걸려야 한다") }
+	// [개선] SPEC-059 — 「코칭 요청 받기」를 끈 사람에게 회원이 요청하면 Forbidden · 관계는 생기지 않는다.
+	if _, err := newSvc(repo).Request(context.Background(), "m1", "t1", ""); codeOf(t, err) != errs.Forbidden {
+		t.Fatalf("끈 사람에게 회원 요청은 거절: %v", err)
+	}
+	if len(repo.grants) != 0 {
+		t.Fatalf("거절이면 관계가 없어야 한다: %v", repo.grants)
+	}
+	// 켜면 걸린다.
+	repo.eligible["t1"] = true
 	g, err := newSvc(repo).Request(context.Background(), "m1", "t1", "")
 	if err != nil || g.Status != StatusPending || g.TrainerID != "t1" || g.MemberID != "m1" {
-		t.Fatalf("회원 쪽 요청이 걸려야 한다: %+v %v", g, err)
+		t.Fatalf("켠 사람에게는 회원 쪽 요청이 걸려야 한다: %+v %v", g, err)
 	}
 	// 코치 쪽 요청(내가 코치 · 상대를 회원으로) — 나도 노출을 켜지 않았다.
 	repo.eligible["m2"] = false
@@ -1032,5 +1045,29 @@ func TestKeepMemberRest(t *testing.T) {
 	}
 	if r := KeepMemberStart(clean, back); r[1].Rest == nil || *r[1].Rest != 240 {
 		t.Fatalf("저장 문자열에서 잇기: %+v", r[1])
+	}
+}
+
+// SPEC-059(REV-145 A10) — 「코칭 요청 받기」를 끈 뒤에도 그 전에 온 대기 요청은 수락할 수 있고,
+// 끊긴 관계를 회원이 다시 거는 것도 「요청」이라 막힌다(설정 이름이 「받기」 · 코드 연결은 그대로).
+func TestRequest_요청_받기를_끈_뒤_대기_수락은_되고_다시_요청은_막힌다(t *testing.T) {
+	repo := newRepo()
+	repo.eligible["t1"] = true
+	repo.users["m1"] = true
+	svc := newSvc(repo)
+	g, err := svc.Request(context.Background(), "m1", "t1", "")
+	if err != nil {
+		t.Fatalf("켠 사람에게 요청: %v", err)
+	}
+	repo.eligible["t1"] = false // 코치가 끈다
+	g, err = svc.Accept(context.Background(), "t1", g.ID)
+	if err != nil || g.Status != StatusActive {
+		t.Fatalf("끈 뒤에도 전에 온 요청은 수락: %+v %v", g, err)
+	}
+	if _, err := svc.Revoke(context.Background(), "m1", g.ID); err != nil {
+		t.Fatalf("해지: %v", err)
+	}
+	if _, err := svc.Request(context.Background(), "m1", "t1", ""); codeOf(t, err) != errs.Forbidden {
+		t.Fatalf("끈 사람에게 다시 요청은 거절: %v", err)
 	}
 }

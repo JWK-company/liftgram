@@ -2,7 +2,16 @@
 //
 // 코드는 서버가 Crockford base32 8자로 만든다. 화면은 4-4 로 끊어 보이고(읽어 주기 쉽게), 받을 때는
 // 하이픈·공백·소문자를 서버가 정리하므로 여기서는 보기만 바꾼다.
-import type { CoachingScope } from "@app/contracts";
+import type { AuditEntry, CoachingScope } from "@app/contracts";
+import { t, type TransKey } from "@/lib/i18n";
+
+/** 연결 이력 한 줄 — 「때 · 한 일」(코칭 화면 이름 시트 · 회원 화면 「연결 이력」 공용 · SPEC-059) */
+export function auditLines(entries: readonly AuditEntry[]): string[] {
+  return entries.map((e) => {
+    const when = new Date(Number(e.createdAt)).toLocaleString();
+    return `${when} · ${t(`coaching.action.${e.action}` as TransKey)}`;
+  });
+}
 
 /** 코치 태그 — 서버 CoachTagValues 와 같은 6개(순서도 같다). 화면 문구는 coaching.tag.* */
 export const COACH_TAGS = ["hypertrophy", "strength", "diet", "rehab", "beginner", "powerlifting"] as const;

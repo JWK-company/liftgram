@@ -25,33 +25,37 @@
 import { errorText } from "@/lib/errorText";
 import type { Grant, MemberDigest, Peer, Routine, RoutineExercise } from "@app/contracts";
 import { GrantStatus, Side } from "@app/contracts";
-import type { WeightUnit } from "@app/core";
+// import type { WeightUnit } from "@app/core"; // [원본] ⋯ 빠른 보기 판 단위 — SPEC-059
 import { Code, ConnectError } from "@connectrpc/connect";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { orderByRest, REST_ALERT_DAYS, restDays, weekStartMs } from "@app/core/domain/coachDigest"; // 담당 회원 점검(P4)
 import { lang, t, type TransKey } from "@/lib/i18n";
 import { useDayKey } from "@/lib/useDayKey";
 import { coachingClient } from "@/lib/coachingClient";
-import { scopeOf, type ScopeValue } from "@/lib/coaching";
+// [원본] import { scopeOf, type ScopeValue } from "@/lib/coaching";
+import { auditLines, scopeOf, type ScopeValue } from "@/lib/coaching";
 import { useAuth } from "../AuthProvider";
-import { useWeightUnit } from "../feed/useWeightUnit";
+// import { useWeightUnit } from "../feed/useWeightUnit"; // [원본] SPEC-059
 import { rxSummary } from "../routines/PrescriptionRows";
 import { Panel } from "./Panel";
 import { PrescriptionEditor, toDomainRows } from "./PrescriptionEditor";
 import { CoachBadge, CoachCard } from "./CoachBits";
 import { CoachingScopeSheet, type ScopeSheetMode } from "./CoachingScopeSheet";
 import { InviteCard } from "./InviteCard";
+import { CODE_LEN, CodeBoxes } from "./CodeBoxes"; // 8칸 코드(SPEC-059)
 import { Avatar } from "../ui/Avatar";
 import { Button } from "../ui/Button";
-import { ConfirmDialog, type SheetOption } from "../ui/Dialog";
+// [원본] import { ConfirmDialog, type SheetOption } from "../ui/Dialog";
+import { ActionSheet, ConfirmDialog, type SheetOption } from "../ui/Dialog";
 import { Icon } from "../ui/Icon";
-import { TextField } from "../ui/inputs";
-import { MoreMenu } from "../ui/MoreMenu";
+// [원본] import { TextField } from "../ui/inputs"; — 코드·검색 입력칸(SPEC-059 로 8칸 부품·검색 제거)
+// import { MoreMenu } from "../ui/MoreMenu"; // [원본] 줄 ⋯ — SPEC-059
+import { IconButton } from "../ui/IconButton";
 import { AppText, Card, EmptyState, SectionHeader } from "../ui/primitives";
 import { ScreenHeader } from "../ui/ScreenHeader";
 import { useToast } from "../Toast";
 import { LogoSpinner } from "../ui/LogoSpinner";
-import { MemberReportDialog } from "../summary/MemberReportDialog"; // 원본 레코드 + core 계산(ADR-040) @plm SRS-079 SRS-080
+// [원본] import { MemberReportDialog } from "../summary/MemberReportDialog"; // 원본 레코드 + core 계산(ADR-040) @plm SRS-079 SRS-080 — ⋯ 빠른 보기는 SPEC-059 로 뗐다
 
 const STATUS_KEY: Record<GrantStatus, TransKey> = {
   [GrantStatus.UNSPECIFIED]: "coaching.status.pending",
@@ -71,19 +75,23 @@ export default function CoachingClient() {
   // [원본] const { user, loading: authLoading } = useAuth();
   // [개선] SPEC-052 — 연결을 읽은 뒤 계정 사본의 isCoach 를 맞추려고 refreshMe 도
   const { user, loading: authLoading, refreshMe } = useAuth();
-  const unit = useWeightUnit() as WeightUnit;
+  // [원본] const unit = useWeightUnit() as WeightUnit; — ⋯ 빠른 보기 판만 썼다(SPEC-059)
   const toast = useToast();
 
   // [원본] const [grants, setGrants] = useState<Grant[]>([]);
   // [개선] null = 아직 읽는 중 — 빈 목록 문구가 잠깐 비쳤다 바뀌지 않게(로드 뒤 판단)
   const [grants, setGrants] = useState<Grant[] | null>(null);
   const [busy, setBusy] = useState(false);
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<Peer[] | null>(null);
+  // [원본] 코치 찾기 검색 상태 — SPEC-059 로 검색을 뗐다
+  // const [query, setQuery] = useState("");
+  // const [results, setResults] = useState<Peer[] | null>(null);
 
   // 겹쳐 뜨는 판: 리포트 · 루틴 처방 · 이력. 한 번에 하나만 연다.
-  const [reportFor, setReportFor] = useState<Peer | null>(null); // 새 리포트(GetMemberRecords) @plm SRS-079
-  const [routinesFor, setRoutinesFor] = useState<Peer | null>(null);
+  // [원본] const [reportFor, setReportFor] = useState<Peer | null>(null); // 새 리포트(GetMemberRecords) @plm SRS-079
+  // [원본] const [routinesFor, setRoutinesFor] = useState<Peer | null>(null);
+  //   ⋯ 의 빠른 보기 판 — SPEC-059 로 ⋯ 를 뗐다(기록 요약·루틴은 회원 화면 /coaching/m/<id>)
+  // [개선] 내 코치 줄 이름을 누르면 여는 시트(공유 범위 바꾸기 · 연결 이력 — SPEC-059)
+  const [coachSheetFor, setCoachSheetFor] = useState<Grant | null>(null);
   const [history, setHistory] = useState<{ grant: Grant; lines: string[] } | null>(null);
 
   // 코칭 v2(SPEC-050) — 범위 시트 · 연결 끊기 확인 · 코드로 연결
@@ -94,6 +102,7 @@ export default function CoachingClient() {
   const [code, setCode] = useState("");
   const [codeBusy, setCodeBusy] = useState(false);
   const [codeError, setCodeError] = useState<string | null>(null);
+  const codeErrorId = useId(); // 코드 칸 aria-describedby(SPEC-059)
 
   // [원본] deps [user, toast] — refreshMe 가 새 user 객체를 넣을 때마다 다시 읽었다(SPEC-052 리뷰 U1)
   // [개선] 신원(id)이 바뀔 때만 다시 읽는다
@@ -180,6 +189,7 @@ export default function CoachingClient() {
     }
   }
 
+  /* [원본] 코치 찾기 검색 — SPEC-059 로 뗐다(서버 SearchTrainers 는 남김 · 쓰지 않음)
   async function search() {
     try {
       setResults((await coachingClient().searchTrainers({ query: query.trim() })).peers);
@@ -187,20 +197,21 @@ export default function CoachingClient() {
       toast(t("common.error"), "error");
     }
   }
+  */
 
+  /* [원본] ⋯ 「기록 요약」 — SPEC-059 로 뗐다
   async function openReport(g: Grant) {
     if (!g.peer) return;
     // [개선] 원본 레코드를 받아 이 기기의 core 가 계산한다(회원 요약과 같은 숫자) — 결과는 판 상태에만(S-20)
     setReportFor(g.peer);
   }
+  */
 
   async function openHistory(g: Grant) {
     try {
       const res = await coachingClient().listAudit({ grantId: g.id });
-      const lines = res.entries.map((e) => {
-        const when = new Date(Number(e.createdAt)).toLocaleString();
-        return `${when} · ${t(`coaching.action.${e.action}` as TransKey)}`;
-      });
+      // [원본] res.entries.map((e) => `${new Date(Number(e.createdAt)).toLocaleString()} · ${t(`coaching.action.${e.action}`)}`)
+      const lines = auditLines(res.entries); // 회원 화면 「연결 이력」과 같은 줄(SPEC-059)
       setHistory({ grant: g, lines });
     } catch {
       toast(t("common.error"), "error");
@@ -310,9 +321,10 @@ export default function CoachingClient() {
   const trainerRows = live.filter((g) => g.roleOfMe === Side.TRAINER);
   // 점검보다 먼저 그렸으면(3초 넘음) 원래 순서 그대로
   const asTrainer = digestLate ? trainerRows : orderByRest(trainerRows, (g) => g.peer?.id ?? "", digestLike);
-  const alreadyLinked = new Set(live.map((g) => g.peer?.id).filter(Boolean));
+  // [원본] const alreadyLinked = new Set(live.map((g) => g.peer?.id).filter(Boolean)); — 검색 결과의 「요청함」 표시(SPEC-059 로 검색을 뗐다)
 
-  /** ⋯ 시트 선택지 — 역할·상태마다 다르다. 서버가 막을 일은 아예 넣지 않는다. */
+  /* [원본] ⋯ 시트 선택지 — SPEC-059(#T19 · 2a)로 ⋯ 를 뗐다. 연결 끊기는 줄의 🗑, 범위·이력은 내 코치 이름 시트
+  // ⋯ 시트 선택지 — 역할·상태마다 다르다. 서버가 막을 일은 아예 넣지 않는다.
   function menuFor(g: Grant): SheetOption[] {
     const active = g.status === GrantStatus.ACTIVE;
     const opts: SheetOption[] = [];
@@ -352,6 +364,23 @@ export default function CoachingClient() {
     });
     return opts;
   }
+  */
+
+  /** 내 코치 이름 시트(SPEC-059) — 회원 쪽 활성 연결만. 서버가 막을 일은 아예 넣지 않는다. */
+  function coachSheetOptions(g: Grant): SheetOption[] {
+    return [
+      {
+        label: t("coaching.coachSheet.scope"),
+        testId: "coaching-scope",
+        onPress: () => openTask({ mode: "change", grant: g }),
+      },
+      {
+        label: t("coaching.coachSheet.history"),
+        testId: "coaching-history-link",
+        onPress: () => void openHistory(g),
+      },
+    ];
+  }
 
   function accept(g: Grant) {
     // 회원이 수락할 때만 범위를 고른다 — 코치가 수락하면 회원이 요청 때 고른 범위 그대로다.
@@ -386,50 +415,92 @@ export default function CoachingClient() {
         ) : (
           <div data-testid="coaching-coaches">
             {asMember.map((g) => (
-              <GrantRow key={g.id} grant={g} busy={busy} onAccept={() => accept(g)} options={menuFor(g)} />
+              // [원본] <GrantRow key={g.id} grant={g} busy={busy} onAccept={() => accept(g)} options={menuFor(g)} />
+              <GrantRow
+                key={g.id}
+                grant={g}
+                busy={busy}
+                onAccept={() => accept(g)}
+                onRevoke={() => setRevoking(g)}
+                onOpen={g.status === GrantStatus.ACTIVE ? () => setCoachSheetFor(g) : undefined}
+              />
             ))}
           </div>
         )}
 
-        {/* 코드로 연결 — 코치에게 받은 8자 코드(4-4 · 하이픈·공백·소문자는 서버가 정리) */}
+        {/* [원본] 코드로 연결 — 입력칸 하나 + 오른쪽 「확인」(SPEC-050) — SPEC-059 로 8칸 입력으로
+        // <SectionHeader title={t("coaching.join.section")} />
+        // <div className="flex items-start gap-[var(--spacing-sm)]">
+        // <div className="min-w-0 flex-1">
+        // <TextField
+        // value={code}
+        // onChange={(e) => {
+        // setCode(e.target.value);
+        // setCodeError(null);
+        // }}
+        // onKeyDown={(e) => e.key === "Enter" && void checkCode()}
+        // placeholder={t("coaching.join.placeholder")}
+        // autoCapitalize="characters"
+        // autoComplete="off"
+        // maxLength={20}
+        // testId="coaching-code-input"
+        // />
+        // </div>
+        // <Button
+        // title={t("coaching.join.check")}
+        // variant="secondary"
+        // fullWidth={false}
+        // loading={codeBusy}
+        // disabled={!code.trim()}
+        // onPress={() => void checkCode()}
+        // testId="coaching-code-check"
+        // className="shrink-0"
+        // />
+        // </div>
+        // {codeError ? (
+        // <AppText
+        // variant="caption"
+        // color="danger"
+        // className="-mt-[var(--spacing-xs)] mb-[var(--spacing-md)] block"
+        // data-testid="coaching-code-error"
+        // >
+        // {codeError}
+        // </AppText>
+        // ) : null}
+        */}
+        {/* [개선] SPEC-059 — 인증 코드처럼 8칸(진짜 입력칸은 하나 · 대문자·칸 넘김 자동) · 「확인」은 아래 전체 너비 · 8자일 때만 켜짐 */}
         <SectionHeader title={t("coaching.join.section")} />
-        <div className="flex items-start gap-[var(--spacing-sm)]">
-          <div className="min-w-0 flex-1">
-            <TextField
-              value={code}
-              onChange={(e) => {
-                setCode(e.target.value);
-                setCodeError(null);
-              }}
-              onKeyDown={(e) => e.key === "Enter" && void checkCode()}
-              placeholder={t("coaching.join.placeholder")}
-              autoCapitalize="characters"
-              autoComplete="off"
-              maxLength={20}
-              testId="coaching-code-input"
-            />
-          </div>
-          <Button
-            title={t("coaching.join.check")}
-            variant="secondary"
-            fullWidth={false}
-            loading={codeBusy}
-            disabled={!code.trim()}
-            onPress={() => void checkCode()}
-            testId="coaching-code-check"
-            className="shrink-0"
-          />
-        </div>
+        <CodeBoxes
+          value={code}
+          onChange={(next) => {
+            setCode(next);
+            setCodeError(null);
+          }}
+          onSubmit={() => void checkCode()}
+          invalid={!!codeError}
+          describedBy={codeError ? codeErrorId : undefined}
+        />
         {codeError ? (
           <AppText
             variant="caption"
             color="danger"
-            className="-mt-[var(--spacing-xs)] mb-[var(--spacing-md)] block"
+            className="mb-[var(--spacing-sm)] block"
+            id={codeErrorId}
+            role="alert"
             data-testid="coaching-code-error"
           >
             {codeError}
           </AppText>
         ) : null}
+        <Button
+          title={t("coaching.join.check")}
+          variant="secondary"
+          loading={codeBusy}
+          disabled={code.length !== CODE_LEN}
+          onPress={() => void checkCode()}
+          testId="coaching-code-check"
+          className="mb-[var(--spacing-md)]"
+        />
 
         <SectionHeader title={t("coaching.myMembers")} />
         {/* [원본] {loadingGrants ? ( — 점검을 다 읽은 뒤 그린다(순서가 바뀌어 줄이 뛰지 않게) */}
@@ -447,7 +518,8 @@ export default function CoachingClient() {
                 grant={g}
                 busy={busy}
                 onAccept={() => accept(g)}
-                options={menuFor(g)}
+                // [원본] options={menuFor(g)}
+                onRevoke={() => setRevoking(g)}
                 digest={g.status === GrantStatus.ACTIVE ? digest?.get(g.peer?.id ?? "") : undefined}
               />
             ))}
@@ -456,81 +528,112 @@ export default function CoachingClient() {
         {/* 초대 코드 — 누구나(SPEC-052). 코치가 아니면 「코드 만들기」는 보조 버튼(이 화면의 빨강을 차지하지 않게 · 리뷰 U6) */}
         <InviteCard primary={!!user.isCoach} />
 
-        <SectionHeader title={t("coaching.findTrainer")} />
-        <div className="mb-[var(--spacing-sm)] flex items-start gap-[var(--spacing-sm)]">
-          <div className="min-w-0 flex-1">
-            <TextField
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && search()}
-              placeholder={t("coaching.searchPlaceholder")}
-              testId="coaching-query"
-            />
-          </div>
-          {/* [원본] size="sm" · 빨강 채움 — 이 화면의 빨강은 「코드 만들기」·시트의 주 버튼 몫(SPEC-050) · 36px 은 44px 미달 */}
-          <Button
-            title={t("coaching.searchButton")}
-            variant="secondary"
-            fullWidth={false}
-            onPress={search}
-            testId="coaching-search"
-            className="shrink-0"
-          />
-        </div>
-
-        {results?.length === 0 ? (
-          <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-md)] block">
-            {t("coaching.searchEmpty")}
+        {/* [원본] 코치 찾기 — 검색칸 · 결과 · 「요청」(SPEC-050) — SPEC-059(사용자 결정 4a)로 뗐다.
+            코치를 원하는 사람은 피드·사람 찾기로 그 사람 프로필에 가서 「코치로 요청」(켠 사람만)하거나 코드로 연결한다.
+            (안쪽 주석 닫힘 표시는 「* /」로 적었다)
+        // <SectionHeader title={t("coaching.findTrainer")} />
+        // <div className="mb-[var(--spacing-sm)] flex items-start gap-[var(--spacing-sm)]">
+        // <div className="min-w-0 flex-1">
+        // <TextField
+        // value={query}
+        // onChange={(e) => setQuery(e.target.value)}
+        // onKeyDown={(e) => e.key === "Enter" && search()}
+        // placeholder={t("coaching.searchPlaceholder")}
+        // testId="coaching-query"
+        // />
+        // </div>
+        // {/* [원본] size="sm" · 빨강 채움 — 이 화면의 빨강은 「코드 만들기」·시트의 주 버튼 몫(SPEC-050) · 36px 은 44px 미달 * /}
+        // <Button
+        // title={t("coaching.searchButton")}
+        // variant="secondary"
+        // fullWidth={false}
+        // onPress={search}
+        // testId="coaching-search"
+        // className="shrink-0"
+        // />
+        // </div>
+        // {results?.length === 0 ? (
+        // <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-md)] block">
+        // {t("coaching.searchEmpty")}
+        // </AppText>
+        // ) : null}
+        // {results && results.length > 0 ? (
+        // <div data-testid="coaching-results">
+        // {results.map((p) => (
+        // // [원본] <Card key={p.id} className="mb-[var(--spacing-sm)] flex items-center gap-[var(--spacing-sm)]"> · [개선] 평평한 구역이 줄줄이 붙는 구분선 목록 — 틈 없음(SPEC-056 F1)
+        // <Card key={p.id} className="flex items-center gap-[var(--spacing-sm)] py-[var(--spacing-md)]!">
+        // <Avatar name={p.displayName} url={p.avatarUrl} size={36} />
+        // <div className="min-w-0 flex-1">
+        // {/* [원본] 이름만 · [개선] SPEC-052 — 활성 연결의 코치면 「코치」 배지(파생값) * /}
+        // <div className="flex min-w-0 items-center gap-[var(--spacing-xs)]">
+        // <AppText variant="body" className="block min-w-0 truncate font-medium!">
+        // {p.displayName || t("discover.unnamed")}
+        // </AppText>
+        // {p.isCoach ? <CoachBadge testId="coaching-result-coach-badge" /> : null}
+        // </div>
+        // {p.experienceLevel ? (
+        // <AppText variant="caption" color="textMuted">
+        // {t(`experience.level.${p.experienceLevel}` as TransKey)}
+        // </AppText>
+        // ) : null}
+        // </div>
+        // {/* [원본] onPress={() => act(() => coachingClient().requestCoaching({ trainerId: p.id }))} · size="sm"
+        // [개선] 범위 시트(+한 줄 메시지)를 거쳐 요청한다(SPEC-050) * /}
+        // <Button
+        // title={alreadyLinked.has(p.id) ? t("coaching.requested") : t("coaching.requestButton")}
+        // size="sm"
+        // variant="secondary"
+        // fullWidth={false}
+        // disabled={busy || alreadyLinked.has(p.id)}
+        // onPress={() => openTask({ mode: "request", trainer: p })}
+        // testId="coaching-request"
+        // className="min-h-11 shrink-0"
+        // />
+        // </Card>
+        // ))}
+        // </div>
+        // ) : null}
+        */}
+        {/* [개선] SPEC-059 — 연결 방법 두 가지 안내(코드 · 프로필 요청) */}
+        <div className="mt-[var(--spacing-lg)]" data-testid="coaching-find-hint">
+          <AppText variant="caption" color="textMuted" className="block">
+            {t("coaching.findHint.code")}
           </AppText>
-        ) : null}
-        {results && results.length > 0 ? (
-          <div data-testid="coaching-results">
-            {results.map((p) => (
-              // [원본] <Card key={p.id} className="mb-[var(--spacing-sm)] flex items-center gap-[var(--spacing-sm)]"> · [개선] 평평한 구역이 줄줄이 붙는 구분선 목록 — 틈 없음(SPEC-056 F1)
-              <Card key={p.id} className="flex items-center gap-[var(--spacing-sm)] py-[var(--spacing-md)]!">
-                <Avatar name={p.displayName} url={p.avatarUrl} size={36} />
-                <div className="min-w-0 flex-1">
-                  {/* [원본] 이름만 · [개선] SPEC-052 — 활성 연결의 코치면 「코치」 배지(파생값) */}
-                  <div className="flex min-w-0 items-center gap-[var(--spacing-xs)]">
-                    <AppText variant="body" className="block min-w-0 truncate font-medium!">
-                      {p.displayName || t("discover.unnamed")}
-                    </AppText>
-                    {p.isCoach ? <CoachBadge testId="coaching-result-coach-badge" /> : null}
-                  </div>
-                  {p.experienceLevel ? (
-                    <AppText variant="caption" color="textMuted">
-                      {t(`experience.level.${p.experienceLevel}` as TransKey)}
-                    </AppText>
-                  ) : null}
-                </div>
-                {/* [원본] onPress={() => act(() => coachingClient().requestCoaching({ trainerId: p.id }))} · size="sm"
-                    [개선] 범위 시트(+한 줄 메시지)를 거쳐 요청한다(SPEC-050) */}
-                <Button
-                  title={alreadyLinked.has(p.id) ? t("coaching.requested") : t("coaching.requestButton")}
-                  size="sm"
-                  variant="secondary"
-                  fullWidth={false}
-                  disabled={busy || alreadyLinked.has(p.id)}
-                  onPress={() => openTask({ mode: "request", trainer: p })}
-                  testId="coaching-request"
-                  className="min-h-11 shrink-0"
-                />
-              </Card>
-            ))}
+          <div className="flex flex-wrap items-center gap-x-[var(--spacing-xs)]">
+            <AppText variant="caption" color="textMuted">
+              {t("coaching.findHint.profile")}
+            </AppText>
+            <a
+              href="/people"
+              data-testid="coaching-find-people"
+              className="inline-flex min-h-11 items-center font-semibold text-(--color-ink) text-[length:var(--text-sm)] underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-(--color-brand)"
+            >
+              {t("coaching.findHint.people")}
+            </a>
           </div>
-        ) : null}
+        </div>
       </div>
 
+      {/* [원본] ⋯ 빠른 보기 판 — SPEC-059 로 뗐다(회원 화면에 같은 부품)
       {reportFor ? (
         <MemberReportDialog peer={reportFor} unit={unit} onClose={() => setReportFor(null)} />
       ) : null}
+      {routinesFor ? <MemberRoutinesDialog peer={routinesFor} onClose={() => setRoutinesFor(null)} /> : null} */}
 
-      {routinesFor ? <MemberRoutinesDialog peer={routinesFor} onClose={() => setRoutinesFor(null)} /> : null}
+      {coachSheetFor ? (
+        <ActionSheet
+          title={coachSheetFor.peer?.displayName || "?"}
+          options={coachSheetOptions(coachSheetFor)}
+          onClose={() => setCoachSheetFor(null)}
+          testId="coaching-coach-sheet"
+        />
+      ) : null}
 
       {history ? (
         <Panel
           testId="coaching-history"
-          title={t("coaching.historyTitle")}
+          // [원본] title={t("coaching.historyTitle")} — 시트 항목·회원 화면은 「연결 이력」이라 이름을 맞춘다(REV-144 A3)
+          title={t("coaching.member.historyTitle")}
           onClose={() => setHistory(null)}
           actions={<Button title={t("common.ok")} variant="secondary" onPress={() => setHistory(null)} />}
         >
@@ -563,13 +666,9 @@ export default function CoachingClient() {
       {revoking ? (
         <ConfirmDialog
           testId="coaching-revoke-confirm"
-          title={t("coaching.revokeTitle")}
-          message={
-            revoking.roleOfMe === Side.MEMBER
-              ? t("coaching.revokeMessageMember")
-              : t("coaching.revokeMessageTrainer")
-          }
-          confirmLabel={t("coaching.revokeConfirm")}
+          // [원본] title={t("coaching.revokeTitle")} · message 회원/코치 두 갈래 · confirmLabel 늘 「연결 끊기」
+          // [개선] 끊기·요청 취소·요청 거절 세 갈래 + 이름 · 기록은 지워지지 않는다는 한 줄(SPEC-059 REV-142 U4·U5)
+          {...revokeCopy(revoking)}
           destructive
           onCancel={() => setRevoking(null)}
           onConfirm={() => {
@@ -612,17 +711,35 @@ function GrantsLoading() {
 /** 줄의 아바타·글자 칸 — 갈 곳이 있으면 링크(44px 이상), 없으면 그냥 칸. */
 function RowMain({
   href,
+  onOpen,
   label,
   describedBy,
   children,
 }: {
   href: string | null;
+  /** 링크가 아니라 시트를 여는 줄(내 코치 · SPEC-059) */
+  onOpen?: () => void;
   label: string;
   /** 이름 대신 읽힐 label 이 상태(「코칭 중」 등)를 덮지 않게 — 상태 글자의 id(코드 리뷰 L-5) */
   describedBy?: string;
   children: React.ReactNode;
 }) {
   const cls = "flex min-w-0 flex-1 items-center gap-[var(--spacing-sm)]";
+  // [원본] if (!href) return <div className={cls}>{children}</div>;
+  if (!href && onOpen)
+    return (
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label={label}
+        aria-describedby={describedBy}
+        aria-haspopup="dialog"
+        data-testid="coaching-coach-open"
+        className={`${cls} min-h-11 rounded-[var(--radius-sm)] text-left focus-visible:outline-2 focus-visible:outline-(--color-brand)`}
+      >
+        {children}
+      </button>
+    );
   if (!href) return <div className={cls}>{children}</div>;
   return (
     <a
@@ -662,13 +779,19 @@ function GrantRow({
   grant,
   busy,
   onAccept,
-  options,
+  // [원본] options, — ⋯ 시트 선택지(SPEC-059 로 뗐다)
+  onRevoke,
+  onOpen,
   digest,
 }: {
   grant: Grant;
   busy: boolean;
   onAccept: () => void;
-  options: SheetOption[];
+  // [원본] options: SheetOption[];
+  /** 🗑 — 연결 끊기·요청 취소·요청 거절(확인창은 부모) */
+  onRevoke: () => void;
+  /** 내 코치 활성 줄 — 이름 칸을 누르면 시트(공유 범위·연결 이력) · SPEC-059 */
+  onOpen?: () => void;
   /** 담당 회원 점검(SPEC-050 P4) — 코치 쪽 활성 회원만 */
   digest?: MemberDigest;
 }) {
@@ -695,7 +818,13 @@ function GrantRow({
     >
       {/* [원본] 아바타·이름 칸은 누를 수 없었다(P1b 보류) — 코치 쪽 활성 회원이면 회원 화면으로(SPEC-050 P2).
           줄 전체를 링크로 감싸면 수락·⋯ 버튼이 링크 안에 들어가 그 둘은 밖에 둔다(REV-099 「링크 안의 버튼」). */}
-      <RowMain href={memberHref} label={t("coaching.member.open", { name })} describedBy={statusId}>
+      {/* [원본] <RowMain href={memberHref} label={t("coaching.member.open", { name })} describedBy={statusId}> */}
+      <RowMain
+        href={memberHref}
+        onOpen={memberHref ? undefined : onOpen}
+        label={memberHref ? t("coaching.member.open", { name }) : t("coaching.coachOpen", { name })}
+        describedBy={statusId}
+      >
         <Avatar name={grant.peer?.displayName} url={grant.peer?.avatarUrl} size={36} />
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 items-center gap-[var(--spacing-xs)]">
@@ -739,12 +868,16 @@ function GrantRow({
           className="min-h-11 shrink-0 px-[var(--spacing-md)]!"
         />
       ) : null}
-      <MoreMenu
-        options={options}
-        title={name}
-        label={t("coaching.more", { name })}
-        testId="coaching-grant-more"
-        sheetTestId="coaching-grant-sheet"
+      {/* [원본] <MoreMenu options={options} title={name} label={t("coaching.more", { name })} testId="coaching-grant-more" sheetTestId="coaching-grant-sheet" />
+          [개선] SPEC-059(#T19 · 2a) — ⋯ 자리에 🗑(연결 끊기·요청 취소·요청 거절 · 확인창) · 「수락」과 사이 md */}
+      <IconButton
+        icon="trash-outline"
+        label={t(trashKey(grant), { name })}
+        hasPopup="dialog"
+        disabled={busy}
+        onPress={onRevoke}
+        testId="coaching-revoke"
+        className={canAccept ? "ml-[var(--spacing-sm)] h-11! w-11!" : "h-11! w-11!"}
       />
     </Card>
   );
@@ -940,4 +1073,30 @@ export function MemberRoutinesBody({
     </>
   );
   return <>{children ? children(content) : content}</>;
+}
+
+/** 🗑 의 이름표 — 활성은 끊기 · 내가 보낸 대기는 취소 · 상대가 보낸 대기는 거절(SPEC-059 REV-142 U4) */
+function trashKind(g: Grant): "revoke" | "cancel" | "decline" {
+  if (g.status === GrantStatus.ACTIVE) return "revoke";
+  return g.requestedBy === g.roleOfMe ? "cancel" : "decline";
+}
+function trashKey(g: Grant): TransKey {
+  return `coaching.trash.${trashKind(g)}` as TransKey;
+}
+/** 🗑 확인창 문구 — 세 갈래 + 이름 · 끝에 「운동 기록은 지워지지 않아요」 */
+function revokeCopy(g: Grant): { title: string; message: string; confirmLabel: string } {
+  const name = g.peer?.displayName || "?";
+  const kind = trashKind(g);
+  const kept = t("coaching.recordsKept");
+  if (kind === "revoke")
+    return {
+      title: t("coaching.revokeTitleNamed", { name }),
+      message: `${g.roleOfMe === Side.MEMBER ? t("coaching.revokeMessageMember") : t("coaching.revokeMessageTrainer")} ${kept}`,
+      confirmLabel: t("coaching.revokeConfirm"),
+    };
+  return {
+    title: t(kind === "cancel" ? "coaching.cancelTitle" : "coaching.declineTitle", { name }),
+    message: `${t("coaching.pendingMessage")} ${kept}`,
+    confirmLabel: t(kind === "cancel" ? "coaching.cancelConfirm" : "coaching.declineConfirm"),
+  };
 }

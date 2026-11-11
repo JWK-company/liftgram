@@ -665,7 +665,16 @@ export default function ProfileClient() {
           >
             {t("experience.intentHint")}
           </AppText> */}
-          {/* [개선] 설명 줄 없앰(SPEC-055 Phase 4) */}
+          {/* [원본] 설명 줄 없앰(SPEC-055 Phase 4) */}
+          {/* [개선] SPEC-059 — 이름이 「코칭 요청 받기」로 바뀌어 무엇이 보이는지 한 줄을 다시 둔다 */}
+          <AppText
+            variant="caption"
+            color="textMuted"
+            className="mt-[var(--spacing-xs)] block"
+            data-testid="trainer-intent-hint"
+          >
+            {t("experience.intentHint")}
+          </AppText>
           {/* 의향을 켜면 코치 소개(80자)·태그(6개 중 3개) — 서버 프로필에만 저장(SPEC-050)
               SPEC-052: 의향 = 코치 찾기 노출. 소개·태그는 켰을 때만 보이고 편집된다(사용자 결정 2) */}
           {/* 기준은 서버 계정 값 — 로컬만 켜지고 서버 저장이 실패하면 칸을 보이지 않는다(코드 리뷰 지적 7) */}

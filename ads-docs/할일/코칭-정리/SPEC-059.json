@@ -1,0 +1,3486 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "목표",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "할 일 #T19(사용자 결정 메시지 1904: 1b · 2a · 3a · 4a). 코칭 화면을 더 간결하게 만든다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "1b",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 코치 코멘트 「숨기기」를 화면과 서버에서 모두 없앤다. 이미 숨긴 코멘트도 다시 보인다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "2a",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 담당 회원·내 코치 목록의 ⋯ 메뉴를 없앤다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 줄 오른쪽 ⋯ 자리에는 🗑(연결 끊기·요청 취소)를 둔다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 코치 쪽: 기록 요약·루틴은 이미 회원 코칭 화면에 있다. 회원 쪽: 코치 이름을 누르면 작은 시트(범위 바꾸기·이력)가 열린다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "3a",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 「이력」은 회원 코칭 화면 루틴 탭 맨 아래의 「연결 이력」 접기 칸에 둔다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "「코드로 연결」은 인증 코드처럼 8칸 입력으로 바꾼다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 영문은 대문자로 바꾸고, 다음 칸으로 자동으로 넘어간다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 붙여넣기(하이픈 있든 없든)를 받는다. 지우기(Backspace)는 앞 칸으로 돌아간다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "4a",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 코칭 화면의 「코치 찾기」 검색을 없앤다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 다른 사람 프로필의 「코치로 요청」은 그 사람이 「코칭 요청 받기」(옛 「코치 찾기에 나를 보여 주기」 · 열 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "trainer_intent",
+            "type": "text"
+          },
+          {
+            "text": ")를 켰을 때만 보인다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 연결 방법은 「코드로 연결」과 「프로필에서 요청」 두 가지다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "범위",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "파일",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "무엇을",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/internal/coaching/comments.go",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/internal/coaching/handler_comments.go",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/internal/coaching/comments_test.go",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/internal/coaching/comments_pg_test.go",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "핸들러만 막음(Unimplemented) · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "can_hide",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 넣는 4곳 false · 가짜 저장소의 숨김 거름 [원본] · 시험 뒤집기 + RPC 거절 시험(REV-142 S1~S4)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/internal/coaching/service.go",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/internal/coaching/errs.go",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "회원이 요청할 때 상대 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "trainer_intent",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 가 꺼져 있으면 Forbidden(「코칭 요청을 받지 않는 사람이에요」) · Unimplemented 매핑 한 줄(REV-142 S5·S8)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/database/queries/coaching.sql",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "make sqlc",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 생성물",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "코멘트 목록이 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "hidden_at",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 을 보지 않음(열·값은 남김 — 지우지 않는다)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/proto/coaching/v1/coaching.proto",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "HideCoachComment",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "can_hide",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 에 「쓰지 않음(SPEC-059)」 주석만 — 모양은 그대로(옛 앱 호환)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/coaching/CoachComments.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "숨기기 버튼·확인창 제거([원본] 주석)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/coaching/CoachingClient.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "⋯ → 🗑 · 회원 쪽 이름 누름 시트(범위·이력) · 8칸 코드 입력 · 코치 찾기 구역 제거 + 안내 한 줄 · 빠른 보기 판(기록 요약·루틴) 진입 제거",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/coaching/CodeBoxes.tsx",
+                        "type": "text"
+                      },
+                      {
+                        "text": "(새)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "8칸 코드 입력 부품",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/coaching/MemberClient.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "루틴 탭 맨 아래 「연결 이력」 접기 칸(",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "listAudit",
+                        "type": "text"
+                      },
+                      {
+                        "text": ")",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/feed/UserProfileClient.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "「코치로 요청」은 상대 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "trainerIntent",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 일 때만 · 「내 회원으로 초대」는 그대로",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/profile/ProfileClient.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "설정 이름 「코칭 요청 받기」로(뜻: 프로필에 「코치로 요청」 버튼 보이기)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/i18n/locales/ko.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/i18n/locales/en.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "새 문구·바뀐 문구",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/helpers/coaching.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": "(새)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "공용 도우미 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "내_id",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "프로필로_요청",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "코드로_연결",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "끊기",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "코치_시트",
+                        "type": "text"
+                      },
+                      {
+                        "text": " — 네 파일이 같이 씀(REV-142 T1)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/coaching.spec.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/coaching-v2.spec.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/coach-role.spec.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/opengym-summary.spec.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/summary-card.spec.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/coaching-tidy.spec.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": "(새)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "⋯·숨기기·검색을 쓰던 시험을 새 흐름으로([원본] 주석 보존)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "설계",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "코멘트 숨기기(1b)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "서버 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "HideCoachComment",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 핸들러만 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "CodeUnimplemented",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(「이 기능은 없어졌어요」)를 돌려준다(본문은 [원본] 주석). service·repo·쿼리의 숨김 함수는 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "살려 두고 부르지 않는다",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — 지우면 Go 시험이 컴파일되지 않는다(REV-142 S1).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "가짜 저장소(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "comments_test.go",
+                    "type": "text"
+                  },
+                  {
+                    "text": ")의 숨김 거름도 [원본] 으로 막는다. 시험은 「숨김 행을 직접 넣으면 두 목록에 보이고 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "CanHide",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 는 false」 · pg 시험은 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "UPDATE … SET hidden_at=now()",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 뒤 다시 보임 · 핸들러 거절 시험(DB·감사 그대로)(REV-142 S2·S4).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "목록 쿼리에서 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "AND hidden_at IS NULL",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 을 걷는다. 숨김 기록(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "hidden_at",
+                    "type": "text"
+                  },
+                  {
+                    "text": ")과 감사 로그는 지우지 않는다 — 되돌리면 그대로 다시 숨겨진다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "can_hide",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 는 늘 false — 넣는 곳 4곳(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "comments.go:228·253·272·305",
+                    "type": "text"
+                  },
+                  {
+                    "text": ") 모두 [원본]. 화면은 버튼을 그리지 않는다. 옛 앱 판이 버튼을 그려도 서버가 거절한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "주석의 「숨긴 것 빼고」는 「숨김 기록은 남기되 목록은 보지 않음(SPEC-059)」으로(REV-142 S9). 연결 이력의 옛 「코멘트 숨김」 줄 문구는 「코멘트 숨김(지금은 다시 보여요)」(S7).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "목록 줄(2a)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "GrantRow",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 의 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "MoreMenu",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 를 없애고 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "IconButton icon=\"trash-outline\"",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(44px · ink2 · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "coaching-revoke",
+                    "type": "text"
+                  },
+                  {
+                    "text": " testId 유지 · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "aria-haspopup=\"dialog\"",
+                    "type": "text"
+                  },
+                  {
+                    "text": ")을 둔다. 사용자가 고른 휴지통 그대로(아이콘 바꾸기 기각).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 이름표 세 가지: 활성 「{이름} 연결 끊기」 · 내가 보낸 대기 「{이름} 요청 취소」 · 상대가 보낸 대기 「{이름} 요청 거절」.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 확인창(",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "coaching-revoke-confirm",
+            "type": "text"
+          },
+          {
+            "text": ") 제목·본문도 같은 세 갈래 + 이름. 본문 끝에 「운동 기록은 지워지지 않아요」.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 「수락」과 🗑 사이 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "spacing-md",
+            "type": "text"
+          },
+          {
+            "text": "(REV-142 U4).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "코치 쪽 활성 회원: 이름 칸은 지금처럼 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/coaching/m/<id>",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 링크. 대기 중: 링크 없음.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "회원 쪽(내 코치) 활성: 이름 칸이 버튼(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "coaching-coach-open",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "min-h-11",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "aria-haspopup=\"dialog\"",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · aria-label 「{이름} 코칭 설정」 · 상태 글자 describedby)이 되어 시트(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "coaching-coach-sheet",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · 제목 = 이름)를 연다. 항목은 「공유 범위 바꾸기」(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "coaching-scope",
+                    "type": "text"
+                  },
+                  {
+                    "text": ")·「연결 이력」(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "coaching-history-link",
+                    "type": "text"
+                  },
+                  {
+                    "text": "). 시트를 연다는 표시로 › 는 달지 않는다(SPEC-057 R5). 대기 중: 이름 칸 누름 없음(🗑 만).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "「수락」 버튼은 그대로.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "⋯ 의 「기록 요약」·「루틴」 빠른 보기 판(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "MemberReportDialog",
+                    "type": "text"
+                  },
+                  {
+                    "text": "·",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "MemberRoutinesDialog",
+                    "type": "text"
+                  },
+                  {
+                    "text": ")은 이 화면에서 열리지 않는다(부품은 회원 화면이 계속 씀). 호출만 [원본] 주석.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "이력(3a)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "MemberClient.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 루틴 탭 맨 아래(사용자 결정 3a — 공통 아래로 옮기자는 안은 기각) ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "<details data-testid=\"member-history\">",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(요약 「연결 이력」 · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "min-h-11",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · 직접 그린 ▾ ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "aria-hidden",
+                    "type": "text"
+                  },
+                  {
+                    "text": "). 루틴 편집 범위가 꺼진 갈래에도 넣는다. ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "onToggle",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 에서 처음 펼칠 때 한 번 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "listAudit({grantId})",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 를 읽어 줄 30개까지. 읽는 동안 「불러오는 중」, 비면 「기록이 없어요」(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "role=\"status\"",
+                    "type": "text"
+                  },
+                  {
+                    "text": "). 코치 쪽 대기·끊긴 연결의 이력은 볼 곳이 없어진다 — 의도함. 줄 글은 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "CoachingClient",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 의 이력 줄 만들기를 공용 함수로 옮겨 같이 쓴다(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/lib/coaching.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": ").",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "8칸 코드(CodeBoxes)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "진짜 입력칸은 하나",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(REV-142 U1): 투명하게 덮은 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "input",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "data-testid=\"coaching-code-input\"",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · aria-label 「초대 코드 8자리」 · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "autoComplete=\"one-time-code\"",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "autoCapitalize=\"characters\"",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "autoCorrect=\"off\"",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "spellCheck={false}",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · maxLength 없음) 위에 칸 8개를 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "aria-hidden",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 그림으로 그린다. 붙여넣기·자동완성·Backspace·IME·시험 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "fill",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 이 한 번에 풀린다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "값 정리: 영문·숫자만 남기고 대문자, 8자에서 자른다. 하이픈·공백은 버린다. 한글 조합 중(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "compositionstart",
+                    "type": "text"
+                  },
+                  {
+                    "text": "~",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "end",
+                    "type": "text"
+                  },
+                  {
+                    "text": ")은 거르지 않고 기다린다. 영문·숫자가 아닌 글자를 치면 칸 아래 「영문·숫자로 입력해 주세요」(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "aria-live=\"polite\"",
+                    "type": "text"
+                  },
+                  {
+                    "text": ").",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "그림: 칸 8개 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "flex-1 min-w-0 h-[48px]",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · 틈 4px · 4칸 뒤 「–」(12px) · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "--radius-sm",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · 글자 16px 이상 굵게 · 다음에 칠 칸은 brand 테두리(초점이 있을 때) · 채운 칸 line-strong. 칸 폭은 360px 에서 약 36px — 44px 는 높이 48px·틈으로 대신한다(이 부품의 예외로 적음). 칸을 누르면 입력칸에 초점(그림 전체가 하나의 누르는 자리).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "「확인」 버튼(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "coaching-code-check",
+                    "type": "text"
+                  },
+                  {
+                    "text": ")은 칸 아래 줄 전체 너비 보조 버튼 · 8자일 때만 켜짐 · Enter 도 확인. ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "8자에서 저절로 확인하지 않는다",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — 칸 넘김만 자동(사용자 요청 범위 · 시험의 확인 누르기 그대로).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "오류 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "coaching-code-error",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 는 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "role=\"alert\"",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · 입력칸 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "aria-invalid",
+                    "type": "text"
+                  },
+                  {
+                    "text": "·",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "aria-describedby",
+                    "type": "text"
+                  },
+                  {
+                    "text": ".",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "서버 정규화(I·L→1, O→0)는 그대로 — 화면은 대문자만 바꾼다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "코치 찾기(4a)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "CoachingClient",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 의 「코치 찾기」 구역(검색칸·결과·요청)을 [원본] 주석. 그 자리에 안내 두 줄(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "coaching-find-hint",
+                    "type": "text"
+                  },
+                  {
+                    "text": "): 「코치에게 코드를 받았다면 위 칸에 넣으세요.」 · 「코치 프로필에서 바로 요청할 수도 있어요」 + 「사람 찾기」 링크(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/people",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · 44px)(REV-142 U9).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "서버 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "SearchTrainers",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 는 남긴다(쓰지 않음 주석).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "서버 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "RequestCoaching",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 회원 쪽 요청에서 상대 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "trainer_intent",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 가 꺼져 있으면 Forbidden — 설정 이름이 「받기」라 API 로도 막는다. 코치의 초대·코드 연결은 그대로. 끈 뒤 남은 대기 요청은 그대로 둔다(REV-142 S5).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "프로필 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "CoachingLine",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "peerAccepts",
+                    "type": "text"
+                  },
+                  {
+                    "text": " prop 추가): 연결·대기 판단은 그대로. 「코치로 요청」 버튼과 「이미 코치가 있어요」 안내는 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "profile.trainerIntent",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 일 때만. 꺼져 있으면 요청 자리에 회색 한 줄 「코칭을 받으려면 초대 코드로 연결하세요」(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "profile-coaching-code-hint",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · /coaching 링크). 「내 회원으로 초대」는 누구에게나(혼자 남으면 전체 너비)(REV-142 U10·U11).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "프로필 설정 문구: 「코치 찾기에 나를 보여 주기」 → 「코칭 요청 받기」 · 설명 「켜면 내 프로필에 「코치로 요청」 버튼과 코치 소개가 보여요. 꺼도 초대 코드로는 연결할 수 있어요」.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "작업 단계",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "Phase 1 — 코멘트 숨기기 없애기",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] 서버: 목록 쿼리 두 곳 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "hidden_at",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 조건 걷기([원본] 주석) · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "make sqlc",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(바뀐 것이 SQL 두 줄뿐인지 diff 확인) · 숨기기 핸들러 Unimplemented · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "can_hide",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 4곳 false · 가짜 저장소·Go 시험 뒤집기 · 핸들러 거절 시험",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] 화면: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "CoachComments.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 숨기기 버튼·확인창 [원본] 주석",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] 시험: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/e2e/coaching-v2.spec.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 숨기기 시험(1927~2020 · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "HideCoachComment",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 응답 기다림 포함) → 「버튼 없음 · 숨기기 RPC 는 거절」",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "완료 기준: ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "go test ./internal/coaching/...",
+            "type": "text"
+          },
+          {
+            "text": " · 코멘트 e2e 통과",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "Phase 2 — 목록 줄 정리·이력",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "GrantRow",
+                    "type": "text"
+                  },
+                  {
+                    "text": " ⋯ → 🗑 · 회원 쪽 이름 시트(범위·이력) · 빠른 보기 판 진입 제거",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "MemberClient.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 루틴 탭 「연결 이력」 접기 칸 · 이력 줄 공용 함수",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] 공용 도우미 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/e2e/helpers/coaching.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 먼저 — ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "끊기",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(🗑)·",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "코치_시트",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(이름 → 시트)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] 시험: ⋯ 를 쓰던 시험을 🗑·이름 시트·회원 화면으로 — 코치 쪽 리포트·루틴 확인은 회원 화면 분석·루틴 탭(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "report-ready",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 같은 기간) · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/e2e/opengym-summary.spec.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": "·",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/e2e/summary-card.spec.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 포함 · 360px 44px 검사 대상 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "coaching-revoke",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · 새 시험(🗑 이름표 세 갈래 · 회원 이름 시트 · 연결 이력 펼침)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "완료 기준: 코칭 e2e 5개 파일 + 새 시험 통과 · 가드(",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/frontend/e2e/shape-guard.spec.ts",
+            "type": "text"
+          },
+          {
+            "text": ") 통과",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "Phase 3 — 8칸 코드·코치 찾기 정리",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] 먼저 시험 도우미: 검색으로 요청하던 도우미(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "coaching.spec.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": " ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "코칭요청",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "opengym-summary.spec.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": " ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "짝",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "summary-card.spec.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": ")를 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "프로필로_요청",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 으로 바꾸고 녹색 확인 → 그다음 화면에서 검색을 걷는다",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "CodeBoxes.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · 「코드로 연결」 구역 교체",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] 코치 찾기 구역 제거 + 안내 · 프로필 「코치로 요청」 조건·코드 안내 · 설정 문구 · 서버 요청 거절(의향 꺼짐)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] 시험: 타이핑(소문자 → 대문자 · 칸 그림) · 붙여넣기(하이픈 포함) · Backspace · 8자에서 확인 켜짐 · 의향 꺼진 상대에겐 「코치로 요청」 없음 + API 거절 · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/e2e/coach-role.spec.ts:34",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 문구 「코칭 요청 받기」 · 검색 시험(83·coach-role 98)은 「켠 사람 프로필엔 요청 버튼, 끈 사람엔 없음」으로",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "완료 기준: 코칭 e2e 통과",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "Phase 4 — 전체 시험·커밋",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[ ] 전체 e2e — 시작 기준선(이 스펙 시작 커밋)과 「파일+제목」 비교, 새 실패 0",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[ ] 이 스펙 파일만 커밋(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "(#T19)",
+                    "type": "text"
+                  },
+                  {
+                    "text": ") · 버전은 배포할 때 minor(0.99.0)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "완료 기준: 새 실패 0 · 커밋",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "수용 기준",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "SRS-115: 코칭 연결(코드·프로필 요청)·끊기·범위·이력이 모두 동작하고, 숨기기 버튼이 어디에도 없으며, 전에 숨긴 코멘트가 보인다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "담당 회원·내 코치 줄에 ⋯ 이 없고 🗑 이 있다(44px · 이름이 든 aria-label).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "코드 칸에 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "ab12cd34",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 를 치면 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "AB12-CD34",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 로 보이고 8자에서 코치 카드가 뜬다. ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "ab12-cd34",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 붙여넣기도 같다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "코칭 화면에 「코치 찾기」 검색이 없다. 「코칭 요청 받기」를 끈 사람 프로필에는 「코치로 요청」이 없다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "360px 넘침 없음 · 다크 모드.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "테스트 계획",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "cd src/backend && go test ./internal/coaching/...",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "cd src/frontend && bunx tsc --noEmit -p .",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · biome",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "로컬 운영 빌드(새 DB · 웹 3280 · API 3281)로 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/e2e/coaching.spec.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/e2e/coaching-v2.spec.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/e2e/coach-role.spec.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/e2e/coaching-tidy.spec.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/e2e/shape-guard.spec.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": ". dev 3100 은 건드리지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "Phase 4 전체 e2e 기준선 비교.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "위험·주의",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "되돌리기",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 숨김 기록을 지우지 않으므로 쿼리 조건만 되살리면 원래대로 돌아간다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "옛 앱 판(안드로이드 1.5.6)",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 웹 껍데기라 같은 화면을 받는다 — 따로 할 일 없음.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "시험 의존",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "coaching-grant-more",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 를 쓰는 시험이 3개 파일에 많다 — 하나씩 새 흐름으로 바꾸고 [원본] 주석.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "대기 요청 이력",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 이력은 회원 화면(코치 쪽)과 이름 시트(회원 쪽 · 코칭 중)에서만 본다 — 대기 중인 요청의 이력은 볼 곳이 없다(사용자 결정 2a·3a 범위 · REV-144 H3).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "자동완성",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 8칸 입력은 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "autoComplete=\"off\"",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "one-time-code",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 는 SMS 인증번호를 제안해 엉뚱한 값이 들어간다(REV-145 A5).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "붙여넣기",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 모바일 자동완성(SMS 코드 등)은 첫 칸에 여러 글자가 들어온다 → 「여러 글자는 이어 채움」 규칙으로 받는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "운영 배포: 할 일 진행 방식은 「커밋·배포 자동」이지만 프로젝트 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "CLAUDE.md",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 에 「할 일 자동 배포」 줄이 없어 커밋까지만 한다(배포는 다음 배포 요청 때).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "할일/코칭-정리",
+  "id": "SPEC-059",
+  "meta": {
+    "grade": "Feature",
+    "phases": "4",
+    "phases_done": "3"
+  },
+  "relations": {
+    "implements": [
+      "ADR-062",
+      "SRS-115"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "코칭 정리 — 코멘트 숨기기 없애기·⋯ 대신 🗑·8칸 코드·코치 찾기 대신 프로필 요청",
+  "type": "Spec",
+  "updated": "2026-11-11T05:16:59Z"
+}

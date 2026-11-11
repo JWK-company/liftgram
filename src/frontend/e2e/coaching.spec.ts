@@ -9,6 +9,7 @@
 //
 // 리포트는 회원이 **동기해 둔** 기록에서 나온다 — 그래서 회원 쪽에서 운동을 마치고 올린 뒤에 본다.
 import { expect, test } from "@playwright/test";
+import { 검색_없음, 끊기, 이름으로_id, 이름으로_요청, 코치_시트, 회원_화면 } from "./helpers/coaching";
 
 type Page = import("@playwright/test").Page;
 type BrowserContext = import("@playwright/test").BrowserContext;
@@ -59,15 +60,9 @@ async function 새_기기(browser: import("@playwright/test").Browser): Promise<
 
 /** 회원이 트레이너에게 요청을 건다. */
 async function 코칭요청(page: Page, 트레이너이름: string) {
-  await page.goto("/coaching");
-  await page.getByTestId("coaching-query").fill(트레이너이름);
-  await page.getByTestId("coaching-search").click();
-  await expect(page.getByTestId("coaching-results")).toContainText(트레이너이름, { timeout: 20_000 });
-  await page.getByTestId("coaching-request").first().click();
-  // [개선 SPEC-050] 요청은 범위 시트를 거친다 — 연결 전에 한 운동을 코치가 보려면 「지난 기록도 보여 주기」를 켠다(기본은 끔)
-  await page.getByTestId("scope-pastRecords").click();
-  await page.getByTestId("scope-confirm").click();
-  await expect(page.getByTestId("coaching-coaches")).toContainText("수락 대기", { timeout: 20_000 });
+  // [원본] /coaching 「코치 찾기」 검색(coaching-query → coaching-search → coaching-request) → 범위 시트(지난 기록 켬) → 확인
+  // [개선 SPEC-059] 검색이 없어졌다 — 사람 찾기에서 이름 → 프로필 「코치로 요청」 → 같은 범위 시트
+  await 이름으로_요청(page, 트레이너이름, { pastRecords: true });
 }
 
 test("로그인하지 않으면 코칭을 쓸 수 없다", async ({ page, context }) => {
@@ -80,7 +75,8 @@ test("로그인하지 않으면 코칭을 쓸 수 없다", async ({ page, contex
   await expect(page.getByTestId("coaching-body")).toHaveCount(0);
 });
 
-test("코칭 의향을 켠 사람만 검색에 나온다", async ({ page, browser }) => {
+// [원본 이름] 코칭 의향을 켠 사람만 검색에 나온다
+test("코칭 요청 받기를 켠 사람 프로필에만 「코치로 요청」이 있다", async ({ page, browser }) => {
   test.setTimeout(180_000);
   const 평범한사람 = `평범이${Date.now().toString(36)}`;
   const 트레이너 = `코치${Date.now().toString(36)}`;
@@ -94,15 +90,22 @@ test("코칭 의향을 켠 사람만 검색에 나온다", async ({ page, browse
     await 가입(pageT, freshEmail("trainer"), 트레이너);
     await 코칭의향_켜기(pageT);
 
-    // 찾는 사람 시점 — 켠 사람만 보인다.
-    await page.goto("/coaching");
-    await page.getByTestId("coaching-query").fill(트레이너);
-    await page.getByTestId("coaching-search").click();
-    await expect(page.getByTestId("coaching-results")).toContainText(트레이너, { timeout: 20_000 });
-
-    await page.getByTestId("coaching-query").fill(평범한사람);
-    await page.getByTestId("coaching-search").click();
-    await expect(page.getByTestId("coaching-results")).toHaveCount(0, { timeout: 20_000 });
+    // [원본] 찾는 사람 시점 — 「코치 찾기」 검색에 켠 사람만 나온다(coaching-query → coaching-search → coaching-results)
+    // [개선 SPEC-059] 검색은 없어졌다 — 켠 사람 프로필에만 「코치로 요청」, 끈 사람 프로필엔 코드 안내.
+    // 같은 사람 시점이 필요해 셋째 사람(page 는 평범한사람 자신)으로 본다.
+    const [ctxV, pageV] = await 새_기기(browser);
+    try {
+      await 가입(pageV, freshEmail("viewer"), `보는이${Date.now().toString(36)}`);
+      await 검색_없음(pageV);
+      await pageV.goto(`/u/${await 이름으로_id(pageV, 트레이너)}`);
+      await expect(pageV.getByTestId("profile-coaching-request")).toBeVisible({ timeout: 20_000 });
+      await pageV.goto(`/u/${await 이름으로_id(pageV, 평범한사람)}`);
+      await expect(pageV.getByTestId("profile-coaching-invite")).toBeVisible({ timeout: 20_000 });
+      await expect(pageV.getByTestId("profile-coaching-request")).toHaveCount(0);
+      await expect(pageV.getByTestId("profile-coaching-code-hint")).toBeVisible();
+    } finally {
+      await ctxV.close();
+    }
   } finally {
     await ctxT.close();
   }
@@ -174,14 +177,18 @@ test("수락해야 리포트가 열리고, 해지하면 그 순간 닫힌다", a
     // 수락 전에는 리포트 버튼 자체가 없다.
     await pageT.goto("/coaching");
     await expect(pageT.getByTestId("coaching-members")).toContainText("수락 대기", { timeout: 20_000 });
-    await expect(pageT.getByTestId("coaching-report")).toHaveCount(0);
+    // [원본] await expect(pageT.getByTestId("coaching-report")).toHaveCount(0);
+    // [개선 SPEC-059] 수락 전 줄은 회원 화면으로 들어가지 않는다
+    await expect(pageT.getByTestId("coaching-members").getByTestId("coaching-member-open")).toHaveCount(0);
 
     // 트레이너가 수락하면 열린다.
     await pageT.getByTestId("coaching-accept").click();
     await expect(pageT.getByTestId("coaching-members")).toContainText("코칭 중", { timeout: 20_000 });
     // [개선 SPEC-050] 기록 요약·루틴은 회원 줄 ⋯ 시트 안
-    await pageT.getByTestId("coaching-grant-more").first().click();
-    await pageT.getByTestId("coaching-report").click();
+    // [원본] await pageT.getByTestId("coaching-grant-more").first().click();
+    // [원본] await pageT.getByTestId("coaching-report").click();
+    // [개선 SPEC-059] 기록 요약은 회원 줄을 눌러 들어간 회원 화면 「분석」 탭
+    await 회원_화면(pageT, "stats");
 
     // **사실만** 보인다 — 세션 1회, 총 볼륨 600kg, 가슴 1세트(SRS-079: 원본 레코드 → 이 기기 core 계산 · 부위별은 세트 단위).
     // [원본] report-sessions "1" · report-muscles "600kg" · "사실 집계만"(옛 GetMemberReport Go 집계 화면)
@@ -191,18 +198,21 @@ test("수락해야 리포트가 열리고, 해지하면 그 순간 닫힌다", a
     // [원본] 판단은 코치가 한다는 고지가 함께 있다.
     // await expect(pageT.getByTestId("coaching-report-view")).toContainText("다음 처방 판단은 코치가 합니다");
     // [개선] 보는 사람이 코치면 사실 문장만(P4U-16) — 문구 전체가 아니라 testid 로 고지가 있는지 본다(P4U-17)
-    await expect(pageT.getByTestId("coaching-report-view").getByTestId("ps-factonly")).toBeVisible();
-    await expect(pageT.getByTestId("coaching-report-view").getByTestId("ps-factonly")).not.toContainText(
+    // [원본] coaching-report-view(⋯ 시트의 창) 안에서 찾았다 — 이제 회원 화면 분석 탭(SPEC-059)
+    await expect(pageT.getByTestId("member-panel-stats").getByTestId("ps-factonly")).toBeVisible();
+    await expect(pageT.getByTestId("member-panel-stats").getByTestId("ps-factonly")).not.toContainText(
       "다음 처방 판단은 코치가 합니다",
     );
-    await pageT.getByTestId("coaching-report-view").getByRole("button", { name: "확인" }).click();
+    // [원본] await pageT.getByTestId("coaching-report-view").getByRole("button", { name: "확인" }).click(); — 창이 아니라 화면(SPEC-059)
 
     // 회원이 해지하면 트레이너 쪽에서 즉시 닫힌다.
     await page.goto("/coaching");
     // [개선 SPEC-050] 연결 끊기는 ⋯ 시트 → 확인창
-    await page.getByTestId("coaching-grant-more").first().click();
-    await page.getByTestId("coaching-revoke").click();
-    await page.getByTestId("coaching-revoke-confirm").getByTestId("dialog-confirm").click();
+    // [원본] await page.getByTestId("coaching-grant-more").first().click();
+    // [원본] await page.getByTestId("coaching-revoke").click();
+    // [원본] await page.getByTestId("coaching-revoke-confirm").getByTestId("dialog-confirm").click();
+    // [개선 SPEC-059] 줄 오른쪽 🗑 → 확인창(도우미가 RevokeGrant 성공·줄 빠짐까지 — REV-144 B8)
+    await 끊기(page, "coaching-coaches", 트레이너);
     await expect(page.getByTestId("coaching-coaches")).toHaveCount(0, { timeout: 20_000 });
 
     await pageT.reload();
@@ -246,8 +256,10 @@ test("트레이너가 처방을 쓰면 회원 앱에 내려오고, 이력에 남
 
     // 회원의 루틴을 열어 처방을 쓴다.
     // [개선 SPEC-050] 기록 요약·루틴은 회원 줄 ⋯ 시트 안
-    await pageT.getByTestId("coaching-grant-more").first().click();
-    await pageT.getByTestId("coaching-routines").click();
+    // [원본] await pageT.getByTestId("coaching-grant-more").first().click();
+    // [원본] await pageT.getByTestId("coaching-routines").click();
+    // [개선 SPEC-059] 루틴은 회원 화면 「루틴」 탭
+    await 회원_화면(pageT, "routines");
     await expect(pageT.getByTestId("member-routines")).toContainText(루틴, { timeout: 20_000 });
     await pageT.getByTestId("member-exercise").first().click();
     await expect(pageT.getByTestId("rx-editor")).toBeVisible({ timeout: 20_000 });
@@ -270,8 +282,11 @@ test("트레이너가 처방을 쓰면 회원 앱에 내려오고, 이력에 남
     // 이력 — **회원도 읽는다**. 트레이너가 무엇을 했는지 보인다.
     await page.goto("/coaching");
     // [개선 SPEC-050] 이력은 ⋯ 시트 안
-    await page.getByTestId("coaching-grant-more").first().click();
-    await page.getByTestId("coaching-history-link").click();
+    // [원본] await page.getByTestId("coaching-grant-more").first().click();
+    // [원본] await page.getByTestId("coaching-history-link").click();
+    // [개선 SPEC-059] 회원 쪽은 코치 이름 → 시트 「연결 이력」
+    await 코치_시트(page, "coaching-coaches", 트레이너);
+    await page.getByTestId("coaching-coach-sheet").getByTestId("coaching-history-link").click();
     const 이력 = page.getByTestId("coaching-history");
     await expect(이력).toBeVisible({ timeout: 20_000 });
     await expect(이력).toContainText("처방 수정");

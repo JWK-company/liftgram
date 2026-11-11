@@ -5,12 +5,16 @@ package coaching
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
 	"testing"
 	"time"
 
+	"connectrpc.com/connect"
+
+	coachingv1 "github.com/JWK-company/liftgram/src/backend/gen/coaching/v1"
 	"github.com/JWK-company/liftgram/src/backend/internal/errs"
 )
 
@@ -67,7 +71,8 @@ func (f *fakeRepo) CountCommentsSince(_ context.Context, trainerID, memberID str
 func (f *fakeRepo) ListCommentsForWorkout(_ context.Context, memberID, workoutID, trainerID string) ([]Comment, error) {
 	var out []Comment
 	for _, c := range f.cm.rows {
-		if c.MemberID == memberID && c.WorkoutID == workoutID && c.HiddenAt.IsZero() &&
+		// [원본] … && c.HiddenAt.IsZero() && — 숨김 기록은 목록이 보지 않는다(SPEC-059 · 실제 쿼리와 같게)
+		if c.MemberID == memberID && c.WorkoutID == workoutID &&
 			(trainerID == "" || c.TrainerID == trainerID) {
 			out = append(out, c)
 		}
@@ -77,7 +82,8 @@ func (f *fakeRepo) ListCommentsForWorkout(_ context.Context, memberID, workoutID
 func (f *fakeRepo) ListCommentsByPair(_ context.Context, trainerID, memberID string) ([]Comment, error) {
 	var out []Comment
 	for _, c := range f.cm.rows {
-		if c.TrainerID == trainerID && c.MemberID == memberID && c.HiddenAt.IsZero() {
+		// [원본] … && c.HiddenAt.IsZero() { — SPEC-059
+		if c.TrainerID == trainerID && c.MemberID == memberID {
 			out = append(out, c)
 		}
 	}
@@ -155,7 +161,7 @@ func TestAddComment_남기면_알림_감사_코치이름(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if c.Body != "하체 좋았어요" || c.TrainerName != "박코치" || !c.CanHide || c.GrantID != "g1" || c.WorkoutID != "w-after" {
+	if c.Body != "하체 좋았어요" || c.TrainerName != "박코치" || c.CanHide || c.GrantID != "g1" || c.WorkoutID != "w-after" {
 		t.Fatalf("코멘트: %+v", c)
 	}
 	if len(n.got) != 1 || n.got[0] != (refNote{"m1", "t1", notifyKindCoachingComment, "w-after"}) {
@@ -299,8 +305,9 @@ func TestListComments_회원은_언제나_코치는_활성일_때_자기_것만(
 		t.Fatalf("회원은 운동을 골라야: %v", err)
 	}
 	mine, err := svc.ListComments(ctx, "m1", "m1", "w-after")
-	if err != nil || len(mine) != 2 || !mine[0].CanHide {
-		t.Fatalf("회원은 모든 코치의 코멘트·숨기기 가능: %+v %v", mine, err)
+	// [원본] … || !mine[0].CanHide — 「숨기기 가능」 · SPEC-059 로 숨기기가 없어졌다
+	if err != nil || len(mine) != 2 || mine[0].CanHide {
+		t.Fatalf("회원은 모든 코치의 코멘트 · 숨기기 없음: %+v %v", mine, err)
 	}
 	// 코치 — 운동 하나 / 전부 모두 자기 것만
 	one, err := svc.ListComments(ctx, "t1", "m1", "w-after")
@@ -379,12 +386,13 @@ func TestHideComment_코치_자기_것_회원_남은_NotFound(t *testing.T) {
 	if err := svc.HideComment(ctx, "t1", c.ID); err != nil || len(repo.audits) != before+1 {
 		t.Fatalf("이미 숨김: %v · 감사 %d", err, len(repo.audits))
 	}
-	// 숨긴 코멘트는 양쪽 다 안 보인다
-	if got, _ := svc.ListComments(ctx, "m1", "", "w-after"); len(got) != 0 {
-		t.Fatalf("회원에게 숨김: %+v", got)
+	// [원본] 숨긴 코멘트는 양쪽 다 안 보인다(len == 0)
+	// [개선] SPEC-059 — 숨김 기록이 있어도 목록은 보지 않는다 → 양쪽 다 다시 보인다
+	if got, _ := svc.ListComments(ctx, "m1", "", "w-after"); len(got) != 1 || got[0].ID != c.ID {
+		t.Fatalf("회원에게 다시 보임: %+v", got)
 	}
-	if got, _ := svc.ListComments(ctx, "t1", "m1", "w-after"); len(got) != 0 {
-		t.Fatalf("코치에게 숨김: %+v", got)
+	if got, _ := svc.ListComments(ctx, "t1", "m1", "w-after"); len(got) != 1 || got[0].ID != c.ID {
+		t.Fatalf("코치에게 다시 보임: %+v", got)
 	}
 	// 코치도 자기 것을 숨긴다
 	c2, _ := svc.AddComment(ctx, "t1", "m1", "w-after", "두 번째")
@@ -530,5 +538,31 @@ func TestGetMemberRecords_코치_루틴_운동만_처방_칸(t *testing.T) {
 				t.Fatalf("%s(회원 루틴·다른 코치 루틴·위조)에는 %s 가 없다: %v", b, k, blocks[b])
 			}
 		}
+	}
+}
+
+// SPEC-059 — 숨기기 RPC 는 옛 앱 판이 불러도 거절하고 아무것도 바꾸지 않는다(숨김 기록·감사 그대로).
+func TestHideCoachComment_핸들러는_거절_DB_감사_그대로(t *testing.T) {
+	ctx := context.Background()
+	repo := commentRepo()
+	svc, _, _ := v2Svc(repo)
+	c, err := svc.AddComment(ctx, "t1", "m1", "w-after", "남는 코멘트")
+	if err != nil {
+		t.Fatal(err)
+	}
+	before := len(repo.audits)
+	h := NewHandler(svc)
+	_, err = h.HideCoachComment(ctx, connect.NewRequest(&coachingv1.HideCoachCommentRequest{Id: c.ID}))
+	var de *errs.DomainError
+	if !errors.As(err, &de) || de.Code != errs.Unimplemented {
+		t.Fatalf("Unimplemented 여야: %v", err)
+	}
+	for _, r := range repo.cm.rows {
+		if r.ID == c.ID && !r.HiddenAt.IsZero() {
+			t.Fatalf("숨김이 남았다: %+v", r)
+		}
+	}
+	if len(repo.audits) != before {
+		t.Fatalf("감사가 늘었다: %d → %d", before, len(repo.audits))
 	}
 }

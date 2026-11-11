@@ -326,6 +326,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
               <CoachingLine
                 grant={grant}
                 hasCoach={hasCoach}
+                peerAccepts={profile.trainerIntent} // 「코칭 요청 받기」를 켠 사람에게만 「코치로 요청」(SPEC-059 · 4a)
                 // [원본] peerIsCoach={profile.trainerIntent} meIsCoach={!!user.trainerIntent} — 의향으로 둘 중 하나만
                 busy={coachBusy}
                 onRequest={() => {
@@ -488,12 +489,15 @@ export default function UserProfileClient({ userId }: { userId: string }) {
 function CoachingLine({
   grant,
   hasCoach,
+  peerAccepts,
   busy,
   onRequest,
   onInvite,
 }: {
   grant: Grant | null | undefined;
   hasCoach: boolean;
+  /** 상대가 「코칭 요청 받기」(trainer_intent)를 켰나 — 끄면 요청 버튼 대신 코드 안내(SPEC-059) */
+  peerAccepts: boolean;
   busy: boolean;
   onRequest: () => void;
   onInvite: () => void;
@@ -523,7 +527,8 @@ function CoachingLine({
   return (
     <div className="mt-[var(--spacing-sm)]" data-testid="profile-coaching-line">
       <div className="flex w-full gap-[var(--spacing-sm)]">
-        {hasCoach ? null : (
+        {/* [원본] {hasCoach ? null : ( — 누구에게나 「코치로 요청」 */}
+        {hasCoach || !peerAccepts ? null : (
           <div className="min-w-0 flex-1">
             <Button
               title={t("coaching.profile.request")}
@@ -549,6 +554,8 @@ function CoachingLine({
           />
         </div>
       </div>
+      {/* [원본] {hasCoach ? ( — 요청을 받지 않는 사람에게는 「이미 코치가 있어요」도 뜻이 없다(SPEC-059) */}
+      {/* [원본 SPEC-059 1차] {peerAccepts && hasCoach ? ( — 이미 코치가 있으면 상대 설정과 상관없이 이 안내(코드로도 막힘 · REV-145 A6) */}
       {hasCoach ? (
         // 이미 코치가 있으면 요청을 막는다 — 버튼 대신 안내 한 줄(누르면 코칭 화면)
         <a
@@ -563,6 +570,18 @@ function CoachingLine({
           </AppText>
         </a>
       ) : null}
+      {peerAccepts || hasCoach ? null : (
+        // 요청을 받지 않는 사람 — 버튼 대신 회색 한 줄(누르면 코칭 화면의 코드 칸 · SPEC-059 · REV-142 U10)
+        <a
+          href="/coaching"
+          data-testid="profile-coaching-code-hint"
+          className="mt-[var(--spacing-xs)] flex min-h-11 items-center justify-center px-[var(--spacing-md)] py-[var(--spacing-xs)] text-center underline decoration-(--color-line-strong) underline-offset-4"
+        >
+          <AppText variant="caption" color="textMuted">
+            {t("profile.coachingCodeHint")}
+          </AppText>
+        </a>
+      )}
     </div>
   );
 }
