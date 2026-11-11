@@ -12,3 +12,4 @@
 | [EXE-114](EXE-114.md) | Execution | SPEC-059 Phase 2 — 목록 줄 정리·이력 구현 | executes → SPEC-059 |
 | [REV-145](REV-145.md) | Review | SPEC-059 Phase 3 코드 리뷰 — 8칸 코드·코치 찾기 정리 | reviews → SPEC-059 |
 | [EXE-115](EXE-115.md) | Execution | SPEC-059 Phase 3 — 8칸 코드·코치 찾기 정리 구현 | executes → SPEC-059 |
+| [EXE-116](EXE-116.md) | Execution | SPEC-059 Phase 4 — 전체 시험·커밋 | executes → SPEC-059 |

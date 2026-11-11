@@ -1,0 +1,577 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "요약",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "전체 e2e 를 시작 기준선(cdaf068 + 0.98.0)과 「파일+제목」으로 비교해 새 실패가 없음을 확인하고, 이 스펙 파일만 커밋했다(3df7c2a · #T19). 할 일 진행 방식은 「커밋·배포 자동」이지만 프로젝트 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "CLAUDE.md",
+            "type": "text"
+          },
+          {
+            "text": " 에 「할 일 자동 배포」 줄이 없어 배포는 하지 않았다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "바꾼 파일",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "파일",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "무엇을",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "ads-docs/할일/코칭-정리/SPEC-059.json",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "Phase 4 체크 · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "phases_done",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 4",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "(코드)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "Phase 1~3 변경을 한 커밋으로 — 3df7c2a",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "테스트 결과",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "로컬 운영 빌드(웹 3280 · API 3281 · 새 DB) 전체 e2e(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "--workers=4",
+                    "type": "text"
+                  },
+                  {
+                    "text": "): ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "514 통과 · 7 실패 · 65 건너뜀",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(기준선 507 · 8 · 65).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "기준선 비교: 새 실패 1 — ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/e2e/feed.spec.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 「팔로우한 사람의 스토리가 내 트레이에 들어온다」. 따로 3번 다시 돌려 3/3 통과 — 4 작업자 동시 실행 흔들림(EXE-100 에도 같은 기록) · 코칭과 무관.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "원래 실패 6 그대로: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/e2e/auth-formal.spec.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 메일 2(메일 수신 환경) · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/e2e/motion-video.spec.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 4.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "고쳐짐 2(moderation·sync — 기준선에서 흔들리던 것) · 없어진 시험 3 = 이름을 바꾼 시험(숨기기 → 「숨길 수 없다」 · 검색 → 「켠 사람 프로필에만」) · 새 시험 5.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "Go: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "go test ./internal/coaching/ -count=1",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(pg 포함) 통과.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "수용 기준 확인",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "SRS-115: 연결(코드·프로필 요청)·끊기·범위·이력 동작 · 숨기기 버튼 없음 · 옛 숨김 다시 보임 — Phase 1~3 시험과 전체 e2e 로 확인.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "코드 위치 등록: 작업 브랜치(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "feat/web-stack-tarae",
+                    "type": "text"
+                  },
+                  {
+                    "text": ") 커밋이라 main 에 없음 — 하지 않음.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "코드 리뷰",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "Phase 1~3 에서 REV-143(채택 5) · REV-144(채택 10) · REV-145(채택 16). 이 단계는 시험·커밋만이라 새 리뷰 없음.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "범위 밖 변경",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "없음. 작업 폴더의 다른 변경(할 일 문서·다른 스펙 문서·",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/backend/server",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 실행 파일)은 커밋에 넣지 않았다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "남은 일·다음 단계",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "배포: 다음 배포 때 minor(0.99.0). 배포 전에 운영 DB 의 숨긴 코멘트 수 세기(읽기만 · REV-142 보류).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "보류 모음: REV-143 H1 · REV-144 H1~H5 · REV-145 H1~H4.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "main 합친 뒤 코드 위치 등록: SRS-115 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/app/components/coaching/CodeBoxes.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/backend/internal/coaching/service.go",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(assertAcceptsRequests) · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/app/components/coaching/MemberClient.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(ConnectionHistory).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "할일/코칭-정리",
+  "id": "EXE-116",
+  "meta": {
+    "phase": "4",
+    "result": "done"
+  },
+  "relations": {
+    "executes": [
+      "SPEC-059"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "SPEC-059 Phase 4 — 전체 시험·커밋",
+  "type": "Execution",
+  "updated": "2026-11-11T05:26:59Z"
+}
