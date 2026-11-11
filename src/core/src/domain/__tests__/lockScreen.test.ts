@@ -5,6 +5,10 @@ import assert from 'node:assert/strict';
 import {
   acceptSnapshot,
   alreadyApplied,
+  forwardFields,
+  isNumberedSet,
+  LOCK_CAPS,
+  wellFormedValues,
   buildLockSnapshot,
   lockElapsedSec,
   lockNameWithTags,
@@ -514,7 +518,8 @@ test('SPEC-019 스냅샷 — caps values · 멤버 weId · refill 은 채우기 
     now: 1,
     restAfter: () => 60,
   });
-  assert.deepEqual(snap.caps, ['values']);
+  // [원본] assert.deepEqual(snap.caps, ['values']);
+  assert.deepEqual(snap.caps, ['values', 'forward']); // SPEC-062
   const by = new Map(snap.steps.flatMap((s) => s.members).map((m) => [m.setId, m]));
   assert.equal(by.get('A1')?.weId, 'A');
   assert.deepEqual(
@@ -561,4 +566,18 @@ test('카드 이름에 변형 글(id=1730) — 블록 칸은 이름에, 세트 �
   });
   assert.equal(snap.steps[0].members[0].exerciseName, '덤벨 컬 · 해머 · 원암(원레그)');
   assert.equal(snap.steps[1].members[0].exerciseName, '덤벨 컬 · 해머');
+});
+
+test('SPEC-062 남은 세트에도 적용 — forward 칸 정리 · 일반 세트 판정 · cap', () => {
+  assert.ok(LOCK_CAPS.includes('forward'));
+  assert.deepEqual(forwardFields({ forward: ['weight'] }), ['weight']);
+  assert.deepEqual(forwardFields({ forward: ['reps', 'weight', 'reps', 'x', 3] }), ['reps', 'weight']);
+  assert.deepEqual(forwardFields({ forward: 'weight' }), []); // 깨진 칸은 무시(완료는 한다)
+  assert.deepEqual(forwardFields({}), []);
+  // forward 가 깨져도 values 형식 검사는 통과 — 조작 전체를 버리지 않는다(REV-151 9)
+  assert.equal(wellFormedValues([{ setId: 'a', weight: 80, reps: null, forward: 'oops' }]), true);
+  const base = { id: 's', setNumber: 2, done: false };
+  assert.equal(isNumberedSet(base), true);
+  for (const x of [{ isWarmup: true }, { isDrop: true }, { isFailed: true }, { setType: 'top' }, { setType: 'backoff' }, { setType: 'feeder' }])
+    assert.equal(isNumberedSet({ ...base, ...x }), false, JSON.stringify(x));
 });

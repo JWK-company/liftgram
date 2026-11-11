@@ -26,6 +26,13 @@
     <string name="lock_open_app_stalled">Open the app to save your sets</string>
     <string name="lock_next">Next: %1$s</string>
     <string name="lock_next_prefix">Next · </string>
+    <string name="lock_forward">Apply to remaining sets</string>
+    <string name="lock_forward_on">applying same values</string>
+    <string name="lock_remaining_changed">changed</string>
+    <string name="lock_remaining_title">Sets left %1$d</string>
+    <string name="lock_remaining_title_more">Sets left %1$d+</string>
+    <string name="lock_remaining_more">+%1$d more</string>
+    <string name="lock_remaining_more_cut">+%1$d or more · see the app</string>
     <!-- Lock-screen workout screen (SPEC-019) -->
     <string name="lock_screen_unlock">Unlock</string>
     <!-- [원본] <string name="lock_screen_close">Close</string> — 닫기 버튼을 뺐다(SPEC-021) -->

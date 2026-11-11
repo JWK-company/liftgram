@@ -27,6 +27,14 @@
     <string name="lock_open_app_stalled">앱을 열어 기록을 반영하세요</string>
     <string name="lock_next">다음: %1$s</string>
     <string name="lock_next_prefix">다음 · </string>
+    <!-- 남은 세트 표(SPEC-062) -->
+    <string name="lock_forward">남은 세트에도 적용</string>
+    <string name="lock_forward_on">같은 값 적용 중</string>
+    <string name="lock_remaining_changed">바뀐 값</string>
+    <string name="lock_remaining_title">남은 세트 %1$d</string>
+    <string name="lock_remaining_title_more">남은 세트 %1$d+</string>
+    <string name="lock_remaining_more">+%1$d세트 더</string>
+    <string name="lock_remaining_more_cut">+%1$d세트 이상 · 나머지는 앱에서</string>
     <!-- 잠금화면 위 운동 화면(SPEC-019) -->
     <string name="lock_screen_unlock">잠금 해제</string>
     <!-- [원본] <string name="lock_screen_close">닫기</string> — 닫기 버튼을 뺐다(SPEC-021) -->

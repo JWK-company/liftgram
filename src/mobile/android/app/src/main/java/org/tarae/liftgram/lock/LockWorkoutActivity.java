@@ -121,6 +121,7 @@ public class LockWorkoutActivity extends Activity {
     private Button complete;
     private ProgressBar holdBar;
     private TextView next;
+    private LockRemainingView remainingView;
     private TextView notice;
     private Button unlock;
     private final Map<String, Row> rows = new HashMap<>();
@@ -185,6 +186,8 @@ public class LockWorkoutActivity extends Activity {
         Button editMinus;
         Button editPlus;
         Button editReset;
+        /** 남은 세트에도 적용(SPEC-062) — 켬/끔(접근성: 체크 상태가 읽힌다 · REV-151 8) */
+        android.widget.CheckBox fwd;
         boolean editingWeight;
         TextView weight;
         TextView weightWas;
@@ -889,7 +892,11 @@ public class LockWorkoutActivity extends Activity {
         int size = dp(no == current ? 14 : 10);
         GradientDrawable g = new GradientDrawable();
         g.setShape(GradientDrawable.OVAL);
-        if (no <= current) g.setColor(p.brand);
+        // [원본] if (no <= current) g.setColor(p.brand); else g.setStroke(dp(1.5f), p.ink3);
+        //   — 지금 세트까지 채워서 첫 세트 전에도 첫 동그라미가 채워져 보였다(사용자 지적 · SPEC-062)
+        // [개선] 끝낸 세트만 채움 · 지금 세트는 굵은 브랜드 테두리 · 남은 세트는 회색 테두리
+        if (no < current) g.setColor(p.brand);
+        else if (no == current) g.setStroke(dp(2.5f), p.brand);
         else g.setStroke(dp(1.5f), p.ink3);
         d.setBackground(g);
         d.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
@@ -1167,6 +1174,10 @@ public class LockWorkoutActivity extends Activity {
         next = text(14, p.ink3, false);
         next.setPadding(0, dp(10), 0, 0);
         col.addView(next);
+        // 남은 세트 표(SPEC-062) — 남는 높이를 가중치 1로 받는다(내용이 넘쳐 스크롤되면 높이 0 · REV-151 1)
+        remainingView = new LockRemainingView(this);
+        remainingView.setColors(p.ink, p.ink2, p.ink3, p.line);
+        col.addView(remainingView, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1));
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(root, (v, ins) -> {
             androidx.core.graphics.Insets b = ins.getInsets(
                     androidx.core.view.WindowInsetsCompat.Type.systemBars() | androidx.core.view.WindowInsetsCompat.Type.displayCutout());
@@ -1328,8 +1339,35 @@ public class LockWorkoutActivity extends Activity {
             next.setText(getString(R.string.lock_next, v.next.name + " · " + WorkoutNotification.setName(this, v.next)));
             next.setVisibility(View.VISIBLE);
         } else {
-            next.setVisibility(View.INVISIBLE);
+            // [원본] next.setVisibility(View.INVISIBLE);
+            // [개선] 남은 세트 표가 있으면 「다음」은 표 끝에 — 빈 줄 자리를 표에 돌려준다(둘은 동시에 생기지 않는다 · REV-151 4)
+            next.setVisibility(v.remaining.isEmpty() ? View.INVISIBLE : View.GONE);
         }
+        renderRemaining(v);
+    }
+
+    /** 남은 세트 표 재료 — 단계마다 한 줄(슈퍼세트는 멤버 값을 「 · 」로 이어 한 줄) */
+    private void renderRemaining(LockView v) {
+        java.util.List<LockRemainingView.Line> ls = new java.util.ArrayList<>();
+        boolean many = false;
+        for (java.util.List<LockView.Member> st : v.remaining) many |= st.size() > 1;
+        for (java.util.List<LockView.Member> st : v.remaining) {
+            StringBuilder val = new StringBuilder();
+            StringBuilder said = new StringBuilder(WorkoutNotification.setName(this, st.get(0)));
+            for (LockView.Member m : st) {
+                String line = WorkoutNotification.valueLine(this, m);
+                if (val.length() > 0) val.append(" · ");
+                val.append(line);
+                said.append(", ");
+                if (many) said.append(m.name).append(' ');
+                said.append(line);
+            }
+            boolean changed = false;
+            for (LockView.Member m : st) changed |= m.carried;
+            if (changed) said.append(", ").append(getString(R.string.lock_remaining_changed));
+            ls.add(new LockRemainingView.Line(st.get(0).label, val.toString(), said.toString(), changed));
+        }
+        remainingView.set(ls, v.nextName, v.remainingCut, v.forwardOn);
     }
 
     /** 밀기 칸 — 되돌리기 띠 · 확인 · 밀기 · 감춤(완료할 수 없는 단계) */
@@ -1678,8 +1716,45 @@ public class LockWorkoutActivity extends Activity {
                 closeEditor();
             }
         });
-        e.setVisibility(View.GONE);
-        return e;
+        // [원본] e.setVisibility(View.GONE); return e;
+        // [개선] ± 줄 아래 8dp 띄운 전체 폭 한 줄 — 반복 단추 옆에 두지 않는다(잘못 누름 · REV-151 7)
+        LinearLayout wrap = new LinearLayout(this);
+        wrap.setOrientation(LinearLayout.VERTICAL);
+        wrap.addView(e, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        r.fwd = new android.widget.CheckBox(this);
+        r.fwd.setText(R.string.lock_forward);
+        r.fwd.setTextColor(p.ink);
+        r.fwd.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        // 꺼짐은 회색 테두리 · 켜짐은 강조색(REV-152 낮음)
+        r.fwd.setButtonTintList(new android.content.res.ColorStateList(
+                new int[][] {new int[] {android.R.attr.state_checked}, new int[] {}}, new int[] {p.brand, p.ink3}));
+        r.fwd.setMinHeight(dp(48));
+        r.fwd.setMinimumHeight(dp(48));
+        LinearLayout.LayoutParams fl = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        fl.topMargin = dp(8);
+        wrap.addView(r.fwd, fl);
+        r.fwd.setOnClickListener(x -> {
+            boolean on = r.fwd.isChecked();
+            if (guarded()) {
+                r.fwd.setChecked(!on);
+                return;
+            }
+            if (!setForward(r.m.weId, on)) r.fwd.setChecked(!on); // 바꿀 수 없으면 그 자리에서 되돌린다(REV-152 낮음)
+            scheduleEditClose();
+        });
+        wrap.setVisibility(View.GONE);
+        return wrap;
+    }
+
+    /** 남은 세트에도 적용 켬/끔 — 고르는 중인 값(draft)의 표시로 저장한다(LockState.setForward) */
+    private boolean setForward(String weId, boolean on) {
+        LockView v = last;
+        if (v == null || !v.canAdjust) return false;
+        final String token = v.stepToken;
+        Context app = getApplicationContext();
+        pendingEdits++;
+        submitEdit(() -> LockHub.store(app).write(s -> s.setForward(token, weId, on)));
+        return true;
     }
 
     private void openEditor(String setId, boolean weight) {
@@ -1756,6 +1831,12 @@ public class LockWorkoutActivity extends Activity {
     /** fillRow + 값 칸 설명 · 원래대로 글자 */
     private void fillRowV(Row r) {
         fillRow(r);
+        if (r.fwd != null) {
+            LockView v = last;
+            r.fwd.setVisibility(r.m.canForward ? View.VISIBLE : View.GONE);
+            boolean on = v != null && v.forwardWe.contains(r.m.weId);
+            if (r.fwd.isChecked() != on) r.fwd.setChecked(on);
+        }
         if (r.weightCell != null && r.weight != null) r.weightCell.setContentDescription(getString(R.string.lock_value_open_desc, r.weight.getContentDescription()));
         if (r.repsCell != null && r.reps != null) r.repsCell.setContentDescription(getString(R.string.lock_value_open_desc, r.reps.getContentDescription()));
         if (r.editor != null && r.editor.getVisibility() == View.VISIBLE) updateReset(r);

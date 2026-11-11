@@ -533,6 +533,41 @@ test.describe("앱(가짜 플러그인) — 잠금 운동 화면(SPEC-019)", () 
     await expect(세트(page, 0, 0).getByTestId("set-reps")).toHaveValue("4");
   });
 
+  test("남은 세트에도 적용(SPEC-062) — forward 로 완료하면 뒤 미완료 세트의 고른 칸만 바뀌고(출처 사람) 다음 완료도 「다름」 없음", async ({
+    page,
+  }) => {
+    await 카탈로그_준비(page);
+    await 운동_시작(page, "바벨 스쿼트");
+    await page.getByTestId("btn-add-set").first().click();
+    await page.getByTestId("btn-add-set").first().click();
+    for (const i of [0, 1, 2]) await 값_적기(page, 0, i, 100, 5);
+    const snap = await 사본(
+      page,
+      (s) => s.steps.length >= 3 && s.steps.slice(0, 3).every((x) => x.members[0]?.display.weight === 100),
+    );
+    expect(snap.caps).toContain("forward");
+    const id = snap.steps[0].setIds[0];
+    await 잠금_완료(page, { values: [{ setId: id, weight: 105, reps: null, unit: "kg", forward: ["weight"] }] });
+    await 앱_복귀(page);
+    await expect(세트(page, 0, 0).getByTestId("set-done")).toHaveAttribute("aria-pressed", "true", {
+      timeout: 10_000,
+    });
+    await expect(세트(page, 0, 0).getByTestId("set-weight")).toHaveValue("105");
+    for (const i of [1, 2]) {
+      await expect(세트(page, 0, i).getByTestId("set-weight")).toHaveValue("105");
+      await expect(세트(page, 0, i).getByTestId("set-reps")).toHaveValue("5"); // 고르지 않은 칸은 그대로
+      await expect(세트(page, 0, i).getByTestId("set-done")).toHaveAttribute("aria-pressed", "false");
+    }
+    // 웹이 반영한 사본 — 뒤 세트 표시가 105 · 앱이 그 값으로 완료해도 「다름」 없음
+    const after = await 사본(page, (s) => s.steps[0]?.members[0]?.display.weight === 105, "반영 사본");
+    await 잠금_완료(page, { values: [{ setId: after.steps[0].setIds[0], weight: 105, reps: null, unit: "kg" }] });
+    await 앱_복귀(page);
+    await expect(세트(page, 0, 1).getByTestId("set-done")).toHaveAttribute("aria-pressed", "true", {
+      timeout: 10_000,
+    });
+    await expect(page.getByTestId("lock-mismatch")).toHaveCount(0);
+  });
+
   test("프로필 — 잠금 운동 화면 스위치 · 허용 필요면 설정 열기 · 옛 껍데기(값 없음)면 줄 없음", async ({
     page,
   }) => {

@@ -1,7 +1,7 @@
 {
   "note": "앱 버전의 유일한 원본(SPEC-018 · 운영 M-7) — build.gradle 이 읽고, src/scripts/build-android-release.sh 가 aapt2 로 대조해 android.json 에 싣는다. 배포마다 versionCode 를 올린다(기능=minor · 픽스=patch).",
-  "versionName": "1.6.0",
-  "versionCode": 13,
+  "versionName": "1.7.0",
+  "versionCode": 14,
   "minVersionCode": 1,
   "minSignedVersionCode": 3
 }

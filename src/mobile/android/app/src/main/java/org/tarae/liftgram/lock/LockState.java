@@ -40,6 +40,12 @@ public final class LockState {
      */
     public JSONObject editedWe;
     /**
+     * 「남은 세트에도 적용」으로 완료한 값(SPEC-062 · REV-151) — weId → {seq, weight?, reps?, unit, oneSide}.
+     * 웹은 그 조작을 반영할 때 같은 블록의 뒤 일반 세트에 같은 칸을 쓴다. 그 전까지 사본의 뒤 세트 표시값을 이 값으로 덮고
+     * (applyCarry) 완료할 때 그 칸을 values 로 싣는다(「다름」 안내 없음). 웹이 그 seq 까지 반영한 스냅샷을 보내면 지운다.
+     */
+    public JSONObject carry;
+    /**
      * 되돌릴 수 있게 붙잡아 둔 화면 완료(SPEC-060 · REV-146) — 한 번에 하나.
      * {actionId, seq, holdAt, holdUntil, step, rest(완료 전 · NULL 가능), restSetAt(완료가 건 휴식의 setAt · -1 = 안 걸음),
      *  draft, draftLost, edited({weId: 이전 seq 또는 NULL})}
@@ -74,6 +80,7 @@ public final class LockState {
             s.draft = o.optJSONObject("draft");
             s.draftLost = o.optBoolean("draftLost");
             s.editedWe = o.optJSONObject("editedWe");
+            s.carry = o.optJSONObject("carry");
             s.undo = o.optJSONObject("undo");
             s.rawSteps = o.optJSONArray("rawSteps");
             s.rawApplied = o.optLong("rawApplied");
@@ -99,6 +106,7 @@ public final class LockState {
             o.put("draft", draft == null ? JSONObject.NULL : draft);
             o.put("draftLost", draftLost);
             o.put("editedWe", editedWe == null ? JSONObject.NULL : editedWe);
+            o.put("carry", carry == null ? JSONObject.NULL : carry);
             o.put("undo", undo == null ? JSONObject.NULL : undo);
             o.put("rawSteps", rawSteps == null ? JSONObject.NULL : rawSteps);
             o.put("rawApplied", rawApplied);
@@ -151,7 +159,9 @@ public final class LockState {
         rawSteps = new JSONArray(steps.toString());
         rawApplied = applied;
         if (sessionChanged) undo = null;
-        s.put("steps", LockRules.rebase(steps, applied, pendingActions()));
+        if (sessionChanged) carry = null;
+        else if (mine) pruneCarry(applied);
+        s.put("steps", applyCarry(LockRules.rebase(steps, applied, pendingActions())));
         snapshot = s;
         if (mine) forgetCovered();
         endedSessionId = null;
@@ -173,6 +183,7 @@ public final class LockState {
         draft = null;
         draftLost = false;
         editedWe = null;
+        carry = null;
         undo = null;
         rawSteps = null;
     }
@@ -224,6 +235,7 @@ public final class LockState {
     public void clear() {
         queue.clear();
         undo = null;
+        carry = null; // 새 웹 DB — 이어 쓴 값을 반영할 곳이 없다(REV-152 계약 5)
     }
 
     /** 붙잡혀 있나 — holdAt ≤ now < holdUntil 이고 남은 시간이 상한 안(시계가 뒤로 가면 풀린 것으로 · REV-146 계약 5) */
@@ -262,9 +274,25 @@ public final class LockState {
             return GONE;
         }
         queue.remove(found);
+        // 이어 쓰기 — 이 완료가 만든 블록만 이전 값으로(SPEC-062 · edited 와 같은 방식)
+        JSONObject carried = u.optJSONObject("carried");
+        if (carried != null && carry != null) {
+            long sq = u.optLong("seq");
+            java.util.Iterator<String> ci = carried.keys();
+            while (ci.hasNext()) {
+                String we = ci.next();
+                JSONObject now0 = carry.optJSONObject(we);
+                if (now0 == null || now0.optLong("seq") != sq) continue;
+                JSONObject prev = carried.optJSONObject(we);
+                if (prev != null && prev.optLong("seq") > rawApplied) carry.put(we, prev);
+                else carry.remove(we);
+            }
+            if (carry.length() == 0) carry = null;
+        }
         // 단계 — 웹이 보낸 원래 단계로 다시 rebase(그 사이 온 스냅샷과 어긋나지 않게 · 계약 2)
         if (rawSteps != null) {
-            snapshot.put("steps", LockRules.rebase(new JSONArray(rawSteps.toString()), rawApplied, pendingActions()));
+            // [원본] snapshot.put("steps", LockRules.rebase(new JSONArray(rawSteps.toString()), rawApplied, pendingActions()));
+            snapshot.put("steps", applyCarry(LockRules.rebase(new JSONArray(rawSteps.toString()), rawApplied, pendingActions())));
         } else {
             JSONObject st = u.optJSONObject("step");
             JSONArray steps = snapshot.optJSONArray("steps");
@@ -456,6 +484,45 @@ public final class LockState {
         Set<String> editedNow = new HashSet<>();
         JSONArray values = hasValuesCap() ? completeValues(st, withDraft, editedNow) : null;
         if (values != null && values.length() > 0) a.put("values", values);
+        // 남은 세트에도 적용(SPEC-062) — 고른 칸만 forward 로 싣고, 사본의 뒤 세트 표시를 그 값으로(웹이 반영할 때까지)
+        JSONObject carried = new JSONObject();
+        if (values != null && withDraft && forwardOn(stepToken(st)) && hasCap("forward")) {
+            String tk = stepToken(st);
+            JSONObject dv = draftFor(stepToken(st));
+            for (int i = 0; i < values.length(); i++) {
+                JSONObject x = values.getJSONObject(i);
+                JSONObject e = dv.optJSONObject(x.optString("setId"));
+                JSONObject m = memberOf(st, x.optString("setId"));
+                // 켬/끔은 멤버(블록)마다 — 슈퍼세트에서 A 만 켜면 B 는 이어 쓰지 않는다(REV-152 화면 1)
+                if (e == null || m == null || !canForward(m) || !forwardOn(tk, m.optString("weId", ""))) continue;
+                JSONArray fields = new JSONArray();
+                JSONObject c = new JSONObject();
+                c.put("seq", seq);
+                if (e.has("weight")) {
+                    fields.put("weight");
+                    c.put("weight", e.get("weight"));
+                }
+                if (e.has("reps")) {
+                    fields.put("reps");
+                    c.put("reps", e.get("reps"));
+                }
+                if (fields.length() == 0) continue;
+                x.put("forward", fields);
+                c.put("unit", m.optString("unit", "kg"));
+                c.put("oneSide", m.optBoolean("oneSide"));
+                String we = m.optString("weId", "");
+                if (carry == null) carry = new JSONObject();
+                carried.put(we, carry.has(we) ? carry.get(we) : JSONObject.NULL);
+                // 같은 블록의 앞 이어 쓰기와 칸을 합친다 — 무게 다음 횟수를 이어 써도 무게가 남게(REV-152 계약 1).
+                // 단위·한쪽 입력이 같을 때만 · seq 는 새 것(웹은 seq 순서로 반영하므로 최대 seq 하나로 정리한다)
+                JSONObject old = carry.optJSONObject(we);
+                if (old != null && old.optString("unit").equals(c.optString("unit")) && old.optBoolean("oneSide") == c.optBoolean("oneSide")) {
+                    if (!c.has("weight") && old.has("weight")) c.put("weight", old.get("weight"));
+                    if (!c.has("reps") && old.has("reps")) c.put("reps", old.get("reps"));
+                }
+                carry.put(we, c);
+            }
+        }
         JSONObject edited = new JSONObject();
         if (!editedNow.isEmpty()) {
             if (editedWe == null) editedWe = new JSONObject();
@@ -471,7 +538,8 @@ public final class LockState {
         entry.put("acked", false);
         queue.add(entry);
         JSONArray one = new JSONArray().put(a);
-        snapshot.put("steps", LockRules.rebase(snapshot.getJSONArray("steps"), seq - 1, one));
+        // [원본] snapshot.put("steps", LockRules.rebase(snapshot.getJSONArray("steps"), seq - 1, one));
+        snapshot.put("steps", applyCarry(LockRules.rebase(snapshot.getJSONArray("steps"), seq - 1, one)));
         long restSec = st.optLong("restAfterSec");
         if (restSec > 0) rest = restAt(now + restSec * 1000L, restSec, now);
         if (before != null) {
@@ -481,6 +549,7 @@ public final class LockState {
             before.put("holdUntil", now + Math.min(holdMs, HOLD_MAX_MS));
             before.put("restSetAt", restSec > 0 ? now : -1);
             before.put("edited", edited);
+            before.put("carried", carried);
             undo = before;
         }
         return a;
@@ -541,11 +610,21 @@ public final class LockState {
             boolean stale = m.optBoolean("refill") && !we.isEmpty() && editedWe != null && editedWe.has(we);
             JSONObject d = m.optJSONObject("display");
             Object shownW = d == null || d.isNull("weight") ? JSONObject.NULL : d.get("weight");
+            // 이어 쓴 칸(SPEC-062) — 사본에 보인 값이 웹이 아직 모르는 값이라 그 칸을 늘 싣는다(우선순위 draft > carry > 낡은 처방)
+            JSONArray cf = m.optJSONArray("carried");
+            boolean carW = has(cf, "weight") && d != null && !d.isNull("weight");
+            boolean carR = has(cf, "reps") && d != null && !d.isNull("reps");
             if (drafted) {
-                x.put("weight", e.has("weight") ? e.get("weight") : (stale ? shownW : JSONObject.NULL));
-                x.put("reps", e.has("reps") ? e.get("reps") : JSONObject.NULL);
+                // [원본] x.put("weight", e.has("weight") ? e.get("weight") : (stale ? shownW : JSONObject.NULL));
+                // [원본] x.put("reps", e.has("reps") ? e.get("reps") : JSONObject.NULL);
+                x.put("weight", e.has("weight") ? e.get("weight") : (carW || stale ? shownW : JSONObject.NULL));
+                x.put("reps", e.has("reps") ? e.get("reps") : (carR ? d.get("reps") : JSONObject.NULL));
                 out.put(x);
                 if (!we.isEmpty()) editedNow.add(we);
+            } else if (carW || carR) {
+                x.put("weight", carW || stale ? shownW : JSONObject.NULL);
+                x.put("reps", carR ? d.get("reps") : JSONObject.NULL);
+                out.put(x);
             } else if (stale && shownW != JSONObject.NULL) {
                 x.put("weight", shownW);
                 x.put("reps", JSONObject.NULL);
@@ -553,6 +632,108 @@ public final class LockState {
             }
         }
         return out;
+    }
+
+    private static boolean has(JSONArray a, String k) {
+        if (a != null) for (int i = 0; i < a.length(); i++) if (k.equals(a.optString(i))) return true;
+        return false;
+    }
+
+    /** 스냅샷 caps 에 이 이름이 있나(values · forward) */
+    public boolean hasCap(String name) {
+        JSONArray caps = snapshot == null ? null : snapshot.optJSONArray("caps");
+        return has(caps, name);
+    }
+
+    /** 일반 세트(라벨이 숫자)인가 — 워밍업 W · 드롭 D · 실패 F · 탑셋 T · 백오프 B · 피더 P 는 아니다(웹 isNumberedSet 과 같은 판정 · REV-151) */
+    public static boolean numbered(JSONObject m) {
+        String l = m == null ? "" : m.optString("label", "");
+        return !l.isEmpty() && l.chars().allMatch(Character::isDigit);
+    }
+
+    /** 같은 블록 뒤의 이어 쓸 수 있는 세트(일반 · 같은 한쪽 입력 · 무게·횟수 세트)인가 */
+    static boolean forwardTarget(JSONObject src, JSONObject m) {
+        if (m == null || !numbered(m) || !src.optString("weId").equals(m.optString("weId"))) return false;
+        if (src.optBoolean("oneSide") != m.optBoolean("oneSide")) return false;
+        if (!src.optString("unit", "kg").equals(m.optString("unit", "kg"))) return false; // 단위가 다른 세트는 덮지 않는다(applyCarry 와 같게 · REV-152 화면 3)
+        JSONObject d = m.optJSONObject("display");
+        return d != null && d.isNull("seconds") && d.isNull("distanceM");
+    }
+
+    /** 이 멤버의 값을 「남은 세트에도 적용」할 수 있나 — 웹이 forward 를 알고, 일반 세트이고, 뒤에 같은 블록 일반 세트가 있다 */
+    public boolean canForward(JSONObject m) {
+        if (!hasCap("forward") || !numbered(m) || m.optString("weId", "").isEmpty()) return false;
+        JSONArray steps = snapshot.optJSONArray("steps");
+        if (steps != null) for (int i = 1; i < steps.length(); i++) {
+            JSONArray ms = steps.optJSONObject(i) == null ? null : steps.optJSONObject(i).optJSONArray("members");
+            if (ms != null) for (int k = 0; k < ms.length(); k++) if (forwardTarget(m, ms.optJSONObject(k))) return true;
+        }
+        return false;
+    }
+
+    /** 「남은 세트에도 적용」 켬/끔 — 고르는 중인 값(draft)의 표시로만 둔다(완료 전에는 carry 를 만들지 않는다 · REV-151 7) */
+    public boolean setForward(String token, String weId, boolean on) throws JSONException {
+        JSONObject st = currentStep();
+        if (st == null || token == null || !token.equals(stepToken(st)) || !hasCap("forward")) return false;
+        if (draft == null || !token.equals(draft.optString("token"))) {
+            draft = new JSONObject();
+            draft.put("token", token);
+            draft.put("v", new JSONObject());
+        }
+        // fwd = {weId: true} — 멤버(블록)마다(REV-152 화면 1)
+        JSONObject f = draft.optJSONObject("fwd");
+        if (f == null) f = new JSONObject();
+        if (on) f.put(weId == null ? "" : weId, true);
+        else f.remove(weId == null ? "" : weId);
+        if (f.length() == 0) draft.remove("fwd");
+        else draft.put("fwd", f);
+        return true;
+    }
+
+    /** 이 단계에서 어느 블록이든 켜져 있나 */
+    public boolean forwardOn(String token) {
+        return draft != null && token != null && token.equals(draft.optString("token")) && draft.optJSONObject("fwd") != null;
+    }
+
+    public boolean forwardOn(String token, String weId) {
+        if (!forwardOn(token)) return false;
+        return draft.optJSONObject("fwd").optBoolean(weId == null ? "" : weId);
+    }
+
+    /** 사본 단계의 뒤 세트 표시값을 이어 쓴 값으로 덮는다 — 덮은 칸은 멤버의 carried 에 적는다(완료 때 values 로 싣는 근거) */
+    private JSONArray applyCarry(JSONArray steps) throws JSONException {
+        if (carry == null || carry.length() == 0 || steps == null) return steps;
+        for (int i = 0; i < steps.length(); i++) {
+            JSONArray ms = steps.optJSONObject(i) == null ? null : steps.optJSONObject(i).optJSONArray("members");
+            if (ms == null) continue;
+            for (int k = 0; k < ms.length(); k++) {
+                JSONObject m = ms.optJSONObject(k);
+                JSONObject c = m == null ? null : carry.optJSONObject(m.optString("weId", ""));
+                if (c == null || !numbered(m) || c.optBoolean("oneSide") != m.optBoolean("oneSide")) continue;
+                if (!c.optString("unit", "kg").equals(m.optString("unit", "kg"))) continue; // 단위가 바뀐 블록 — 웹이 쓴 값을 기다린다
+                JSONObject d = m.optJSONObject("display");
+                if (d == null || !d.isNull("seconds") || !d.isNull("distanceM")) continue;
+                JSONArray f = new JSONArray();
+                if (c.has("weight") && !d.isNull("weight")) {
+                    d.put("weight", c.get("weight"));
+                    f.put("weight");
+                }
+                if (c.has("reps")) {
+                    d.put("reps", c.get("reps"));
+                    f.put("reps");
+                }
+                if (f.length() > 0) m.put("carried", f);
+            }
+        }
+        return steps;
+    }
+
+    /** 웹이 반영한 seq 까지의 이어 쓰기는 지운다 — 새 스냅샷의 뒤 세트 값은 웹이 이미 바꿨다(REV-151 3) */
+    private void pruneCarry(long applied) {
+        if (carry == null) return;
+        java.util.Iterator<String> it = carry.keys();
+        while (it.hasNext()) if (carry.optJSONObject(it.next()).optLong("seq") <= applied) it.remove();
+        if (carry.length() == 0) carry = null;
     }
 
     /** 웹이 반영한 seq 까지의 「고친 블록」은 지운다 — 새 스냅샷의 값은 웹이 다시 계산했다. */

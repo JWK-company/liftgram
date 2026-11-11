@@ -83,7 +83,7 @@ import {
 } from '../domain/recordSlots'; // ADR-034 지난 조합 · ADR-037 한쪽 입력 @plm SRS-057 SRS-058
 import { scheduleSync } from '../sync/syncEngine'; // 운동 완료 후 서버 동기 트리거(@plm SRS-006)
 import { randomId } from '../utils/id';
-import { decodeValueSource, encodeValueSource, withFieldSource, lockValueWrite, type ValueSource, type SimBlock } from '../domain/lockScreen'; // v27 값 출처(잠금화면 「앱 열기」 · SPEC-017)
+import { decodeValueSource, encodeValueSource, withFieldSource, lockValueWrite, forwardFields, isNumberedSet, type ValueSource, type SimBlock } from '../domain/lockScreen'; // v27 값 출처(잠금화면 「앱 열기」 · SPEC-017)
 import {
   clampCompletedAt,
   groupSessionRows,
@@ -1121,6 +1121,35 @@ export async function applyLockAction(action: LockAction, dbEpoch: string, now: 
           rec.completedAt = at;
         }),
       );
+    }
+    // 남은 세트에도 적용(SPEC-062) — 같은 블록에서 세트 번호가 뒤이고 미완료인 일반 세트(같은 한쪽 배수)에 고른 칸만.
+    // 칸마다 표시 정밀도로 다를 때만 쓴다(출처 user · 같으면 그대로 — REV-151 5). 스냅샷 12단계 밖 세트도 여기서 바뀐다.
+    const presentIds = new Set(present.map((r) => r.id));
+    // 이번에 완료한 세트만 — prepareUpdate 가 이미 done 을 켰으므로 r.done 으로 거르지 않는다
+    const completedNow = new Set(ups.map((u) => u.id));
+    const forwarded = new Set<string>();
+    for (const r of present) {
+      if (!completedNow.has(r.id)) continue;
+      const v = action.values?.find((x) => x.setId === r.id);
+      const fields = v ? forwardFields(v) : [];
+      if (!v || !fields.length || r.durationSec != null || r.distanceM != null) continue;
+      if (!isNumberedSet(r)) continue;
+      const we = weById.get(r.workoutExerciseId);
+      const unit = we?.weightUnit ? blockWeightUnit(we) : legacyUnit;
+      const mult = r.loadMultiplier ?? 1;
+      const one = { setId: '', weight: fields.includes('weight') ? v.weight : null, reps: fields.includes('reps') ? v.reps : null, unit: v.unit };
+      for (const t of memberSets) {
+        if (t.workoutExerciseId !== r.workoutExerciseId || t.setNumber <= r.setNumber || t.done === true) continue;
+        if (presentIds.has(t.id) || forwarded.has(t.id) || !isNumberedSet(t)) continue;
+        if ((t.loadMultiplier ?? 1) !== mult || t.durationSec != null || t.distanceM != null) continue;
+        // 무게가 빈 세트(처방 없음)는 무게를 채우지 않는다 — 앱도 그 칸을 덮지 않아 「다름」이 뜬다(REV-152 계약 2)
+        const tv = t.weightKg == null ? { ...one, setId: t.id, weight: null } : { ...one, setId: t.id };
+        if (tv.weight == null && tv.reps == null) continue;
+        const ev = lockValueWrite(tv, { weightKg: t.weightKg, reps: t.reps }, unit);
+        if (ev.write.weightKg === undefined && ev.write.reps === undefined) continue;
+        forwarded.add(t.id);
+        ups.push(t.prepareUpdate((rec) => writeSetValues(rec, ev.write, 'user')));
+      }
     }
     if (ups.length) await database.batch(...ups);
     return { ...base, verdict: 'apply', changed: ups.map((u) => u.id), mismatches };

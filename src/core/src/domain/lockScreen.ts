@@ -90,7 +90,9 @@ export function lockElapsedSec(clock: LockClock | null | undefined, paused: bool
   return Math.max(0, Math.round((end - clock.startedAt - (clock.accumulatedPauseMs ?? 0)) / 1000));
 }
 
-export const LOCK_CAPS = ['values'];
+// [원본] export const LOCK_CAPS = ['values'];
+// forward — 잠금 화면의 「남은 세트에도 적용」(SPEC-062) 을 안다. 옛 앱은 이 칸을 모르고 forward 를 보내지 않는다
+export const LOCK_CAPS = ['values', 'forward'];
 
 export interface LockAction {
   id: string;
@@ -116,6 +118,24 @@ export interface LockValue {
   reps: number | null;
   /** 누를 때 보인 단위(REV-014 #41) — 없으면 drain 때 블록 단위 */
   unit?: WeightUnit;
+  /**
+   * 남은 세트에도 적용(SPEC-062) — 사람이 고른 칸. 같은 블록의 뒤 일반 세트(미완료 · 같은 한쪽 배수)에 같은 칸을 쓴다.
+   * 형식이 깨졌으면 이 칸만 무시하고 완료는 한다(REV-151 9) — {@link forwardFields}.
+   */
+  forward?: ('weight' | 'reps')[];
+}
+
+/** forward 칸 — 배열 안 'weight'·'reps' 만(중복 제거). 깨졌거나 없으면 빈 배열. */
+export function forwardFields(v: { forward?: unknown }): ('weight' | 'reps')[] {
+  if (!Array.isArray(v.forward)) return [];
+  const out: ('weight' | 'reps')[] = [];
+  for (const f of v.forward) if ((f === 'weight' || f === 'reps') && !out.includes(f)) out.push(f);
+  return out;
+}
+
+/** 이어 쓰기 대상 — 일반 세트(라벨 없음: 워밍업·드롭·실패·탑셋·백오프·피더 아님 · 앱의 「라벨이 숫자」와 같은 판정 · REV-151 1) */
+export function isNumberedSet(s: LockSetInput): boolean {
+  return setLabelOf(s) == null;
 }
 
 /** 범위 — 넘으면 그 값만 버린다(완료는 한다) */
