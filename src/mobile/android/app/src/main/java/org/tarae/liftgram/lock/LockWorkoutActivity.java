@@ -1086,7 +1086,9 @@ public class LockWorkoutActivity extends Activity {
         // 쉬는 시간 + 밀기 — 고정(휴식이 시작·끝나도, 값 칸을 열어도 움직이지 않는다)
         restBox = new LinearLayout(this);
         restBox.setOrientation(LinearLayout.VERTICAL);
-        restBox.setPadding(dp(16), dp(4), dp(16), dp(10));
+        // [원본] restBox.setPadding(dp(16), dp(4), dp(16), dp(10)); — 위에 있을 때 여백
+        // [개선] 맨 아래 고정(사용자 지시 2643) — 위 구분선과 띄우고 아래는 조금 더
+        restBox.setPadding(dp(16), dp(8), dp(16), dp(12));
         restRow = new LinearLayout(this);
         restRow.setGravity(Gravity.CENTER_VERTICAL);
         restRow.setMinimumHeight(dp(72));
@@ -1157,7 +1159,8 @@ public class LockWorkoutActivity extends Activity {
         LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(64));
         slp.topMargin = dp(12);
         restBox.addView(slide, slp);
-        root.addView(restBox, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        // [원본] root.addView(restBox, …) — 쉬는 시간·밀기 칸이 위, 무게·횟수가 아래였다
+        // [개선] 위아래를 바꾼다(사용자 지시 2643): 무게·횟수(스크롤)가 위, 쉬는 시간·밀기 칸은 맨 아래 고정 — 아래에서 붙인다
 
         ScrollView sv = new ScrollView(this);
         sv.setFillViewport(true);
@@ -1178,10 +1181,18 @@ public class LockWorkoutActivity extends Activity {
         remainingView = new LockRemainingView(this);
         remainingView.setColors(p.ink, p.ink2, p.ink3, p.line);
         col.addView(remainingView, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1));
+        // 맨 아래 고정 — 위 값 칸과 구분선으로 나눈다(사용자 지시 2643)
+        View restRule = new View(this);
+        restRule.setBackgroundColor(p.line);
+        root.addView(restRule, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, Math.max(1, dp(1))));
+        root.addView(restBox, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(root, (v, ins) -> {
             androidx.core.graphics.Insets b = ins.getInsets(
                     androidx.core.view.WindowInsetsCompat.Type.systemBars() | androidx.core.view.WindowInsetsCompat.Type.displayCutout());
-            v.setPadding(b.left, b.top, b.right, b.bottom);
+            // [원본] v.setPadding(b.left, b.top, b.right, b.bottom);
+            // [개선] 밀기 칸이 맨 아래라 하단 홈 제스처 영역(막을 수 없음)을 피한다 — 내비 바보다 크면 그만큼(리뷰 낮음 1)
+            int gb = ins.getInsets(androidx.core.view.WindowInsetsCompat.Type.mandatorySystemGestures()).bottom;
+            v.setPadding(b.left, b.top, b.right, Math.max(b.bottom, gb));
             return androidx.core.view.WindowInsetsCompat.CONSUMED;
         });
         setRestOpen(restOpen);
