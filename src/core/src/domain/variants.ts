@@ -345,7 +345,12 @@ const LEG_MUSCLES: ReadonlySet<string> = new Set(['quads', 'hamstrings', 'glutes
  * 종목의 주 부위로 팔/다리를 가린다 — 주 부위의 절반을 넘게 다리 근육이면 다리(레그 컬·런지·힙 쓰러스트·카프 레이즈).
  * 주 부위가 없거나 반반이면 팔(옛 표시 그대로).
  */
-export function limbOfMuscles(primary: readonly string[] | null | undefined): Limb {
+// 주 부위는 다리지만 한 손으로 드는 종목(family) — 「원암」이 맞다(사용자 지시 2026-11-12: 케틀벨 스윙 같은 건 원암)
+// 케틀벨 스윙·덤벨 스윙. 클린·스내치는 주 부위가 전신이라 이미 팔이다.
+const ARM_FAMILIES: ReadonlySet<string> = new Set(['kettlebell_swing']);
+// [원본] export function limbOfMuscles(primary: readonly string[] | null | undefined): Limb {
+export function limbOfMuscles(primary: readonly string[] | null | undefined, family?: string | null): Limb {
+  if (family && ARM_FAMILIES.has(family)) return 'arm';
   const list = (primary ?? []).filter(Boolean);
   if (!list.length) return 'arm';
   const legs = list.filter((m) => LEG_MUSCLES.has(m)).length;

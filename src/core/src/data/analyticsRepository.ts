@@ -377,7 +377,10 @@ export async function getWorkoutDetail(workoutId: string): Promise<WorkoutDetail
       scheme: schemeOf(we.prescription ?? null), // 세트 방식 태그(SPEC-041)
       weightUnit: we.weightUnit === 'lb' ? 'lb' : 'kg', // null = kg(운영 기존 기록) @plm SRS-067
       isCardio: exList.find((e) => e.id === we.exerciseId)?.kind === 'cardio',
-      limb: limbOfMuscles(exList.find((e) => e.id === we.exerciseId)?.primaryMuscles),
+      limb: (() => {
+        const e = exList.find((x) => x.id === we.exerciseId);
+        return limbOfMuscles(e?.primaryMuscles, e?.family); // 스윙은 팔(2026-11-12)
+      })(),
       sets: sets.map((s) => ({
         id: s.id, // @plm SRS-061
         setNumber: s.setNumber,

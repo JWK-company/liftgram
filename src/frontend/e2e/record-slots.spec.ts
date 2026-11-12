@@ -495,4 +495,23 @@ test("세트 옵션 — 다리 운동은 원레그·투레그로 보이고 칩·
   await 첫세트(page).getByTestId("set-variant").click();
   await expect(sheet.getByText("원암", { exact: true })).toBeVisible();
   await expect(sheet.getByText("원레그", { exact: true })).toHaveCount(0);
+  await sheet.getByRole("button", { name: "확인" }).click();
+  await expect(sheet).toHaveCount(0);
+  await 세트_기록(page, 10, 10);
+  await 마치기(page);
+
+  // 케틀벨 스윙 — 주 부위는 둔근이지만 한 손으로 들어 원암(사용자 지시 2026-11-12)
+  await 운동_시작(page, "케틀벨 스윙");
+  await 첫세트(page).getByTestId("set-more").click();
+  await 첫세트(page).getByTestId("set-variant").click();
+  await expect(sheet.getByText("원암", { exact: true })).toBeVisible();
+  await expect(sheet.getByText("원레그", { exact: true })).toHaveCount(0);
+  await sheet.getByText("원암", { exact: true }).click();
+  await sheet.getByRole("button", { name: "확인" }).click();
+  await expect(첫세트(page).getByTestId("set-variant-badge")).toHaveText("원암");
+  await 세트_기록(page, 16, 15);
+  await 마치기(page);
+  await page.goto("/history");
+  await page.getByTestId("history-list").locator("a").first().click();
+  await expect(page.getByTestId("detail-set").first()).toContainText("원암", { timeout: 15_000 });
 });

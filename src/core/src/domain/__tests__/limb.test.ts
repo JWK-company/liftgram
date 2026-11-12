@@ -14,6 +14,10 @@ test('팔·상체·없음·반반은 팔', () => {
   assert.equal(limbOfMuscles(null), 'arm');
   assert.equal(limbOfMuscles(['back', 'glutes']), 'arm');
 });
+test('스윙은 둔근이어도 한 손으로 들어 팔(2026-11-12)', () => {
+  assert.equal(limbOfMuscles(['glutes'], 'kettlebell_swing'), 'arm');
+  assert.equal(limbOfMuscles(['glutes'], 'hip_thrust'), 'leg');
+});
 test('짧은 글', () => {
   assert.equal(uniShortLabel('leg', 'ko'), '원레그');
   assert.equal(uniShortLabel('arm', 'ko'), '원암');

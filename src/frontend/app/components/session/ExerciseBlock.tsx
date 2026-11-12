@@ -438,10 +438,11 @@ export function ExerciseBlock({
           nameKo: string;
           nameEn: string | null;
           primaryMuscles?: string[] | null;
+          family?: string | null;
         };
         if (!alive) return;
         setBaseEquipment(e.equipment);
-        setLimb(limbOfMuscles(e.primaryMuscles));
+        setLimb(limbOfMuscles(e.primaryMuscles, e.family));
         setIsCardio(e.kind === "cardio");
         setCardioMetrics(cardioMetricsFor({ nameEn: e.nameEn }));
         // [원본] setExName(e.nameKo);
