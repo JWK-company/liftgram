@@ -4747,7 +4747,7 @@
               {
                 "content": [
                   {
-                    "text": "[ ] 전체 e2e · qa code · EXE · 버전(웹 0.102.0 · 운영 웹 minor) · 이 작업 파일만 커밋 · 앱·운영 웹 배포 · 운영에서 ",
+                    "text": "[x] 전체 e2e · qa code · EXE · 버전(웹 0.102.0 · 운영 웹 minor) · 이 작업 파일만 커밋 · 앱·운영 웹 배포 · 운영에서 ",
                     "type": "text"
                   },
                   {
@@ -5320,7 +5320,7 @@
   "meta": {
     "grade": "Project",
     "phases": "4",
-    "phases_done": "3"
+    "phases_done": "4"
   },
   "relations": {
     "implements": [
