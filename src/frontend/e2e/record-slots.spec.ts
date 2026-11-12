@@ -469,3 +469,30 @@ test("케이블 브랜드(id=1723·1718) — 롱풀(케이블 시티드 로우)�
   await 시트_닫기(page);
   await expect(page.getByTestId("variant-trigger").first()).not.toContainText("해머");
 });
+
+// 다리 운동이면 원암·투암 대신 원레그·투레그(사용자 지시 2660) — 저장 값은 같은 arm
+test("세트 옵션 — 다리 운동은 원레그·투레그로 보이고 칩·기록 상세도 원레그, 팔 운동은 원암 그대로", async ({ page }) => {
+  test.setTimeout(150_000);
+  await 카탈로그_준비(page);
+  await 운동_시작(page, "라잉 레그 컬");
+  await 첫세트(page).getByTestId("set-more").click();
+  await 첫세트(page).getByTestId("set-variant").click();
+  const sheet = page.getByTestId("set-variant-sheet");
+  await expect(sheet.getByText("투레그", { exact: true })).toBeVisible();
+  await expect(sheet.getByText("원암", { exact: true })).toHaveCount(0);
+  await sheet.getByText("원레그", { exact: true }).click();
+  await sheet.getByRole("button", { name: "확인" }).click();
+  await expect(sheet).toHaveCount(0);
+  await expect(첫세트(page).getByTestId("set-variant-badge")).toHaveText("원레그");
+  await 세트_기록(page, 30, 12);
+  await 마치기(page);
+  await page.goto("/history");
+  await page.getByTestId("history-list").locator("a").first().click();
+  await expect(page.getByTestId("detail-set").first()).toContainText("원레그", { timeout: 15_000 });
+
+  await 운동_시작(page, "덤벨 숄더 프레스");
+  await 첫세트(page).getByTestId("set-more").click();
+  await 첫세트(page).getByTestId("set-variant").click();
+  await expect(sheet.getByText("원암", { exact: true })).toBeVisible();
+  await expect(sheet.getByText("원레그", { exact: true })).toHaveCount(0);
+});

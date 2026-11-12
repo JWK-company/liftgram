@@ -234,7 +234,11 @@ export function MuscleBalanceCard({ days }: { /** 위쪽 기간의 일수(null =
                         className="flex min-h-[44px] items-center"
                       >
                         {/* [원본] <span className="flex min-h-[32px] items-center rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[var(--spacing-md)] text-(--color-ink2) text-[length:var(--text-sm)]"> — 누를 수 있는 값 판 4px(R1c) */}
-                        <span className="flex min-h-[32px] items-center rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[var(--spacing-md)] text-(--color-ink2) text-[length:var(--text-sm)]">
+                        {/* [원본] <span className="… bg-(--color-surface-alt) … text-(--color-ink2) …"> — 옅은 판(다크에서 글자처럼 보임 · 사용자 지시 2650) */}
+                        <span
+                          data-affordance="box"
+                          className="flex min-h-[32px] items-center rounded-[var(--radius-sm)] border border-(--color-line-strong) px-[var(--spacing-md)] text-(--color-ink) text-[length:var(--text-sm)]"
+                        >
                           {name}
                         </span>
                       </Link>

@@ -3,6 +3,7 @@
 //
 // 코드는 URL에 실려 왔다 — 받자마자 바꾸고 주소창에서 지운다(뒤로가기·공유로 새지 않게. 어차피 1회·60초다).
 // 바꾼 뒤에는 평소 로그인과 **같은 길**(setTokens → 소유자 대조 → 동기)을 탄다.
+import { actionBoxClass } from "@/app/components/ui/Button";
 import { shouldExchange } from "@app/core/domain/appContinue";
 import { navigate } from "@/lib/nav";
 import { useEffect, useRef, useState } from "react";
@@ -70,7 +71,11 @@ export default function CompleteClient({
         </div>
       )}
       {failed ? (
-        <a href="/account" className="mt-[var(--spacing-md)] block font-semibold text-(--color-brand)">
+        <a
+          href="/account"
+          // [원본] className="mt-[var(--spacing-md)] block font-semibold text-(--color-brand)" — 글자만(사용자 지시 2650)
+          className={`${actionBoxClass("brand")} mt-[var(--spacing-md)] flex min-h-11 w-full px-[var(--spacing-md)] focus-visible:outline-2 focus-visible:outline-(--color-brand)`}
+        >
           {t("complete.back")}
         </a>
       ) : null}

@@ -18,7 +18,7 @@ import { t } from "@/lib/i18n";
 import { useToast } from "../Toast";
 import { SubAppBar } from "../ui/AppBar";
 import { ConfirmDialog, SheetShell } from "../ui/Dialog";
-import { Button } from "../ui/Button";
+import { actionBoxClass, Button, touchPad } from "../ui/Button";
 import { MoreMenu } from "../ui/MoreMenu";
 import { KpiRow } from "../ui/rows";
 // [원본] import { AppText, Card, Divider, EmptyState } from "../ui/primitives";
@@ -61,6 +61,8 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
     unit: WeightUnit;
     suspect?: SuspectInfo | null;
     addTo?: string;
+    /** 단위만 바로잡기 — 이 세트가 든 블록(사용자 지시 2654) */
+    block?: { weId: string; count: number };
   }>(null);
   // 종목 ⋯ — 단위 바꾸기 확인창 · 종목 바꾸기 피커/확인창(SPEC-044 SRS-109 R4)
   const [unitAsk, setUnitAsk] = useState<null | { ex: ExerciseDetail; to: WeightUnit }>(null);
@@ -258,8 +260,10 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
                     focusSet={focusSet}
                     onEditSet={(set) => {
                       const unit = ex.weightUnit ?? "kg";
+                      const block = { weId: ex.workoutExerciseId, count: ex.sets.length };
                       if (set.checkState !== "suspect" || !set.id) {
-                        setEditing({ set, isCardio: !!ex.isCardio, unit });
+                        // [원본] setEditing({ set, isCardio: !!ex.isCardio, unit });
+                        setEditing({ set, isCardio: !!ex.isCardio, unit, block });
                         return;
                       }
                       // 확인 필요 세트 — 판정 근거(평소 범위·lb 권유)를 읽어 고치기 시트 위에 확인 패널을
@@ -285,7 +289,8 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
                         } catch {
                           // 근거를 못 읽어도 고치기는 연다
                         }
-                        setEditing({ set, isCardio: !!ex.isCardio, unit, suspect });
+                        // [원본] setEditing({ set, isCardio: !!ex.isCardio, unit, suspect });
+                        setEditing({ set, isCardio: !!ex.isCardio, unit, suspect, block });
                       })();
                     }}
                     onMenu={{
@@ -344,6 +349,7 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
           unit={editing.unit} // 고치는 세트는 그 블록 단위로 @plm SRS-067
           suspect={editing.suspect ?? null}
           addTo={editing.addTo}
+          block={editing.block}
           onFixed={() => {
             setEditing(null);
             setReloadTick((n) => n + 1);
@@ -681,7 +687,10 @@ function ExerciseCard({
                     {t("analytics.oneSideSet")}
                   </span>
                 ) : null}
-                {s.arm === "uni" ? <span key="a">{t("session.armUni")}</span> : null}
+                {/* [원본] {s.arm === "uni" ? <span key="a">{t("session.armUni")}</span> : null} */}
+                {s.arm === "uni" ? (
+                  <span key="a">{t(ex.limb === "leg" ? "session.legUni" : "session.armUni")}</span>
+                ) : null}
                 {s.grip ? (
                   <span key="g" data-testid="detail-set-grip">
                     {gripLabel(s.grip as GripKey, lang) || s.grip}
@@ -795,6 +804,7 @@ function EditSetSheet({
   workoutId,
   suspect = null,
   addTo,
+  block,
   onFixed,
   onRefresh,
   onClose,
@@ -809,6 +819,8 @@ function EditSetSheet({
   suspect?: SuspectInfo | null;
   /** 세트 추가 — 그 블록에 저장할 때 만든다(UX-6) */
   addTo?: string;
+  /** 이 세트가 든 블록 — 「단위만 바꾸기」(사용자 지시 2654) */
+  block?: { weId: string; count: number };
   /** 확인 패널에서 처리했다 */
   onFixed?: () => void;
   /** 확인 패널 되돌리기 뒤 — 다시 읽기만 */
@@ -821,6 +833,8 @@ function EditSetSheet({
   const [r, setR] = useState(() => String(set.reps));
   const [confirmDel, setConfirmDel] = useState(false);
   const [busy, setBusy] = useState(false);
+  // 단위만 바로잡기 — 78kg 를 78lb 로(숫자 그대로 · 사용자 지시 2654). 블록에 세트가 여럿이면 범위를 고른다
+  const [unitPick, setUnitPick] = useState(false);
 
   const run = (
     fn: (repo: typeof import("@app/core/data/workoutRepository")) => Promise<void>,
@@ -851,6 +865,23 @@ function EditSetSheet({
   const reps = Number.parseInt(r, 10);
   const valid =
     Number.isFinite(enteredW) && enteredW >= 0 && Number.isFinite(kg) && Number.isFinite(reps) && reps >= 0;
+  const otherUnit: WeightUnit = unit === "kg" ? "lb" : "kg";
+  // 적은 숫자 n 을 다른 단위의 n 으로: kg 블록의 n → n lb(= n × 0.4536 kg) · lb 블록의 n → n kg
+  const swappedKg = otherUnit === "lb" ? enteredW * 0.45359237 : enteredW;
+  const canSwapUnit = !isCardio && !addTo && !!set.id && !!block && valid && enteredW > 0;
+  // 블록 전체(세트가 하나뿐이어도) — 블록 단위가 바뀌어 화면·PR 이 그 단위로 다시 보인다
+  const swapAll = () =>
+    run(async (repo) => {
+      // 입력칸에서 숫자·횟수를 고친 채 누르면 그 값을 먼저 저장한다 — 버튼 글(「80kg → 80lb」)과 결과가 같게(리뷰 A-1)
+      if (kg !== set.weightKg || reps !== set.reps) await repo.updateSetLog(set.id as string, { weightKg: kg, reps });
+      await repo.reinterpretBlockUnit((block as { weId: string }).weId, otherUnit);
+    }, t("history.unitChanged"));
+  // 이 세트만 — 블록 단위는 그대로, 이 세트의 실제 무게만 바꾼다(kg 블록이면 35.38kg 처럼 보인다)
+  const swapOne = () =>
+    run(
+      (repo) => repo.updateSetLog(set.id as string, { weightKg: swappedKg, reps }),
+      t("history.unitChanged"),
+    );
 
   return (
     <SheetShell
@@ -900,6 +931,58 @@ function EditSetSheet({
           </label>
         </div>
       )}
+      {canSwapUnit ? (
+        <div className="mb-[var(--spacing-md)]" data-testid="edit-set-unit">
+          <div className="flex items-center gap-[var(--spacing-sm)]">
+            <AppText variant="caption" color="textMuted" className="min-w-0 flex-1">
+              {t("history.setUnitAsk")}
+            </AppText>
+            <button
+              type="button"
+              data-testid="edit-set-unit-swap"
+              aria-expanded={block && block.count > 1 ? unitPick : undefined}
+              disabled={busy}
+              onClick={() => (block && block.count > 1 ? setUnitPick((v) => !v) : swapAll())}
+              className={`${actionBoxClass("neutral")} ${touchPad} min-h-[36px] px-[var(--spacing-md)] text-[length:var(--text-sm)]`}
+            >
+              {t("history.setUnitSwap", {
+                // 적은 숫자 그대로(78kg → 78lb)
+                from: `${enteredW}${unit}`,
+                to: `${enteredW}${otherUnit}`,
+              })}
+            </button>
+          </div>
+          {unitPick && block && block.count > 1 ? (
+            <div className="mt-[var(--spacing-sm)]" data-testid="edit-set-unit-pick">
+              <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-xs)] block">
+                {t("history.setUnitWhich")}
+              </AppText>
+              <div className="flex gap-[var(--spacing-sm)]">
+                <div className="flex-1">
+                  <Button
+                    title={t("history.setUnitAll", { count: block.count })}
+                    variant="secondary"
+                    size="sm"
+                    testId="edit-set-unit-all"
+                    disabled={busy}
+                    onPress={swapAll}
+                  />
+                </div>
+                <div className="flex-1">
+                  <Button
+                    title={t("history.setUnitOne")}
+                    variant="secondary"
+                    size="sm"
+                    testId="edit-set-unit-one"
+                    disabled={busy}
+                    onPress={swapOne}
+                  />
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
       <div className="flex gap-[var(--spacing-sm)]">
         {!addTo ? (
           <div className="flex-1">

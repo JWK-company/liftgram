@@ -337,3 +337,22 @@ export function isMachineEquipSel(sel: string | null | undefined): boolean {
 }
 // 머신 브랜드 하위 행 옵션(브랜드 + 커스텀). '기본(머신)'은 UI에서 별도 처리.
 export const MACHINE_BRAND_VARIANT_KEYS: string[] = [...MACHINE_BRAND_KEYS, ...CUSTOM_VARIANT_KEYS];
+
+// --- 팔/다리 표시(사용자 지시 2660) — 저장 값은 그대로 arm('uni'|null), 화면 글만 종목에 따라 원암·원레그 ---
+export type Limb = 'arm' | 'leg';
+const LEG_MUSCLES: ReadonlySet<string> = new Set(['quads', 'hamstrings', 'glutes', 'calves']);
+/**
+ * 종목의 주 부위로 팔/다리를 가린다 — 주 부위의 절반을 넘게 다리 근육이면 다리(레그 컬·런지·힙 쓰러스트·카프 레이즈).
+ * 주 부위가 없거나 반반이면 팔(옛 표시 그대로).
+ */
+export function limbOfMuscles(primary: readonly string[] | null | undefined): Limb {
+  const list = (primary ?? []).filter(Boolean);
+  if (!list.length) return 'arm';
+  const legs = list.filter((m) => LEG_MUSCLES.has(m)).length;
+  return legs * 2 > list.length ? 'leg' : 'arm';
+}
+/** 세트 칩·잠금 화면의 짧은 글 — session.armUni·session.legUni 와 같은 말 */
+export function uniShortLabel(limb: Limb, lang: AppLanguage): string {
+  if (limb === 'leg') return lang === 'ko' ? '원레그' : '1-leg';
+  return lang === 'ko' ? '원암' : '1-arm';
+}

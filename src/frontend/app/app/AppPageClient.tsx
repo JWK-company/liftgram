@@ -1,4 +1,5 @@
 "use client";
+import { actionBoxClass } from "@/app/components/ui/Button";
 import {
   type Latest,
   RELEASE_CERT_SHA256,
@@ -106,7 +107,8 @@ export default function AppPageClient() {
       )}
       <a
         href="/"
-        className="flex min-h-[44px] items-center justify-center font-semibold text-(--color-brand) focus-visible:outline-2 focus-visible:outline-(--color-brand)"
+        // [원본] className="flex min-h-[44px] items-center justify-center font-semibold text-(--color-brand) …" — 글자만(사용자 지시 2650)
+        className={`${actionBoxClass("brand")} mt-[var(--spacing-md)] flex min-h-11 w-full px-[var(--spacing-md)] focus-visible:outline-2 focus-visible:outline-(--color-brand)`}
       >
         {t("appPage.home")}
       </a>

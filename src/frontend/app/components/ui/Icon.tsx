@@ -220,5 +220,7 @@ export function Icon({
   className?: string;
 }) {
   const G = GLYPHS[name];
-  return <G size={size} color={color} className={className} aria-hidden />;
+  // [원본] <G size={size} color={color} className={className} aria-hidden />
+  // [개선] data-icon — 단추 가드가 꺾쇠(이동·시트 열기)를 알아보게(사용자 지시 2650)
+  return <G size={size} color={color} className={className} aria-hidden data-icon={name} />;
 }

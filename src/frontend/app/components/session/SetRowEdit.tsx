@@ -30,6 +30,7 @@ import {
   repRangeLabel,
   type WeightUnit,
 } from "@app/core";
+import type { Limb } from "@app/core/domain/variants";
 // 보이던 숫자를 그대로 두고 떠나면 저장 kg 를 바꾸지 않는다(/qa code M-1) @plm SRS-067
 import { enteredWeightToKg } from "@app/core/domain/blockUnit";
 import { useEffect, useId, useRef, useState } from "react";
@@ -130,6 +131,7 @@ export function SetRowEdit({
   copyCount = 0,
   onCopyToOthers,
   onCheck,
+  limb = "arm",
 }: {
   set: SetRow;
   /** 표시 순번 — 일반 세트만 번호가 오르고 나머지는 W/D/F/T. */
@@ -166,6 +168,8 @@ export function SetRowEdit({
   onCheck?: () => void;
   /** 처방 무게의 근거(「추정 1RM 100kg의 80%」) — 계산된 무게가 어디서 왔는지(ADR-028) @plm SRS-063 */
   loadNote?: string | null;
+  /** 다리 운동이면 원암·투암 대신 원레그·투레그로 보인다(저장 값은 arm 그대로 · 사용자 지시 2660) */
+  limb?: Limb;
 }) {
   const isDone = set.done;
   // 결과(SPEC-043) — 끝낸 세트의 횟수를 목표 범위와 견준다
@@ -281,7 +285,8 @@ export function SetRowEdit({
   const variantSet = set.arm === "uni" || !!set.grip;
   const variantChipLabel = variantSet
     ? [
-        set.arm === "uni" ? t("session.armUni") : null,
+        // [원본] set.arm === "uni" ? t("session.armUni") : null,
+        set.arm === "uni" ? t(limb === "leg" ? "session.legUni" : "session.armUni") : null,
         set.grip ? gripShortLabel(set.grip as GripKey, lang) : null,
       ]
         .filter(Boolean)
@@ -324,7 +329,7 @@ export function SetRowEdit({
     const reps = prev.partialReps
       ? t("chip.repsPartial", { reps: prev.reps, partial: prev.partialReps })
       : t("chip.reps", { reps: prev.reps });
-    const opt = prevOptionLabel(prev);
+    const opt = prevOptionLabel(prev, limb);
     const base = t(isDone ? "chip.prevDone" : "chip.prevFill", {
       weight: displayWeight(prev.weightKg, unit),
       unit,
@@ -350,6 +355,7 @@ export function SetRowEdit({
         <button
           type="button"
           data-testid="set-type"
+          data-affordance="cell" // 세트 표의 칸 — 표 자체가 누르는 칸이다(SPEC-061 예외)
           onClick={() => setTypeMenu(true)}
           aria-label={
             /^\d+$/.test(label)
@@ -410,9 +416,9 @@ export function SetRowEdit({
                 <wbr />
                 {prev.partialReps ? `(${prev.reps}+${prev.partialReps})` : prev.reps}
               </AppText>
-              {prevOptionLabel(prev) ? (
+              {prevOptionLabel(prev, limb) ? (
                 <AppText variant="label" color="textFaint" center className="block truncate">
-                  {prevOptionLabel(prev)}
+                  {prevOptionLabel(prev, limb)}
                 </AppText>
               ) : null}
             </>
@@ -830,6 +836,7 @@ export function SetRowEdit({
 
       {varOpen ? (
         <SetVariantSheet
+          limb={limb}
           arm={set.arm}
           grip={set.grip}
           onArm={(v) => saveVariant(() => onSetArm(v))}
@@ -846,9 +853,10 @@ export function SetRowEdit({
 }
 
 /** 이전 기록의 그립·팔 축약 — 지난번에 어떤 자세로 했는지 한 줄로. */
-function prevOptionLabel(prev: PrevSet): string {
+function prevOptionLabel(prev: PrevSet, limb: Limb = "arm"): string {
   const parts = [
-    prev.arm === "uni" ? t("session.armUni") : null,
+    // [원본] prev.arm === "uni" ? t("session.armUni") : null,
+    prev.arm === "uni" ? t(limb === "leg" ? "session.legUni" : "session.armUni") : null,
     prev.grip ? gripShortLabel(prev.grip as GripKey, lang) : null,
   ].filter(Boolean);
   return parts.join("·");
@@ -863,7 +871,9 @@ function SetVariantSheet({
   blockVariant,
   onBlockVariant,
   onClose,
+  limb = "arm",
 }: {
+  limb?: Limb;
   arm: string | null;
   grip: string | null;
   onArm: (v: "uni" | null) => void;
@@ -873,11 +883,18 @@ function SetVariantSheet({
   onClose: () => void;
 }) {
   const isUni = arm === "uni";
+  const leg = limb === "leg";
   return (
     <SheetShell title={t("session.setVariantTitle")} onClose={onClose} testId="set-variant-sheet">
+      {/* [원본] 늘 팔 글자
       <SheetRow label={t("session.armColHeader")}>
         <VarOpt label={t("session.armBi")} active={!isUni} onPress={() => onArm(null)} />
         <VarOpt label={t("session.armUni")} active={isUni} onPress={() => onArm("uni")} />
+      </SheetRow> */}
+      {/* [개선] 다리 운동이면 다리·투레그·원레그(저장 값은 같은 arm · 사용자 지시 2660) */}
+      <SheetRow label={t(leg ? "session.legColHeader" : "session.armColHeader")}>
+        <VarOpt label={t(leg ? "session.legBi" : "session.armBi")} active={!isUni} onPress={() => onArm(null)} />
+        <VarOpt label={t(leg ? "session.legUni" : "session.armUni")} active={isUni} onPress={() => onArm("uni")} />
       </SheetRow>
       {/* [원본] 세트별 그립 선택 — ADR-034: 손 그립은 블록 칸(종목 칩의 「손 그립」)이 정한다. 세트마다 고르면 칸과 겹친다.
       <SheetRow label={t("variant.grip")}>

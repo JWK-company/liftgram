@@ -23,6 +23,7 @@ import {
   type MuscleGroup,
 } from '../domain';
 import { isCardioKind } from '../domain/types';
+import { limbOfMuscles, type Limb } from '../domain/variants'; // 원암·원레그 글(2660)
 import type { E1rmPoint } from '../domain/exerciseProgress';
 import { getUserBodyweightKg } from './workoutRepository'; // v12: 어시스트/맨몸 유효무게 @plm SRS-033
 
@@ -324,6 +325,8 @@ export interface WorkoutExerciseDetail {
   weightUnit: 'kg' | 'lb'; // v25 이 블록에 적은 단위 — 세트 무게는 이 단위로 보인다(합계는 kg) @plm SRS-067
   sets: { setNumber: number; weightKg: number; reps: number; rpe: number | null; rir?: number | null; isWarmup: boolean; isFailed: boolean; arm: string | null; partialReps: number | null; loadMultiplier: number | null; grip?: string | null; id?: string; checkState?: 'suspect' | 'confirmed' | null }[]; // id: 기록 상세에서 세트 고치기·지우기(#51) @plm SRS-061
   isCardio?: boolean; // 유산소는 고치기 없이 지우기만(QA Q7) @plm SRS-061
+  /** 원암·원레그 글 — 종목 주 부위로(사용자 지시 2660) */
+  limb?: Limb;
   volumeKg: number;
   bestEstimated1RM: number;
 }
@@ -374,6 +377,7 @@ export async function getWorkoutDetail(workoutId: string): Promise<WorkoutDetail
       scheme: schemeOf(we.prescription ?? null), // 세트 방식 태그(SPEC-041)
       weightUnit: we.weightUnit === 'lb' ? 'lb' : 'kg', // null = kg(운영 기존 기록) @plm SRS-067
       isCardio: exList.find((e) => e.id === we.exerciseId)?.kind === 'cardio',
+      limb: limbOfMuscles(exList.find((e) => e.id === we.exerciseId)?.primaryMuscles),
       sets: sets.map((s) => ({
         id: s.id, // @plm SRS-061
         setNumber: s.setNumber,

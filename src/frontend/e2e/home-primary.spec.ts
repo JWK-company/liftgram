@@ -181,7 +181,7 @@ test("루틴이 있으면 오늘 할 루틴 「시작」이 주 행동, 빠른 �
   await 홈(page);
   await expect(page.getByTestId("next-card")).toContainText("주행동 루틴");
   expect(await filledBrand(page)).toEqual(["btn-start-next"]);
-  // 내 루틴 「▶ 시작」은 판 없는 빨간 글자(SPEC-056 · 2026-11-09 연한 빨강 판에서 바꿈) — 빨강 채움 목록에는 들지 않는다
+  // 내 루틴 「▶ 시작」은 판 없는 빨간 글자 + 회색 테두리 상자(SPEC-056 → 사용자 지시 2650) — 빨강 채움 목록에는 들지 않는다
   const tone = await page
     .getByTestId("btn-start-routine")
     .first()
@@ -198,6 +198,9 @@ test("루틴이 있으면 오늘 할 루틴 「시작」이 주 행동, 빠른 �
       return {
         bg: cs.backgroundColor,
         fg: cs.color,
+        border: cs.borderTopColor,
+        borderW: cs.borderTopWidth,
+        strong: probe("--color-line-strong"),
         muted: probe("--color-brand-muted"),
         brand: probe("--color-brand"),
       };
@@ -207,6 +210,9 @@ test("루틴이 있으면 오늘 할 루틴 「시작」이 주 행동, 빠른 �
   expect(tone.bg).toBe("rgba(0, 0, 0, 0)");
   expect(tone.bg).not.toBe(tone.muted);
   expect(tone.fg).toBe(tone.brand);
+  // 판은 없어도 회색 테두리 상자 — 다크에서 글자처럼 보이던 것(사용자 지시 2650 · 리뷰 M-3)
+  expect(tone.borderW).toBe("1px");
+  expect(tone.border).toBe(tone.strong);
   // 주 버튼이 아닌 「새 루틴 만들기」·「빠른 운동 시작」은 테두리 강조(빨간 테두리·글자 · 카드 판) — 빨강 채움 아님
   for (const id of ["btn-new-routine", "btn-quick-start"]) {
     const o = await page.getByTestId(id).evaluate((el) => {

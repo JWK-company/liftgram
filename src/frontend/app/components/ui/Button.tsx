@@ -24,9 +24,10 @@ function palette(variant: Variant): { bg: string; fg: string; border?: string } 
     case "secondary":
       return { bg: "transparent", fg: "var(--color-ink)", border: "var(--color-line-strong)" };
     case "ghost":
-      // 그대로 — 루틴 카드 「▶ 시작」은 사용자 의견으로 정한 판 없는 빨강 글자(home-primary · REV-149 8). ▶ 아이콘이 신호다.
-      // [보류 SPEC-061] return { bg: "transparent", fg: "var(--color-brand)", border: "var(--color-brand)" };
-      return { bg: "transparent", fg: "var(--color-brand)" };
+      // [원본] return { bg: "transparent", fg: "var(--color-brand)" }; — 판 없는 빨강 글자(REV-149 8). 다크에서 「이 루틴 시작」·「▶ 시작」이
+      //   안내 글처럼 보였다(사용자 지시 2650) → [개선] 회색 테두리 상자 + 빨강 글자·▶ — 루틴마다 되풀이되는 행동이라
+      //   빨강 테두리(outline — 「새 루틴」·「빠른 운동」)와 갈리고 빨강이 화면을 덮지 않는다(SPEC-061 REV-149: 되풀이 = neutral · 리뷰 M-2)
+      return { bg: "transparent", fg: "var(--color-brand)", border: "var(--color-line-strong)" };
     case "danger":
       return { bg: "transparent", fg: "var(--color-bad)", border: "var(--color-bad)" };
     // 조용한 부가 행동 — 상자·빨강 없이 회색 글자(화면 정리 공용 규칙: 빨강은 화면의 주 행동 하나) @plm SRS-072
@@ -125,6 +126,7 @@ export function Button({
       style={style}
       className={`relative inline-flex items-center justify-center gap-[6px] rounded-[var(--radius-sm)] px-[var(--spacing-lg)] font-semibold focus-visible:outline-2 focus-visible:outline-(--color-brand) focus-visible:outline-offset-2
         ${size === "sm" ? "text-[length:var(--text-sm)]" : "text-[length:var(--text-md)]"}
+        ${size === "sm" ? touchPad : ""}
         ${fullWidth ? "w-full" : "self-start px-[var(--spacing-xl)]"}
         ${isDisabled ? "opacity-45" : "active:opacity-85"}
         ${quiet && !isDisabled ? "bg-transparent hover:bg-(--color-surface-alt) active:bg-(--color-surface-alt)" : ""} ${className}`}

@@ -8,7 +8,7 @@ import { authClient } from "@/lib/session";
 import { useAuth } from "../../components/AuthProvider";
 import { AuthPage } from "../../components/auth/AuthPage";
 import AuthClient from "../../components/profile/AuthClient";
-import { Button } from "../../components/ui/Button";
+import { actionBoxClass, Button } from "../../components/ui/Button";
 import { LogoSpinner } from "../../components/ui/LogoSpinner";
 import { AppText, Card } from "../../components/ui/primitives";
 
@@ -124,7 +124,8 @@ export default function ContinueClient({
           {appUrl ? (
             <a
               href={appUrl}
-              className="mt-[var(--spacing-md)] block text-center font-semibold text-(--color-brand)"
+              // [원본] className="mt-[var(--spacing-md)] block text-center font-semibold text-(--color-brand)" — 글자만(사용자 지시 2650)
+              className={`${actionBoxClass("brand")} mt-[var(--spacing-md)] flex min-h-11 w-full px-[var(--spacing-md)] focus-visible:outline-2 focus-visible:outline-(--color-brand)`}
               data-testid="continue-open-app"
             >
               {t("appDist.openApp")}
@@ -137,7 +138,8 @@ export default function ContinueClient({
           <a
             // [원본] href="liftgram://start" — 앱이 「PWA 에서 바꾸기」로 읽어 강조를 켰다(REV-012 화면 M-1)
             href="liftgram://auth?cancel=1"
-            className="mt-[var(--spacing-md)] block text-center font-semibold text-(--color-brand)"
+            // [원본] className="mt-[var(--spacing-md)] block text-center font-semibold text-(--color-brand)" — 글자만(사용자 지시 2650)
+            className={`${actionBoxClass("neutral")} mt-[var(--spacing-md)] flex min-h-11 w-full px-[var(--spacing-md)] focus-visible:outline-2 focus-visible:outline-(--color-brand)`}
             data-testid="continue-other"
           >
             {t("appContinue.other")}

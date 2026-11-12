@@ -627,7 +627,8 @@ export default function CalendarClient() {
                 <Button
                   title={t("calendar.unmark")}
                   size="sm"
-                  variant="ghost"
+                  // [원본] variant="ghost" — 부가 행동인데 빨강(리뷰 M-5 · 사용자 지시 2650)
+                  variant="quiet"
                   fullWidth={false}
                   testId="btn-unmark-day"
                   onPress={() =>

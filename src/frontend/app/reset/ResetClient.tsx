@@ -4,7 +4,7 @@ import { useState } from "react";
 import { t } from "@/lib/i18n";
 import { authClient, clearTokens } from "@/lib/session";
 import { AuthPage } from "../components/auth/AuthPage";
-import { Button } from "../components/ui/Button";
+import { actionBoxClass, Button } from "../components/ui/Button";
 import { TextField } from "../components/ui/inputs";
 import { AppText } from "../components/ui/primitives";
 
@@ -35,7 +35,11 @@ export default function ResetClient({ token }: { token: string }) {
           <AppText variant="body" className="block" data-testid="reset-done">
             {t("reset.done")}
           </AppText>
-          <a href="/account" className="mt-[var(--spacing-md)] block font-semibold text-(--color-brand)">
+          <a
+            href="/account"
+            // [원본] className="mt-[var(--spacing-md)] block font-semibold text-(--color-brand)" — 글자만(사용자 지시 2650)
+            className={`${actionBoxClass("brand")} mt-[var(--spacing-md)] flex min-h-11 w-full px-[var(--spacing-md)] focus-visible:outline-2 focus-visible:outline-(--color-brand)`}
+          >
             {t("complete.back")}
           </a>
         </>
@@ -44,7 +48,11 @@ export default function ResetClient({ token }: { token: string }) {
           <AppText variant="body" color="danger" className="block" data-testid="reset-invalid">
             {t("reset.invalid")}
           </AppText>
-          <a href="/forgot" className="mt-[var(--spacing-md)] block font-semibold text-(--color-brand)">
+          <a
+            href="/forgot"
+            // [원본] className="mt-[var(--spacing-md)] block font-semibold text-(--color-brand)" — 글자만(사용자 지시 2650)
+            className={`${actionBoxClass("brand")} mt-[var(--spacing-md)] flex min-h-11 w-full px-[var(--spacing-md)] focus-visible:outline-2 focus-visible:outline-(--color-brand)`}
+          >
             {t("forgot.title")}
           </a>
         </>

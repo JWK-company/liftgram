@@ -102,3 +102,48 @@ test("운동 중 확인 필요 칩 → lb 로 바로잡기 → 되돌리기 · �
   await page.getByTestId("edit-set-save").click();
   await expect(page.getByTestId("detail-set")).toHaveCount(n + 1, { timeout: 10_000 });
 });
+
+test("세트 고치기 — 단위만 바꾸기(78kg → 78lb): 이 세트만 · 이 운동 모든 세트 · 1RM 도 다시 계산(사용자 지시 2654)", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await 카탈로그_준비(page);
+  await 빠른_운동_시작(page);
+  await 종목_추가(page, 종목);
+  await 세트_기록(page, 0, 0, 78, 12);
+  await 블록(page, 0).getByTestId("btn-add-set").click();
+  await 세트_기록(page, 0, 1, 78, 12);
+  await 마치기(page);
+  await page.goto("/history");
+  await page.getByTestId("history-list").locator("a").first().click();
+  const 줄들 = page.getByTestId("detail-set");
+  await expect(줄들).toHaveCount(2, { timeout: 15_000 });
+  await expect(줄들.nth(0)).toContainText("78kg");
+  const 원래1RM = (await page.getByTestId("detail-1rm").first().textContent()) ?? "";
+
+  // 이 세트만 — 블록은 kg 그대로, 그 세트만 78lb(= 35.38kg)
+  await 줄들.nth(1).click();
+  const sheet = page.getByTestId("edit-set-sheet");
+  await expect(sheet.getByTestId("edit-set-unit-swap")).toHaveText("78kg → 78lb");
+  await sheet.getByTestId("edit-set-unit-swap").click();
+  await expect(sheet.getByTestId("edit-set-unit-pick")).toBeVisible();
+  await expect(sheet.getByTestId("edit-set-unit-all")).toContainText("2세트");
+  await sheet.getByTestId("edit-set-unit-one").click();
+  await expect(sheet).toHaveCount(0, { timeout: 10_000 });
+  await expect(줄들.nth(1)).toContainText("35.38kg", { timeout: 10_000 });
+  await expect(줄들.nth(0)).toContainText("78kg");
+
+  // 이 운동 모든 세트 — 블록이 lb 가 되어 78lb 로 보이고 1RM 도 lb 로 다시 계산된다
+  // 입력칸에서 80 으로 고친 채 누르면 고친 값으로 바뀐다 — 버튼 글과 결과가 같다(리뷰 A-1)
+  await 줄들.nth(0).click();
+  await sheet.getByTestId("edit-set-weight").fill("80");
+  await expect(sheet.getByTestId("edit-set-unit-swap")).toHaveText("80kg → 80lb");
+  await sheet.getByTestId("edit-set-unit-swap").click();
+  await sheet.getByTestId("edit-set-unit-all").click();
+  await expect(sheet).toHaveCount(0, { timeout: 10_000 });
+  await expect(줄들.nth(0)).toContainText("80lb", { timeout: 10_000 });
+  // 앞에서 따로 고친 2세트도 숫자 그대로 단위만(35.38kg → 35.38lb) — 「숫자는 두고 단위만」(리뷰 A-2 · 의도)
+  await expect(줄들.nth(1)).toContainText("35.38lb");
+  await expect(page.getByTestId("detail-1rm").first()).not.toHaveText(원래1RM, { timeout: 10_000 });
+  await expect(page.getByTestId("detail-1rm").first()).toContainText("lb");
+});

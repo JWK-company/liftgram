@@ -19,6 +19,7 @@
 // WatermelonDB의 관찰은 **행이 늘고 주는 것**은 알려 주지만 필드 수정은 알려 주지 않는다.
 // 그래서 볼륨처럼 값이 바뀌어야 다시 그려야 하는 것은 app과 같이 1.5초 폴링으로 따라간다.
 // ─────────────────────────────────────────────────────────────────────────────
+import { limbOfMuscles, type Limb } from "@app/core/domain/variants"; // 원암·원레그 글(2660)
 import { errorText } from "@/lib/errorText";
 import {
   // blockLoadMultiplier, // [원본] V1 배수 — 플레이트 칸 + 「한쪽」 켬일 때만 2(피드백 #63 전)
@@ -217,6 +218,8 @@ export function ExerciseBlock({
   const [loadMode, setLoadMode] = useState<"external" | "assisted" | "bodyweight">("external");
   const [baseEquipment, setBaseEquipment] = useState<EquipmentType | null>(null);
   const [isCardio, setIsCardio] = useState(false);
+  // 원암·원레그 글 — 종목 주 부위로(사용자 지시 2660)
+  const [limb, setLimb] = useState<Limb>("arm");
   // 종목 종류(유산소 여부)를 다 읽었는지 — 읽기 전에는 운동 방법·버튼 줄을 그리지 않는다(첫 그림에 줄이 생겼다 빠지며 표가 튀었다 · REV-130)
   const [kindLoaded, setKindLoaded] = useState(false);
   // 종목마다 기록하는 지표가 다르다(러닝머신=경사·속도, 계단=단계, 줄넘기=시간만) — 도메인이 정한다.
@@ -434,9 +437,11 @@ export function ExerciseBlock({
           kind: string | null;
           nameKo: string;
           nameEn: string | null;
+          primaryMuscles?: string[] | null;
         };
         if (!alive) return;
         setBaseEquipment(e.equipment);
+        setLimb(limbOfMuscles(e.primaryMuscles));
         setIsCardio(e.kind === "cardio");
         setCardioMetrics(cardioMetricsFor({ nameEn: e.nameEn }));
         // [원본] setExName(e.nameKo);
@@ -1415,6 +1420,7 @@ export function ExerciseBlock({
               <SetRowEdit
                 key={s.id}
                 set={s}
+                limb={limb}
                 label={labels[i].label}
                 labelColor={labels[i].color}
                 prev={shownPrev[i] ?? null}

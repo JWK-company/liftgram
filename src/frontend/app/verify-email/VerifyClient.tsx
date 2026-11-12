@@ -1,5 +1,6 @@
 "use client";
 // @plm SRS-052  이메일 확인 화면 — 열자마자 한 번 확인한다(링크는 한 번만 통한다)
+import { actionBoxClass } from "@/app/components/ui/Button";
 import { useEffect, useRef, useState } from "react";
 import { t } from "@/lib/i18n";
 import { authClient } from "@/lib/session";
@@ -45,7 +46,11 @@ export default function VerifyClient({ token }: { token: string }) {
             : t("verify.invalid")}
       </AppText>
       {state !== "working" ? (
-        <a href="/account" className="mt-[var(--spacing-md)] block font-semibold text-(--color-brand)">
+        <a
+          href="/account"
+          // [원본] className="mt-[var(--spacing-md)] block font-semibold text-(--color-brand)" — 글자만(사용자 지시 2650)
+          className={`${actionBoxClass("brand")} mt-[var(--spacing-md)] flex min-h-11 w-full px-[var(--spacing-md)] focus-visible:outline-2 focus-visible:outline-(--color-brand)`}
+        >
           {t("complete.back")}
         </a>
       ) : null}

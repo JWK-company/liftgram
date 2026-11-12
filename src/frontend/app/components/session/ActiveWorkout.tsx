@@ -387,7 +387,13 @@ export default function ActiveWorkout() {
               // [원본] className="flex max-w-full min-w-0 items-center"
               className="relative flex max-w-full min-w-0 items-center before:absolute before:inset-x-0 before:top-1/2 before:h-11 before:-translate-y-1/2 before:content-['']"
             >
-              <AppText variant="label" color={paused ? "warning" : "textMuted"} className="min-w-0 truncate">
+              {/* [원본] className="min-w-0 truncate" — 연필 아이콘만으로는 다크에서 안내 글처럼 보였다 */}
+              {/* [개선] 누를 수 있는 메타 글자 = 얇은 밑줄(SPEC-061 2A · 사용자 지시 2650) */}
+              <AppText
+                variant="label"
+                color={paused ? "warning" : "textMuted"}
+                className="min-w-0 truncate underline decoration-(--color-ink3) decoration-1 underline-offset-[3px]"
+              >
                 {paused ? t("session.paused") : (workout.name ?? t("session.inProgress"))}
               </AppText>
               <Icon name="pencil" size={12} color="var(--color-ink3)" className="ml-[4px]" />

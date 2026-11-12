@@ -277,7 +277,9 @@ function Band({ name }: { name: string | null }) {
         href="/coaching"
         data-testid="member-exit"
         // [원본] className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-[var(--radius-md)] px-[var(--spacing-sm)] font-semibold text-(--color-coaching-ink) text-[length:var(--text-sm)]" — 누르는 것 4px(R1a)
-        className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-[var(--radius-sm)] px-[var(--spacing-sm)] font-semibold text-(--color-coaching-ink) text-[length:var(--text-sm)]"
+        // [원본] className="… rounded-[var(--radius-sm)] px-[var(--spacing-sm)] font-semibold text-(--color-coaching-ink) …" — 글자만(사용자 지시 2650)
+        // [개선] 같은 청록 테두리 상자(44px — 크기 시험)
+        className={`inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-[var(--radius-sm)] border border-(--color-coaching-ink) px-[var(--spacing-sm)] font-semibold text-(--color-coaching-ink) text-[length:var(--text-sm)]`}
       >
         {t("coaching.member.exit")}
       </a>

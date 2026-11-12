@@ -63,6 +63,7 @@ export function StoryTray({
         disabled={busy}
         onClick={() => (mine ? onOpen(mine) : inputRef.current?.click())}
         data-testid="story-mine"
+        data-affordance="tile" // 동그란 사진 칸 — 사진이 단추다(단추 가드 예외 · 사용자 지시 2650)
         className="flex shrink-0 flex-col items-center"
         style={{ width: AVATAR + 16 }}
       >
@@ -106,6 +107,7 @@ export function StoryTray({
           type="button"
           onClick={() => onOpen(g)}
           data-testid="story-tile"
+          data-affordance="tile" // 동그란 사진 칸 — 사진이 단추다(단추 가드 예외 · 사용자 지시 2650)
           className="flex shrink-0 flex-col items-center"
           style={{ width: AVATAR + 16 }}
         >

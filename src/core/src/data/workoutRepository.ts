@@ -63,6 +63,8 @@ import {
   type VariantDims,
   type GripKey,
   type ArmKey,
+  limbOfMuscles, // 원암·원레그 글(2660)
+  uniShortLabel,
 } from '../domain/variants'; // @plm SRS-028
 import {
   pickStartSlot,
@@ -1213,6 +1215,7 @@ export async function loadLockSnapshotInput(workoutId: string, lang: 'ko' | 'en'
   const recById = new Map(recs.map((r) => [r.id, r]));
   const exs = await database.get<Exercise>('exercises').query(Q.where('id', Q.oneOf([...new Set(wes.map((x) => x.exerciseId))]))).fetch();
   const cardio = new Set(exs.filter((e) => e.kind === 'cardio').map((e) => e.id));
+  const limbOf = new Map(exs.map((e) => [e.id, limbOfMuscles(e.primaryMuscles)])); // 원암·원레그(2660)
   // 종목별 유산소 지표 — 시간만 재는 종목은 거리 없이도 잠금 완료(REV-007 표시 H-2)
   const metricsOf = new Map(exs.map((e) => [e.id, cardioMetricsFor(e) as string[]]));
   const groupOf = new Map(wes.map((x) => [x.id, x.supersetGroup]));
@@ -1247,7 +1250,8 @@ export async function loadLockSnapshotInput(workoutId: string, lang: 'ko' | 'en'
           ...s,
           tags: isCardio
             ? []
-            : [r?.arm === 'uni' ? (lang === 'ko' ? '원암' : '1-arm') : null /* 세트 칩과 같은 짧은 글(session.armUni) */, gripShortLabel((r?.grip as GripKey | null) ?? null, lang)],
+            // [원본] : [r?.arm === 'uni' ? (lang === 'ko' ? '원암' : '1-arm') : null /* 세트 칩과 같은 짧은 글(session.armUni) */, gripShortLabel((r?.grip as GripKey | null) ?? null, lang)],
+            : [r?.arm === 'uni' ? uniShortLabel(limbOf.get(b.exerciseId) ?? 'arm', lang) : null /* 세트 칩과 같은 짧은 글(session.armUni·legUni) */, gripShortLabel((r?.grip as GripKey | null) ?? null, lang)],
           userEdited: r?.userEdited ?? null,
           valueSource: r?.valueSource ?? null,
           cardio: isCardio ? { distance: r?.distanceM ?? null, seconds: r?.durationSec ?? null, metrics: metricsOf.get(b.exerciseId) } : null,

@@ -510,7 +510,11 @@ export default function RoutinesClient() {
               >
                 {/* 누를 수 있는 값은 옅은 칩(v0.82.0 규칙) — 제목·배지와 같은 글자로만 두면 단추로 안 보인다 */}
                 {/* [원본] <span className="flex items-center gap-[4px] rounded-[var(--radius-pill)] border border-(--color-line) bg-(--color-surface-alt) px-[10px] py-[4px]"> — 누를 수 있는 값 판 4px · 테두리 없음(SPEC-057 R1c) */}
-                <span className="flex items-center gap-[4px] rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[10px] py-[4px]">
+                {/* [원본] <span className="flex items-center gap-[4px] rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[10px] py-[4px]"> — 옅은 판(다크에서 글자처럼 보임 · 사용자 지시 2650) */}
+                <span
+                  data-affordance="box"
+                  className="flex items-center gap-[4px] rounded-[var(--radius-sm)] border border-(--color-line-strong) px-[10px] py-[4px]"
+                >
                   {/* [원본] Icon color brand · AppText color primary — 누를 수 있는 값은 판이 말한다, 빨강은 주 행동에만(SRS-069 · REV-131) */}
                   <Icon name="calendar-outline" size={16} color="var(--color-ink2)" />
                   <AppText variant="label" color="text" className="font-semibold">

@@ -22,7 +22,7 @@ import {
 } from "@/lib/appDistribution";
 import { type TransKey, t } from "@/lib/i18n";
 import { useAuth } from "../AuthProvider";
-import { Button } from "../ui/Button";
+import { actionBoxClass, Button, touchPad } from "../ui/Button";
 import { SheetShell } from "../ui/Dialog";
 import { AppText, Card } from "../ui/primitives";
 
@@ -176,7 +176,8 @@ export function SwitchToAppSheet({
               {check.why === "logged-out" ? (
                 <a
                   href="/account"
-                  className="mt-[var(--spacing-xs)] flex min-h-[44px] items-center font-semibold text-(--color-brand) focus-visible:outline-2 focus-visible:outline-(--color-brand)"
+                  // [원본] className="mt-[var(--spacing-xs)] flex min-h-[44px] items-center font-semibold text-(--color-brand) …" — 글자만(사용자 지시 2650)
+                  className={`${actionBoxClass("brand")} ${touchPad} mt-[var(--spacing-sm)] min-h-[40px] px-[var(--spacing-md)] focus-visible:outline-2 focus-visible:outline-(--color-brand)`}
                 >
                   {t("syncHealth.openProfile")}
                 </a>
