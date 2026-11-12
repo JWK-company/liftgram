@@ -107,6 +107,14 @@ const config: NextConfig = {
         source: "/downloads/android.json",
         headers: [{ key: "Cache-Control", value: "no-store" }],
       },
+      // 쿠폰 화면 — 브라우저·엣지가 담지 않고, 바깥 링크로 수상 id 가 새지 않게(SPEC-063 · REV-155 보안 4)
+      {
+        source: "/awards/:id",
+        headers: [
+          { key: "Cache-Control", value: "no-store" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+        ],
+      },
     ];
   },
 };

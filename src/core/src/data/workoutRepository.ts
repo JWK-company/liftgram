@@ -3942,6 +3942,25 @@ export async function countCompletedWorkouts(): Promise<number> {
   return workouts().query(Q.where('state', 'completed')).fetchCount();
 }
 
+/**
+ * 이달의 리프터(SPEC-063) — 이 기기 기록으로 센 「운동한 날」. 서버 집계와 같은 기준:
+ * 완료 · 앱 기록(source null) · 10분 이상 · 시작 시각이 [fromMs, toMs) · 한국 시간 날짜로 하루.
+ * 서버는 동기된 기록만 세므로 동기 전에는 이 숫자가 클 수 있다(화면이 둘 다 보인다).
+ */
+export async function countWorkoutDaysInRange(fromMs: number, toMs: number): Promise<number> {
+  const rows = await workouts()
+    .query(Q.where('state', 'completed'), Q.where('started_at', Q.gte(fromMs)), Q.where('started_at', Q.lt(toMs)))
+    .fetch();
+  const KST_MS = 9 * 60 * 60 * 1000;
+  const days = new Set<number>();
+  for (const w of rows) {
+    if (w.source != null) continue;
+    if ((w.durationSeconds ?? 0) < 600) continue;
+    days.add(Math.floor((w.startedAt + KST_MS) / 86_400_000));
+  }
+  return days.size;
+}
+
 /** 시험용 — 같은 실행 안의 백필 표식을 푼다 */
 export function __resetSuspectBackfillForTest(): void {
   backfillRan = false;

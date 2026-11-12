@@ -54,6 +54,8 @@ const (
 	NotificationKind_NOTIFICATION_KIND_COACHING_ROUTINE_UPDATE NotificationKind = 9
 	// 코치가 운동에 코멘트를 남겼다 — ref_id 는 운동 id(/history/[ref_id]).
 	NotificationKind_NOTIFICATION_KIND_COACHING_COMMENT NotificationKind = 10
+	// 이달의 리프터 수상(SPEC-063) — ref_id 는 수상 id(/awards/[ref_id]). actor 는 받는 사람 자신이다(운영자 이름을 보이지 않게).
+	NotificationKind_NOTIFICATION_KIND_AWARD NotificationKind = 11
 )
 
 // Enum value maps for NotificationKind.
@@ -70,6 +72,7 @@ var (
 		8:  "NOTIFICATION_KIND_COACHING_ROUTINE",
 		9:  "NOTIFICATION_KIND_COACHING_ROUTINE_UPDATE",
 		10: "NOTIFICATION_KIND_COACHING_COMMENT",
+		11: "NOTIFICATION_KIND_AWARD",
 	}
 	NotificationKind_value = map[string]int32{
 		"NOTIFICATION_KIND_UNSPECIFIED":             0,
@@ -83,6 +86,7 @@ var (
 		"NOTIFICATION_KIND_COACHING_ROUTINE":        8,
 		"NOTIFICATION_KIND_COACHING_ROUTINE_UPDATE": 9,
 		"NOTIFICATION_KIND_COACHING_COMMENT":        10,
+		"NOTIFICATION_KIND_AWARD":                   11,
 	}
 )
 
@@ -534,7 +538,7 @@ const file_notification_v1_notification_proto_rawDesc = "" +
 	"\x13UnreadCountResponse\x12\x14\n" +
 	"\x05count\x18\x01 \x01(\x05R\x05count\"\x14\n" +
 	"\x12MarkAllReadRequest\"\x15\n" +
-	"\x13MarkAllReadResponse*\xab\x03\n" +
+	"\x13MarkAllReadResponse*\xc8\x03\n" +
 	"\x10NotificationKind\x12!\n" +
 	"\x1dNOTIFICATION_KIND_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18NOTIFICATION_KIND_FOLLOW\x10\x01\x12\x1a\n" +
@@ -547,7 +551,8 @@ const file_notification_v1_notification_proto_rawDesc = "" +
 	"\"NOTIFICATION_KIND_COACHING_ROUTINE\x10\b\x12-\n" +
 	")NOTIFICATION_KIND_COACHING_ROUTINE_UPDATE\x10\t\x12&\n" +
 	"\"NOTIFICATION_KIND_COACHING_COMMENT\x10\n" +
-	"2\xbb\x02\n" +
+	"\x12\x1b\n" +
+	"\x17NOTIFICATION_KIND_AWARD\x10\v2\xbb\x02\n" +
 	"\x13NotificationService\x12l\n" +
 	"\x11ListNotifications\x12).notification.v1.ListNotificationsRequest\x1a*.notification.v1.ListNotificationsResponse\"\x00\x12Z\n" +
 	"\vUnreadCount\x12#.notification.v1.UnreadCountRequest\x1a$.notification.v1.UnreadCountResponse\"\x00\x12Z\n" +

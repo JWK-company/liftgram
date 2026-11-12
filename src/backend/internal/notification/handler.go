@@ -82,6 +82,8 @@ func toProtoKind(k Kind) notificationv1.NotificationKind {
 		return notificationv1.NotificationKind_NOTIFICATION_KIND_COACHING_ROUTINE_UPDATE
 	case KindCoachingComment:
 		return notificationv1.NotificationKind_NOTIFICATION_KIND_COACHING_COMMENT
+	case KindAward: // SPEC-063
+		return notificationv1.NotificationKind_NOTIFICATION_KIND_AWARD
 	}
 	return notificationv1.NotificationKind_NOTIFICATION_KIND_UNSPECIFIED
 }

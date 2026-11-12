@@ -58,6 +58,8 @@ const OPS_SERVICES = new Map<string, Set<string>>([
   ["ops.v1.opsservice", new Set(["reportclienthealth"])],
   ["moderation.v1.moderationservice", new Set(["report"])],
   ["feedback.v1.feedbackservice", new Set(["submituserfeedback"])],
+  // 이달의 리프터 운영(SPEC-063) — 통째로 막는다. 앱용은 award.v1.AwardService 로 따로 있다.
+  ["award.v1.awardadminservice", new Set()],
 ]);
 
 /** 경로를 백엔드가 해석할 모양으로 풀어 판정한다. 인코딩·대소문자·겹슬래시로 비껴가지 못하게 한다. */

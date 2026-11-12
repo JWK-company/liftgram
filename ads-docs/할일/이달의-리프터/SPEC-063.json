@@ -1,0 +1,5335 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "목표",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "매달 꾸준히 운동한 사람과 피드에서 응원을 많이 받은 사람에게 상품권(개당 5만 원 이하)을 주고, 앱에서 수상자를 공개한다(URS-034 · SRS-117 · 기획 보고서 결정 2519).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "서버가 자격·운동한 날·인정 좋아요를 세고, 꾸준상을 결정적으로 추첨하고, 확정·알림·쿠폰 전달을 맡는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "앱: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/awards",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 화면과 진입점 다섯 곳(피드 띠 · 운동 요약 줄 · 프로필 줄 · 배지 · 알림).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "운영 웹: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/awards",
+                    "type": "text"
+                  },
+                  {
+                    "text": "에서 후보 보기 → 추첨 미리보기 → 확정 → 쿠폰 등록.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "아직 수상자가 없으므로",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 수상자 자리에 「예시」라고 적은 보기 카드를 보여 준다. 보기 내용은 앱 코드 안의 고정 글이다. DB에 가짜 사용자나 가짜 수상 행을 만들지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "범위",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "파일",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "무엇을",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/database/migrations/0037_awards.sql",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "award_months",
+                        "type": "text"
+                      },
+                      {
+                        "text": "(달·씨앗·상태) · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "awards",
+                        "type": "text"
+                      },
+                      {
+                        "text": "(수상·쿠폰·공개·받음)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/database/queries/award.sql",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "운동한 날 집계 · 인정 좋아요 집계 · 자격 · 수상 읽기·쓰기",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/proto/award/v1/award.proto",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "AwardService",
+                        "type": "text"
+                      },
+                      {
+                        "text": "(사용자) · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "AwardAdminService",
+                        "type": "text"
+                      },
+                      {
+                        "text": "(운영)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/internal/award/{service.go,repo.go,handler.go,service_test.go}",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "규칙(달 경계·자격·추첨·확정·권한) · 데이터 · RPC",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/cmd/server/main.go",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "조립",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/proto/notification/v1/notification.proto",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/internal/notification/{service.go,handler.go}",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "NOTIFICATION_KIND_AWARD = 11",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "KindAward",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "NotifySelf",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/api/[...path]/route.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "award.v1.awardadminservice",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 통째로 차단",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/awards/page.tsx",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/awards/[id]/page.tsx",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/awards/*",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/lib/awardClient.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "앱 화면",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/feed/FeedClient.tsx",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/session/WorkoutSummary.tsx",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/ui/TabBar.tsx",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/profile/ProfileClient.tsx",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/feed/UserProfileClient.tsx",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/dm/NotificationsClient.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "진입점",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/data/workoutRepository.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "countWorkoutDaysInRange(fromMs, toMs)",
+                        "type": "text"
+                      },
+                      {
+                        "text": " — 운동 요약 줄(기기 기록 기준)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/i18n/locales/ko.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/i18n/locales/en.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "문구",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/admin/app/(console)/awards/{page.tsx,AwardsScreen.tsx}",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/admin/lib/rpcAllow.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/admin/lib/rpc.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · 운영 웹 메뉴",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "운영 웹",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/awards.spec.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/admin/e2e/*",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "시험",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/package.json",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/admin/package.json",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "웹 0.102.0 · 운영 웹 minor",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "설계",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "(REV-153 반영)",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "1. 데이터",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "attrs": {
+          "language": "sql"
+        },
+        "content": [
+          {
+            "text": "award_months(month text PK /* 'YYYY-MM' KST */, seed text NOT NULL, seed_hash text NOT NULL,\n             status text NOT NULL CHECK (status IN ('open','announced')),\n             candidates_hash text, announced_at timestamptz,\n             announced_by text REFERENCES users(id) ON DELETE SET NULL, created_at timestamptz DEFAULT now())\nawards(id text PK, month text NOT NULL REFERENCES award_months(month),\n       category text NOT NULL CHECK (category IN ('steady','popular','pick')),\n       user_id text REFERENCES users(id) ON DELETE SET NULL, rank int NOT NULL DEFAULT 1, reason text,\n       days int, likes int, public boolean NOT NULL DEFAULT true,\n       coupon_code text, coupon_item text, coupon_expires date, coupon_set_by text REFERENCES users(id) ON DELETE SET NULL,\n       coupon_set_at timestamptz, claimed_at timestamptz, created_at timestamptz DEFAULT now(),\n       UNIQUE(month, user_id), UNIQUE(month, category, rank))\nCREATE INDEX post_likes_created_idx ON post_likes(created_at)",
+            "type": "text"
+          }
+        ],
+        "type": "code_block"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "씨앗은 미리 정해 두고 해시만 공개한다(커밋-공개).",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 그 달의 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "award_months",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 행은 그 달 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "GetMonth",
+                    "type": "text"
+                  },
+                  {
+                    "text": "를 처음 부를 때 서버가 만든다(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "ON CONFLICT DO NOTHING",
+                    "type": "text"
+                  },
+                  {
+                    "text": ", status ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "open",
+                    "type": "text"
+                  },
+                  {
+                    "text": "). 씨앗은 32바이트 난수이고, 앱 규칙 화면에는 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "seed_hash = sha256(seed)",
+                    "type": "text"
+                  },
+                  {
+                    "text": "만 보인다. 확정한 뒤에 씨앗 원문을 공개한다. 운영 웹에는 씨앗 입력 칸이 없다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "쿠폰 번호에는 UNIQUE를 걸지 않는다. 오류 상세에 번호가 찍히지 않게 하기 위해서다. 탈퇴하면 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "user_id",
+                    "type": "text"
+                  },
+                  {
+                    "text": "가 NULL이 되고, 화면에는 「탈퇴한 수상자」로 보인다(지급 기록은 남는다).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "2. 규칙(service.go — DB 없이 시험)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "MonthBounds(month)",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 한국 시간 1일 0시부터 다음 달 1일 0시까지를 ms로 계산한다. Go에서 계산해 SQL에 넘긴다. 형식이 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "YYYY-MM",
+                    "type": "text"
+                  },
+                  {
+                    "text": "이 아니면 오류다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "운동한 날",
+                    "type": "text"
+                  },
+                  {
+                    "text": ":",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "대상은 ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "sync_records",
+                            "type": "text"
+                          },
+                          {
+                            "text": "에서 collection이 ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "workouts",
+                            "type": "text"
+                          },
+                          {
+                            "text": "이고 지워지지 않은 행이다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "조건을 모두 맞춰야 한다: ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "state = '\"completed\"'::jsonb",
+                            "type": "text"
+                          },
+                          {
+                            "text": ", ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "source",
+                            "type": "text"
+                          },
+                          {
+                            "text": "가 null, ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "jsonb_typeof",
+                            "type": "text"
+                          },
+                          {
+                            "text": " 검사를 거친 ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "started_at",
+                            "type": "text"
+                          },
+                          {
+                            "text": "이 달 안, ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "duration_seconds ≥ 600",
+                            "type": "text"
+                          },
+                          {
+                            "text": ".",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "서버 수신 시각 검사",
+                            "type": "text"
+                          },
+                          {
+                            "text": ": ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "sync_records.created_at",
+                            "type": "text"
+                          },
+                          {
+                            "text": "이 ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "started_at − 1시간",
+                            "type": "text"
+                          },
+                          {
+                            "text": " 이후이고 ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "started_at + 3일",
+                            "type": "text"
+                          },
+                          {
+                            "text": " 이전이어야 한다. 지난 날짜를 한꺼번에 올린 기록은 세지 않는다. 인덱스를 타도록 ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "created_at ≥ 달 시작 − 1시간",
+                            "type": "text"
+                          },
+                          {
+                            "text": "도 건다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "이렇게 고른 기록의 서로 다른 KST 날짜 수를 센다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "읽기 전용 트랜잭션에 5초 상한을 둔다(",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "src/backend/internal/admin/repo.go",
+                            "type": "text"
+                          },
+                          {
+                            "text": " 패턴).",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  }
+                ],
+                "type": "bullet_list"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "인정 좋아요",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "post_likes",
+                    "type": "text"
+                  },
+                  {
+                    "text": " × ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "posts",
+                    "type": "text"
+                  },
+                  {
+                    "text": "에서 센다. 글 조건은 작성자 = 대상, 공개, 승인, ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "official_meta",
+                    "type": "text"
+                  },
+                  {
+                    "text": " null이다. 좋아요는 다음을 모두 맞춰야 한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "좋아요 시각이 달 안이다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "누른 사람 ≠ 작성자.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "누른 사람은 role user, 통계 제외 아님, ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "email_verified_at ≤ 좋아요 시각",
+                            "type": "text"
+                          },
+                          {
+                            "text": ", 그 시각에 가입 7일이 지났다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "작성자와 누른 사람 사이에 차단(양방향)이 없다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "누른 사람 한 명이 같은 작성자에게 준 좋아요는 그 달 최대 5개까지만",
+                            "type": "text"
+                          },
+                          {
+                            "text": " 센다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "결과로 인정 좋아요 수와 고유 누른 사람 수를 함께 준다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  }
+                ],
+                "type": "bullet_list"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "자격",
+                    "type": "text"
+                  },
+                  {
+                    "text": " ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "Eligible(u, monthEnd)",
+                    "type": "text"
+                  },
+                  {
+                    "text": ":",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "조건: role user · ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "stats_excluded",
+                            "type": "text"
+                          },
+                          {
+                            "text": " false · ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "email_verified_at",
+                            "type": "text"
+                          },
+                          {
+                            "text": " 있음 · ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "age_confirmed_at",
+                            "type": "text"
+                          },
+                          {
+                            "text": " 있음 · ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "created_at ≤ monthEnd − 7일",
+                            "type": "text"
+                          },
+                          {
+                            "text": ".",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "자격이 없으면 이유 목록(",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "new",
+                            "type": "text"
+                          },
+                          {
+                            "text": "·",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "email",
+                            "type": "text"
+                          },
+                          {
+                            "text": "·",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "age",
+                            "type": "text"
+                          },
+                          {
+                            "text": "·",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "role",
+                            "type": "text"
+                          },
+                          {
+                            "text": "·",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "excluded",
+                            "type": "text"
+                          },
+                          {
+                            "text": ")을 준다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  }
+                ],
+                "type": "bullet_list"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "추첨",
+                    "type": "text"
+                  },
+                  {
+                    "text": " ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "Draw(seed, candidates, exclude, n=3)",
+                    "type": "text"
+                  },
+                  {
+                    "text": ":",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "후보는 자격이 있고 days ≥ 12인 사람 중 exclude(인기상·픽 수상자)를 뺀 사람이다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "후보마다 sha256(seed + \":\" + userId)를 구하고, 16진수 사전순으로 작은 n명을 뽑는다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "순서는 ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "인기상·픽을 먼저 고르고, 그 둘을 뺀 뒤 추첨",
+                            "type": "text"
+                          },
+                          {
+                            "text": "이다. 미리보기도 고른 두 사람을 빼고 계산한다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  }
+                ],
+                "type": "bullet_list"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "확정",
+                    "type": "text"
+                  },
+                  {
+                    "text": " ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "Confirm(month, popularId?, pickId?, pickReason)",
+                    "type": "text"
+                  },
+                  {
+                    "text": ":",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "admin 역할만",
+                            "type": "text"
+                          },
+                          {
+                            "text": " 할 수 있다(",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "access.Require",
+                            "type": "text"
+                          },
+                          {
+                            "text": " — DB 역할을 다시 읽는다).",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "끝난 달만",
+                            "type": "text"
+                          },
+                          {
+                            "text": " 확정한다. 지금이 다음 달 3일 0시(KST) 이후여야 한다. 동기 유예를 두기 위해서다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "고른 사람은 자격이 있어야 한다. 인기상과 픽이 같은 사람이면 Validation 오류다. 픽은 이유를 꼭 적는다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "처리 순서:",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "한 트랜잭션 안에서 ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "UPDATE award_months SET status='announced' … WHERE month=$1 AND status='open' RETURNING",
+                            "type": "text"
+                          },
+                          {
+                            "text": "을 실행한다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "행이 나오지 않으면 이미 확정된 것이다. 기존 결과와 ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "already_confirmed = true",
+                            "type": "text"
+                          },
+                          {
+                            "text": "를 돌려주고, 쓰기와 알림을 모두 건너뛴다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "행이 나오면 ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "awards",
+                            "type": "text"
+                          },
+                          {
+                            "text": "를 삽입하고 ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "candidates_hash",
+                            "type": "text"
+                          },
+                          {
+                            "text": "(정렬한 후보 id의 sha256)를 기록한다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "커밋한 뒤 처음 쓴 요청만",
+                            "type": "text"
+                          },
+                          {
+                            "text": " 수상자에게 알림을 보낸다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  }
+                ],
+                "type": "bullet_list"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "쿠폰",
+                    "type": "text"
+                  },
+                  {
+                    "text": " ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "SetCoupon(awardId, code, item, expires)",
+                    "type": "text"
+                  },
+                  {
+                    "text": ":",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "admin만 할 수 있다. ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "coupon_set_by",
+                            "type": "text"
+                          },
+                          {
+                            "text": "와 ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "coupon_set_at",
+                            "type": "text"
+                          },
+                          {
+                            "text": "을 기록한다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "받음 표시는 번호가 실제로 바뀐 경우에만 지운다: ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "claimed_at = CASE WHEN coupon_code IS DISTINCT FROM @code THEN NULL ELSE claimed_at END",
+                            "type": "text"
+                          },
+                          {
+                            "text": ".",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "번호는 로그에 남기지 않는다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  }
+                ],
+                "type": "bullet_list"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "사용자 동작",
+                    "type": "text"
+                  },
+                  {
+                    "text": ":",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "MarkClaimed(awardId)",
+                            "type": "text"
+                          },
+                          {
+                            "text": "는 본인만 할 수 있고, 번호가 있어야 한다. 되돌리기도 된다(",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "claimed",
+                            "type": "text"
+                          },
+                          {
+                            "text": " 참·거짓).",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "SetPublic(awardId, on)",
+                            "type": "text"
+                          },
+                          {
+                            "text": "은 본인만 할 수 있다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "다른 사람의 수상이면 not found다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  }
+                ],
+                "type": "bullet_list"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "알림",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 새 종류 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "KindAward = \"award\"",
+                    "type": "text"
+                  },
+                  {
+                    "text": "를 둔다. ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "notification.Service.NotifySelf(userID, kind, refID)",
+                    "type": "text"
+                  },
+                  {
+                    "text": "가 actor를 받는 사람 자신으로 기록한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "이렇게 하면 운영자 이름이 나오지 않고, 차단 필터와 운영 계정 삭제의 영향을 받지 않는다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "화면은 award 알림에서 actor를 쓰지 않는다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "toProtoKind",
+                            "type": "text"
+                          },
+                          {
+                            "text": "에 분기를 더한다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  }
+                ],
+                "type": "bullet_list"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "3. 계약(award.v1)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "공개용 메시지 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "PublicAward",
+                    "type": "text"
+                  },
+                  {
+                    "text": "에는 쿠폰 필드가 아예 없다. 공개를 끈 수상자는 이름·아바타·id·days·likes가 비어 있고 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "hidden = true",
+                    "type": "text"
+                  },
+                  {
+                    "text": "다. 탈퇴한 수상자는 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "withdrawn = true",
+                    "type": "text"
+                  },
+                  {
+                    "text": "다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "AwardService",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(앱):",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "GetMonth(month?)",
+                            "type": "text"
+                          },
+                          {
+                            "text": "는 다음을 돌려준다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "달",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "내 운동한 날(동기 기준) · 문턱 12",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "내 인정 좋아요",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "내 자격(이유)",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "seed_hash",
+                            "type": "text"
+                          },
+                          {
+                            "text": " · 발표 여부 · 발표됐으면 씨앗 원문",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "수상자 목록(PublicAward)",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "ListMonths(limit)",
+                            "type": "text"
+                          },
+                          {
+                            "text": ": 발표된 달과 수상자를 돌려준다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "ListMyAwards",
+                            "type": "text"
+                          },
+                          {
+                            "text": ": 내 수상 목록이다. 쿠폰은 ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "있음·없음만",
+                            "type": "text"
+                          },
+                          {
+                            "text": " 알려 준다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "GetMyAward(id)",
+                            "type": "text"
+                          },
+                          {
+                            "text": ": 내 수상 하나다. ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "쿠폰 번호는 여기서만",
+                            "type": "text"
+                          },
+                          {
+                            "text": " 나간다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "MarkClaimed",
+                            "type": "text"
+                          },
+                          {
+                            "text": " · ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "SetPublic",
+                            "type": "text"
+                          },
+                          {
+                            "text": ".",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "GetUserBadges(userId)",
+                            "type": "text"
+                          },
+                          {
+                            "text": ": 공개 수상만 돌려준다. 서로 차단한 사이면 빈 목록이다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  }
+                ],
+                "type": "bullet_list"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "AwardAdminService",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(운영 웹, admin만):",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "Candidates(month)",
+                            "type": "text"
+                          },
+                          {
+                            "text": ": 꾸준 후보와 인기 상위 20을 돌려준다. 자격 이유, 고유 누른 사람 수, 의심 지표(늦게 올라와 뺀 기록 수)를 함께 준다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "DrawPreview(month, excludeIds)",
+                            "type": "text"
+                          },
+                          {
+                            "text": ": 저장된 씨앗으로만 계산한다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "Confirm",
+                            "type": "text"
+                          },
+                          {
+                            "text": ".",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "ListAwards(month)",
+                            "type": "text"
+                          },
+                          {
+                            "text": ": 쿠폰 번호는 뒤 4자리만 보인다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "SetCoupon",
+                            "type": "text"
+                          },
+                          {
+                            "text": ".",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  }
+                ],
+                "type": "bullet_list"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "앱 프록시 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "OPS_SERVICES",
+                    "type": "text"
+                  },
+                  {
+                    "text": "에서 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "award.v1.awardadminservice",
+                    "type": "text"
+                  },
+                  {
+                    "text": "를 빈 집합으로 둔다. 대소문자와 % 인코딩 경로도 시험한다. 운영 웹 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "ALLOWED_RPCS",
+                    "type": "text"
+                  },
+                  {
+                    "text": "에는 운영 RPC 5개만 넣는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "4. 앱 화면",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/awards",
+                    "type": "text"
+                  },
+                  {
+                    "text": "는 피드 탭 구역에 둔다. ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "TabBar",
+                    "type": "text"
+                  },
+                  {
+                    "text": " match에 넣고, ← 기본 경로는 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/feed",
+                    "type": "text"
+                  },
+                  {
+                    "text": "다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "머리",
+                            "type": "text"
+                          },
+                          {
+                            "text": ": 「이달의 리프터 · <달 이름>」(",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "Intl",
+                            "type": "text"
+                          },
+                          {
+                            "text": " 달 이름).",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "내 현황 카드",
+                            "type": "text"
+                          },
+                          {
+                            "text": "(로그인했을 때만):",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "「이번 달 운동한 날 n / 12」 막대(",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "role=progressbar",
+                            "type": "text"
+                          },
+                          {
+                            "text": ")와 인정 좋아요 n을 보여 준다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "자격이 모자라면 모자란 것만 한 줄씩 적는다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "기기 기록 수 m이 서버 수 n보다 크면 「동기된 기록 n일 · 이 기기 m일(동기 대기)」을 함께 적는다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "수상자",
+                            "type": "text"
+                          },
+                          {
+                            "text": ":",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "발표된 달이 하나라도 있으면 가장 최근 발표 달의 실제 수상자를 보인다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "지난 달이 아직 집계 중이면(다음 달 1~2일) 「<지난 달> 발표 준비 중」을 적는다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "발표된 달이 하나도 없을 때만",
+                            "type": "text"
+                          },
+                          {
+                            "text": " 「예시」 구역을 보인다. 이 구역은 이렇게 만든다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "구역 머리: 「예시 — 실제 수상자가 아니에요」.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "카드 3장: 꾸준상 예시(이름 3개를 한 카드에) · 인기상 예시 · 운영진 픽 예시.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "이름 글 자체가 「예시 리프터 A」처럼 「예시」를 담는다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "아바타는 실루엣이고 테두리는 점선이다. PR 금색은 쓰지 않는다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "aria-label",
+                            "type": "text"
+                          },
+                          {
+                            "text": "은 「예시 카드, 실제 수상자 아님」이다. 링크·누르기는 없다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "내 상",
+                            "type": "text"
+                          },
+                          {
+                            "text": ": 상이 있으면 쿠폰 화면으로 가는 줄을 둔다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "규칙 접기",
+                            "type": "text"
+                          },
+                          {
+                            "text": ":",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "기준(운동한 날 12일 · 10분 이상 · 동기 기준 · 지난 날짜를 몰아 올린 기록 제외)",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "인정 좋아요 기준",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "추첨 방식(씨앗 해시 공개 · 발표 때 씨앗 공개)",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "고지 문구 전부: 주최(liftgram 운영진) · 문의(앱 「의견 보내기」) · 기간(매달 1일~말일, KST) · 발표(다음 달 3일 이후, 앱과 알림) · 경품(개당 5만 원 이하 상품권 · 상별 인원) · 수령 기한(발표 후 60일, 지나면 소멸) · 부정 참여가 드러나면 취소·회수 · 운영진과 관계자 제외 · 따로 모으는 개인정보 없음(쿠폰은 앱 안에서 전달) · 수상하면 닉네임이 공개됨(쿠폰 화면에서 끌 수 있음) · 「Apple과 Google은 이 행사의 후원사가 아닙니다」",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "지난 달",
+                            "type": "text"
+                          },
+                          {
+                            "text": ": 발표된 달 목록이다. 없으면 숨긴다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "비로그인",
+                            "type": "text"
+                          },
+                          {
+                            "text": ": ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "GetMonth",
+                            "type": "text"
+                          },
+                          {
+                            "text": "를 부르지 않는다. 예시·규칙과 「로그인하면 내 현황을 볼 수 있어요」만 보인다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "오프라인·오류",
+                            "type": "text"
+                          },
+                          {
+                            "text": ": 예시와 규칙은 고정 글이라 늘 그린다. 서버 부분만 ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "ListState",
+                            "type": "text"
+                          },
+                          {
+                            "text": "의 오류와 다시 시도로 처리한다. 판단은 ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "loaded",
+                            "type": "text"
+                          },
+                          {
+                            "text": "가 된 뒤에 한다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  }
+                ],
+                "type": "bullet_list"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "`/awards/[id]`",
+                    "type": "text"
+                  },
+                  {
+                    "text": ":",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "상 · 상품 · 쿠폰 번호를 보인다. 번호는 가려 두고 「번호 보기」를 눌러야 보이며, 복사할 수 있다(실패하면 길게 눌러 선택하라고 안내한다).",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "유효 기한 · 「받았어요」(되돌릴 수 있음) · 「수상자 목록에 이름 공개」 스위치를 둔다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "번호가 아직 없으면 「번호를 준비 중이에요」를 보인다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  }
+                ],
+                "type": "bullet_list"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "진입점",
+                    "type": "text"
+                  },
+                  {
+                    "text": ":",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "피드 띠",
+                            "type": "text"
+                          },
+                          {
+                            "text": ":",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "추천·팔로잉 탭에서 StoryTray 아래에 한 줄로 둔다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "문구: 「이달의 리프터 · 이번 달 운동한 날 n일」(서버 수). 로그인 상태이고 n ≥ 1일 때만 보인다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "닫기 ×는 44px이고 이름은 「이달의 리프터 띠 닫기」다. 닫은 달에는 다시 보이지 않는다(",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "localStorage",
+                            "type": "text"
+                          },
+                          {
+                            "text": " ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "awards-banner-dismissed:<YYYY-MM>",
+                            "type": "text"
+                          },
+                          {
+                            "text": ", try/catch로 감싼다).",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "localStorage",
+                            "type": "text"
+                          },
+                          {
+                            "text": "를 읽기 전에는 그리지 않는다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "운동 끝 화면",
+                            "type": "text"
+                          },
+                          {
+                            "text": " ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "src/frontend/app/components/session/WorkoutSummary.tsx",
+                            "type": "text"
+                          },
+                          {
+                            "text": ":",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "summary-actions",
+                            "type": "text"
+                          },
+                          {
+                            "text": " 아래에 약한 글자 줄로 둔다: 「이번 달 운동한 날 n일 · 꾸준상 문턱 12일」(기기 기록 기준).",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "누르면 ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "/awards",
+                            "type": "text"
+                          },
+                          {
+                            "text": "로 간다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "숫자는 ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "countWorkoutDaysInRange(fromMs, toMs)",
+                            "type": "text"
+                          },
+                          {
+                            "text": "로 센다. 서버와 같은 필터(completed · source null · 600초 이상 · KST 날짜)를 쓴다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "코칭 요약 ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "SummaryView",
+                            "type": "text"
+                          },
+                          {
+                            "text": "에는 넣지 않는다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "내 프로필",
+                            "type": "text"
+                          },
+                          {
+                            "text": ": 「이달의 리프터」 줄과 받은 상 배지(공개를 끈 상도 본인에게는 보임).",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "남 프로필",
+                            "type": "text"
+                          },
+                          {
+                            "text": ": 공개 수상 배지만 보인다. 받기 전에는 자리를 비우지 않는다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "알림",
+                            "type": "text"
+                          },
+                          {
+                            "text": ":",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "AWARD",
+                            "type": "text"
+                          },
+                          {
+                            "text": " 분기를 ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "coachingTarget",
+                            "type": "text"
+                          },
+                          {
+                            "text": "보다 먼저 두고 ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "/awards/<refId>",
+                            "type": "text"
+                          },
+                          {
+                            "text": "로 보낸다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "문구는 「이달의 리프터에 뽑혔어요」다. 아바타 자리에는 트로피 아이콘을 둔다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "옛 앱은 일반 문구로 보인다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  }
+                ],
+                "type": "bullet_list"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "모양은 SPEC-061·SPEC-062의 규칙을 따른다(누르는 것은 직사각형 단추, 정보는 바탕 없는 글자). 색 규칙 가드도 지킨다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "5. 운영 웹 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "/awards",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "달을 고른다. 지난 달이 기본이다. 확정은 다음 달 3일 이후에만 켜진다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "상태를 보여 준다: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "seed_hash",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · 발표 여부.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "꾸준 후보 표",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 이름 · 날 · 늦게 올라와 뺀 기록 수 · 자격(이유 칩).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "인기 순위 표",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 상위 20 · 인정 좋아요 · 고유 누른 사람 · 자격.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "고르기",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 인기상을 고른다. 운영진 픽은 사용자를 검색하고 이유를 꼭 적는다. 그다음 「추첨 미리보기」(고른 두 사람은 뺌)를 본다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "확정",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 「확정」을 누르면 화면 안 확인 단계가 나온다(요약 + 「정말 확정」, ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "confirm()",
+                    "type": "text"
+                  },
+                  {
+                    "text": "은 쓰지 않는다). 이미 확정된 달이면 기존 결과를 알린다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "확정된 달",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 수상 표와 쿠폰 등록 칸(번호·상품·기한 — 등록된 번호는 뒤 4자리만)을 두고, 받음 상태를 보여 준다. 화면에 cacheKey를 쓰지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "작업 단계",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "Phase 1 — DB·계약·서버",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/database/migrations/0037_awards.sql",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/database/queries/award.sql",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "make sqlc",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(카탈로그 판 제외 사본)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/proto/award/v1/award.proto",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · 알림 종류 11 · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "make proto",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/backend/internal/award",
+                    "type": "text"
+                  },
+                  {
+                    "text": " service·repo·handler + ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "service_test.go",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(달 경계 · 자격 이유 · 추첨 결정성·제외 · 확정 멱등(already_confirmed·알림 한 번)·끝나지 않은 달 거부·인기=픽 거부 · admin 아닌 역할 거부 · 숨김·탈퇴 규칙 · 쿠폰 번호는 GetMyAward 에서만)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/backend/cmd/server/main.go",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 조립 · 앱 프록시 차단 · 운영 웹 허용 목록",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "완료 기준: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "go test ./...",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 통과 · 새 DB에 마이그레이션 적용 · 앱 주소로 운영 RPC를 부르면 404.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "Phase 2 — 앱 화면",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/lib/awardClient.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/awards",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/awards/[id]",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · 예시 카드",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] 피드 띠 · 운동 요약 줄(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "countWorkoutDaysInRange",
+                    "type": "text"
+                  },
+                  {
+                    "text": ") · 프로필 줄·배지 · 알림 글·이동",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] 문구 ko·en",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "완료 기준: 타입 검사 통과 · e2e ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/e2e/awards.spec.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(새 DB · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "page.clock",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 고정 · 발표 없음 → 예시 구역(링크 없음) · 비로그인 /awards · 내 현황 숫자(시험 DB에 시험 사용자의 sync_records 를 psql 로 넣음) · 피드 띠 닫기 유지 · 운동 끝 화면 줄 · 프록시 차단(대소문자·인코딩)).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "Phase 3 — 운영 웹",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/admin/app/(console)/awards",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 화면 · 메뉴 · 클라이언트 · 허용 목록",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "완료 기준: 운영 웹 타입 검사·빌드 · e2e 시험 DB 안에서 시험 사용자로 후보→미리보기→확정→쿠폰 등록 → 앱에서 쿠폰 보임·받음(시험 DB만 · 운영 DB에는 쓰지 않음).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "Phase 4 — 마무리·배포",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[ ] 전체 e2e · qa code · EXE · 버전(웹 0.102.0 · 운영 웹 minor) · 이 작업 파일만 커밋 · 앱·운영 웹 배포 · 운영에서 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/awards",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 예시 화면 확인",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "수용 기준",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "SRS",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "확인",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "SRS-117 집계",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "시험: 달 경계(10월 31일 23:59 KST는 10월) · 10분 미만·가져온 기록 제외 · 자기 좋아요·새 계정 좋아요 제외",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "SRS-117 자격",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "시험: 이유 5종",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "SRS-117 추첨",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "시험: 같은 씨앗 같은 3명 · 제외한 사람은 안 뽑힘 · 후보가 3명보다 적으면 있는 만큼",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "SRS-117 확정",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "시험: 두 번 확정해도 행 하나 · 알림 한 번 · 미래 달 거부 · 일반 계정 거부",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "SRS-117 쿠폰·공개",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "시험: 남의 수상은 not found · 비공개면 목록에서 이름이 비고 배지가 숨음",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "SRS-117 예시",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "e2e: 발표 없음 → 「예시」 구역(카드 3장 · 링크 없음) · DB의 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "awards",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 행 0",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "SRS-117 공정성",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "시험: 씨앗 해시가 확정 전부터 보이고 확정 뒤 sha256(씨앗)=해시 · 지난 날짜 몰아 올린 기록 제외 · 같은 작성자에게 6번째 좋아요부터 안 셈",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "SRS-117 운영 분리",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "e2e: 앱 주소 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "/api/award.v1.AwardAdminService/Confirm",
+                        "type": "text"
+                      },
+                      {
+                        "text": " → 404",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "테스트 계획",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "Go 단위: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/backend/internal/award/service_test.go",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(가짜 저장소).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "SQL: e2e 시험 DB에서 집계 쿼리를 손으로 만든 시험 사용자로 확인(운영 DB 아님).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "앱 e2e: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/e2e/awards.spec.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": ". 운영 웹 e2e: 확정·쿠폰 흐름.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "전체 e2e 회귀.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "위험·주의",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "운동 기록은 기기가 올리는 값이라 완전히 막을 수는 없다. 서버 수신 시각 검사와 의심 지표로 줄이고, 드러나면 취소·회수한다(규칙에 고지). 상품권이 소액이라 남는 위험은 감수한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "옛 앱은 수상 알림을 일반 문구로 보인다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "집계는 서버에 동기된 기록 기준이라 기기에만 있는 기록은 늦게 반영된다. 화면에 「동기된 기록 기준」이라고 적는다. 운동 요약 줄은 기기 기준이라 숫자가 잠깐 다를 수 있다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "쿠폰 번호는 비밀값이라 로그에 남기지 않는다. 본인 RPC에서만 내보낸다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "운영 DB에 시험 행을 쓰지 않는다. 배포 뒤 확인은 읽기만 한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "경품 고시: 상품권 한도와 「Apple 후원 아님」 문구를 규칙에 둔다. 세금 문제는 소액 경품이라 제외한다(보고서의 판단).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "할일/이달의-리프터",
+  "id": "SPEC-063",
+  "meta": {
+    "grade": "Project",
+    "phases": "4",
+    "phases_done": "3"
+  },
+  "relations": {
+    "implements": [
+      "SRS-117"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "이달의 리프터 — 월간 시상(꾸준상·인기상·운영진 픽)·쿠폰 전달·앱 진입점·운영 웹",
+  "type": "Spec",
+  "updated": "2026-11-12T08:34:17Z"
+}

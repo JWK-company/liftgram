@@ -44,6 +44,7 @@ import (
 	"github.com/JWK-company/liftgram/src/backend/gen/dm/v1/dmv1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/exercise/v1/exercisev1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/feed/v1/feedv1connect"
+	"github.com/JWK-company/liftgram/src/backend/gen/award/v1/awardv1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/feedback/v1/feedbackv1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/gear/v1/gearv1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/media/v1/mediav1connect"
@@ -64,6 +65,7 @@ import (
 	"github.com/JWK-company/liftgram/src/backend/internal/dm"
 	"github.com/JWK-company/liftgram/src/backend/internal/exercise"
 	"github.com/JWK-company/liftgram/src/backend/internal/feed"
+	"github.com/JWK-company/liftgram/src/backend/internal/award"
 	"github.com/JWK-company/liftgram/src/backend/internal/feedback"
 	"github.com/JWK-company/liftgram/src/backend/internal/gear"
 	"github.com/JWK-company/liftgram/src/backend/internal/gyms"
@@ -384,6 +386,14 @@ func main() {
 	feedbackPath, feedbackHTTP := feedbackv1connect.NewFeedbackServiceHandler(feedback.NewHandler(feedbackSvc), opts)
 	mount(mux, feedbackPath, feedbackHTTP)
 
+	// ── 이달의 리프터(SPEC-063) ──
+	// 앱용과 운영용을 서비스로 나눈다 — 운영용은 앱 주소 프록시가 통째로 막고, service 가 admin 역할을 다시 읽는다.
+	awardSvc := award.NewService(award.NewRepo(pool), awardNotify{notificationSvc}, uuid.NewString)
+	awardPath, awardHTTP := awardv1connect.NewAwardServiceHandler(award.NewHandler(awardSvc), opts)
+	mount(mux, awardPath, awardHTTP)
+	awardAdminPath, awardAdminHTTP := awardv1connect.NewAwardAdminServiceHandler(award.NewAdminHandler(awardSvc), opts)
+	mount(mux, awardAdminPath, awardAdminHTTP)
+
 	// ── 신고·모더레이션 ──
 	// 신고는 누구나, 검토는 역할이 있는 사람만 — 그 판정은 service가 한다(handler는 신원만 넘긴다).
 	moderationSvc := moderation.NewService(moderation.NewRepo(pool), uuid.NewString).WithReviewMedia(mediaSvc)
@@ -493,6 +503,13 @@ func (a notifyAdapter) Notify(ctx context.Context, userID, actorID, kind, postID
 // NotifyRef — 코칭 알림(SPEC-050 · coaching.RefNotifier). 대상은 ref_id, post_id 는 비운다.
 func (a notifyAdapter) NotifyRef(ctx context.Context, userID, actorID, kind, refID string) {
 	a.svc.NotifyRef(ctx, userID, actorID, notification.Kind(kind), refID)
+}
+
+// awardNotify 는 notification.Service 를 수상이 아는 좁은 포트(award.Notifier)에 맞춘다.
+type awardNotify struct{ svc *notification.Service }
+
+func (a awardNotify) NotifySelf(ctx context.Context, userID, kind, refID string) {
+	a.svc.NotifySelf(ctx, userID, notification.Kind(kind), refID)
 }
 
 // dmOpener는 dm.Service 를 코칭이 아는 좁은 포트(coaching.DirectOpener)에 맞춘다 — 대화방을 만들어 두기만 한다.

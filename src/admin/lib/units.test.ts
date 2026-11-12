@@ -6,6 +6,8 @@ import { test } from "node:test";
 import {
   AdminService,
   AuthService,
+  AwardAdminService,
+  AwardService,
   FeedbackService,
   MediaService,
   ModerationService,
@@ -50,7 +52,16 @@ test("safeNext: 같은 출처 경로만 받는다", () => {
 });
 
 test("허용 RPC 는 계약에 있는 것이고, 계약 전수 중 목록 밖은 모두 막힌다", () => {
-  const services = [AuthService, AdminService, FeedbackService, MediaService, ModerationService, OpsService];
+  const services = [
+    AuthService,
+    AdminService,
+    AwardAdminService,
+    AwardService,
+    FeedbackService,
+    MediaService,
+    ModerationService,
+    OpsService,
+  ];
   const all = services.flatMap((s) => s.methods.map((m) => `/api/${s.typeName}/${m.name}`));
   for (const rpc of ALLOWED_RPCS) assert.ok(all.includes(rpc), `계약에 없는 허용 RPC: ${rpc}`);
   assert.equal(all.filter(isAllowedRpc).length, ALLOWED_RPCS.size);
@@ -65,6 +76,11 @@ test("허용 RPC 는 계약에 있는 것이고, 계약 전수 중 목록 밖은
   ]) {
     assert.equal(isAllowedRpc(blocked), false, blocked);
   }
+  // 앱 사용자 기능(이달의 리프터 내 쿠폰 등)은 운영 프록시로 열리지 않는다 — 허용은 운영용 서비스만(REV-156 경계 3)
+  for (const m of AwardService.methods) {
+    assert.equal(isAllowedRpc(`/api/${AwardService.typeName}/${m.name}`), false, m.name);
+  }
+  for (const rpc of ALLOWED_RPCS) assert.ok(!rpc.includes("award.v1.AwardService/"), rpc);
   assert.equal(isAllowedRpc("/api/ops.v1.OpsService%2FGetOpsAlert"), false);
   assert.equal(isAllowedRpc("/api/ops.v1.OpsService/GetOpsAlert%00"), false);
   assert.equal(isAllowedRpc("/api/auth.v1.AuthService/Me/"), false);

@@ -66,6 +66,13 @@ for (const path of [
   "moderation.v1.ModerationService/Resolve",
   "feedback.v1.FeedbackService/ListEntries",
   "feedback.v1.FeedbackService/SetStatus",
+  // 이달의 리프터 운영(SPEC-063) — 서비스 통째로 막힌다(대소문자·인코딩도)
+  "award.v1.AwardAdminService/Confirm",
+  "award.v1.AwardAdminService/SetCoupon",
+  "award.v1.AwardAdminService/Candidates",
+  "AWARD.V1.AWARDADMINSERVICE/Confirm",
+  "award.v1.AwardAdminService%2FConfirm",
+  "award.v1.awardadminservice/confirm",
 ]) {
   test(`앱 프록시는 운영 RPC ${path} 를 넘기지 않는다`, async ({ request }) => {
     expect((await post(request, path)).status()).toBe(404);
@@ -80,5 +87,12 @@ for (const path of [
   test(`사용자 기능 RPC ${path} 는 그대로 서버에 닿는다`, async ({ request }) => {
     // 빈 본문이라 검증 또는 로그인에서 거절된다. 프록시가 막으면 404 다.
     expect([400, 401]).toContain((await post(request, path)).status());
+  });
+}
+
+// 이달의 리프터 앱용(SPEC-063) — 로그인 없이도 읽힌다(예시·지난 수상자). 프록시가 막으면 404 다.
+for (const path of ["award.v1.AwardService/ListMonths", "award.v1.AwardService/GetMonth"]) {
+  test(`이달의 리프터 앱 RPC ${path} 는 서버에 닿는다`, async ({ request }) => {
+    expect((await post(request, path)).status()).toBe(200);
   });
 }

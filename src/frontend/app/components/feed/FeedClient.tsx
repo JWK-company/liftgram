@@ -42,6 +42,7 @@ import { GearTagPicker } from "./GearTagPicker";
 import { ImagePicker } from "./ImagePicker";
 import { GearSource, GearCategory as GearCategoryEnum, Visibility } from "@app/contracts";
 import { StoryTray } from "./StoryTray";
+import { AwardsBanner } from "../awards/AwardsBanner";
 import { StoryViewer } from "./StoryViewer";
 import { loadStorySeen, markSeen, type StorySeenMap } from "./storySeen";
 import { FEED_AD_EVERY, FEED_RECOMMENDED_START_MS, feedAdAfter } from "@app/core/domain/adPolicy";
@@ -498,6 +499,9 @@ export default function FeedClient() {
           onAdd={addStory}
         />
       ) : null}
+
+      {/* 이달의 리프터 띠(SPEC-063) — 추천·팔로잉 탭만 · 로그인 · 이번 달 운동한 날 ≥ 1 · 닫은 달은 안 보임 */}
+      {recommendedOpen !== null && tab !== "discover" ? <AwardsBanner userId={user?.id ?? null} /> : null}
 
       {recommendedMounted && !(authLoading && !user) ? (
         <div className={tab === "recommended" ? "flex flex-1 flex-col" : "hidden"}>

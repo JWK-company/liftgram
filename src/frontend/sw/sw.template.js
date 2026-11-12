@@ -150,6 +150,9 @@ self.addEventListener("fetch", (event) => {
   // (코드 리뷰 L-1). 네트워크만 · 오프라인이면 /offline.
   if (req.mode === "navigate" && url.pathname.startsWith("/coaching/m/"))
     return event.respondWith(pageNoStore(req));
+  // SPEC-063 쿠폰 화면(/awards/<수상 id>)도 셸 캐시에 담지 않는다 — 수상 주소가 기기 캐시에 남지 않게(REV-155 보안 4)
+  if (req.mode === "navigate" && /^\/awards\/[^/]+/.test(url.pathname))
+    return event.respondWith(pageNoStore(req));
   if (req.mode === "navigate") return event.respondWith(page(req, event));
   if (PRECACHE.includes(url.pathname)) return event.respondWith(cacheFirst(req, STATIC));
 });

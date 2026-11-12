@@ -27,6 +27,36 @@ type AuthToken struct {
 	CreatedAt pgtype.Timestamptz
 }
 
+type Award struct {
+	ID            string
+	Month         string
+	Category      string
+	UserID        *string
+	Rank          int32
+	Reason        *string
+	Days          *int32
+	Likes         *int32
+	Public        bool
+	CouponCode    *string
+	CouponItem    *string
+	CouponExpires pgtype.Date
+	CouponSetBy   *string
+	CouponSetAt   pgtype.Timestamptz
+	ClaimedAt     pgtype.Timestamptz
+	CreatedAt     pgtype.Timestamptz
+}
+
+type AwardMonth struct {
+	Month          string
+	Seed           string
+	SeedHash       string
+	Status         string
+	CandidatesHash *string
+	AnnouncedAt    pgtype.Timestamptz
+	AnnouncedBy    *string
+	CreatedAt      pgtype.Timestamptz
+}
+
 type Block struct {
 	BlockerID string
 	BlockedID string

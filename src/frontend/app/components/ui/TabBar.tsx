@@ -62,6 +62,7 @@ const TAB_DEFS: Tab[] = [
         "/messages",
         "/notifications",
         "/u",
+        "/awards", // 이달의 리프터(SPEC-063)
         // [원본] "/bookmarks", — 저장함은 프로필에서 들어온다(화면 지도 2026-11-09) → 프로필 탭
       ),
   },

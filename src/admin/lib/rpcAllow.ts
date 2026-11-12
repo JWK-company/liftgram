@@ -18,6 +18,13 @@ export const ALLOWED_RPCS: ReadonlySet<string> = new Set([
   "/api/moderation.v1.ModerationService/GetReviewMedia",
   "/api/ops.v1.OpsService/GetOpsStatus",
   "/api/ops.v1.OpsService/GetOpsAlert",
+  // 이달의 리프터(SPEC-063) — 운영 RPC 6개(사용자 검색 포함). 앱 사용자 RPC(AwardService)는 열지 않는다.
+  "/api/award.v1.AwardAdminService/Candidates",
+  "/api/award.v1.AwardAdminService/DrawPreview",
+  "/api/award.v1.AwardAdminService/Confirm",
+  "/api/award.v1.AwardAdminService/ListAwards",
+  "/api/award.v1.AwardAdminService/SetCoupon",
+  "/api/award.v1.AwardAdminService/SearchAwardUsers",
 ]);
 
 /** 인코딩으로 목록을 비껴가지 못하게 `%` 가 든 경로는 처음부터 받지 않는다. */

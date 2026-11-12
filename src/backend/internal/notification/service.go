@@ -35,6 +35,8 @@ const (
 	KindCoachingRoutine       Kind = "coaching_routine"
 	KindCoachingRoutineUpdate Kind = "coaching_routine_update" // 10분 묶음(P3b)
 	KindCoachingComment       Kind = "coaching_comment"
+	// 이달의 리프터 수상(SPEC-063) — actor = 받는 사람 자신 · ref_id = 수상 id.
+	KindAward Kind = "award"
 )
 
 type Actor struct {
@@ -91,6 +93,17 @@ func (s *Service) NotifyRef(ctx context.Context, userID, actorID string, kind Ki
 		return
 	}
 	if err := s.repo.Create(ctx, s.newID(), userID, kind, actorID, "", refID); err != nil {
+		slog.Warn("알림 저장 실패", "err", err, "kind", string(kind))
+	}
+}
+
+// NotifySelf 는 시스템 알림이다(SPEC-063 수상) — 보낸 사람 자리에 받는 사람 자신을 둔다.
+// 운영자 계정을 actor 로 두면 이름이 보이고, 차단 필터에 걸리고, 그 계정을 지울 때 알림이 함께 사라진다(REV-153).
+func (s *Service) NotifySelf(ctx context.Context, userID string, kind Kind, refID string) {
+	if userID == "" {
+		return
+	}
+	if err := s.repo.Create(ctx, s.newID(), userID, kind, userID, "", refID); err != nil {
 		slog.Warn("알림 저장 실패", "err", err, "kind", string(kind))
 	}
 }

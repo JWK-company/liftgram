@@ -11,6 +11,7 @@ export const MENU: readonly MenuItem[] = [
   { href: "/moderation", label: "신고 검토", testid: "menu-moderation", roles: [Role.ADMIN, Role.MODERATOR] },
   { href: "/user-feedback", label: "사용자 의견", testid: "menu-user-feedback", roles: [Role.ADMIN] },
   { href: "/ops-feedback", label: "운영 피드백", testid: "menu-ops-feedback", roles: [Role.ADMIN] },
+  { href: "/awards", label: "이달의 리프터", testid: "menu-awards", roles: [Role.ADMIN] },
   { href: "/stats", label: "통계", testid: "menu-stats", roles: [Role.ADMIN] },
   { href: "/ops", label: "운영 상태", testid: "menu-ops", roles: [Role.ADMIN] },
   { href: "/settings", label: "설정", testid: "menu-settings", roles: [Role.ADMIN] },

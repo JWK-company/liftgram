@@ -43,6 +43,9 @@ function sentence(n: Notification): string {
       return t("notif.coaching_routine_update", { name });
     case NotificationKind.COACHING_COMMENT:
       return t("notif.coaching_comment", { name });
+    // 이달의 리프터(SPEC-063) — actor 는 받는 사람 자신이라 이름을 쓰지 않는다
+    case NotificationKind.AWARD:
+      return t("notif.award");
     default:
       return t("notif.generic", { name });
   }
@@ -51,6 +54,9 @@ function sentence(n: Notification): string {
 /** 눌렀을 때 갈 곳 — 팔로우는 그 사람, 좋아요·댓글은 그 글. */
 function target(n: Notification): string {
   if (n.kind === NotificationKind.FOLLOW) return routes.userProfile(n.actor?.id ?? "");
+  // 이달의 리프터(SPEC-063) — ref_id = 수상 id → 쿠폰 화면(post_id 가 비어 있어 피드로 떨어지지 않게 먼저)
+  if (n.kind === NotificationKind.AWARD)
+    return n.refId ? `/awards/${encodeURIComponent(n.refId)}` : "/awards";
   if (n.kind === NotificationKind.COACHING_SUMMARY) return "/messages"; // 실제 이동은 openSummary(그 회원과의 대화) @plm SRS-080
   // 코칭 v2(SPEC-050) — post_id 가 비어 있어 아래 글 화면 길로 떨어지지 않게 먼저 고른다
   //   요청·수락·해지 → /coaching · 루틴 → 운동 홈(받은 루틴) · 코멘트 → /history/[ref_id](ref_id 가 없으면 /coaching · P4)
@@ -239,7 +245,19 @@ export default function NotificationsClient() {
                         }`}
                       >
                         <div className="flex items-center gap-[var(--spacing-md)]">
-                          <Avatar name={n.actor?.displayName} url={n.actor?.avatarUrl} size={40} />
+                          {/* [원본] <Avatar name={n.actor?.displayName} url={n.actor?.avatarUrl} size={40} /> */}
+                          {/* [개선] 수상 알림은 보낸 사람이 없다 — 트로피(SPEC-063) */}
+                          {n.kind === NotificationKind.AWARD ? (
+                            <span
+                              data-shape="round"
+                              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-(--color-surface-alt)"
+                              data-testid="notif-award-icon"
+                            >
+                              <Icon name="trophy-outline" size={22} color="var(--color-ink)" />
+                            </span>
+                          ) : (
+                            <Avatar name={n.actor?.displayName} url={n.actor?.avatarUrl} size={40} />
+                          )}
                           <div className="min-w-0 flex-1">
                             <AppText
                               variant="body"

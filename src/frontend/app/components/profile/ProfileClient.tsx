@@ -14,6 +14,7 @@
 // **아직 옮기지 않은 것**: 서버 동기·코칭·저장한 게시물·차단·모더레이션.
 // 전부 피드/서버 기능이 붙어야 뜻이 있는 화면이라, 누르면 아무것도 없는 버튼을 두지 않았다.
 // ─────────────────────────────────────────────────────────────────────────────
+import { MyAwardBadges } from "../awards/AwardBadges";
 import { errorText } from "@/lib/errorText";
 import { AppBar } from "../ui/AppBar";
 import {
@@ -294,6 +295,8 @@ export default function ProfileClient() {
               {t("common.edit")}
             </button>
           </div>
+          {/* 이달의 리프터 내 수상 배지(SPEC-063) */}
+          {account ? <MyAwardBadges /> : null}
         </Card>
 
         {/* 눈에 잘 띄게 맨 위에 — 의견 보내기는 모두에게(SPEC-032). 운영 입구는 앱에 두지 않는다(SPEC-033). */}
@@ -398,6 +401,8 @@ export default function ProfileClient() {
             href="/account#backup"
           />
           <ListRow testId="btn-gear" icon="fitness-outline" title={t("gear.myGearEntry")} href="/gear" />
+          {/* 이달의 리프터(SPEC-063) — 로그인 전에도 규칙·예시를 볼 수 있다 */}
+          <ListRow testId="btn-awards" icon="trophy-outline" title={t("awards.profileRow")} href="/awards" />
           {account ? (
             <>
               <ListRow

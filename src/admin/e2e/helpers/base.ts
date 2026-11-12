@@ -11,6 +11,10 @@ if (!PSQL) throw new Error("E2E_PSQL_URL 이 필요하다 — scripts/e2e-admin.
 if (!/@(127\.0\.0\.1|localhost):/.test(PSQL) || !/^https?:\/\/(127\.0\.0\.1|localhost):/.test(API)) {
   throw new Error("운영 웹 e2e 는 로컬 DB·API 에서만 돈다");
 }
+// 로컬이어도 dev DB 는 안 된다 — e2e-admin.sh 가 만든 새 DB(e2e_admin_<시각>)만(SPEC-063 · REV-156 경계 7)
+if (!/\/e2e_admin_\d+$/.test(PSQL)) {
+  throw new Error("운영 웹 e2e 는 scripts/e2e-admin.sh 가 만든 새 DB 에서만 돈다");
+}
 
 export function sql(query: string): string {
   return execFileSync("psql", [PSQL as string, "-tAc", query])

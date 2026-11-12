@@ -35,6 +35,8 @@ enum NotificationKind {
   NOTIFICATION_KIND_COACHING_ROUTINE_UPDATE = 9;
   // 코치가 운동에 코멘트를 남겼다 — ref_id 는 운동 id(/history/[ref_id]).
   NOTIFICATION_KIND_COACHING_COMMENT = 10;
+  // 이달의 리프터 수상(SPEC-063) — ref_id 는 수상 id(/awards/[ref_id]). actor 는 받는 사람 자신이다(운영자 이름을 보이지 않게).
+  NOTIFICATION_KIND_AWARD = 11;
 }
 
 message Actor {

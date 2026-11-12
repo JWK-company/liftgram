@@ -1,0 +1,247 @@
+// 이달의 리프터(SPEC-063 · SRS-117) — 월간 시상 계약.
+//
+// 두 서비스로 나눈다. AwardService 는 앱이 부르고, AwardAdminService 는 운영 웹만 부른다
+// (앱 주소 프록시가 서비스 통째로 막는다 · 백엔드도 admin 역할을 다시 읽는다).
+//
+// 쿠폰 번호는 GetMyAward 응답의 MyAward.coupon_code 에만 실린다. 공개용 PublicAward 에는 쿠폰 칸이 아예 없다 —
+// 실수로 남에게 실어 보낼 자리를 없앤다(REV-153).
+syntax = "proto3";
+
+package award.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/JWK-company/liftgram/src/backend/gen/award/v1;awardv1";
+
+// 수상자 목록의 한 줄. hidden = 수상자가 공개를 껐다(이름·id·숫자가 비어 있다). withdrawn = 탈퇴했다.
+message PublicAward {
+  string id = 1;
+  string month = 2;
+  // steady | popular | pick
+  string category = 3;
+  int32 rank = 4;
+  string user_id = 5;
+  string display_name = 6;
+  string avatar_url = 7;
+  // 운영진 픽의 이유(공개 글).
+  string reason = 8;
+  int32 days = 9;
+  int32 likes = 10;
+  bool hidden = 11;
+  bool withdrawn = 12;
+}
+
+// 자격이 모자란 까닭 — new(가입 7일 전) · email · age · role · excluded.
+message Eligibility {
+  bool eligible = 1;
+  repeated string reasons = 2;
+}
+
+message GetMonthRequest {
+  // YYYY-MM(KST). 비우면 이번 달.
+  string month = 1;
+}
+
+message GetMonthResponse {
+  string month = 1;
+  int32 my_days = 2;
+  int32 steady_threshold = 3;
+  int32 my_likes = 4;
+  Eligibility my_eligibility = 5;
+  // 확정 전부터 보인다(커밋). 확정 뒤 seed 원문을 함께 준다 — sha256(seed) = seed_hash.
+  string seed_hash = 6;
+  string seed = 7;
+  bool announced = 8;
+  repeated PublicAward winners = 9;
+}
+
+message AwardMonth {
+  string month = 1;
+  string seed_hash = 2;
+  string seed = 3;
+  google.protobuf.Timestamp announced_at = 4;
+  repeated PublicAward winners = 5;
+}
+
+message ListMonthsRequest {
+  int32 limit = 1;
+}
+
+message ListMonthsResponse {
+  repeated AwardMonth months = 1;
+}
+
+// 내 수상. 목록에서는 coupon_code 가 비고 has_coupon 만 있다 — 번호는 GetMyAward 에서만.
+message MyAward {
+  string id = 1;
+  string month = 2;
+  string category = 3;
+  int32 rank = 4;
+  string reason = 5;
+  bool public = 6;
+  bool has_coupon = 7;
+  string coupon_code = 8;
+  string coupon_item = 9;
+  // YYYY-MM-DD
+  string coupon_expires = 10;
+  google.protobuf.Timestamp claimed_at = 11;
+  int32 days = 12;
+  int32 likes = 13;
+}
+
+message ListMyAwardsRequest {}
+
+message ListMyAwardsResponse {
+  repeated MyAward awards = 1;
+}
+
+message GetMyAwardRequest {
+  string id = 1;
+}
+
+message GetMyAwardResponse {
+  MyAward award = 1;
+}
+
+message MarkClaimedRequest {
+  string id = 1;
+  bool claimed = 2;
+}
+
+message MarkClaimedResponse {}
+
+message SetPublicRequest {
+  string id = 1;
+  bool public = 2;
+}
+
+message SetPublicResponse {}
+
+message GetUserBadgesRequest {
+  string user_id = 1;
+}
+
+message GetUserBadgesResponse {
+  repeated PublicAward badges = 1;
+}
+
+service AwardService {
+  rpc GetMonth(GetMonthRequest) returns (GetMonthResponse);
+  rpc ListMonths(ListMonthsRequest) returns (ListMonthsResponse);
+  rpc ListMyAwards(ListMyAwardsRequest) returns (ListMyAwardsResponse);
+  rpc GetMyAward(GetMyAwardRequest) returns (GetMyAwardResponse);
+  rpc MarkClaimed(MarkClaimedRequest) returns (MarkClaimedResponse);
+  rpc SetPublic(SetPublicRequest) returns (SetPublicResponse);
+  rpc GetUserBadges(GetUserBadgesRequest) returns (GetUserBadgesResponse);
+}
+
+// ── 운영 웹 ─────────────────────────────────────────────────────────────
+
+message Candidate {
+  string user_id = 1;
+  string display_name = 2;
+  int32 days = 3;
+  // 지난 날짜를 몰아 올려 세지 않은 기록 수(의심 지표).
+  int32 late = 4;
+  int32 likes = 5;
+  int32 likers = 6;
+  Eligibility eligibility = 7;
+}
+
+message CandidatesRequest {
+  string month = 1;
+}
+
+message CandidatesResponse {
+  string month = 1;
+  string seed_hash = 2;
+  bool announced = 3;
+  // 확정할 수 있는 때인가(끝난 달 · 다음 달 3일 0시 KST 이후).
+  bool confirmable = 4;
+  // 꾸준 후보(자격과 상관없이 12일 이상 · 자격 표시).
+  repeated Candidate steady = 5;
+  // 인기 순위 상위 20.
+  repeated Candidate popular = 6;
+}
+
+message DrawPreviewRequest {
+  string month = 1;
+  // 인기상·운영진 픽으로 고른 사람 — 추첨에서 뺀다.
+  repeated string exclude_ids = 2;
+}
+
+message DrawPreviewResponse {
+  repeated Candidate picked = 1;
+  int32 pool = 2;
+}
+
+message ConfirmRequest {
+  string month = 1;
+  string popular_user_id = 2;
+  string pick_user_id = 3;
+  string pick_reason = 4;
+}
+
+message ConfirmResponse {
+  bool already_confirmed = 1;
+  repeated AdminAward awards = 2;
+}
+
+// 운영 웹의 수상 줄 — 쿠폰 번호는 뒤 4자리만.
+message AdminAward {
+  string id = 1;
+  string month = 2;
+  string category = 3;
+  int32 rank = 4;
+  string user_id = 5;
+  string display_name = 6;
+  string reason = 7;
+  int32 days = 8;
+  int32 likes = 9;
+  bool public = 10;
+  string coupon_last4 = 11;
+  string coupon_item = 12;
+  string coupon_expires = 13;
+  google.protobuf.Timestamp claimed_at = 14;
+  bool withdrawn = 15;
+}
+
+message ListAwardsRequest {
+  string month = 1;
+}
+
+message ListAwardsResponse {
+  string month = 1;
+  bool announced = 2;
+  string seed = 3;
+  repeated AdminAward awards = 4;
+}
+
+message SetCouponRequest {
+  string award_id = 1;
+  string coupon_code = 2;
+  string coupon_item = 3;
+  // YYYY-MM-DD
+  string coupon_expires = 4;
+}
+
+message SetCouponResponse {}
+
+message SearchAwardUsersRequest {
+  string query = 1;
+  // 자격을 판정할 달(YYYY-MM). 비우면 지난 달(REV-156 화면 3).
+  string month = 2;
+}
+
+message SearchAwardUsersResponse {
+  repeated Candidate users = 1;
+}
+
+service AwardAdminService {
+  rpc Candidates(CandidatesRequest) returns (CandidatesResponse);
+  rpc DrawPreview(DrawPreviewRequest) returns (DrawPreviewResponse);
+  rpc Confirm(ConfirmRequest) returns (ConfirmResponse);
+  rpc ListAwards(ListAwardsRequest) returns (ListAwardsResponse);
+  rpc SetCoupon(SetCouponRequest) returns (SetCouponResponse);
+  rpc SearchAwardUsers(SearchAwardUsersRequest) returns (SearchAwardUsersResponse);
+}

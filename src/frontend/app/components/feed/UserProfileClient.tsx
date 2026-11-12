@@ -14,6 +14,7 @@
 // [개선] SPEC-052 — 「트레이너」 역할이 없다. 배지는 파생값(isCoach — 활성 연결의 코치) · 소개·태그는 노출을 켠 사람만
 //   (trainerIntent) · 연결이 없으면 누구에게나 두 버튼 「코치로 요청」·「내 회원으로 초대」(내게 코치가 있으면 요청 자리에 안내).
 // ─────────────────────────────────────────────────────────────────────────────
+import { UserAwardBadges } from "../awards/AwardBadges";
 import { navigate } from "@/lib/nav";
 import type { WeightUnit } from "@app/core";
 import {
@@ -287,6 +288,9 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                 <CoachTags tags={profile.coachTags} testId="profile-coach-tags" />
               </div>
             ) : null}
+
+            {/* 이달의 리프터 공개 수상 배지(SPEC-063) — 받기 전에는 자리를 비우지 않는다 */}
+            {profile.isBlocked ? null : <UserAwardBadges userId={userId} />}
 
             {profile.isSelf ? null : profile.isBlocked ? (
               <div className="mt-[var(--spacing-lg)] flex w-full gap-[var(--spacing-sm)]">

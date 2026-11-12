@@ -100,6 +100,9 @@ import {
   IoPersonCircleOutline,
   IoPricetagOutline,
   IoSend,
+  IoTrophyOutline,
+  IoGiftOutline,
+  IoCopyOutline,
 } from "react-icons/io5";
 
 const GLYPHS = {
@@ -196,6 +199,10 @@ const GLYPHS = {
   "person-circle-outline": IoPersonCircleOutline,
   "pricetag-outline": IoPricetagOutline,
   send: IoSend,
+  // 이달의 리프터(SPEC-063)
+  "trophy-outline": IoTrophyOutline,
+  "gift-outline": IoGiftOutline,
+  "copy-outline": IoCopyOutline,
 } as const;
 
 export type IconName = keyof typeof GLYPHS;

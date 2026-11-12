@@ -7,6 +7,7 @@
 // (볼륨은 완료한 워킹 세트만, PR은 중량·볼륨 2종 — 전부 도메인 규칙이다).
 //
 // 아래에 **오운완 공유**가 붙는다 — 피드의 운동 카드를 만드는 유일한 자리다(ShareWorkout).
+import { AwardSummaryLine } from "../awards/AwardSummaryLine";
 import { Visibility } from "@app/contracts";
 import { AdSlot } from "../ads/AdSlot";
 import { formatEnteredWeight, formatWeight, type WeightUnit } from "@app/core";
@@ -326,6 +327,9 @@ export function WorkoutSummary({
             />
           </div>
         ) : null}
+
+        {/* 이달의 리프터(SPEC-063) — 이 기기 기준 「이번 달 운동한 날」 · 누르면 /awards */}
+        {summary.workingSets > 0 ? <AwardSummaryLine /> : null}
 
         {/* 운동 총평 — 나만 본다 · 피드 글과 별개(#52) @plm SRS-064 */}
         <WorkoutNoteField workoutId={summary.workoutId} initial={null} />

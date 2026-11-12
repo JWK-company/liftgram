@@ -1,5 +1,11 @@
 // 운영 웹의 RPC 클라이언트와 오류 분류.
-import { AdminService, FeedbackService, ModerationService, OpsService } from "@app/contracts";
+import {
+  AdminService,
+  AwardAdminService,
+  FeedbackService,
+  ModerationService,
+  OpsService,
+} from "@app/contracts";
 import { Code, ConnectError, createClient } from "@connectrpc/connect";
 import { binaryTransport, hasSession, transport } from "./session";
 
@@ -8,6 +14,7 @@ export const feedbackApi = createClient(FeedbackService, transport);
 export const moderationApi = createClient(ModerationService, transport);
 export const moderationMediaApi = createClient(ModerationService, binaryTransport);
 export const opsApi = createClient(OpsService, transport);
+export const awardAdminApi = createClient(AwardAdminService, transport);
 
 /** 대상의 상태가 이미 바뀌었거나 사라져, 다시 눌러도 소용없는 실패. 창을 닫고 다시 읽는다. */
 export function isStale(e: unknown): boolean {

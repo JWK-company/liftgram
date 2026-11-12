@@ -1,0 +1,364 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "기능",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "상 종류",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 꾸준상(3명 · 운동한 날 12일 이상인 사람 중 추첨) · 인기상(1명 · 인정 좋아요가 가장 많은 사람) · 운영진 픽(1명 · 운영진이 이유와 함께 고름). 한 달에 한 사람은 상 하나만 받는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "운동한 날",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 한국 시간으로 그 달에 시작해 완료한 운동이 하나라도 있는 날의 수. 다른 앱에서 가져온 기록은 빼고, 운동 시간이 10분 미만이면 세지 않는다. 서버에 동기된 기록 기준이다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "인정 좋아요",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 그 달에 받은 좋아요 중 다음만 센다. 누른 사람이 자격 계정이고(가입 7일 · 메일 확인), 본인이 아니어야 한다. 글은 공개·승인 상태여야 하고, 공식 글은 뺀다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "자격",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 가입한 지 7일 지남(그 달 마지막 날 기준) · 메일 확인 · 만 14세 확인 · 일반 계정(운영진 아님) · 통계 제외 아님.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "추첨",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 운영진이 씨앗 값(공개)을 정한다. 후보마다 sha256(씨앗 + \":\" + 사용자 id)를 구해 작은 순으로 3명을 뽑는다. 인기상·운영진 픽 수상자는 추첨에서 뺀다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "확정",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 그 달의 상을 한 번에 기록하고 발표 상태로 바꾼다. 다시 눌러도 결과는 하나다. 수상자에게 알림을 보낸다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "쿠폰",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 운영진이 수상마다 상품권 번호·상품 이름·유효 기한을 등록한다. 번호는 수상자 본인에게만 보인다. 수상자가 「받았어요」를 누르면 받음으로 표시한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "공개",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 수상자는 기본 공개다. 수상자가 끄면 수상자 목록에 이름 대신 「비공개 수상자」가 보이고, 프로필 배지도 숨는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "앱 진입점",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/awards",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 화면(이번 달 내 현황 · 수상자 · 내 상 · 규칙 · 지난 달), 피드 위 띠(달마다 닫기), 운동 요약의 「이번 달 n일째」 줄, 프로필의 줄과 배지, 알림.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "수상자가 없을 때",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 「예시」라고 적힌 보기 카드를 보여 준다(앱 코드 안의 고정 글 — DB 행 아님).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "운영 웹",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/awards",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 화면 — 달 고르기 · 후보와 자격 표시 · 씨앗 · 추첨 미리보기 · 인기상·픽 고르기 · 화면 안 확인 단계로 확정 · 쿠폰 등록 · 받음 현황.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "비기능",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "운영용 RPC는 앱 주소 프록시에서 막고(서비스 통째로), 운영 웹 허용 목록에만 둔다. 백엔드도 운영 역할을 검사한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "규칙 문구에 「Apple은 이 행사의 후원사가 아닙니다」를 넣는다(앱 스토어 지침).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "liftgram/plan",
+  "id": "SRS-117",
+  "meta": {
+    "acceptance_criteria": "한국 시간 달 경계로 운동한 날(완료·앱 기록·10분 이상)과 인정 좋아요(자격 계정·본인 제외·공개 승인 글)를 센다 · 자격(가입 7일·메일 확인·만 14세 확인·일반 계정·통계 제외 아님) 밖은 후보가 아니다 · 꾸준상 3명은 씨앗 값으로 결정적 추첨(같은 씨앗 = 같은 결과) · 확정은 한 번만(다시 눌러도 하나) · 확정 때 수상 알림 · 쿠폰 번호는 본인만 본다 · 공개 끄기면 이름이 숨는다 · 운영 RPC는 앱 주소에서 404 · 수상자가 없으면 「예시」 표시가 붙은 보기만 보이고 DB에 가짜 행이 없다",
+    "kind": "FR"
+  },
+  "relations": {
+    "derives_from": [
+      "URS-034"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "이달의 리프터 — 자격·집계·추첨·발표·쿠폰 전달·공개 선택과 앱 진입점",
+  "type": "SRS",
+  "updated": "2026-11-12T07:34:38Z"
+}
