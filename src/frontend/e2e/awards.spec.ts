@@ -139,6 +139,19 @@ test("로그인 — 내 현황(동기된 날 · 자격 이유) · 피드 띠는 
   const email = freshEmail("me");
   await 가입(page, email, "꾸준시험");
   const uid = userId(email);
+  // 피드에도 붙는다(사용자 지시 2626) — 운동 0일이어도(피드는 로그인 화면) 카드 · 「예시」 표식 · 수상자 이름 링크 없음 · 누르면 /awards
+  await page.goto("/feed");
+  const card = page.getByTestId("awards-banner");
+  await expect(card).toBeVisible({ timeout: 20_000 });
+  const fx = card.getByTestId("awards-feed-example");
+  await expect(fx).toContainText("예시");
+  await expect(fx).toContainText("예시 리프터 A");
+  await expect(fx).toContainText("운영진 픽");
+  await expect(card.getByTestId("awards-feed-announce")).toBeVisible();
+  await expect(card.getByTestId("awards-feed-mydays")).toContainText("0 / 12일"); // 운동 0일
+  await expect(card.locator("a")).toHaveCount(1);
+  await card.getByTestId("awards-banner-open").click();
+  await expect(page).toHaveURL(/\/awards$/);
   // 1·2일이 아직 오지 않은 때(1일 10시 전 · 2일)에는 미래 기록이 된다 — 그때는 건너뛴다
   test.skip(Date.now() < monthStart(kstMonth()) + 2 * 86_400_000 + 11 * 3600_000, "달 초에는 건너뛴다");
   운동_넣기(uid);
@@ -163,7 +176,10 @@ test("로그인 — 내 현황(동기된 날 · 자격 이유) · 피드 띠는 
 
   await page.goto("/feed");
   const banner = page.getByTestId("awards-banner");
-  await expect(banner).toContainText("이번 달 운동한 날 2일", { timeout: 20_000 });
+  // [원본] toContainText("이번 달 운동한 날 2일") — 띠 글
+  await expect(banner.getByTestId("awards-feed-mydays")).toContainText("내 이번 달 운동한 날 2 / 12일", {
+    timeout: 20_000,
+  });
   await page.getByTestId("awards-banner-close").click();
   await expect(banner).toHaveCount(0);
   await page.reload();
@@ -234,6 +250,13 @@ test("발표된 달 — 실제 수상자 · 예시는 사라짐 · 쿠폰(가림
   await expect(winners).toContainText(`추첨 씨앗: ${seed}`);
   await expect(page.getByTestId("awards-example")).toHaveCount(0);
   await expect(page.getByTestId("awards-mine")).toContainText("쿠폰 보기");
+
+  // 피드 카드도 실제 수상자로 바뀐다 · 예시는 사라진다(사용자 지시 2626)
+  await page.goto("/feed");
+  const fcard = page.getByTestId("awards-banner");
+  await expect(fcard.getByTestId("awards-feed-winners")).toContainText("수상시험", { timeout: 20_000 });
+  await expect(fcard.getByTestId("awards-feed-winners")).toContainText("인기시험");
+  await expect(fcard.getByTestId("awards-feed-example")).toHaveCount(0);
 
   // 알림 → 쿠폰 화면
   await page.goto("/notifications");

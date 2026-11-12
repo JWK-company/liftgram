@@ -1340,7 +1340,9 @@ function FolderGroup({
         type="button"
         onClick={onToggle}
         data-testid="folder-toggle"
-        className="flex w-full items-center gap-[var(--spacing-sm)]"
+        // [원본] className="flex w-full items-center gap-[var(--spacing-sm)]"
+        // [개선] 루틴 줄과 같은 왼쪽 여백 — 폴더 머리·루틴 줄·코치 루틴의 왼쪽 끝이 맞는다(사용자 지시 2626 · 리뷰 중간 5)
+        className="flex w-full items-center gap-[var(--spacing-sm)] pl-[var(--spacing-md)]"
       >
         <Icon name={open ? "folder-open" : "folder"} size={20} color="var(--color-brand)" />
         <span className="min-w-0 flex-1 text-left">
@@ -1435,7 +1437,9 @@ function RoutineRow({
     <div
       // [원본] className="px-[var(--spacing-lg)] py-[var(--spacing-md)]" — 상자 목록 안쪽 여백
       // [개선] 판 없는 구분선 목록이라 좌우 여백 없음 · 코치 띠가 있으면 띠 옆만 띄운다(SPEC-056 F1)
-      className={`py-[var(--spacing-md)] ${originStripeStyle(routine) ? "pl-[var(--spacing-md)]" : ""}`}
+      // [원본] className={`py-[var(--spacing-md)] ${originStripeStyle(routine) ? "pl-[var(--spacing-md)]" : ""}`} — 띠 없는 줄은 왼쪽으로 붙어 코치 루틴과 글자 줄이 어긋났다
+      // [개선] 띠가 없어도 같은 왼쪽 여백 — 제목·종목 줄이 위아래로 맞는다(사용자 지시 2626)
+      className="py-[var(--spacing-md)] pl-[var(--spacing-md)]"
       style={originStripeStyle(routine)}
       data-origin={routine.origin ?? undefined}
     >

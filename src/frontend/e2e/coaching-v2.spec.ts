@@ -1342,6 +1342,10 @@ test.describe("P3a 출처 표시·회원 잠금", () => {
         await copyRow.evaluate((el) => getComputedStyle(el.parentElement as HTMLElement).boxShadow),
       ).toBe("none");
       await expect(row.getByTestId("origin-chip")).toHaveText(/코치 김코치/);
+      // 띠 없는 내 루틴(복사본)도 코치 루틴과 같은 왼쪽 끝 — 제목 줄이 위아래로 맞는다(사용자 지시 2626)
+      const rx = (await row.boundingBox())?.x;
+      expect(rx).toBeDefined();
+      expect((await copyRow.boundingBox())?.x).toBeCloseTo(rx as number, 0);
       await 넘침_없음(pageB);
       await pageB.setViewportSize({ width: 1280, height: 800 });
 
@@ -1358,6 +1362,9 @@ test.describe("P3a 출처 표시·회원 잠금", () => {
       await folder.click();
       const inFolder = pageB.getByTestId("folder-group").filter({ hasText: "받은 루틴" });
       await expect(inFolder.getByTestId("origin-chip")).toHaveText(/코치 김코치/);
+      // 폴더 머리(아이콘)도 루틴 줄과 같은 왼쪽 끝(리뷰 중간 5)
+      const fx = (await folder.locator("svg").first().boundingBox())?.x;
+      expect(fx).toBeCloseTo((await copyRow.boundingBox())?.x as number, 0);
 
       // 코치 루틴으로 운동 — 한 세트 더 해도 끝날 때 「루틴에 반영」을 묻지 않는다 · 루틴은 3세트 그대로
       await pageB.getByTestId("btn-start-folder-routine").first().click();
