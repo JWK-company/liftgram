@@ -1346,8 +1346,14 @@ test.describe("P3a 출처 표시·회원 잠금", () => {
       const rx = (await row.boundingBox())?.x;
       expect(rx).toBeDefined();
       expect((await copyRow.boundingBox())?.x).toBeCloseTo(rx as number, 0);
+      // 줄 상자만이 아니라 **보이는 제목 글자**의 왼쪽 끝도 같다(사용자 지시 3275 — 상자는 맞아도 글자가 어긋날 수 있다)
+      const 제목x = async (r: typeof row) =>
+        (await r.getByTestId("open-routine-preview").locator("span").first().boundingBox())?.x as number;
+      expect(await 제목x(copyRow)).toBeCloseTo(await 제목x(row), 0);
       await 넘침_없음(pageB);
       await pageB.setViewportSize({ width: 1280, height: 800 });
+      // 넓은 화면에서도 같다(사용자 지시 3275 캡처는 넓은 화면)
+      expect(await 제목x(copyRow)).toBeCloseTo(await 제목x(row), 0);
 
       // 폴더는 회원 것 — 보기 화면에서 새 폴더로 옮긴다
       await pageB.goto(`/routines/${id}`);
