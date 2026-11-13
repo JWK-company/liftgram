@@ -506,7 +506,7 @@ export default function FeedClient() {
       {/* [원본] {recommendedOpen !== null && tab !== "discover" ? <AwardsBanner userId={user?.id ?? null} /> : null} */}
       {/* [개선] 피드 카드 — 누구에게나 · 발표 전엔 「예시」 수상자까지(사용자 지시 2626) */}
       {recommendedOpen !== null && tab !== "discover" ? <AwardsFeedCard userId={user?.id ?? null} /> : null}
-      {/* 그룹 챌린지(SPEC-064) — 로그인한 사람에게 · 진행 중이면 오늘 상태, 없으면 소개(닫으면 안 보임) */}
+      {/* 그룹 챌린지(SPEC-064) — 로그인한 사람에게 · 진행 중이면 오늘 상태, 없으면 소개 · X = 「피드에 보이기」 끄기, 프로필 설정에서 다시 켬 */}
       {recommendedOpen !== null && tab !== "discover" ? (
         <ChallengeFeedCard userId={user?.id ?? null} />
       ) : null}

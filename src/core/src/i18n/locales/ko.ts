@@ -2455,6 +2455,12 @@ export const ko = {
   "awards.coupon.saveFail": "저장하지 못했어요. 다시 시도해 주세요",
   "awards.banner.text": "이달의 리프터 · 이번 달 운동한 날 {n}일",
   "awards.banner.close": "이달의 리프터 카드 닫기",
+  // 피드 카드 「피드에 보이기」(사용자 지시 3294·3299) — X 로 끄고 프로필 설정에서 다시 켠다
+  "feedCards.awardsSetting": "피드에 이달의 리프터 보이기",
+  "feedCards.challengeSetting": "피드에 그룹 챌린지 보이기",
+  "feedCards.challengeClose": "그룹 챌린지 카드 닫기",
+  "feedCards.hiddenToast": "피드에서 숨겼어요. 프로필 설정에서 다시 켤 수 있어요",
+  "feedCards.undo": "되돌리기",
   "awards.feed.myDays": "내 이번 달 운동한 날 {n} / {goal}일",
   "awards.summaryLine": "이번 달 운동한 날 {n}일 · 꾸준상 문턱 {goal}일",
   "awards.profileRow": "이달의 리프터",

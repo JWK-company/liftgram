@@ -186,13 +186,12 @@ test("로그인 — 내 현황(동기된 날 · 자격 이유) · 피드 띠는 
   await expect(page.getByTestId("nav-feed")).toBeVisible({ timeout: 20_000 });
   await page.waitForLoadState("networkidle");
   await expect(banner).toHaveCount(0);
-  // 달 단위 열쇠 — 다른 달만 닫혀 있으면 다시 보인다(위 「없음」이 그리기 전 거짓 통과가 아님을 함께 증명)
-  await page.evaluate(() => {
-    for (const k of Object.keys(localStorage))
-      if (k.startsWith("awards-banner-dismissed:")) localStorage.removeItem(k);
-    localStorage.setItem("awards-banner-dismissed:2000-01", "1");
-  });
-  await page.reload();
+  // [원본] 달 단위 열쇠 — 다른 달만 닫혀 있으면 다시 보인다(localStorage awards-banner-dismissed:<달> 지우고 2000-01 만 남김 → 보임)
+  // [개선] X = 「피드에 보이기」 끄기 → 프로필 스위치로 다시 켠다(사용자 지시 3294 · 옛 표식 이어받기는 e2e/feed-cards.spec.ts)
+  await page.goto("/profile");
+  await page.getByTestId("switch-feed-awards").click();
+  await expect(page.getByTestId("switch-feed-awards")).toHaveAttribute("aria-checked", "true");
+  await page.goto("/feed");
   await expect(banner).toBeVisible({ timeout: 20_000 });
 });
 

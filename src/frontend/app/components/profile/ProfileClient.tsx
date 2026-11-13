@@ -53,6 +53,7 @@ import { BusinessInfo } from "../BusinessInfo";
 import { RecommendOptOutRow } from "./RecommendOptOutRow";
 // [원본] import { EffortLoggingRow } from "./EffortLoggingRow"; // 세트 힘든 정도 기록 스위치 @plm SRS-073
 // [개선] 스위치를 막았다 — 세트 줄 「여유」 칸은 누구나 쓴다(SPEC-055 Phase 3). 설정 키·동기(lib/prefs.ts)는 그대로 둔다
+import { FeedCardsRows } from "./FeedCardsRows"; // 피드에 이달의 리프터·그룹 챌린지 보이기(사용자 지시 3294)
 import { MuscleMapRow } from "./MuscleMapRow"; // 근육 그림 보기 스위치 @plm SRS-075
 import { BodyweightRow } from "./BodyweightRow"; // 체중 칸(최신값 + 기록 + 전체 기록) @plm SRS-077
 import { UsageStatsRow } from "./UsageStatsRow";
@@ -363,6 +364,7 @@ export default function ProfileClient() {
           {/* [원본] <EffortLoggingRow /> — 세트 힘든 정도 기록 스위치. 여유 칸은 설정 없이 늘 보인다(SPEC-055 Phase 3) */}
           {user ? <RecommendOptOutRow /> : null}
           <MuscleMapRow />
+          <FeedCardsRows signedIn={!!user} />
           {/* [원본] <WeighInSettingRow /> — 운동 전 체중 체크인 스위치. 체크인 시트를 운동 화면 맨 위 줄로 바꿔 없앴다(SPEC-049) */}
           <UsageStatsRow />
           <ListRow

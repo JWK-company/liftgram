@@ -33,6 +33,8 @@ export const SYNCED_PREF_KEYS = [
   "liftgram.muscleMap", // 근육 그림 보기("0" = 끔 · 없음/"1" = 켬 — 기본 켬) — lib/muscleMapPref.ts @plm SRS-075
   "liftgram.weighInBeforeWorkout", // 운동 전 체중 체크인("1" = 켬 · 기본 끔) — lib/bodyweightPref.ts @plm SRS-077
   "liftgram.bodyweightGoalKg", // 목표 체중 kg(""= 없음) — lib/bodyweightPref.ts @plm SRS-078
+  "liftgram.feedAwards", // 피드에 이달의 리프터 카드("0" = 끔 · 기본 켬) — lib/feedCardsPref.ts
+  "liftgram.feedChallenge", // 피드에 그룹 챌린지 카드("0" = 끔 · 기본 켬) — lib/feedCardsPref.ts
 ] as const;
 const SYNCED = new Set<string>(SYNCED_PREF_KEYS);
 

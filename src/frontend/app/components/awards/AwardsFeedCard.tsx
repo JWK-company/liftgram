@@ -2,14 +2,14 @@
 // 이달의 리프터 피드 카드(사용자 지시 2626) — 추천·팔로잉 탭 맨 위에 늘 보인다(로그인 · 운동한 날과 무관).
 // [원본] AwardsBanner — 로그인 + 이번 달 운동한 날 ≥ 1 일 때만 한 줄 띠라, 발표 전엔 /awards 를 주소로만 열 수 있었다.
 // 발표된 달이 있으면 가장 최근 수상자, 없으면 「예시」 수상자(앱 코드의 고정 글 · DB 행 아님 · 링크 없음)를 함께 보인다.
-// 카드 전체가 /awards 로 가는 링크 하나다(이름 줄에 따로 링크를 두지 않는다) · 닫으면 그 달엔 다시 안 보인다(띠와 같은 열쇠).
+// 카드 전체가 /awards 로 가는 링크 하나다(이름 줄에 따로 링크를 두지 않는다).
+// [원본] 닫으면 그 달엔 다시 안 보인다(띠와 같은 열쇠) → [개선] X = 「피드에 보이기」 끄기, 프로필 설정에서 다시 켬.
 import type { AwardMonth } from "@app/contracts";
 import { useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
+// [원본] import { awardClient, bannerDismissed, dismissBanner, FIRST_MONTH, … } — 닫음은 이제 「피드에 보이기」 설정(lib/feedCardsPref.ts)
 import {
   awardClient,
-  bannerDismissed,
-  dismissBanner,
   FIRST_MONTH,
   kstMonth,
   monthLabel,
@@ -17,6 +17,8 @@ import {
   prevMonth,
   STEADY_GOAL,
 } from "@/lib/awardClient";
+import { useFeedCard } from "@/lib/feedCardsPref";
+import { FeedCardClose } from "../feed/FeedCardClose";
 import { Icon } from "../ui/Icon";
 import { categoryLabel } from "./parts";
 
@@ -34,14 +36,15 @@ const cache = new Map<string, Loaded>();
 
 export function AwardsFeedCard({ userId }: { userId: string | null }) {
   const [month] = useState(() => kstMonth());
-  const [closed, setClosed] = useState<boolean | null>(null);
+  // [원본] const [closed, setClosed] = useState<boolean | null>(null); — 닫으면 그 달만 숨고 다시 켤 길이 없었다
+  // [개선] 「피드에 보이기」 설정 — null = 읽기 전 · 끄면 프로필 설정에서 다시 켬(사용자 지시 3294)
+  const shown = useFeedCard("awards");
+  const closed: boolean | null = shown === null ? null : !shown;
   const key = `${month}:${userId ?? ""}`;
   // undefined = 아직(또는 실패 — 실패면 그리지 않는다: 발표가 있었는데 「첫 발표는…」을 말하지 않게 · 리뷰 중간 2)
   const [data, setData] = useState<Loaded | undefined>(() => cache.get(key));
 
-  useEffect(() => {
-    setClosed(bannerDismissed(month));
-  }, [month]);
+  // [원본] useEffect(() => { setClosed(bannerDismissed(month)); }, [month]);
 
   useEffect(() => {
     const hit = cache.get(key);
@@ -164,18 +167,10 @@ export function AwardsFeedCard({ userId }: { userId: string | null }) {
           </span>
         ) : null}
       </a>
-      <button
-        type="button"
-        aria-label={t("awards.banner.close")}
-        data-testid="awards-banner-close"
-        className="flex h-11 w-11 shrink-0 items-center justify-center"
-        onClick={() => {
-          dismissBanner(month);
-          setClosed(true);
-        }}
-      >
-        <Icon name="close" size={20} color="var(--color-ink2)" />
-      </button>
+      {/* [원본] <button aria-label={t("awards.banner.close")} data-testid="awards-banner-close" onClick={() => { dismissBanner(month); setClosed(true); }}>
+            <Icon name="close" size={20} color="var(--color-ink2)" /></button> */}
+      {/* [개선] 두 카드가 같은 X(FeedCardClose) · 끄면 프로필 설정에서 다시 켬(사용자 지시 3294·3299) */}
+      <FeedCardClose card="awards" label={t("awards.banner.close")} testId="awards-banner-close" />
     </section>
   );
 }
