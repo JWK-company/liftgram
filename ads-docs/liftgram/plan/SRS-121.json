@@ -1,0 +1,141 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "기능",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "읽기: 사진은 멤버 확인 뒤 따로 내 주는 주소로만 보인다(공개 미디어 저장 경로와 분리).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "보관: 끝난 지 30일이 지나면 지우는 작업이 매일 돈다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "찍을 때 안내: 「다른 사람 얼굴이 나오지 않게 찍어 주세요」.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "신고: 기존 신고(moderation)에 인증 사진 대상을 더한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "REV-159 반영 (스펙 리뷰)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "삭제 시험은 DB 칸뿐 아니라 저장소 파일이 실제로 사라졌는지 확인한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "비로그인 초대 요약에는 멤버 수만 보이고 이름은 보이지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "liftgram/plan",
+  "id": "SRS-121",
+  "meta": {
+    "acceptance_criteria": "인증 사진은 공개 미디어와 분리된 비공개 저장소에 두고 media_assets에 행이 없다 · 앱이 Bearer를 붙인 fetch로 받아 보여 주고 응답은 Cache-Control private, no-store · 남·나간 멤버는 404 · 끝(취소 포함) 30일 뒤 파일까지 지운다(처리 안 된 신고가 걸린 사진은 처리 뒤) · 탈퇴하면 그 사람 파일을 바로 지운다 · 비공개 저장소는 백업에서 뺀다 · 신고 검토자는 신고된 인증 사진을 볼 수 있다",
+    "kind": "FR"
+  },
+  "relations": {
+    "derives_from": [
+      "URS-035"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "그룹 챌린지 — 인증 사진 공개 범위·보관·신고",
+  "type": "SRS",
+  "updated": "2026-11-13T02:27:58Z"
+}

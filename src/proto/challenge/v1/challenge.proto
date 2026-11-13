@@ -1,0 +1,191 @@
+// 그룹 챌린지(SPEC-064 · SRS-118~121) — 초대 그룹 · 앱 카메라 인증 · 하루 판정 · 만회 · 면제권 · 벌칙 기록 · 이의.
+//
+// 돈은 다루지 않는다(ADR-065). 멤버가 아니면 모든 읽기가 NotFound 다(존재를 드러내지 않는다).
+// 인증 사진 바이트는 이 계약으로 내려가지 않는다 — 앱은 proof id 로 /challenge-proof/<id> 를 Bearer fetch 한다(SRS-121).
+// 날짜는 'YYYY-MM-DD'(KST · 하루 = 04:00 경계).
+syntax = "proto3";
+
+package challenge.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/JWK-company/liftgram/src/backend/gen/challenge/v1;challengev1";
+
+message Rule {
+  string title = 1;
+  string starts_on = 2;
+  int32 weeks = 3;
+  // daily | weekdays
+  string rule_kind = 4;
+  // 비트 0 = 월 … 6 = 일
+  int32 weekdays = 5;
+  int32 min_sets = 6;
+  // gym | any_photo | record
+  string proof_mode = 7;
+  string penalty_text = 8;
+  int32 pass_per_week = 9;
+}
+
+message Member {
+  string user_id = 1;
+  string display_name = 2;
+  string avatar_url = 3;
+  bool is_owner = 4;
+  bool left = 5;
+}
+
+// 한 사람·한 날의 칸. result = done | made_up | pass | missed_open | missed | rest | today | upcoming | pending | ""(기간 밖).
+message Cell {
+  string user_id = 1;
+  string day = 2;
+  string result = 3;
+  bool final = 4;
+  // 그날 대표 인증(있으면)
+  string proof_id = 5;
+  bool web = 6;
+  bool suspect = 7;
+}
+
+message Tally {
+  string user_id = 1;
+  int32 done = 2;
+  int32 made_up = 3;
+  int32 pass = 4;
+  int32 missed = 5;
+  int32 debts = 6;
+  int32 debts_paid = 7;
+}
+
+message Debt {
+  string user_id = 1;
+  string day = 2;
+  bool paid = 3;
+}
+
+message ProofInfo {
+  string id = 1;
+  string user_id = 2;
+  string day = 3;
+  string prompt_code = 4;
+  google.protobuf.Timestamp captured_at = 5;
+  // ok | suspect_dup | invalid
+  string status = 6;
+  bool web = 7;
+  int32 flags = 8;
+  bool flagged_by_me = 9;
+  // 지금 이의를 걸 수 있는가(그날 확정 전 · 본인 아님 · 무효 아님)
+  bool flaggable = 10;
+}
+
+message Summary {
+  string id = 1;
+  Rule rule = 2;
+  // recruiting | active | ended | cancelled
+  string status = 3;
+  int32 member_count = 4;
+  bool is_owner = 5;
+  // 오늘 내 칸(진행 중일 때)
+  string my_today = 6;
+  string last_day = 7;
+  google.protobuf.Timestamp ended_at = 8;
+}
+
+message Detail {
+  Summary summary = 1;
+  repeated Member members = 2;
+  // 요청한 주의 칸(7일 × 멤버)
+  repeated Cell cells = 3;
+  int32 week = 4;
+  int32 week_count = 5;
+  string today = 6;
+  repeated Tally tallies = 7;
+  repeated Debt debts = 8;
+  int32 my_passes_left = 9;
+  // 방장·모집 중일 때만
+  string invite_token = 10;
+  // 사진이 지워지는 날(끝·취소 뒤 30일)
+  string photos_purge_on = 11;
+}
+
+message CreateRequest { Rule rule = 1; }
+message CreateResponse { Detail detail = 1; }
+
+message UpdateRequest { string id = 1; Rule rule = 2; }
+message UpdateResponse { Detail detail = 1; }
+
+message RotateInviteRequest { string id = 1; }
+message RotateInviteResponse { string invite_token = 1; }
+
+message GetInviteInfoRequest { string token = 1; }
+message GetInviteInfoResponse {
+  string id = 1;
+  Rule rule = 2;
+  string status = 3;
+  int32 member_count = 4;
+  bool already_member = 5;
+}
+
+message JoinRequest { string token = 1; }
+message JoinResponse { string id = 1; }
+
+message LeaveRequest { string id = 1; }
+message LeaveResponse {}
+
+message TransferOwnerRequest { string id = 1; string user_id = 2; }
+message TransferOwnerResponse {}
+
+message KickRequest { string id = 1; string user_id = 2; }
+message KickResponse {}
+
+message ListMineRequest {}
+message ListMineResponse { repeated Summary items = 1; }
+
+message GetRequest { string id = 1; int32 week = 2; bool week_set = 3; }
+message GetResponse { Detail detail = 1; }
+
+message ActiveForWorkoutRequest {}
+message ActiveForWorkoutResponse { repeated Summary items = 1; repeated string proved_today = 2; }
+
+message IssuePromptRequest { string challenge_id = 1; string workout_id = 2; }
+message IssuePromptResponse {
+  string prompt_id = 1;
+  string prompt_code = 2;
+  google.protobuf.Timestamp expires_at = 3;
+}
+
+message UploadProofRequest {
+  string prompt_id = 1;
+  bytes image = 2;
+  // app | web(참고 표시 — 판정에는 쓰지 않는다)
+  string source = 3;
+}
+message UploadProofResponse { ProofInfo proof = 1; }
+
+message ListProofsRequest { string id = 1; string day = 2; string user_id = 3; }
+message ListProofsResponse { repeated ProofInfo items = 1; }
+
+message FlagRequest { string proof_id = 1; bool on = 2; }
+message FlagResponse { ProofInfo proof = 1; }
+
+message MarkDebtPaidRequest { string id = 1; string user_id = 2; string day = 3; bool paid = 4; }
+message MarkDebtPaidResponse {}
+
+service ChallengeService {
+  rpc Create(CreateRequest) returns (CreateResponse) {}
+  rpc Update(UpdateRequest) returns (UpdateResponse) {}
+  rpc RotateInvite(RotateInviteRequest) returns (RotateInviteResponse) {}
+  // 비로그인도 요약은 본다(인원 수만 · 멤버 이름 없음). 이름이 GetInviteInfo 인 것은 코칭의 GetInvite* 와 TS 재수출이 겹쳐서.
+  rpc GetInviteInfo(GetInviteInfoRequest) returns (GetInviteInfoResponse) {}
+  rpc Join(JoinRequest) returns (JoinResponse) {}
+  rpc Leave(LeaveRequest) returns (LeaveResponse) {}
+  rpc TransferOwner(TransferOwnerRequest) returns (TransferOwnerResponse) {}
+  rpc Kick(KickRequest) returns (KickResponse) {}
+  rpc ListMine(ListMineRequest) returns (ListMineResponse) {}
+  rpc Get(GetRequest) returns (GetResponse) {}
+  rpc ActiveForWorkout(ActiveForWorkoutRequest) returns (ActiveForWorkoutResponse) {}
+  rpc IssuePrompt(IssuePromptRequest) returns (IssuePromptResponse) {}
+  rpc UploadProof(UploadProofRequest) returns (UploadProofResponse) {}
+  rpc ListProofs(ListProofsRequest) returns (ListProofsResponse) {}
+  rpc Flag(FlagRequest) returns (FlagResponse) {}
+  rpc MarkDebtPaid(MarkDebtPaidRequest) returns (MarkDebtPaidResponse) {}
+}

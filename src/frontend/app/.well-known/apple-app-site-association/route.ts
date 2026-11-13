@@ -15,7 +15,8 @@ export function GET(): Response {
         {
           appIDs: [appId],
           // 공유 링크 경로만(안드로이드 intent-filter 와 같은 목록 · qa code M-2)
-          components: [{ "/": "/feed/*" }, { "/": "/u/*" }, { "/": "/hashtag/*" }],
+          // [원본] [{ "/": "/feed/*" }, { "/": "/u/*" }, { "/": "/hashtag/*" }] · [개선] 그룹 챌린지(SPEC-064)
+          components: [{ "/": "/feed/*" }, { "/": "/u/*" }, { "/": "/hashtag/*" }, { "/": "/challenges/*" }],
         },
       ],
     },

@@ -37,6 +37,13 @@ enum NotificationKind {
   NOTIFICATION_KIND_COACHING_COMMENT = 10;
   // 이달의 리프터 수상(SPEC-063) — ref_id 는 수상 id(/awards/[ref_id]). actor 는 받는 사람 자신이다(운영자 이름을 보이지 않게).
   NOTIFICATION_KIND_AWARD = 11;
+  // 그룹 챌린지(SPEC-064) — ref_id 는 챌린지 id(/challenges/[ref_id]). actor 는 받는 사람 자신(이의한 사람·방장을 드러내지 않는다).
+  // 21시 미완료 · 빠짐(만회 안내) · 이의로 인증 무효 · 끝(결과) · 취소(시작 때 2명 미만).
+  NOTIFICATION_KIND_CHALLENGE_REMIND = 12;
+  NOTIFICATION_KIND_CHALLENGE_MISSED = 13;
+  NOTIFICATION_KIND_CHALLENGE_PROOF_INVALID = 14;
+  NOTIFICATION_KIND_CHALLENGE_ENDED = 15;
+  NOTIFICATION_KIND_CHALLENGE_CANCELLED = 16;
 }
 
 message Actor {

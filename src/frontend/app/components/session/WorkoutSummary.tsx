@@ -8,6 +8,7 @@
 //
 // 아래에 **오운완 공유**가 붙는다 — 피드의 운동 카드를 만드는 유일한 자리다(ShareWorkout).
 import { AwardSummaryLine } from "../awards/AwardSummaryLine";
+import { SummaryProofLine } from "../challenge/ProofLine";
 import { Visibility } from "@app/contracts";
 import { AdSlot } from "../ads/AdSlot";
 import { formatEnteredWeight, formatWeight, type WeightUnit } from "@app/core";
@@ -330,6 +331,9 @@ export function WorkoutSummary({
 
         {/* 이달의 리프터(SPEC-063) — 이 기기 기준 「이번 달 운동한 날」 · 누르면 /awards */}
         {summary.workingSets > 0 ? <AwardSummaryLine /> : null}
+
+        {/* 그룹 챌린지 인증 사진(SPEC-064 Phase 3a) — 마친 뒤 30분 안 · 사진 인증 챌린지가 있을 때만 */}
+        <SummaryProofLine workoutId={summary.workoutId} />
 
         {/* 운동 총평 — 나만 본다 · 피드 글과 별개(#52) @plm SRS-064 */}
         <WorkoutNoteField workoutId={summary.workoutId} initial={null} />

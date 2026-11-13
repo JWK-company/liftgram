@@ -8,6 +8,9 @@ describe("앱 링크 → 웹 경로(화면 지도 2026-11-09)", () => {
     expect(appWebLinkPath("https://liftgram.tarae.org/feed/abc", H)).toBe("/feed/abc");
     expect(appWebLinkPath("https://liftgram.tarae.org/u/u1?x=1#c", H)).toBe("/u/u1?x=1#c");
     expect(appWebLinkPath("https://LIFTGRAM.tarae.org/hashtag/%EB%8B%A4", H)).toBe("/hashtag/%EB%8B%A4");
+    // SPEC-064 그룹 챌린지 초대·상세도 앱에서 연다
+    expect(appWebLinkPath("https://liftgram.tarae.org/challenges/join/tok_1", H)).toBe("/challenges/join/tok_1");
+    expect(appWebLinkPath("https://liftgram.tarae.org/challenges/ch1", H)).toBe("/challenges/ch1");
   });
   test("다른 주소·다른 경로·빈 경로·http·앱 스킴은 null", () => {
     for (const bad of [

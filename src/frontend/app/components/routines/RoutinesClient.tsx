@@ -53,6 +53,8 @@ import { CreatorTipTopicSheet } from "./CreatorTipSheet"; // 운동 팁(SPEC-047
 import { AppBar, AppBarAction } from "../ui/AppBar";
 import { GuideButton } from "../guide/GuideButton"; // 탭 사용법 ?(SPEC-058)
 import { ListGroup, SectionLabel } from "../ui/rows";
+import { useAuth } from "../AuthProvider";
+import { ChallengeHomeLine } from "../challenge/ChallengeEntry";
 import { AdSlot } from "../ads/AdSlot";
 import { RecentWorkouts, WeekSummary } from "./WeekSummary";
 import { RoutineMuscleFocus, RoutineMuscleMini } from "./RoutineMuscleMini"; // 오늘·추천 카드 근육 그림 @plm SRS-075
@@ -94,6 +96,7 @@ const ROUTINE_DOT_PALETTE = [
 export default function RoutinesClient() {
   // loading — 사용자 레코드(스케줄)를 읽기 전의 null 을 「스케줄 없음」으로 보지 않으려고(qa M-1)
   const { user, weeklySchedule, loading: userLoading } = useUser();
+  const { user: account } = useAuth(); // 그룹 챌린지 줄(SPEC-064) — 서버 계정이 있을 때만
   // [원본] activeName 도 꺼냈다 — 진행 카드 제목(화면 정리 D8 로 렌더 중단)
   // activeLoaded — 진행 중인 운동을 읽기 전의 null 은 「없음」이 아니라 「모름」(화면 정리 M-2 /qa H-2) @plm SRS-072
   const { activeWorkoutId, setActive, activeLoaded } = useSession();
@@ -640,6 +643,9 @@ export default function RoutinesClient() {
           <CatchUpCard catchUp={catchUp} name={routines.find((r) => r.id === catchUp.routineId)?.name ?? null}
             busy={busy} onStart={() => guardActive(startFromRoutine(catchUp.routineId))} />
         ) : null} */}
+
+        {/* 그룹 챌린지(SPEC-064) — 진행 중인 것만 한 줄씩(없으면 아무것도 없다) */}
+        {homeReady ? <ChallengeHomeLine userId={account?.id ?? null} /> : null}
 
         {/* ── 내 루틴 — 줄마다 바로 시작(시안 01) ── */}
         <SectionLabel

@@ -18,6 +18,8 @@ import (
 
 type diskStorage struct {
 	dir string
+	// 파일 권한 — 공개 미디어 0644 · 비공개(챌린지 인증 사진) 0600(REV-160 12)
+	fileMode os.FileMode
 }
 
 func NewDiskStorage(dir string) (Storage, error) {
@@ -27,7 +29,21 @@ func NewDiskStorage(dir string) (Storage, error) {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return nil, err
 	}
-	return &diskStorage{dir: dir}, nil
+	return &diskStorage{dir: dir, fileMode: 0o644}, nil
+}
+
+// NewPrivateDiskStorage — 서버 프로세스만 읽는 저장소(폴더 0700 · 파일 0600). 챌린지 인증 사진(SPEC-064 · SRS-121).
+func NewPrivateDiskStorage(dir string) (Storage, error) {
+	if dir == "" {
+		return nil, errors.New("비공개 저장 경로가 비어 있습니다")
+	}
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		return nil, err
+	}
+	if err := os.Chmod(dir, 0o700); err != nil {
+		return nil, err
+	}
+	return &diskStorage{dir: dir, fileMode: 0o600}, nil
 }
 
 func (d *diskStorage) Name() string { return "disk" }
@@ -39,7 +55,12 @@ func (d *diskStorage) Save(_ context.Context, data []byte, contentType string) (
 	}
 	// 먼저 임시 이름으로 쓰고 마지막에 옮긴다 — 도중에 죽어도 **반쪽 파일이 서브되지 않는다.**
 	tmp := filepath.Join(d.dir, "."+key+".part")
-	if err := os.WriteFile(tmp, data, 0o644); err != nil {
+	// [원본] os.WriteFile(tmp, data, 0o644)
+	mode := d.fileMode
+	if mode == 0 {
+		mode = 0o644
+	}
+	if err := os.WriteFile(tmp, data, mode); err != nil {
 		return StoredObject{}, err
 	}
 	if err := os.Rename(tmp, filepath.Join(d.dir, key)); err != nil {

@@ -1,0 +1,151 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "기능",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "만들기: 이름(1~30자), 시작일(내일~30일 뒤), 기간(1~8주), 목표(매일 / 요일 비트), 최소 세트(1~30, 기본 5), 인증 방식(gym / any_photo / record), 벌칙 글(0~60자), 면제권(주 0 또는 1회).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "초대 링크: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/challenges/join/<토큰>",
+                    "type": "text"
+                  },
+                  {
+                    "text": ". 토큰은 128비트 난수이고 방장이 다시 만들 수 있다(옛 링크 무효). 목록 검색·공개 노출은 없다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "참가: 모집 중(시작 전)에만, 정원 10명, 차단 관계면 거부, 이미 멤버면 그대로.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "규칙 고치기: 시작 전에 방장만. 고치면 멤버에게 바뀐 점을 보인다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "시작: 시작일 04:00 KST. 멤버가 2명 미만이면 취소하고 알린다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "나가기: 언제든 가능. 진행 중이면 다음 날부터 판정하지 않는다. 방장이 나가면 가장 먼저 들어온 멤버가 방장이 된다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "방장은 시작 전 멤버 내보내기만 할 수 있다(진행 중에는 못 함 — 벌칙 회피·괴롭힘 방지).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "liftgram/plan",
+  "id": "SRS-118",
+  "meta": {
+    "acceptance_criteria": "2~10명 · 초대 링크로만 참가(토큰 모르면 못 찾음) · 규칙은 시작 전에만 고침 · 시작일 04:00 KST에 2명 미만이면 취소 · 정원 넘으면 참가 거부 · 나가면 다음 날부터 판정 안 함 · 한 사용자가 동시에 진행 중인 챌린지는 5개까지",
+    "kind": "FR"
+  },
+  "relations": {
+    "derives_from": [
+      "URS-035"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "그룹 챌린지 — 만들기·규칙·초대 링크·참가·나가기·시작/취소",
+  "type": "SRS",
+  "updated": "2026-11-13T02:22:58Z"
+}

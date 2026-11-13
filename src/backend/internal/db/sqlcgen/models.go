@@ -79,6 +79,94 @@ type CatalogNew struct {
 	MediaRef         *string
 }
 
+type Challenge struct {
+	ID             string
+	OwnerID        *string
+	Title          string
+	StartsOn       pgtype.Date
+	Weeks          int32
+	RuleKind       string
+	Weekdays       int32
+	MinSets        int32
+	ProofMode      string
+	PenaltyText    string
+	PassPerWeek    int32
+	InviteToken    string
+	Status         string
+	CreatedAt      pgtype.Timestamptz
+	EndedAt        pgtype.Timestamptz
+	PhotosPurgedAt pgtype.Timestamptz
+}
+
+type ChallengeDay struct {
+	ChallengeID string
+	UserID      string
+	Day         pgtype.Date
+	Result      string
+	Final       bool
+	WorkoutID   *string
+	Sets        *int32
+	ProofID     *string
+	JudgedAt    pgtype.Timestamptz
+}
+
+type ChallengeDebt struct {
+	ChallengeID string
+	UserID      string
+	Day         pgtype.Date
+	PaidAt      pgtype.Timestamptz
+	PaidBy      *string
+}
+
+type ChallengeFlag struct {
+	ProofID   string
+	VoterID   string
+	CreatedAt pgtype.Timestamptz
+}
+
+type ChallengeMember struct {
+	ChallengeID string
+	UserID      string
+	JoinedAt    pgtype.Timestamptz
+	LeftAt      pgtype.Timestamptz
+}
+
+type ChallengeNotice struct {
+	ChallengeID string
+	UserID      string
+	Kind        string
+	Ref         string
+	CreatedAt   pgtype.Timestamptz
+}
+
+type ChallengePrompt struct {
+	ID          string
+	ChallengeID string
+	UserID      string
+	WorkoutID   string
+	PromptCode  string
+	IssuedAt    pgtype.Timestamptz
+	UsedAt      pgtype.Timestamptz
+}
+
+type ChallengeProof struct {
+	ID          string
+	ChallengeID string
+	UserID      *string
+	WorkoutID   string
+	PromptID    string
+	PromptCode  string
+	IssuedAt    pgtype.Timestamptz
+	CapturedAt  pgtype.Timestamptz
+	StorageKey  *string
+	Dhash       int64
+	Source      string
+	DupOf       *string
+	Status      string
+	InvalidAt   pgtype.Timestamptz
+	CreatedAt   pgtype.Timestamptz
+}
+
 type ClientHealth struct {
 	UserID              string
 	DeviceID            string

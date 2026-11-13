@@ -28,6 +28,7 @@ export * from "../gen/admin/v1/admin_pb";
 export * from "../gen/usage/v1/usage_pb";
 export * from "../gen/video/v1/video_pb";
 export * from "../gen/award/v1/award_pb"; // 이달의 리프터(SPEC-063)
+export * from "../gen/challenge/v1/challenge_pb"; // 그룹 챌린지(SPEC-064)
 
 /**
  * 브라우저가 보는 경로.

@@ -42,7 +42,7 @@
 	</array>
 	<!-- @plm SRS-095  웹뷰가 쓰는 권한 문구(qa spec M-13) — 피드·프로필 사진 첨부 · 주변 헬스장 -->
 	<key>NSCameraUsageDescription</key>
-	<string>운동 사진을 찍어 피드와 프로필에 올릴 때 카메라를 씁니다.</string>
+	<string>운동 사진을 찍어 피드와 프로필에 올릴 때, 그리고 그룹 챌린지 인증 사진을 찍을 때 카메라를 씁니다.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>사진첩의 운동 사진을 피드와 프로필에 올릴 때 씁니다.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

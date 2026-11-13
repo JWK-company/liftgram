@@ -26,10 +26,12 @@ import (
 	"encoding/json"
 	"errors"
 	"flag"
+	"io"
 	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
@@ -41,10 +43,10 @@ import (
 
 	"github.com/JWK-company/liftgram/src/backend/gen/admin/v1/adminv1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/auth/v1/authv1connect"
+	"github.com/JWK-company/liftgram/src/backend/gen/award/v1/awardv1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/dm/v1/dmv1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/exercise/v1/exercisev1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/feed/v1/feedv1connect"
-	"github.com/JWK-company/liftgram/src/backend/gen/award/v1/awardv1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/feedback/v1/feedbackv1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/gear/v1/gearv1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/media/v1/mediav1connect"
@@ -58,6 +60,8 @@ import (
 	// [원본] "github.com/JWK-company/liftgram/src/backend/gen/video/v1/videov1connect" — SPEC-054 뗌(ADR-064)
 	"github.com/JWK-company/liftgram/src/backend/internal/admin"
 	"github.com/JWK-company/liftgram/src/backend/internal/auth"
+	"github.com/JWK-company/liftgram/src/backend/internal/award"
+	"github.com/JWK-company/liftgram/src/backend/internal/challenge"
 	"github.com/JWK-company/liftgram/src/backend/internal/coaching"
 	"github.com/JWK-company/liftgram/src/backend/internal/config"
 	"github.com/JWK-company/liftgram/src/backend/internal/db"
@@ -65,7 +69,6 @@ import (
 	"github.com/JWK-company/liftgram/src/backend/internal/dm"
 	"github.com/JWK-company/liftgram/src/backend/internal/exercise"
 	"github.com/JWK-company/liftgram/src/backend/internal/feed"
-	"github.com/JWK-company/liftgram/src/backend/internal/award"
 	"github.com/JWK-company/liftgram/src/backend/internal/feedback"
 	"github.com/JWK-company/liftgram/src/backend/internal/gear"
 	"github.com/JWK-company/liftgram/src/backend/internal/gyms"
@@ -394,6 +397,26 @@ func main() {
 	awardAdminPath, awardAdminHTTP := awardv1connect.NewAwardAdminServiceHandler(award.NewAdminHandler(awardSvc), opts)
 	mount(mux, awardAdminPath, awardAdminHTTP)
 
+	// ── 그룹 챌린지(SPEC-064) ──
+	// 인증 사진은 공개 미디어와 다른 저장소(폴더)에 둔다 — /media/file 로는 닿을 수 없고, 백업에서도 빠진다(SRS-121).
+	// [원본] media.NewDiskStorage(cfg.ChallengePhotoDir) — 공개 미디어와 같은 0644·0755 였다(REV-160 12)
+	// 공개 미디어 폴더와 같거나 그 안이면 /media 로 열린다 — 설정 실수를 부팅에서 막는다
+	if inside(cfg.MediaDir, cfg.ChallengePhotoDir) {
+		slog.Error("챌린지 사진 폴더가 공개 미디어 폴더 안에 있습니다", "media", cfg.MediaDir, "challenge", cfg.ChallengePhotoDir)
+		os.Exit(1)
+	}
+	challengePhotos, err := media.NewPrivateDiskStorage(cfg.ChallengePhotoDir)
+	if err != nil {
+		slog.Error("챌린지 사진 저장소 준비 실패", "err", err)
+		os.Exit(1)
+	}
+	challengeSvc := challenge.NewService(challenge.NewRepo(pool), challengePhotoStore{challengePhotos}, challengeNotify{notificationSvc}, uuid.NewString)
+	challengePath, challengeHTTP := challenge.NewConnectHandler(challengeSvc, opts)
+	mount(mux, challengePath, challengeHTTP)
+	mux.Handle("/challenge-proof/", challenge.PhotoHandler(challengeSvc, authSvc))
+	mux.Handle("/api/challenge-proof/", http.StripPrefix("/api", challenge.PhotoHandler(challengeSvc, authSvc)))
+	go challengeSvc.Loop(ctx, time.Duration(cfg.ChallengeLoopIntervalSec)*time.Second)
+
 	// ── 신고·모더레이션 ──
 	// 신고는 누구나, 검토는 역할이 있는 사람만 — 그 판정은 service가 한다(handler는 신원만 넘긴다).
 	moderationSvc := moderation.NewService(moderation.NewRepo(pool), uuid.NewString).WithReviewMedia(mediaSvc)
@@ -503,6 +526,41 @@ func (a notifyAdapter) Notify(ctx context.Context, userID, actorID, kind, postID
 // NotifyRef — 코칭 알림(SPEC-050 · coaching.RefNotifier). 대상은 ref_id, post_id 는 비운다.
 func (a notifyAdapter) NotifyRef(ctx context.Context, userID, actorID, kind, refID string) {
 	a.svc.NotifyRef(ctx, userID, actorID, notification.Kind(kind), refID)
+}
+
+// challengeNotify — 챌린지 알림(actor = 받는 사람 자신).
+type challengeNotify struct{ svc *notification.Service }
+
+func (c challengeNotify) NotifySelf(ctx context.Context, userID, kind, refID string) {
+	c.svc.NotifySelf(ctx, userID, notification.Kind(kind), refID)
+}
+
+// inside — child 가 parent 와 같거나 그 아래인가(절대 경로로 견준다).
+func inside(parent, child string) bool {
+	if parent == "" || child == "" {
+		return false
+	}
+	p, err1 := filepath.Abs(parent)
+	c, err2 := filepath.Abs(child)
+	if err1 != nil || err2 != nil {
+		return true // 판단할 수 없으면 막는다
+	}
+	rel, err := filepath.Rel(p, c)
+	return err == nil && (rel == "." || (rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))))
+}
+
+// challengePhotoStore — media.Storage 를 챌린지 사진 포트(키만 돌려줌)에 맞춘다.
+type challengePhotoStore struct{ st media.Storage }
+
+func (p challengePhotoStore) Save(ctx context.Context, data []byte, ct string) (string, error) {
+	o, err := p.st.Save(ctx, data, ct)
+	return o.Key, err
+}
+func (p challengePhotoStore) Open(ctx context.Context, key string) (io.ReadCloser, error) {
+	return p.st.Open(ctx, key)
+}
+func (p challengePhotoStore) Delete(ctx context.Context, key string) error {
+	return p.st.Delete(ctx, key)
 }
 
 // awardNotify 는 notification.Service 를 수상이 아는 좁은 포트(award.Notifier)에 맞춘다.

@@ -23,7 +23,8 @@ export function appLinkKind(url: string | null | undefined): AppLinkKind | null 
 }
 
 /** 앱 링크로 여는 웹 경로 — AndroidManifest 의 pathPrefix · apple-app-site-association 의 components 와 같은 셋 */
-const APP_WEB_LINK_PREFIXES = ["/feed/", "/u/", "/hashtag/"] as const;
+// [원본] ["/feed/", "/u/", "/hashtag/"] · [개선] 그룹 챌린지 초대·상세(SPEC-064 — 초대 링크가 앱으로 열린다)
+const APP_WEB_LINK_PREFIXES = ["/feed/", "/u/", "/hashtag/", "/challenges/"] as const;
 
 /**
  * 앱 링크(https://<우리 주소>/feed/… 등)로 앱이 열렸을 때 웹뷰가 옮겨 갈 경로(+쿼리·해시). 우리 주소가 아니거나

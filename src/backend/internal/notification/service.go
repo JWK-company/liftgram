@@ -37,6 +37,12 @@ const (
 	KindCoachingComment       Kind = "coaching_comment"
 	// 이달의 리프터 수상(SPEC-063) — actor = 받는 사람 자신 · ref_id = 수상 id.
 	KindAward Kind = "award"
+	// 그룹 챌린지(SPEC-064) — actor = 받는 사람 자신 · ref_id = 챌린지 id.
+	KindChallengeRemind       Kind = "challenge_remind"
+	KindChallengeMissed       Kind = "challenge_missed"
+	KindChallengeProofInvalid Kind = "challenge_proof_invalid"
+	KindChallengeEnded        Kind = "challenge_ended"
+	KindChallengeCancelled    Kind = "challenge_cancelled"
 )
 
 type Actor struct {

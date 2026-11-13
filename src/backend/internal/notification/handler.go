@@ -84,6 +84,17 @@ func toProtoKind(k Kind) notificationv1.NotificationKind {
 		return notificationv1.NotificationKind_NOTIFICATION_KIND_COACHING_COMMENT
 	case KindAward: // SPEC-063
 		return notificationv1.NotificationKind_NOTIFICATION_KIND_AWARD
+	// 그룹 챌린지(SPEC-064)
+	case KindChallengeRemind:
+		return notificationv1.NotificationKind_NOTIFICATION_KIND_CHALLENGE_REMIND
+	case KindChallengeMissed:
+		return notificationv1.NotificationKind_NOTIFICATION_KIND_CHALLENGE_MISSED
+	case KindChallengeProofInvalid:
+		return notificationv1.NotificationKind_NOTIFICATION_KIND_CHALLENGE_PROOF_INVALID
+	case KindChallengeEnded:
+		return notificationv1.NotificationKind_NOTIFICATION_KIND_CHALLENGE_ENDED
+	case KindChallengeCancelled:
+		return notificationv1.NotificationKind_NOTIFICATION_KIND_CHALLENGE_CANCELLED
 	}
 	return notificationv1.NotificationKind_NOTIFICATION_KIND_UNSPECIFIED
 }

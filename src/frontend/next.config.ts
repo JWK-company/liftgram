@@ -59,10 +59,12 @@ const config: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
-          // 카메라·마이크는 쓰지 않으므로 닫아 둔다. **위치는 우리가 쓴다**(주변 헬스장 — SRS-035) —
+          // 마이크는 쓰지 않으므로 닫아 둔다. 카메라는 그룹 챌린지 인증(SPEC-064)이 이 주소에서만 쓴다. **위치는 우리가 쓴다**(주변 헬스장 — SRS-035) —
           // `self`로 열어야 브라우저가 권한을 물어본다. 닫아 두면 사용자가 허용해도
           // "권한 정책으로 차단됨"이 되어, 화면은 권한 거부와 구분할 수 없다.
-          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(self)" },
+          // [원본] { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(self)" },
+          // [개선] SPEC-064 — 그룹 챌린지 인증 카메라(앱 안에서만 찍는다)가 쓴다. 남의 프레임에는 여전히 닫힌다(self).
+          { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=(self)" },
         ],
       },
       // SPEC-018 §7  넘기기 확인 화면 — 남의 페이지에 끼워 넣어 「계속」을 누르게 하지 못하게(frame-ancestors) ·
@@ -106,6 +108,14 @@ const config: NextConfig = {
       {
         source: "/downloads/android.json",
         headers: [{ key: "Cache-Control", value: "no-store" }],
+      },
+      // 그룹 챌린지 초대 링크 — 토큰이 리퍼러·캐시로 새지 않게(SPEC-064 · SRS-118)
+      {
+        source: "/challenges/join/:token",
+        headers: [
+          { key: "Cache-Control", value: "no-store" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+        ],
       },
       // 쿠폰 화면 — 브라우저·엣지가 담지 않고, 바깥 링크로 수상 id 가 새지 않게(SPEC-063 · REV-155 보안 4)
       {

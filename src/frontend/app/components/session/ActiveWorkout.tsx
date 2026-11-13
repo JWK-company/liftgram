@@ -55,6 +55,7 @@ import { SetDraftContext, createSetDraftRegistry, registerDraftCommitter } from 
 import { firePrCelebration } from "../PrCelebration";
 // import { WeighInCheckin } from "./WeighInSheet"; // [원본] 운동 전 체중 체크인 @plm SRS-077
 import { WeighInRow } from "./WeighInSheet"; // 맨 위 「오늘 체중」 줄(SPEC-049)
+import { ProofLine, unprovedWarning } from "../challenge/ProofLine"; // 그룹 챌린지 인증(SPEC-064)
 import { clearWeighInMarks } from "@/lib/bodyweightPref";
 import { groupSessionRows } from "@app/core/domain/lockScreen"; // 화면 행 순서 = 잠금 카드 단계 순서(SPEC-017 §4-1)
 import { completeSetsFlow } from "@app/core/domain/completeSetsFlow"; // 완료 흐름 하나로(SPEC-017 §10)
@@ -433,11 +434,13 @@ export default function ActiveWorkout() {
             onPress={() =>
               void (async () => {
                 const undone = await repo.getWorkoutUndoneSetCount(workout.id).catch(() => 0);
-                setConfirmFinish(
+                // 그룹 챌린지 — 오늘 인증 사진이 없으면 한 줄 덧붙인다(SPEC-064 · 마치면 30분 안에 요약에서도 찍을 수 있다)
+                const proofWarn = await unprovedWarning().catch(() => null);
+                const base =
                   undone > 0
                     ? `${t("session.finishUndoneCount", { count: undone })}\n${t("session.finishWorkout.message")}`
-                    : t("session.finishWorkout.message"),
-                );
+                    : t("session.finishWorkout.message");
+                setConfirmFinish(proofWarn ? `${base}\n${proofWarn}` : base);
               })()
             }
           />
@@ -484,6 +487,8 @@ export default function ActiveWorkout() {
         <div className="flex-1 bg-(--color-bg) px-[var(--spacing-lg)] pb-[var(--spacing-lg)]">
           {/* 오늘 체중 — 맨 위 한 줄 · 안 써도 그만(SPEC-049 · S-4). workout-exercises 밖(첫 종목 칸을 집는 시험이 그대로) */}
           {now != null ? <WeighInRow now={now} /> : null}
+          {/* 그룹 챌린지 인증 사진(SPEC-064 Phase 3a) — 사진 인증 챌린지가 진행 중일 때만 */}
+          <ProofLine workoutId={workout.id} />
           {exercises.length === 0 ? (
             <EmptyState
               icon="add-circle"

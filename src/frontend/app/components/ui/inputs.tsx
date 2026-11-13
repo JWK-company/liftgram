@@ -162,6 +162,8 @@ export function NumberStepper({
         <button
           type="button"
           data-testid={testId ? `${testId}-value` : undefined}
+          // 값 칸 — 양옆 −·＋ 상자가 「조절하는 값」임을 말한다(세트 표 값 칸과 같이 단추 가드에서 뺀다 · SPEC-064 REV-161 M-6)
+          data-affordance="cell"
           onClick={() => {
             setDraft(fmt(value));
             setEditing(true);

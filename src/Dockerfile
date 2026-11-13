@@ -47,7 +47,7 @@ COPY database/migrations /app/migrations
 # 올라온 사진이 놓이는 자리. **이미지 안에 미리 만들어 소유자를 app으로 둔다** —
 # 도커 named volume은 처음 붙을 때 이 경로의 소유자를 그대로 물려받는다. 없으면 root 소유로
 # 만들어져 non-root 프로세스가 쓰지 못한다(실측: `permission denied`).
-RUN mkdir -p /app/media && chown -R app:app /app/media
+RUN mkdir -p /app/media /app/challenge-photos && chown -R app:app /app/media /app/challenge-photos && chmod 700 /app/challenge-photos
 USER app
 EXPOSE 3001
 # 설정은 실행 시 환경변수로만 들어온다 — 이미지에 .env를 넣지 않는다(누락되면 부팅 실패 = runtime contract).
@@ -161,7 +161,7 @@ COPY database/migrations /app/migrations
 # 한 프로세스가 죽으면 컨테이너도 죽어야 한다(호스트가 다시 띄우게) — `wait -n`이 그 역할이다.
 COPY scripts/start-combined.sh /app/start.sh
 # 사진 자리 — 무료 호스트의 디스크는 재배포에서 비워진다. 오래 남기려면 STORAGE_PROVIDER=s3.
-RUN mkdir -p /app/media && chown -R app:app /app/media
+RUN mkdir -p /app/media /app/challenge-photos && chown -R app:app /app/media /app/challenge-photos && chmod 700 /app/challenge-photos
 USER app
 EXPOSE 8080
 CMD ["/app/start.sh"]

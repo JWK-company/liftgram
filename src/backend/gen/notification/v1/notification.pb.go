@@ -56,6 +56,13 @@ const (
 	NotificationKind_NOTIFICATION_KIND_COACHING_COMMENT NotificationKind = 10
 	// 이달의 리프터 수상(SPEC-063) — ref_id 는 수상 id(/awards/[ref_id]). actor 는 받는 사람 자신이다(운영자 이름을 보이지 않게).
 	NotificationKind_NOTIFICATION_KIND_AWARD NotificationKind = 11
+	// 그룹 챌린지(SPEC-064) — ref_id 는 챌린지 id(/challenges/[ref_id]). actor 는 받는 사람 자신(이의한 사람·방장을 드러내지 않는다).
+	// 21시 미완료 · 빠짐(만회 안내) · 이의로 인증 무효 · 끝(결과) · 취소(시작 때 2명 미만).
+	NotificationKind_NOTIFICATION_KIND_CHALLENGE_REMIND        NotificationKind = 12
+	NotificationKind_NOTIFICATION_KIND_CHALLENGE_MISSED        NotificationKind = 13
+	NotificationKind_NOTIFICATION_KIND_CHALLENGE_PROOF_INVALID NotificationKind = 14
+	NotificationKind_NOTIFICATION_KIND_CHALLENGE_ENDED         NotificationKind = 15
+	NotificationKind_NOTIFICATION_KIND_CHALLENGE_CANCELLED     NotificationKind = 16
 )
 
 // Enum value maps for NotificationKind.
@@ -73,6 +80,11 @@ var (
 		9:  "NOTIFICATION_KIND_COACHING_ROUTINE_UPDATE",
 		10: "NOTIFICATION_KIND_COACHING_COMMENT",
 		11: "NOTIFICATION_KIND_AWARD",
+		12: "NOTIFICATION_KIND_CHALLENGE_REMIND",
+		13: "NOTIFICATION_KIND_CHALLENGE_MISSED",
+		14: "NOTIFICATION_KIND_CHALLENGE_PROOF_INVALID",
+		15: "NOTIFICATION_KIND_CHALLENGE_ENDED",
+		16: "NOTIFICATION_KIND_CHALLENGE_CANCELLED",
 	}
 	NotificationKind_value = map[string]int32{
 		"NOTIFICATION_KIND_UNSPECIFIED":             0,
@@ -87,6 +99,11 @@ var (
 		"NOTIFICATION_KIND_COACHING_ROUTINE_UPDATE": 9,
 		"NOTIFICATION_KIND_COACHING_COMMENT":        10,
 		"NOTIFICATION_KIND_AWARD":                   11,
+		"NOTIFICATION_KIND_CHALLENGE_REMIND":        12,
+		"NOTIFICATION_KIND_CHALLENGE_MISSED":        13,
+		"NOTIFICATION_KIND_CHALLENGE_PROOF_INVALID": 14,
+		"NOTIFICATION_KIND_CHALLENGE_ENDED":         15,
+		"NOTIFICATION_KIND_CHALLENGE_CANCELLED":     16,
 	}
 )
 
@@ -538,7 +555,7 @@ const file_notification_v1_notification_proto_rawDesc = "" +
 	"\x13UnreadCountResponse\x12\x14\n" +
 	"\x05count\x18\x01 \x01(\x05R\x05count\"\x14\n" +
 	"\x12MarkAllReadRequest\"\x15\n" +
-	"\x13MarkAllReadResponse*\xc8\x03\n" +
+	"\x13MarkAllReadResponse*\x99\x05\n" +
 	"\x10NotificationKind\x12!\n" +
 	"\x1dNOTIFICATION_KIND_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18NOTIFICATION_KIND_FOLLOW\x10\x01\x12\x1a\n" +
@@ -552,7 +569,12 @@ const file_notification_v1_notification_proto_rawDesc = "" +
 	")NOTIFICATION_KIND_COACHING_ROUTINE_UPDATE\x10\t\x12&\n" +
 	"\"NOTIFICATION_KIND_COACHING_COMMENT\x10\n" +
 	"\x12\x1b\n" +
-	"\x17NOTIFICATION_KIND_AWARD\x10\v2\xbb\x02\n" +
+	"\x17NOTIFICATION_KIND_AWARD\x10\v\x12&\n" +
+	"\"NOTIFICATION_KIND_CHALLENGE_REMIND\x10\f\x12&\n" +
+	"\"NOTIFICATION_KIND_CHALLENGE_MISSED\x10\r\x12-\n" +
+	")NOTIFICATION_KIND_CHALLENGE_PROOF_INVALID\x10\x0e\x12%\n" +
+	"!NOTIFICATION_KIND_CHALLENGE_ENDED\x10\x0f\x12)\n" +
+	"%NOTIFICATION_KIND_CHALLENGE_CANCELLED\x10\x102\xbb\x02\n" +
 	"\x13NotificationService\x12l\n" +
 	"\x11ListNotifications\x12).notification.v1.ListNotificationsRequest\x1a*.notification.v1.ListNotificationsResponse\"\x00\x12Z\n" +
 	"\vUnreadCount\x12#.notification.v1.UnreadCountRequest\x1a$.notification.v1.UnreadCountResponse\"\x00\x12Z\n" +

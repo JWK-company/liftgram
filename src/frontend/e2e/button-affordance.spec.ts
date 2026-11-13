@@ -106,8 +106,7 @@ async function bare(page: Page): Promise<string[]> {
       const icons = [...el.querySelectorAll("svg[data-icon]")];
       const lastIcon = icons[icons.length - 1];
       const iconAtEnd =
-        !!lastIcon &&
-        /^chevron-(forward|back)$|^arrow-back$/.test(lastIcon.getAttribute("data-icon") ?? "");
+        !!lastIcon && /^chevron-(forward|back)$|^arrow-back$/.test(lastIcon.getAttribute("data-icon") ?? "");
       const chevron = /[›‹▾]\s*$|^\s*‹/.test(text) || iconAtEnd;
       if (iconish && (row || chevron || onlyIcons)) continue;
       // [원본] if (el.tagName === "A" && (row || chevron)) continue; — 넓은 글자만 있는 링크가 통과했다(리뷰 H-2)
@@ -239,12 +238,29 @@ for (const scheme of ["light", "dark"] as const) {
       "/profile",
       "/profile/feedback",
       "/awards",
+      "/challenges",
+      "/challenges/join/e2e-bad-token",
     ]) {
       await page.goto(route);
       await page.waitForTimeout(1500);
       await page.mouse.move(0, 0);
       expect(await bare(page), `${route}(로그인) 글자만 있는 단추`).toEqual([]);
     }
+
+    // 그룹 챌린지(SPEC-064 · REV-161 M-6) — 만들기 시트 · 모집 중 상세. 진행 중 출석표는 challenges.spec 이 두 사람으로 본다.
+    await page.goto("/challenges");
+    await page.getByTestId("challenges-new").click();
+    await expect(page.getByTestId("challenge-form")).toBeVisible();
+    await page.getByTestId("challenge-form-title").fill("단추 검사 챌린지");
+    await page.waitForTimeout(300);
+    await page.mouse.move(0, 0);
+    expect(await bare(page), "챌린지 만들기 시트 글자만 있는 단추").toEqual([]);
+    await page.getByTestId("challenge-form-submit").click();
+    await page.waitForURL(/\/challenges\/[^/]+$/);
+    await expect(page.getByTestId("challenge-detail")).toHaveAttribute("data-status", "recruiting");
+    await page.waitForTimeout(500);
+    await page.mouse.move(0, 0);
+    expect(await bare(page), "챌린지 상세(모집 중) 글자만 있는 단추").toEqual([]);
   });
 }
 

@@ -47,6 +47,8 @@
                 <data android:pathPrefix="/feed/" />
                 <data android:pathPrefix="/u/" />
                 <data android:pathPrefix="/hashtag/" />
+                <!-- 그룹 챌린지 초대·상세(SPEC-064 · 앱 1.8.0) -->
+                <data android:pathPrefix="/challenges/" />
             </intent-filter>
 
         </activity>
@@ -122,6 +124,10 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 그룹 챌린지 인증 사진(SPEC-064 · 앱 1.8.0) — 웹뷰 getUserMedia 를 Capacitor 가 이 권한으로 잇는다.
+         카메라가 없는 기기도 설치되게 required=false(인증 화면이 「카메라 없음」을 안내한다). -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
     <!-- @plm SRS-095  주변 헬스장(웹뷰 geolocation) — Capacitor 가 웹뷰 위치 요청을 이 권한으로 잇는다(qa spec M-13) -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />

@@ -403,6 +403,13 @@ export default function ProfileClient() {
           <ListRow testId="btn-gear" icon="fitness-outline" title={t("gear.myGearEntry")} href="/gear" />
           {/* 이달의 리프터(SPEC-063) — 로그인 전에도 규칙·예시를 볼 수 있다 */}
           <ListRow testId="btn-awards" icon="trophy-outline" title={t("awards.profileRow")} href="/awards" />
+          {/* 그룹 챌린지(SPEC-064) — 로그인 전에는 목록 화면이 로그인 안내를 보인다 */}
+          <ListRow
+            testId="btn-challenges"
+            icon="people-outline"
+            title={t("challenge.entry.profileRow")}
+            href="/challenges"
+          />
           {account ? (
             <>
               <ListRow

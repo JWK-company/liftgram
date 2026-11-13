@@ -1,0 +1,214 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "요구",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "사용자는 친구 몇 명과 그룹을 만들어 「매일 운동」 같은 공동 목표를 세우고 싶다. 서로의 출석이 보이고, 빠진 사람은 벌칙을 받아야 한다. 출석은 쉽게 속일 수 없어야 한다. 헬스장에서 운동하는 중에 찍은 사진으로만 인정한다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "필요",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "그룹을 만들고 초대 링크로 친구를 부른다(공개 모집 없음, 2~10명).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "기간·목표·인정 조건·벌칙을 시작 전에 정하고, 시작하면 바꾸지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "운동 중에 앱 카메라로 인증 사진을 찍는다. 갤러리 사진은 받지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "빠진 날은 다음 날 보충 운동으로 만회할 수 있다. 사정이 있는 날은 주 1회 면제권을 쓴다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "만회하지 못하면 그룹이 정한 벌칙이 하나 쌓이고, 이행했는지 기록한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "수상한 인증은 멤버가 이의를 걸어 과반이 동의하면 무효로 한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "사진에 남의 얼굴이 찍힐 수 있으니 멤버만 보고, 끝나면 지운다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "하지 않는 것",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "돈 걷기·맡기·나누기(ADR-065)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "공개 챌린지·모르는 사람과 매칭",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "AI 판별·위치 확인(2단계)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "liftgram/plan",
+  "id": "URS-035",
+  "meta": {
+    "priority": "High",
+    "stakeholder": "앱 사용자(친구 모임)"
+  },
+  "relations": {},
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "그룹 챌린지 — 친구와 같이 목표를 세우고, 빠지면 벌칙, 사진으로 출석 인증",
+  "type": "URS",
+  "updated": "2026-11-13T02:22:59Z"
+}

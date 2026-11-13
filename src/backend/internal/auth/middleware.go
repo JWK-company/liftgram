@@ -85,6 +85,12 @@ func identify(v Verifier, header string) (string, string, bool) {
 	return id, role, true
 }
 
+// IdentifyHeader 는 Connect 밖 HTTP 핸들러(인증 사진 읽기 · SPEC-064)가 같은 판정을 쓰게 한다.
+func IdentifyHeader(v Verifier, header string) (string, bool) {
+	id, _, ok := identify(v, header)
+	return id, ok
+}
+
 // UserIDFrom은 확인된 사용자 id를 꺼낸다. 로그인하지 않았으면 ok=false다.
 func UserIDFrom(ctx context.Context) (string, bool) {
 	id, ok := ctx.Value(userIDKey).(string)

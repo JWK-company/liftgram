@@ -46,6 +46,17 @@ function sentence(n: Notification): string {
     // 이달의 리프터(SPEC-063) — actor 는 받는 사람 자신이라 이름을 쓰지 않는다
     case NotificationKind.AWARD:
       return t("notif.award");
+    // 그룹 챌린지(SPEC-064) — actor 는 받는 사람 자신 · ref_id = 챌린지 id
+    case NotificationKind.CHALLENGE_REMIND:
+      return t("notif.challenge_remind");
+    case NotificationKind.CHALLENGE_MISSED:
+      return t("notif.challenge_missed");
+    case NotificationKind.CHALLENGE_PROOF_INVALID:
+      return t("notif.challenge_proof_invalid");
+    case NotificationKind.CHALLENGE_ENDED:
+      return t("notif.challenge_ended");
+    case NotificationKind.CHALLENGE_CANCELLED:
+      return t("notif.challenge_cancelled");
     default:
       return t("notif.generic", { name });
   }
@@ -57,6 +68,8 @@ function target(n: Notification): string {
   // 이달의 리프터(SPEC-063) — ref_id = 수상 id → 쿠폰 화면(post_id 가 비어 있어 피드로 떨어지지 않게 먼저)
   if (n.kind === NotificationKind.AWARD)
     return n.refId ? `/awards/${encodeURIComponent(n.refId)}` : "/awards";
+  // 그룹 챌린지(SPEC-064) — ref_id = 챌린지 id(post_id 가 비어 있어 먼저)
+  if (isChallengeNotif(n)) return n.refId ? `/challenges/${encodeURIComponent(n.refId)}` : "/challenges";
   if (n.kind === NotificationKind.COACHING_SUMMARY) return "/messages"; // 실제 이동은 openSummary(그 회원과의 대화) @plm SRS-080
   // 코칭 v2(SPEC-050) — post_id 가 비어 있어 아래 글 화면 길로 떨어지지 않게 먼저 고른다
   //   요청·수락·해지 → /coaching · 루틴 → 운동 홈(받은 루틴) · 코멘트 → /history/[ref_id](ref_id 가 없으면 /coaching · P4)
@@ -68,6 +81,17 @@ function target(n: Notification): string {
   return n.kind === NotificationKind.COMMENT
     ? `${routes.postComments(n.postId)}?comments=1`
     : routes.postComments(n.postId);
+}
+
+/** 그룹 챌린지 알림(SPEC-064) — 보낸 사람이 없다(아이콘으로 그린다) */
+export function isChallengeNotif(n: Pick<Notification, "kind">): boolean {
+  return (
+    n.kind === NotificationKind.CHALLENGE_REMIND ||
+    n.kind === NotificationKind.CHALLENGE_MISSED ||
+    n.kind === NotificationKind.CHALLENGE_PROOF_INVALID ||
+    n.kind === NotificationKind.CHALLENGE_ENDED ||
+    n.kind === NotificationKind.CHALLENGE_CANCELLED
+  );
 }
 
 /** 코칭 알림의 갈 곳 — 코칭 종류가 아니면 null. */
@@ -254,6 +278,14 @@ export default function NotificationsClient() {
                               data-testid="notif-award-icon"
                             >
                               <Icon name="trophy-outline" size={22} color="var(--color-ink)" />
+                            </span>
+                          ) : isChallengeNotif(n) ? (
+                            <span
+                              data-shape="round"
+                              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-(--color-surface-alt)"
+                              data-testid="notif-challenge-icon"
+                            >
+                              <Icon name="people-outline" size={22} color="var(--color-ink)" />
                             </span>
                           ) : (
                             <Avatar name={n.actor?.displayName} url={n.actor?.avatarUrl} size={40} />

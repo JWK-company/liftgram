@@ -149,6 +149,15 @@ export function clearTokens(): void {
 }
 
 /**
+ * 지금 쓸 access 토큰 — 메모리에 없으면(새로고침 직후) 같은 단일 비행 갱신으로 되살린다. force 면 갱신부터.
+ * fetch 로 직접 부르는 곳(인증 사진 · SPEC-064 REV-162 M-6)이 Connect 클라이언트와 같은 갱신 규칙을 쓰게.
+ */
+export async function freshAccessToken(force = false): Promise<string | null> {
+  if ((force || !accessToken) && hasSession()) await refreshOnce();
+  return accessToken;
+}
+
+/**
  * 지금 로그인돼 있는가 — **깃발**로 본다(쿠키는 못 읽는다).
  *
  * access는 새로고침하면 사라지지만 그건 "로그아웃"이 아니다. 첫 요청에서 갱신하면 된다.

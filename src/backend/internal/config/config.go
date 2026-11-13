@@ -118,6 +118,10 @@ type Config struct {
 	UsageEnabled bool
 	// UsageJobIntervalSec — 이용 기록 집계 주기(초).
 	UsageJobIntervalSec int
+	// ChallengePhotoDir — 그룹 챌린지 인증 사진(비공개 · 공개 미디어와 다른 폴더 · 백업 제외 · SPEC-064).
+	ChallengePhotoDir string
+	// ChallengeLoopIntervalSec — 챌린지 판정 루프 주기(초 · 기본 600 · e2e 는 짧게).
+	ChallengeLoopIntervalSec int
 
 	OAuthGoogleClientID     string
 	OAuthGoogleClientSecret string
@@ -172,41 +176,43 @@ func Load() (*Config, error) {
 		S3AccessKey:     os.Getenv("S3_ACCESS_KEY_ID"),
 		S3SecretKey:     os.Getenv("S3_SECRET_ACCESS_KEY"),
 
-		AppURL:                  envStr("APP_URL", "http://localhost:3100"),
-		MailTransport:           strings.ToLower(envStr("MAIL_TRANSPORT", "console")),
-		MailSMTPHost:            os.Getenv("MAIL_SMTP_HOST"),
-		MailSMTPPort:            envInt("MAIL_SMTP_PORT", 587),
-		MailSMTPUser:            os.Getenv("MAIL_SMTP_USER"),
-		MailSMTPPass:            os.Getenv("MAIL_SMTP_PASSWORD"),
-		MailFrom:                envStr("MAIL_FROM", "Liftgram <no-reply@localhost>"),
-		MailRequireTLS:          envStr("MAIL_REQUIRE_TLS", "true") == "true",
-		TurnstileSecret:         os.Getenv("TURNSTILE_SECRET"),
-		AuthRateLimit:           envInt("AUTH_RATE_LIMIT", 10),
-		KakaoLocalRestKey:       os.Getenv("KAKAO_LOCAL_REST_KEY"),
-		KakaoLocalSince:         envStr("KAKAO_LOCAL_SINCE", "2026-11-05T00:00:00+09:00"),
-		YouTubeAPIKey:           os.Getenv("YOUTUBE_API_KEY"),
-		ImageScanURL:            os.Getenv("IMAGE_SCAN_URL"),
-		ImageScanThreshold:      envStr("IMAGE_SCAN_THRESHOLD", "0.9"),
-		ImageScanSince:          envStr("IMAGE_SCAN_SINCE", "2026-11-05T00:00:00+09:00"),
-		FeedRecommendSince:      envStr("FEED_RECOMMEND_SINCE", "2026-11-05T00:00:00+09:00"),
-		UsageSince:              envStr("USAGE_SINCE", "2026-11-05T00:00:00+09:00"),
-		AdminURL:                envStr("ADMIN_URL", "https://liftgram-admin.tarae.org"),
-		OpsAlertMailIntervalSec: envInt("OPS_ALERT_MAIL_INTERVAL_SEC", 1800),
-		StatsCacheSec:           envInt("STATS_CACHE_SEC", 300),
-		UsageEnabled:            envStr("USAGE_ENABLED", "true") != "false",
-		UsageJobIntervalSec:     envInt("USAGE_JOB_INTERVAL_SEC", 3600),
-		OAuthGoogleClientID:     os.Getenv("OAUTH_GOOGLE_CLIENT_ID"),
-		OAuthGoogleClientSecret: os.Getenv("OAUTH_GOOGLE_CLIENT_SECRET"),
-		OAuthKakaoClientID:      os.Getenv("OAUTH_KAKAO_CLIENT_ID"),
-		OAuthKakaoClientSecret:  os.Getenv("OAUTH_KAKAO_CLIENT_SECRET"),
-		OAuthKakaoLegacy:        os.Getenv("OAUTH_KAKAO_LEGACY") == "true",
-		OAuthNaverClientID:      os.Getenv("OAUTH_NAVER_CLIENT_ID"),
-		OAuthNaverClientSecret:  os.Getenv("OAUTH_NAVER_CLIENT_SECRET"),
-		OAuthAppleServicesID:    os.Getenv("OAUTH_APPLE_SERVICES_ID"),
-		OAuthAppleTeamID:        os.Getenv("OAUTH_APPLE_TEAM_ID"),
-		OAuthAppleKeyID:         os.Getenv("OAUTH_APPLE_KEY_ID"),
-		OAuthApplePrivateKey:    os.Getenv("OAUTH_APPLE_PRIVATE_KEY"),
-		IOSBundleID:             envStr("IOS_BUNDLE_ID", "org.tarae.liftgram"),
+		AppURL:                   envStr("APP_URL", "http://localhost:3100"),
+		MailTransport:            strings.ToLower(envStr("MAIL_TRANSPORT", "console")),
+		MailSMTPHost:             os.Getenv("MAIL_SMTP_HOST"),
+		MailSMTPPort:             envInt("MAIL_SMTP_PORT", 587),
+		MailSMTPUser:             os.Getenv("MAIL_SMTP_USER"),
+		MailSMTPPass:             os.Getenv("MAIL_SMTP_PASSWORD"),
+		MailFrom:                 envStr("MAIL_FROM", "Liftgram <no-reply@localhost>"),
+		MailRequireTLS:           envStr("MAIL_REQUIRE_TLS", "true") == "true",
+		TurnstileSecret:          os.Getenv("TURNSTILE_SECRET"),
+		AuthRateLimit:            envInt("AUTH_RATE_LIMIT", 10),
+		KakaoLocalRestKey:        os.Getenv("KAKAO_LOCAL_REST_KEY"),
+		KakaoLocalSince:          envStr("KAKAO_LOCAL_SINCE", "2026-11-05T00:00:00+09:00"),
+		YouTubeAPIKey:            os.Getenv("YOUTUBE_API_KEY"),
+		ImageScanURL:             os.Getenv("IMAGE_SCAN_URL"),
+		ImageScanThreshold:       envStr("IMAGE_SCAN_THRESHOLD", "0.9"),
+		ImageScanSince:           envStr("IMAGE_SCAN_SINCE", "2026-11-05T00:00:00+09:00"),
+		FeedRecommendSince:       envStr("FEED_RECOMMEND_SINCE", "2026-11-05T00:00:00+09:00"),
+		UsageSince:               envStr("USAGE_SINCE", "2026-11-05T00:00:00+09:00"),
+		AdminURL:                 envStr("ADMIN_URL", "https://liftgram-admin.tarae.org"),
+		OpsAlertMailIntervalSec:  envInt("OPS_ALERT_MAIL_INTERVAL_SEC", 1800),
+		StatsCacheSec:            envInt("STATS_CACHE_SEC", 300),
+		UsageEnabled:             envStr("USAGE_ENABLED", "true") != "false",
+		UsageJobIntervalSec:      envInt("USAGE_JOB_INTERVAL_SEC", 3600),
+		ChallengePhotoDir:        envStr("CHALLENGE_PHOTO_DIR", defaultChallengePhotoDir()),
+		ChallengeLoopIntervalSec: envInt("CHALLENGE_LOOP_INTERVAL_SEC", 600),
+		OAuthGoogleClientID:      os.Getenv("OAUTH_GOOGLE_CLIENT_ID"),
+		OAuthGoogleClientSecret:  os.Getenv("OAUTH_GOOGLE_CLIENT_SECRET"),
+		OAuthKakaoClientID:       os.Getenv("OAUTH_KAKAO_CLIENT_ID"),
+		OAuthKakaoClientSecret:   os.Getenv("OAUTH_KAKAO_CLIENT_SECRET"),
+		OAuthKakaoLegacy:         os.Getenv("OAUTH_KAKAO_LEGACY") == "true",
+		OAuthNaverClientID:       os.Getenv("OAUTH_NAVER_CLIENT_ID"),
+		OAuthNaverClientSecret:   os.Getenv("OAUTH_NAVER_CLIENT_SECRET"),
+		OAuthAppleServicesID:     os.Getenv("OAUTH_APPLE_SERVICES_ID"),
+		OAuthAppleTeamID:         os.Getenv("OAUTH_APPLE_TEAM_ID"),
+		OAuthAppleKeyID:          os.Getenv("OAUTH_APPLE_KEY_ID"),
+		OAuthApplePrivateKey:     os.Getenv("OAUTH_APPLE_PRIVATE_KEY"),
+		IOSBundleID:              envStr("IOS_BUNDLE_ID", "org.tarae.liftgram"),
 	}
 	if c.MailTransport != "smtp" && c.MailTransport != "console" {
 		return nil, fmt.Errorf("[env] MAIL_TRANSPORT는 smtp 또는 console이어야 합니다 (받은 값: %q)", c.MailTransport)
@@ -288,6 +294,14 @@ func defaultMediaDir() string {
 		return "/app/media"
 	}
 	return filepath.Join("..", ".media")
+}
+
+// 인증 사진 — 컨테이너는 /app/challenge-photos(별도 볼륨), 로컬은 backend 밖의 .challenge-photos/.
+func defaultChallengePhotoDir() string {
+	if st, err := os.Stat("/app"); err == nil && st.IsDir() {
+		return "/app/challenge-photos"
+	}
+	return filepath.Join("..", ".challenge-photos")
 }
 
 func envStr(key, def string) string {
